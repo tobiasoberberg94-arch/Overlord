@@ -11,6 +11,11 @@ var tabs := TabContainer.new()
 var region_box := VBoxContainer.new()
 var army_box := VBoxContainer.new()
 var status_label := RichTextLabel.new()
+var day_label := Label.new()
+var stop_button := Button.new()
+var time_buttons: Array[Button] = []
+var _playing := false
+var _stop := false
 var _region := "nazarick"
 var _army := ""
 
@@ -31,11 +36,30 @@ func _init(start_region: String = "nazarick") -> void:
 	canvas.region_clicked.connect(_on_region)
 	canvas.army_clicked.connect(_on_army)
 	left.add_child(canvas)
+	var bottom := HBoxContainer.new()
+	bottom.add_theme_constant_override("separation", 8)
+	left.add_child(bottom)
 	status_label.bbcode_enabled = true
 	status_label.fit_content = true
 	status_label.scroll_active = false
+	status_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	status_label.add_theme_font_size_override("normal_font_size", 16)
-	left.add_child(status_label)
+	bottom.add_child(status_label)
+	# Zeitsteuerung direkt auf der Karte: Heere marschieren sichtbar Tag für Tag
+	day_label.theme_type_variation = "GoldLabel"
+	bottom.add_child(day_label)
+	for spec in [["▶ 1 Tag", 1], ["▶▶ 1 Woche", 7]]:
+		var b := Button.new()
+		b.text = spec[0]
+		b.theme_type_variation = "ButtonWarning"
+		b.pressed.connect(_play.bind(spec[1]))
+		bottom.add_child(b)
+		time_buttons.append(b)
+	stop_button.text = "■"
+	stop_button.tooltip_text = "Anhalten"
+	stop_button.disabled = true
+	stop_button.pressed.connect(func(): _stop = true)
+	bottom.add_child(stop_button)
 
 	tabs.custom_minimum_size.x = 430
 	row.add_child(tabs)
@@ -84,7 +108,45 @@ func _refresh() -> void:
 	_build_armies()
 
 
+## Lässt Tage auf der Karte animiert verstreichen. Stoppt bei Depeschen.
+func _play(days: int) -> void:
+	if _playing:
+		return
+	if not Game.pending().is_empty():
+		_toast("Erst müssen die Depeschen beantwortet werden – schließt die Karte.")
+		return
+	_playing = true
+	_stop = false
+	stop_button.disabled = false
+	for b in time_buttons:
+		b.disabled = true
+	Audio.sfx("gong", 0.4)
+	for i in days:
+		if _stop or not is_inside_tree():
+			break
+		var tw := create_tween()
+		tw.tween_property(canvas, "anim_frac", 1.0, 0.55).from(0.0)
+		await tw.finished
+		if not is_instance_valid(self) or _closing:
+			return
+		canvas.anim_frac = 0.0
+		Game.advance(1)
+		if not Game.pending().is_empty():
+			_toast("Eine Depesche ist eingetroffen.")
+			break
+	_playing = false
+	if is_inside_tree():
+		stop_button.disabled = true
+		for b in time_buttons:
+			b.disabled = false
+		_refresh()
+	if not Game.pending().is_empty() and is_inside_tree():
+		await get_tree().create_timer(0.6).timeout
+		close()
+
+
 func _build_status() -> void:
+	day_label.text = "Tag %d" % Game.state.day
 	var inc := World.daily_income()
 	var up := World.daily_upkeep()
 	var t := "[color=#d4af37]Tagesbilanz:[/color] [color=#6fdc8c]+%d Gold[/color] Einkünfte · [color=#ff7a7a]−%d Gold[/color] Unterhalt (davon Armeen %d)" % [roundi(inc.gold + World.decree_daily_gold()), up, roundi(Military.total_upkeep() * Game.diff("upkeep"))]
@@ -154,6 +216,11 @@ func _build_region() -> void:
 	var hostile: bool = r.get("hostile", false)
 	region_box.add_child(_label("%s%s" % [World.control_label(st.influence), "  ·  feindliches Gebiet" if hostile else ""], "GoldLabel", 16))
 	region_box.add_child(_rich("[color=#b7aecb]%s[/color]" % r.desc))
+	var fid: String = r.get("faction", "")
+	if fid != "" and Diplomacy.is_known(fid):
+		var stn := Diplomacy.stance(fid)
+		region_box.add_child(_rich("[color=#d4af37]Herrschaft:[/color] %s – [color=%s]%s[/color]%s" % [Diplomacy.faction(fid).name, stn[1], stn[0],
+			"  [color=#ff9a3c](Eroberung im Frieden: Beziehung −45, Ruf −6)[/color]" if not Diplomacy.at_war(fid) and Military.can_conquer(_region) else ""]))
 	var ib := StatBar.new("Einfluss", Palette.GOLD, "", 90)
 	ib.set_value(st.influence)
 	region_box.add_child(ib)

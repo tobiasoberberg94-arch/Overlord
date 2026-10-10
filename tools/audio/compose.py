@@ -253,6 +253,35 @@ def tension_theme():
     return loopify(reverb(mix, 0.3, 3.0), total)
 
 
+def battle_theme():
+    """Schlacht: treibende Pauken-Ostinati, Blechbläser-Stöße, Chor. ~48 s Loop, 132 BPM."""
+    bpm = 132
+    beat = 60 / bpm
+    bars = 26
+    total = bars * 4 * beat
+    mix = np.zeros(int((total + 6) * SR))
+    prog = [Dm, Dm, Bb, A_, Dm, Gm, Bb, A_]
+    pattern = [1.0, 0, 0.6, 0.6, 1.0, 0, 0.6, 0.8]
+    k = 0
+    tt = 0.0
+    while tt < total:
+        a = pattern[k % len(pattern)]
+        if a:
+            place(mix, timpani(38 if k % 8 < 4 else 33, 1.2, a), tt)
+        place(mix, heartbeat(0.4, 0.25), tt)
+        tt += beat / 2
+        k += 1
+    for b in range(bars):
+        ch = prog[b % len(prog)]
+        start = b * 4 * beat
+        stab = strings([n + 12 for n in ch], 4 * beat + 1, 2600) * env_adsr(int((4 * beat + 1) * SR), 0.02, 0.4, 0.55, 0.6)
+        place(mix, stab * 0.8, start)
+        place(mix, strings([ch[0] - 12, ch[0]], 0.6, 900) * env_adsr(int(0.6 * SR), 0.005, 0.2, 0.4, 0.2) * 1.2, start + 2 * beat)
+        if b % 2 == 0:
+            place(mix, choir([n + 12 for n in ch[1:]], 8 * beat + 1, 0.8) * env_adsr(int((8 * beat + 1) * SR), 0.6, 0.5, 0.8, 1.0) * 0.7, start)
+    return loopify(reverb(mix, 0.25, 2.2), total)
+
+
 # ------------------------------------------------------------------ Soundeffekte
 def sfx_click():
     t = t_axis(0.09)
@@ -319,3 +348,4 @@ if __name__ == "__main__":
     write_ogg(title_theme(), os.path.join(music, "title.ogg"))
     write_ogg(throne_theme(), os.path.join(music, "throne.ogg"))
     write_ogg(tension_theme(), os.path.join(music, "tension.ogg"))
+    write_ogg(battle_theme(), os.path.join(music, "battle.ogg"))

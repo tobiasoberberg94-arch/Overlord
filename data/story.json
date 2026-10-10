@@ -326,6 +326,130 @@
     {
       "number": 8,
       "numeral": "VIII",
+      "title": "Die Hallen von Feo Jera",
+      "subtitle": "Runen, Quagoa und ein Drache aus Eis",
+      "image": "world_map",
+      "intro": "Das Zauberkönigreich hat eine Hauptstadt, ein Heer – und leere Schmieden. Gerüchte erreichen E-Rantel: Im Azerlisia-Gebirge kämpft ein Zwergenreich ums Überleben, dessen Runenschmiede Waffen erschaffen, die nicht einmal Yggdrasil kannte.\n\nDie Hauptstadt der Zwerge ist gefallen. Quagoa – maulwurfartige Halbmenschen – hausen in ihren Hallen, und darüber thront ein Frostdrache namens Olasird'arc.\n\nAura hüpft vor Begeisterung. »Ein Drache, Ainz-sama! Darf ich ihn zähmen? Bitte?«\nShalltear: »Ich will ihn erlegen, ~arinsu!«\nAlbedo: »Ich will wissen, warum Ihr überhaupt Zwerge braucht.«",
+      "objectives": [
+        {
+          "text": "Das Azerlisia-Gebirge erkunden",
+          "cond": {
+            "region_discovered": [
+              "azerlisia"
+            ]
+          }
+        },
+        {
+          "text": "Kontakt zu den Zwergen herstellen",
+          "flag": "dwarf_contact"
+        },
+        {
+          "text": "Das Schicksal des Frostdrachen besiegeln",
+          "flag": "frost_dragon_done"
+        },
+        {
+          "text": "Die Zwerge als Verbündete oder Vasallen gewinnen",
+          "cond": {
+            "faction_relation_min": {
+              "dwarves": 30
+            }
+          }
+        }
+      ],
+      "min_days": 12
+    },
+    {
+      "number": 9,
+      "numeral": "IX",
+      "title": "Das Heilige Königreich",
+      "subtitle": "Ein Dämonenkaiser, ein Mädchen und ein Gott der Gerechtigkeit",
+      "image": "holy_kingdom",
+      "intro": "Im Süden, hinter einer gewaltigen Mauer, liegt das Heilige Königreich Roble. Fromm, stolz – und ahnungslos.\n\nDemiurge hat einen Plan. Natürlich hat er einen Plan. »Der Erzdämon Jaldabaoth wird mit einer Armee von Halbmenschen über die Mauer kommen, {lord}. Das Königreich wird bluten. Und wenn es am Boden liegt, wird es um Hilfe flehen – beim einzigen Herrscher, der Jaldabaoth je besiegt hat.«\n\nDu fragst nicht, wie viele dabei sterben werden. Du weißt, dass Demiurge die Zahl kennt. Und dass sie ihn nicht stört.",
+      "objectives": [
+        {
+          "text": "Das Heilige Königreich erkunden",
+          "cond": {
+            "region_discovered": [
+              "roble"
+            ]
+          }
+        },
+        {
+          "text": "Operation ›Jaldabaoths Rückkehr‹",
+          "flag": "roble_invaded"
+        },
+        {
+          "text": "Den Retter des Heiligen Königreichs spielen",
+          "flag": "roble_saved"
+        },
+        {
+          "text": "Einfluss im Heiligen Königreich",
+          "cond": {
+            "region_min": {
+              "roble": 35
+            }
+          }
+        }
+      ],
+      "min_days": 14
+    },
+    {
+      "number": 10,
+      "numeral": "X",
+      "title": "Der Wald der Elfen",
+      "subtitle": "Aura, Mare und der König, der ihr Vater sein könnte",
+      "image": "forest",
+      "intro": "Jenseits der Theokratie liegt das Elfenkönigreich – ein Reich im ewigen Krieg, regiert von einem König, der nur Stärke kennt und seine Kinder als Waffen züchtet.\n\nAura und Mare stehen vor dem Thron. Ungewohnt still.\n\n»Ainz-sama«, sagt Aura schließlich. »Die Elfen dort … sie sind wie wir. Dunkelelfen auch. Dürfen wir … mitkommen?«\n\nMare nickt nur. Er hält seinen Stab so fest, dass das Holz knarrt.",
+      "objectives": [
+        {
+          "text": "Das Elfenkönigreich erkunden",
+          "cond": {
+            "region_discovered": [
+              "elfen"
+            ]
+          }
+        },
+        {
+          "text": "Die Wahrheit über den Elfenkönig herausfinden",
+          "flag": "elf_truth"
+        },
+        {
+          "text": "Über den Elfenkönig richten",
+          "flag": "elf_king_done"
+        }
+      ],
+      "min_days": 12
+    },
+    {
+      "number": 11,
+      "numeral": "XI",
+      "title": "Der Platin-Drachenlord",
+      "subtitle": "Das Gleichgewicht der Welt",
+      "image": "world_map",
+      "intro": "Sechshundert Jahre lang hat Tsaindorcus Vaision über die Welt gewacht. Er hat die Acht Gierkönige fallen sehen, die Sechs Großen Götter kommen und gehen. Er weiß, was ›Spieler‹ sind.\n\nUnd nun hat er Nazarick gesehen.\n\nEine leere Platinrüstung steht am Rand der Katze-Ebene und wartet. Sie trägt eine Botschaft: »Der Herrscher des Grabes möge sich zeigen.«\n\nAlbedo legt die Hand auf deinen Arm. Zum ersten Mal zittert sie nicht vor Leidenschaft, sondern vor Angst. »Er ist stark, {lord}. Vielleicht stärker als jeder von uns.«",
+      "objectives": [
+        {
+          "text": "Die Drachenlande erkunden",
+          "cond": {
+            "region_discovered": [
+              "drachen"
+            ]
+          }
+        },
+        {
+          "text": "Die Platinrüstung stellen",
+          "flag": "platinum_met"
+        },
+        {
+          "text": "Das Schicksal der Welt entscheiden",
+          "flag": "world_decided"
+        }
+      ],
+      "min_days": 10
+    },
+    {
+      "number": 12,
+      "numeral": "XII",
       "title": "Ewige Herrschaft",
       "subtitle": "Die Welt gehört Nazarick",
       "intro": "Du sitzt auf dem Thron eines Reiches, das es vor einem Jahr noch nicht gab. Menschen, Echsenmenschen, Goblins und Untote leben unter deinem Banner.\n\nDoch die Welt ist groß. Die Slane-Theokratie rüstet. Ein Platin-Drache beobachtet dich aus der Ferne. Zwergenreiche, Elfenkönige, uralte Drachenlords …\n\nUnd zwei Frauen streiten noch immer darüber, wer an deiner Seite sitzen darf.\n\n[b][color=#d4af37]Die Geschichte des Overlords ist nicht zu Ende. Sie hat gerade erst begonnen.[/color][/b]",

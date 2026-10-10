@@ -69,6 +69,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	match key.keycode:
 		KEY_A: _open_missions()
 		KEY_K: _open_map()
+		KEY_P: _open_overlay(DiplomacyView.new())
 		KEY_V: _open_overlay(AdministrationView.new())
 		KEY_U: _open_characters("albedo")
 		KEY_C: _open_overlay(ChronicleView.new())
@@ -149,7 +150,7 @@ func _build_top_bar() -> Control:
 	lord.add_child(efficiency_label)
 	hb.add_child(lord)
 	hb.add_child(VSeparator.new())
-	for spec in [["Speichern", func(): _open_overlay(SaveLoadDialog.new(true))],
+	for spec in [["Chronik", func(): _open_overlay(ChronicleView.new())], ["Speichern", func(): _open_overlay(SaveLoadDialog.new(true))],
 			["Laden", _open_load], ["⚙", _open_settings], ["Titel", _to_title]]:
 		var b := Button.new()
 		b.text = spec[0]
@@ -343,12 +344,12 @@ func _build_bottom_bar() -> Control:
 	ticker.custom_minimum_size.y = 66
 	hb.add_child(ticker)
 	hb.add_child(VSeparator.new())
-	ticker.custom_minimum_size.x = 260
+	ticker.custom_minimum_size.x = 180
 	for spec in [["Aufträge", "ButtonPrimary", _open_missions, "icon_mission", "Auftragstafel [A]"],
 			["Weltkarte", "ButtonPrimary", _open_map, "icon_magic", "Weltkarte, Regionen & Legionen [K]"],
+			["Diplomatie", "Button", func(): _open_overlay(DiplomacyView.new()), "icon_emblem", "Fraktionen & Gesandtschaften [P]"],
 			["Verwaltung", "Button", func(): _open_overlay(AdministrationView.new()), "icon_gold", "Finanzen & Erlasse [V]"],
-			["Untertanen", "Button", func(): _open_characters("albedo"), "icon_nazarick", "Wächter & Audienzen [U]"],
-			["Chronik", "Button", func(): _open_overlay(ChronicleView.new()), "icon_floor", "Chronik [C]"]]:
+			["Untertanen", "Button", func(): _open_characters("albedo"), "icon_nazarick", "Wächter & Audienzen [U]"]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.tooltip_text = spec[4]
@@ -364,6 +365,8 @@ func _build_bottom_bar() -> Control:
 			tutorial_targets["map"] = b
 		elif spec[3] == "icon_gold":
 			tutorial_targets["admin"] = b
+		elif spec[3] == "icon_emblem":
+			tutorial_targets["diplomacy"] = b
 	hb.add_child(VSeparator.new())
 	for spec in [["1 Tag", 1], ["1 Woche", 7], ["1 Monat", 30]]:
 		var b := Button.new()
@@ -553,6 +556,7 @@ func _open_missions(region: String = "") -> void:
 func _open_map(region: String = "nazarick") -> void:
 	var m := WorldMapView.new(region)
 	m.open_missions.connect(func(rid): await get_tree().create_timer(0.3).timeout; _open_missions(rid))
+	m.closed.connect(func(): await get_tree().create_timer(0.2).timeout; _open_next_dispatch())
 	_open_overlay(m)
 
 
@@ -574,7 +578,7 @@ func _open_dispatch(uid: String) -> void:
 	var d := Game.get_dispatch(uid)
 	if d.is_empty() or overlay_layer.get_child_count() > 0:
 		return
-	var dlg := DispatchDialog.new(d)
+	var dlg: Overlay = BattleView.new(d) if d.kind == "battle" and Game.state.battles.has(d.get("context", {}).get("battle", "")) else DispatchDialog.new(d)
 	dlg.closed.connect(func(): await get_tree().create_timer(0.15).timeout; _open_next_dispatch())
 	_open_overlay(dlg)
 
@@ -622,6 +626,8 @@ func start_tutorial() -> void:
 			"text": "Berichte, Ereignisse, Eigeninitiativen und Vorschläge erscheinen hier und öffnen sich automatisch. Ihr antwortet mit [color=#6fdc8c]Lob[/color], [color=#f2b43c]Belohnung[/color], [color=#ff4a5a]Tadel[/color] oder Schweigen – und jede Antwort hat Folgen. Für Gunst, Stimmung … und Eifersucht."},
 		{"speaker": "demiurge", "target": t.get("map"), "title": "Die Weltkarte  [K]",
 			"text": "Hier liegt die Neue Welt vor Euch, {lord}. Jede [b]Region[/b] muss erst erkundet werden; danach wächst unser [b]Einfluss[/b] durch Aufträge – und mit ihm die täglichen Einkünfte. Achtet auf die [color=#ff4a5a]Unruhe[/color]: Wer zu grausam herrscht, erntet Aufstände.\n\nHier hebt Ihr auch [b]Legionen[/b] aus, ernennt einen Wächter zum Feldherrn und schickt sie auf Feldzüge – zur Verteidigung oder zur Eroberung."},
+		{"speaker": "albedo", "target": t.get("diplomacy"), "title": "Diplomatie  [P]",
+			"text": "Die Reiche der Menschen, Zwerge und Drachen beobachten uns. Schickt [b]Gesandte[/b] – Geschenke, Handelsabkommen, Nichtangriffspakte … oder eine [b]Machtdemonstration[/b], bis sie sich als [b]Vasallen[/b] unterwerfen. Wer uns hasst, erklärt irgendwann den Krieg. Ich übernehme gerne jede Verhandlung persönlich, {lord}."},
 		{"speaker": "albedo", "target": t.get("admin"), "title": "Die Reichsverwaltung  [V]",
 			"text": "Ein Reich will verwaltet werden. Hier seht Ihr Einkünfte und [b]Unterhalt[/b] – das Grab, jeder Einsatz und jede Legion kosten Gold. Mit [b]Erlassen[/b] legt Ihr den Kurs Eurer Herrschaft fest. Die Plätze sind begrenzt, und wir Wächter haben … Meinungen dazu."},
 		{"speaker": "albedo", "target": t.get("running"), "title": "Laufende Aufträge",

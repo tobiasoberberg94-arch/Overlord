@@ -93,6 +93,7 @@ func new_game(difficulty: String = "normal") -> void:
 		state.chars[cid] = _new_char_state(cid)
 	World.init_state(state)
 	Military.init_state(state)
+	Diplomacy.init_state(state)
 	log_msg("Das Große Grab von Nazarick erwacht in einer fremden Welt.", "story")
 	_enter_chapter(1)
 	state_changed.emit()
@@ -144,6 +145,7 @@ func _normalize() -> void:
 		state.failed[k] = int(state.failed[k])
 	World.normalize(state)
 	Military.normalize(state)
+	Diplomacy.normalize(state)
 	if not state.has("difficulty"):
 		state["difficulty"] = "normal"
 	for k in state.fired:
@@ -310,6 +312,8 @@ func check(cond: Variant) -> bool:
 			return false
 	if state.has("regions") and not World.check(c):
 		return false
+	if state.has("factions") and not Diplomacy.check(c):
+		return false
 	return true
 
 
@@ -378,6 +382,8 @@ func apply_effects(eff: Variant) -> Array:
 		summary += World.apply_region_effects(eff.regions)
 	if eff.has("mission_mod"):
 		summary += World.apply_mission_mod(eff.mission_mod)
+	if eff.has("factions"):
+		summary += Diplomacy.apply_faction_effects(eff.factions)
 	if eff.has("battle"):
 		summary += Military.resolve_battle(eff.battle.uid, eff.battle.tactic)
 	for ev_id in eff.get("queue_events", []):
@@ -502,6 +508,10 @@ func queue_event(ev_id: String) -> void:
 		i += 1
 	if options.is_empty():
 		options.append({"key": "ok", "label": "Fortfahren", "effects": {}, "reaction": "", "variant": "primary"})
+	if ev.get("special", "") == "ending":
+		ev = ev.duplicate()
+		ev["body"] = build_ending()
+		options = [{"key": "ok", "label": "Die Herrschaft geht weiter …", "effects": {"set_flags": ["game_completed"]}, "reaction": "", "variant": "primary"}]
 	_push({
 		"uid": next_uid("d"), "kind": ev.get("kind", "event"), "char_id": ev.get("char", ""),
 		"day": state.day, "title": fmt(ev.title), "body": fmt(ev.body), "options": options,
@@ -658,7 +668,10 @@ func _score(m: Dictionary, cid: String, directive: String, roll: bool = true, pa
 		score += float(cd.get("style", {}).get("score", 0))
 	if cid in m.get("recommended", []):
 		score += 6.0
-	score += World.partner_bonus(m, cid, partner) + extra - diff("mission")
+	# Schwierigkeitsgrad: Hauptaufträge nur halber Aufschlag; aus Fehlschlägen lernt man (bis −15)
+	var diff_pen := diff("mission") * (0.5 if m.get("main", false) else 1.0)
+	var learned := minf(15.0, int(state.get("failed", {}).get(m.get("id", ""), 0)) * 5.0)
+	score += World.partner_bonus(m, cid, partner) + extra - diff_pen + learned
 	if roll:
 		var v := float(dmod.get("variance", 15)) + float(World.synergy(cid, partner).get("variance", 0))
 		score += rng.randf_range(-v, v)
@@ -777,7 +790,9 @@ func _resolve_mission(am: Dictionary) -> void:
 
 	_add_deed(cid, "%s – %s" % [m.title, TIER_LABELS[tier]])
 	log_msg("%s kehrt zurück: »%s« – %s." % [cd.name, m.title, TIER_LABELS[tier]], "warning" if tier == "failure" else "mission")
-	if m.has("threat"):
+	if m.has("diplomacy"):
+		summary += Diplomacy.resolve_envoy(m, tier, cid)
+	if m.has("threat") or m.has("diplomacy"):
 		state.dynamic_missions.erase(m.id)
 	if tier != "failure":
 		state.completed[m.id] = int(state.completed.get(m.id, 0)) + 1
@@ -808,6 +823,65 @@ func _resolve_mission(am: Dictionary) -> void:
 	if tier != "failure" and m.has("followup_event"):
 		queue_event(m.followup_event)
 	_maybe_proposal(cid, am.directive)
+
+
+## Epilog: fasst die Partie anhand von Entscheidungen und Zuständen zusammen.
+func build_ending() -> String:
+	var p := PackedStringArray()
+	var held := 0
+	for id in state.regions:
+		if state.regions[id].influence >= 55 and not World.region(id).get("home", false):
+			held += 1
+	var vassals := PackedStringArray()
+	var wars := PackedStringArray()
+	var fear_sum := 0
+	for f in Diplomacy.factions():
+		if Diplomacy.has_treaty(f.id, "vassal"):
+			vassals.append(f.short)
+		if Diplomacy.at_war(f.id):
+			wars.append(f.short)
+		fear_sum += Diplomacy.fs(f.id).fear
+	var rep: int = state.resources.reputation
+	p.append("[b][color=#f5d77a]Das Zauberkönigreich von %s[/color][/b]" % state.lord_name)
+	if has_flag("ending_peace"):
+		p.append("Der Platin-Drache zog sich zurück, und mit ihm wich die Angst vor einem neuen Zeitalter der Gierkönige. Unter dem Banner des Zauberkönigs entstand etwas, das die Neue Welt nicht kannte: ein Reich, in dem Menschen, Zwerge, Elfen, Echsenmenschen und Untote nebeneinander lebten – beschützt von einem Herrscher, der niemals schlief.")
+	elif has_flag("ending_power"):
+		p.append("Der Tag, an dem die Platinrüstung zerbrach, wurde zum Feiertag – in Nazarick. Überall sonst wurde er zum Tag der Trauer. Keine Macht der Welt wagte es mehr, sich dem Zauberkönig zu widersetzen. Die Welt war nicht erobert. Sie hatte schlicht aufgegeben.")
+	elif has_flag("ending_conquest"):
+		p.append("Der Krieg gegen die alten Mächte der Welt begann in jener Nacht auf der Katze-Ebene. Demiurge hatte ihn längst geplant. Nazarick marschierte – und die Chroniken der Neuen Welt füllten sich mit einem einzigen Namen.")
+	else:
+		p.append("Das Zauberkönigreich steht. Was aus ihm werden wird, liegt allein in Euren knöchernen Händen.")
+	if rep >= 60:
+		p.append("Die Völker nennen Euch den [i]Gerechten König[/i]. In den Tempeln des Südens predigt eine junge Frau mit scharfen Augen, der Zauberkönig sei die Gerechtigkeit selbst.")
+	elif fear_sum > 200 or rep < 20:
+		p.append("Die Völker flüstern Euren Namen nur hinter verschlossenen Türen. Mütter erschrecken ihre Kinder mit dem ›König aus Knochen‹. Furcht ist ein verlässliches Fundament.")
+	p.append("[color=#d4af37]Bilanz:[/color] %d Tage · %d Regionen unter Kontrolle · %d gewonnene Schlachten · %d Gold · Vasallen: %s%s" % [
+		state.day, held, int(state.get("battles_won", 0)), state.resources.gold,
+		", ".join(vassals) if not vassals.is_empty() else "keine", (" · Im Krieg mit: " + ", ".join(wars)) if not wars.is_empty() else ""])
+	# Herzensangelegenheiten
+	var a := cs("albedo")
+	var sh := cs("shalltear")
+	if has_flag("harem_pact") or (state.rivalry < 25 and a.favor >= 70 and sh.favor >= 70):
+		p.append("[color=#ff7aa8]♥ Albedo und Shalltear haben ihren Pakt erneuert: Wer auch immer die Erste wird, die andere wird die Zweite. Sie streiten trotzdem täglich über die Reihenfolge – aber leiser.[/color]")
+	elif a.favor >= sh.favor + 10:
+		p.append("[color=#f1e6ff]♥ Albedo trägt seit der Krönung einen Ring am Ringfinger. Niemand weiß genau, ob Ihr ihn ihr geschenkt habt – Ihr selbst am allerwenigsten. Sie lächelt jeden Morgen, als hätte sie gewonnen. Vielleicht hat sie das.[/color]")
+	elif sh.favor >= a.favor + 10:
+		p.append("[color=#ff2a4f]♥ Shalltear hat ihren Sarg in die Gemächer neben Euren verlegen lassen. ›Zur Sicherheit‹, ~arinsu. Albedo hat die Verbindungstür dreimal zumauern lassen. Shalltear hat sie dreimal eingerissen.[/color]")
+	else:
+		p.append("[color=#ff7aa8]♥ Der Herzenskrieg ist nicht entschieden. Albedo und Shalltear stehen jeden Morgen gleichzeitig rechts neben dem Thron. Ihr habt aufgehört, es zu kommentieren.[/color]")
+	if has_flag("world_conquest") or has_flag("ending_conquest"):
+		p.append("[color=#ff8c1a]Demiurge hat seinen Zehnjahresplan zur Welteroberung auf sieben Jahre verkürzt. Er schreibt bereits an einem Hundertjahresplan.[/color]")
+	if has_flag("tuare_saved"):
+		p.append("[color=#dcdcdc]Sebas und Tuare spazieren abends durch die Gärten der Sechsten Ebene. Er hat sie nie um Erlaubnis gebeten. Ihr habt sie ihm nie verweigert.[/color]")
+	if has_flag("lizard_mercy"):
+		p.append("[color=#8ee6ff]Cocytus regiert die Sümpfe mit Ehre. Die Echsenmenschen nennen ihn ›Großvater‹. Er hat sie nie korrigiert.[/color]")
+	if has_flag("elves_freed"):
+		p.append("[color=#ffb52e]Aura und Mare besuchen den Ewigen Wald jeden Monat. Die Elfen dort verbeugen sich vor ihnen wie vor Prinzen. Mare stottert dabei immer noch.[/color]")
+	if cs("pandora").unlocked:
+		p.append("[color=#ffd23f]Pandora's Actor führt in der Schatzkammer jeden Abend ein Theaterstück über Eure Taten auf. Ihr habt es nie besucht. Er spielt trotzdem für Euch.[/color]")
+	p.append("[i]Und irgendwo in Euch, unter all der Macht, erinnert sich ein Angestellter aus einer anderen Welt daran, dass er nur nicht allein sein wollte. Ihr seid es nicht mehr.[/i]")
+	p.append("[color=#8f86a3]— ENDE der Hauptgeschichte. Ihr könnt weiterherrschen, so lange Ihr wollt. —[/color]")
+	return "\n\n".join(p)
 
 
 ## Zusatz im Bericht, wenn ein Team unterwegs war.
@@ -1025,6 +1099,7 @@ func _tick_day() -> void:
 	_drift_emotions()
 	World.tick_day()
 	Military.tick_day()
+	Diplomacy.tick_day()
 	var story_fired := _fire_story_events()
 	_check_chapter_progress()
 	if not story_fired:

@@ -1,1 +1,1 @@
-2544a9451725fa2970b7bcfca8ac4709df1222ab0f5a09bde141028512dee112  OverlordNazarick-Setup-1.1.0.exe
+b40cabd6fe518424ccc016d2a7e709f1111782051ad8c1199c1091d583670b66  OverlordNazarick-Setup-1.2.0.exe

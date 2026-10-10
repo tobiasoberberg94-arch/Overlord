@@ -78,9 +78,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		close()
 
 
+var _closing := false
+
+
 func close() -> void:
-	if is_queued_for_deletion():
+	# Doppeltes Schließen (z. B. ESC während einer automatischen Schließung) ignorieren
+	if _closing or is_queued_for_deletion():
 		return
+	_closing = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(self, "modulate:a", 0.0, 0.18)

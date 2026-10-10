@@ -1,15 +1,35 @@
 {
   "missions": [
     {
-      "id": "m_scout", "main": true, "title": "Erkundung der Umgebung",
-      "category": "Erkundung", "location": "Grasland um Nazarick",
+      "id": "m_scout",
+      "main": true,
+      "title": "Erkundung der Umgebung",
+      "category": "Erkundung",
+      "location": "Grasland um Nazarick",
       "description": "Wo sind wir? Erkundet das Land rund um das Große Grab: Wälder, Siedlungen, Wege, Gefahren. Bringt jedes Detail zurück – auch die, die unwichtig erscheinen.",
-      "days": 3, "difficulty": 42,
-      "weights": {"intellekt": 1, "diskretion": 2, "kampf": 1},
-      "recommended": ["sebas", "aura"],
-      "rewards": {"info": 9, "morale": 2},
-      "requires": {"chapter": 1},
-      "on_success": {"set_flags": ["scouted"]},
+      "days": 3,
+      "difficulty": 42,
+      "weights": {
+        "intellekt": 1,
+        "diskretion": 2,
+        "kampf": 1
+      },
+      "recommended": [
+        "sebas",
+        "aura"
+      ],
+      "rewards": {
+        "info": 9,
+        "morale": 2
+      },
+      "requires": {
+        "chapter": 1
+      },
+      "on_success": {
+        "set_flags": [
+          "scouted"
+        ]
+      },
       "outcomes": {
         "triumph": "Ein vollständiges Bild der Umgebung: Grasland, ein riesiger Wald im Süden, ein kleines Bauerndorf namens Carne und Handelswege nach Osten. Die Sterne stehen anders als in Yggdrasil. Kein feindlicher Spieler in Sicht.",
         "success": "Grasland, ein großer Wald und ein Dorf in einigen Stunden Entfernung. Die Bewohner wirken schwach – erschreckend schwach.",
@@ -17,20 +37,44 @@
         "failure": "Die Erkundung wurde abgebrochen. Ein Dorfbewohner hat etwas gesehen und ist schreiend davongelaufen."
       },
       "char_outcomes": {
-        "shalltear": {"success": "Ich habe die Umgebung erkundet! Es gibt Gras. Viel Gras. Und ein Dorf, das ich nicht angezündet habe, ~arinsu!"},
-        "demiurge": {"triumph": "Grasland, ein Wald, ein Dorf, drei Handelswege – und eine Gesellschaft, deren Machtgefüge auf Rittern der Stufe 10 bis 20 beruht. Diese Welt ist ein ungeschliffener Edelstein, {lord}."}
+        "shalltear": {
+          "success": "Ich habe die Umgebung erkundet! Es gibt Gras. Viel Gras. Und ein Dorf, das ich nicht angezündet habe, ~arinsu!"
+        },
+        "demiurge": {
+          "triumph": "Grasland, ein Wald, ein Dorf, drei Handelswege – und eine Gesellschaft, deren Machtgefüge auf Rittern der Stufe 10 bis 20 beruht. Diese Welt ist ein ungeschliffener Edelstein, {lord}."
+        }
       }
     },
     {
-      "id": "m_hide", "main": true, "title": "Verhüllung des Großen Grabes",
-      "category": "Tarnung", "location": "Nazarick · Außenmauern",
+      "id": "m_hide",
+      "main": true,
+      "title": "Verhüllung des Großen Grabes",
+      "category": "Tarnung",
+      "location": "Nazarick · Außenmauern",
       "description": "Das Grab darf nicht entdeckt werden, ehe wir die Kräfte dieser Welt kennen. Errichtet Erdwälle und Illusionen, damit Nazarick wie ein gewöhnlicher Hügel erscheint.",
-      "days": 4, "difficulty": 45,
-      "weights": {"diskretion": 2, "intellekt": 1, "kampf": 1},
-      "recommended": ["mare"],
-      "rewards": {"power": 3, "morale": 3, "attention": -6},
-      "requires": {"chapter": 1},
-      "on_success": {"set_flags": ["hidden"]},
+      "days": 4,
+      "difficulty": 45,
+      "weights": {
+        "diskretion": 2,
+        "intellekt": 1,
+        "kampf": 1
+      },
+      "recommended": [
+        "mare"
+      ],
+      "rewards": {
+        "power": 3,
+        "morale": 3,
+        "attention": -6
+      },
+      "requires": {
+        "chapter": 1
+      },
+      "on_success": {
+        "set_flags": [
+          "hidden"
+        ]
+      },
       "outcomes": {
         "triumph": "Gewaltige Erdwälle umschließen Nazarick, überwachsen mit Gras und Wildblumen. Aus der Ferne ist nur ein sanfter Hügel zu sehen. Selbst Aura hat Mühe, den Eingang zu finden.",
         "success": "Die Erdwälle stehen. Mit etwas Illusionsmagie ist das Grab kaum noch zu erkennen.",
@@ -38,20 +82,43 @@
         "failure": "Die Wälle sind eingestürzt. Nazarick liegt offen wie ein aufgeschlagenes Buch."
       },
       "char_outcomes": {
-        "mare": {"triumph": "I-ich habe die Erde gebeten, Nazarick zu umarmen … und sie hat es getan. Ä-ähm, ich hoffe, es ist so recht …"},
-        "shalltear": {"partial": "Ich habe einen Wall gebaut! Mit meinen eigenen Händen! … Er ist ein bisschen schief. Und ein bisschen umgefallen."}
+        "mare": {
+          "triumph": "I-ich habe die Erde gebeten, Nazarick zu umarmen … und sie hat es getan. Ä-ähm, ich hoffe, es ist so recht …"
+        },
+        "shalltear": {
+          "partial": "Ich habe einen Wall gebaut! Mit meinen eigenen Händen! … Er ist ein bisschen schief. Und ein bisschen umgefallen."
+        }
       }
     },
     {
-      "id": "m_kingdom_intel", "main": true, "title": "Das Königreich Re-Estize",
-      "category": "Spionage", "location": "Re-Estize · E-Rantel",
+      "id": "m_kingdom_intel",
+      "main": true,
+      "title": "Das Königreich Re-Estize",
+      "category": "Spionage",
+      "location": "Re-Estize · E-Rantel",
       "description": "Wer herrscht über dieses Land? Wie stark sind seine Krieger, wie korrupt seine Adligen? Sammelt Informationen über das Königreich, ohne Spuren zu hinterlassen.",
-      "days": 5, "difficulty": 52,
-      "weights": {"intellekt": 2, "diskretion": 2, "diplomatie": 1},
-      "recommended": ["demiurge", "sebas"],
-      "rewards": {"info": 13},
-      "requires": {"chapter": 2},
-      "on_success": {"set_flags": ["kingdom_intel"]},
+      "days": 5,
+      "difficulty": 52,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2,
+        "diplomatie": 1
+      },
+      "recommended": [
+        "demiurge",
+        "sebas"
+      ],
+      "rewards": {
+        "info": 13
+      },
+      "requires": {
+        "chapter": 2
+      },
+      "on_success": {
+        "set_flags": [
+          "kingdom_intel"
+        ]
+      },
       "outcomes": {
         "triumph": "Ein schwacher König, zerstrittene Adelsfraktionen, eine Unterweltorganisation namens ›Acht Finger‹ und ein einziger nennenswerter Krieger: Gazef Stronoff. Nachbarn: das Baharuth-Kaiserreich und die fanatische Slane-Theokratie.",
         "success": "Das Königreich ist geschwächt durch Intrigen und jährliche Kriege mit dem Kaiserreich. Ein Kriegerhauptmann namens Gazef Stronoff gilt als stärkster Mensch des Landes.",
@@ -60,15 +127,32 @@
       }
     },
     {
-      "id": "m_momon", "main": true, "title": "Der Abenteurer Momon",
-      "category": "Tarnung", "location": "E-Rantel · Abenteurergilde",
+      "id": "m_momon",
+      "main": true,
+      "title": "Der Abenteurer Momon",
+      "category": "Tarnung",
+      "location": "E-Rantel · Abenteurergilde",
       "description": "Als schwarzer Krieger ›Momon‹ betretet Ihr persönlich die Gilde von E-Rantel. Narberal begleitet Euch als ›Nabe‹. Erringt Ruhm, steigt in den Rängen auf – und lernt diese Welt von innen kennen.",
-      "days": 8, "difficulty": 50,
-      "weights": {"kampf": 2, "diskretion": 1},
+      "days": 8,
+      "difficulty": 50,
+      "weights": {
+        "kampf": 2,
+        "diskretion": 1
+      },
       "required_char": "narberal",
-      "rewards": {"reputation": 12, "info": 6, "gold": 60},
-      "requires": {"chapter": 3},
-      "on_success": {"set_flags": ["momon_rank"]},
+      "rewards": {
+        "reputation": 12,
+        "info": 6,
+        "gold": 60
+      },
+      "requires": {
+        "chapter": 3
+      },
+      "on_success": {
+        "set_flags": [
+          "momon_rank"
+        ]
+      },
       "followup_event": "ev_erantel",
       "outcomes": {
         "triumph": "Momon und Nabe sind binnen Tagen in aller Munde. Ein Oger mit einem Schwerthieb gespalten, eine Eskorte gerettet, der Weise König des Waldes gezähmt. Die Gilde spricht bereits vom Mithril-Rang.",
@@ -84,15 +168,33 @@
       }
     },
     {
-      "id": "m_sebas_capital", "main": true, "title": "Händlertarnung in der Hauptstadt",
-      "category": "Spionage", "location": "Re-Estize · Königshauptstadt",
+      "id": "m_sebas_capital",
+      "main": true,
+      "title": "Händlertarnung in der Hauptstadt",
+      "category": "Spionage",
+      "location": "Re-Estize · Königshauptstadt",
       "description": "Sebas reist mit Solution Epsilon als Butler einer reichen Händlerstochter in die Königshauptstadt. Ziel: Informationen über Adel, Magie und Kampfkünste sammeln.",
-      "days": 10, "difficulty": 50,
-      "weights": {"diplomatie": 2, "diskretion": 1, "intellekt": 1},
+      "days": 10,
+      "difficulty": 50,
+      "weights": {
+        "diplomatie": 2,
+        "diskretion": 1,
+        "intellekt": 1
+      },
       "required_char": "sebas",
-      "rewards": {"info": 11, "reputation": 3, "gold": -20},
-      "requires": {"chapter": 3},
-      "on_success": {"set_flags": ["sebas_capital"]},
+      "rewards": {
+        "info": 11,
+        "reputation": 3,
+        "gold": -20
+      },
+      "requires": {
+        "chapter": 3
+      },
+      "on_success": {
+        "set_flags": [
+          "sebas_capital"
+        ]
+      },
       "outcomes": {
         "triumph": "Sebas hat Kontakte zu Händlern, Gelehrten und niederem Adel geknüpft. Er verfügt nun über ein Haus in der Hauptstadt und eine Fülle an Informationen.",
         "success": "Die Tarnung steht. Sebas ist in der Hauptstadt als vornehmer Butler bekannt.",
@@ -101,44 +203,88 @@
       }
     },
     {
-      "id": "m_shalltear_hunt", "main": true, "title": "Jagd auf Kampfkunst-Anwender",
-      "category": "Militär", "location": "Re-Estize · Waldrand",
+      "id": "m_shalltear_hunt",
+      "main": true,
+      "title": "Jagd auf Kampfkunst-Anwender",
+      "category": "Militär",
+      "location": "Re-Estize · Waldrand",
       "description": "Spürt Menschen auf, die Kampfkünste beherrschen – vorzugsweise Verbrecher, die niemand vermisst. Nehmt sie lebend gefangen. Und, Shalltear: Gebt auf Euch acht.",
-      "days": 4, "difficulty": 40,
-      "weights": {"kampf": 2, "diskretion": 1},
+      "days": 4,
+      "difficulty": 40,
+      "weights": {
+        "kampf": 2,
+        "diskretion": 1
+      },
       "required_char": "shalltear",
       "forced_tier": "success",
       "rewards": {},
-      "requires": {"chapter": 4},
-      "on_success": {"set_flags": ["hunt_done"]},
+      "requires": {
+        "chapter": 4
+      },
+      "on_success": {
+        "set_flags": [
+          "hunt_done"
+        ]
+      },
       "replace_report_with_event": "ev_shalltear_controlled",
       "outcomes": {}
     },
     {
-      "id": "m_lizardmen", "main": true, "title": "Feldzug gegen die Echsenmenschen",
-      "category": "Militär", "location": "Sumpf nördlich des Großen Waldes",
+      "id": "m_lizardmen",
+      "main": true,
+      "title": "Feldzug gegen die Echsenmenschen",
+      "category": "Militär",
+      "location": "Sumpf nördlich des Großen Waldes",
       "description": "Cocytus führt eine Armee aus niederen Untoten gegen die vereinigten Stämme der Echsenmenschen. Eine Prüfung der Feldherrnkunst – nicht der Klinge.",
-      "days": 6, "difficulty": 55,
-      "weights": {"kampf": 1, "intellekt": 2},
+      "days": 6,
+      "difficulty": 55,
+      "weights": {
+        "kampf": 1,
+        "intellekt": 2
+      },
       "required_char": "cocytus",
       "forced_tier": "partial",
-      "rewards": {"power": 4, "info": 5},
-      "requires": {"chapter": 5},
-      "on_success": {"set_flags": ["lizard_war"]},
+      "rewards": {
+        "power": 4,
+        "info": 5
+      },
+      "requires": {
+        "chapter": 5
+      },
+      "on_success": {
+        "set_flags": [
+          "lizard_war"
+        ]
+      },
       "followup_event": "ev_cocytus_plea",
       "outcomes": {
         "partial": "Die Untotenarmee ist gefallen. Die Echsenmenschen haben sich unter einem Krieger namens Zaryusu Shasha vereint und tapfer, klug und unerwartet geschickt gekämpft. Cocytus kehrt mit gesenktem Haupt zurück – und mit etwas, das wie Bewunderung aussieht."
       }
     },
     {
-      "id": "m_lizard_conquest", "main": true, "locked": true, "title": "Cocytus' Duell am Sumpf",
-      "category": "Militär", "location": "Echsenmenschen-Dorf",
+      "id": "m_lizard_conquest",
+      "main": true,
+      "locked": true,
+      "title": "Cocytus' Duell am Sumpf",
+      "category": "Militär",
+      "location": "Echsenmenschen-Dorf",
       "description": "Cocytus tritt persönlich gegen die besten Krieger der Echsenmenschen an – allein, mit allen vier Klingen, in offenem und ehrenhaftem Kampf.",
-      "days": 3, "difficulty": 50,
-      "weights": {"kampf": 3},
+      "days": 3,
+      "difficulty": 50,
+      "weights": {
+        "kampf": 3
+      },
       "required_char": "cocytus",
-      "rewards": {"power": 8, "reputation": 5, "morale": 4},
-      "on_success": {"set_flags": ["lizard_conquered"]},
+      "rewards": {
+        "power": 8,
+        "reputation": 5,
+        "morale": 4
+      },
+      "on_success": {
+        "set_flags": [
+          "lizard_conquered"
+        ]
+      },
       "followup_event": "ev_lizard_after",
       "outcomes": {
         "triumph": "Zaryusu, Shasryu und die Häuptlinge stellten sich Cocytus gemeinsam. Er schlug sie alle – und erwies jedem einzelnen die Ehre eines würdigen Gegners. Die Stämme haben das Knie gebeugt.",
@@ -148,15 +294,43 @@
       }
     },
     {
-      "id": "m_gehenna", "main": true, "title": "Operation Gehenna",
-      "category": "Intrige", "location": "Königshauptstadt · Unterwelt",
+      "id": "m_gehenna",
+      "main": true,
+      "title": "Operation Gehenna",
+      "category": "Intrige",
+      "location": "Königshauptstadt · Unterwelt",
       "description": "Demiurge tritt als Erzdämon ›Jaldabaoth‹ auf, zerschlägt die Acht Finger, ›entführt‹ die Ressourcen der Hauptstadt – und lässt sich vom Helden Momon vertreiben. Ein Stück in drei Akten.",
-      "days": 10, "difficulty": 66,
-      "weights": {"intellekt": 2, "diskretion": 1, "grausamkeit": 1},
+      "days": 10,
+      "difficulty": 66,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 1,
+        "grausamkeit": 1
+      },
       "required_char": "demiurge",
-      "rewards": {"power": 12, "info": 9, "gold": 300, "reputation": 8, "attention": 8},
-      "requires": {"chapter": 6, "flags_all": ["sebas_resolved"]},
-      "on_success": {"set_flags": ["gehenna_done"]},
+      "rewards": {
+        "power": 12,
+        "info": 9,
+        "gold": 300,
+        "reputation": 8,
+        "attention": 8
+      },
+      "requires": {
+        "chapter": 6,
+        "flags_all": [
+          "sebas_resolved"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "gehenna_done"
+        ],
+        "factions": {
+          "kingdom": {
+            "relation": 15
+          }
+        }
+      },
       "followup_event": "ev_gehenna_after",
       "outcomes": {
         "triumph": "Ein Flammenwall teilt die Hauptstadt. Die Lagerhäuser der Acht Finger sind geleert, Tausende Menschen ›verschwunden‹ – und der schwarze Held Momon hat Jaldabaoth in einem Duell vertrieben, das die Menschen nie vergessen werden. Das Königreich verehrt Momon. Nazarick ist reicher als je zuvor.",
@@ -166,15 +340,43 @@
       }
     },
     {
-      "id": "m_empire", "main": true, "title": "Pakt mit dem Kaiser",
-      "category": "Diplomatie", "location": "Arwintar · Kaiserpalast",
+      "id": "m_empire",
+      "main": true,
+      "title": "Pakt mit dem Kaiser",
+      "category": "Diplomatie",
+      "location": "Arwintar · Kaiserpalast",
       "description": "Kaiser Jircniv hat Grabräuber nach Nazarick geschickt. Er soll nun erfahren, was das kostet: ein Bündnis zu Nazaricks Bedingungen – und Unterstützung im nächsten Krieg gegen Re-Estize.",
-      "days": 7, "difficulty": 64,
-      "weights": {"diplomatie": 2, "intellekt": 2, "grausamkeit": 1},
-      "recommended": ["albedo", "demiurge"],
-      "rewards": {"reputation": 8, "power": 6, "info": 6},
-      "requires": {"chapter": 7},
-      "on_success": {"set_flags": ["empire_pact"]},
+      "days": 7,
+      "difficulty": 64,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 2,
+        "grausamkeit": 1
+      },
+      "recommended": [
+        "albedo",
+        "demiurge"
+      ],
+      "rewards": {
+        "reputation": 8,
+        "power": 6,
+        "info": 6
+      },
+      "requires": {
+        "chapter": 7
+      },
+      "on_success": {
+        "set_flags": [
+          "empire_pact"
+        ],
+        "factions": {
+          "empire": {
+            "treaty_add": "alliance",
+            "relation": 30,
+            "fear": 30
+          }
+        }
+      },
       "followup_event": "ev_katze",
       "outcomes": {
         "triumph": "Jircniv hat unterschrieben. Lächelnd. Seine Haare fallen ihm nun büschelweise aus, berichtet man. Das Kaiserreich wird Ainz Ooal Gown als König anerkennen – und ihm ein Schlachtfeld überlassen.",
@@ -183,21 +385,43 @@
         "failure": "Die Verhandlungen sind ins Stocken geraten. Jircniv lässt sich vorerst nicht blicken."
       },
       "char_outcomes": {
-        "albedo": {"triumph": "Ich habe den Kaiser in vier Stunden gebrochen, {lord}. Ohne die Stimme zu heben. Er wird Euch die Füße küssen – sofern ich es erlaube. Ich erlaube es nicht. Eure Füße gehören mir."},
-        "shalltear": {"partial": "Ich habe dem Kaiser gelächelt. Er hat sich übergeben. Ist das ein Ja, ~arinsu?"}
+        "albedo": {
+          "triumph": "Ich habe den Kaiser in vier Stunden gebrochen, {lord}. Ohne die Stimme zu heben. Er wird Euch die Füße küssen – sofern ich es erlaube. Ich erlaube es nicht. Eure Füße gehören mir."
+        },
+        "shalltear": {
+          "partial": "Ich habe dem Kaiser gelächelt. Er hat sich übergeben. Ist das ein Ja, ~arinsu?"
+        }
       }
     },
-
     {
-      "id": "s_hamsuke", "title": "Der Weise König des Waldes",
-      "category": "Erkundung", "location": "Großer Wald von Tob",
+      "id": "s_hamsuke",
+      "title": "Der Weise König des Waldes",
+      "category": "Erkundung",
+      "location": "Großer Wald von Tob",
       "description": "Im Großen Wald lebt eine legendäre Bestie, die die Menschen fürchten. Findet sie, unterwerft sie – oder macht sie Nazarick nützlich.",
-      "days": 3, "difficulty": 42,
-      "weights": {"kampf": 1, "initiative": 1, "diplomatie": 1},
-      "recommended": ["aura"],
-      "rewards": {"power": 4, "morale": 4, "info": 3},
-      "requires": {"chapter_min": 2},
-      "on_success": {"set_flags": ["hamsuke"]},
+      "days": 3,
+      "difficulty": 42,
+      "weights": {
+        "kampf": 1,
+        "initiative": 1,
+        "diplomatie": 1
+      },
+      "recommended": [
+        "aura"
+      ],
+      "rewards": {
+        "power": 4,
+        "morale": 4,
+        "info": 3
+      },
+      "requires": {
+        "chapter_min": 2
+      },
+      "on_success": {
+        "set_flags": [
+          "hamsuke"
+        ]
+      },
       "outcomes": {
         "triumph": "Der ›Weise König des Waldes‹ ist … ein riesiger Hamster. Er hat sich sofort ergeben, nennt sich Hamsuke und schwört ewige Treue. Er ist sehr flauschig.",
         "success": "Die Bestie ist gezähmt. Ein gewaltiger, sprechender Hamster. Die Dorfbewohner halten ihn für ein mächtiges Ungeheuer.",
@@ -205,19 +429,43 @@
         "failure": "Die Bestie hat sich als schwer auffindbar erwiesen. Man hörte nur ein empörtes ›Degozaru!‹."
       },
       "char_outcomes": {
-        "aura": {"triumph": "Ainz-sama! Ich hab ihn! Er heißt Hamsuke, er ist flauschig, und er sagt am Ende jedes Satzes ›de gozaru‹! Darf ich ihn behalten? Bitteee?"}
+        "aura": {
+          "triumph": "Ainz-sama! Ich hab ihn! Er heißt Hamsuke, er ist flauschig, und er sagt am Ende jedes Satzes ›de gozaru‹! Darf ich ihn behalten? Bitteee?"
+        }
       }
     },
     {
-      "id": "s_carne_guard", "title": "Schutz für Carne",
-      "category": "Diplomatie", "location": "Dorf Carne",
+      "id": "s_carne_guard",
+      "title": "Schutz für Carne",
+      "category": "Diplomatie",
+      "location": "Dorf Carne",
       "description": "Das gerettete Dorf ist schutzlos. Sorgt dafür, dass es unter Nazaricks wohlwollender Kontrolle aufblüht – und uns treu bleibt.",
-      "days": 4, "difficulty": 38,
-      "weights": {"diplomatie": 2, "intellekt": 1},
-      "recommended": ["sebas", "aura"],
-      "rewards": {"reputation": 7, "morale": 2, "info": 2},
-      "requires": {"chapter_min": 2, "flags_all": ["carne_saved"]},
-      "on_success": {"set_flags": ["carne_guarded"]},
+      "days": 4,
+      "difficulty": 38,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1
+      },
+      "recommended": [
+        "sebas",
+        "aura"
+      ],
+      "rewards": {
+        "reputation": 7,
+        "morale": 2,
+        "info": 2
+      },
+      "requires": {
+        "chapter_min": 2,
+        "flags_all": [
+          "carne_saved"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "carne_guarded"
+        ]
+      },
       "outcomes": {
         "triumph": "Ein Horn, das Goblins beschwört, wurde dem Mädchen Enri Emmot überlassen. Neunzehn Goblins dienen ihr nun – und Carne wird zur treuesten Siedlung des Landes.",
         "success": "Carne ist geschützt. Die Bewohner verehren ›Ainz Ooal Gown‹ als ihren Retter.",
@@ -225,18 +473,35 @@
         "failure": "Die Bauern sind in den Wald geflohen, als sie den Abgesandten sahen."
       },
       "char_outcomes": {
-        "shalltear": {"partial": "Ich habe das Dorf beschützt! Niemand hat es angegriffen. Weil alle Angst vor mir hatten. Das zählt doch, ~arinsu?"}
+        "shalltear": {
+          "partial": "Ich habe das Dorf beschützt! Niemand hat es angegriffen. Weil alle Angst vor mir hatten. Das zählt doch, ~arinsu?"
+        }
       }
     },
     {
-      "id": "s_patrol", "repeatable": true, "title": "Patrouille im Großen Wald",
-      "category": "Erkundung", "location": "Großer Wald von Tob",
+      "id": "s_patrol",
+      "repeatable": true,
+      "title": "Patrouille im Großen Wald",
+      "category": "Erkundung",
+      "location": "Großer Wald von Tob",
       "description": "Haltet die Augen offen: Monster, Abenteurer, verirrte Spione. Der Wald soll Nazarick gehören.",
-      "days": 3, "difficulty": 36,
-      "weights": {"kampf": 1, "diskretion": 1},
-      "recommended": ["aura", "mare"],
-      "rewards": {"info": 3, "power": 2},
-      "requires": {"chapter_min": 2},
+      "days": 3,
+      "difficulty": 36,
+      "weights": {
+        "kampf": 1,
+        "diskretion": 1
+      },
+      "recommended": [
+        "aura",
+        "mare"
+      ],
+      "rewards": {
+        "info": 3,
+        "power": 2
+      },
+      "requires": {
+        "chapter_min": 2
+      },
       "outcomes": {
         "triumph": "Ein Trollnest ausgehoben, zwei Waldschrate rekrutiert und einen Spion des Kaiserreichs aufgespürt.",
         "success": "Der Wald ist ruhig. Einige Monster wurden ›umgesiedelt‹.",
@@ -245,14 +510,28 @@
       }
     },
     {
-      "id": "s_training", "repeatable": true, "title": "Manöver der Todesritter",
-      "category": "Training", "location": "Nazarick · Ebene 5",
+      "id": "s_training",
+      "repeatable": true,
+      "title": "Manöver der Todesritter",
+      "category": "Training",
+      "location": "Nazarick · Ebene 5",
       "description": "Drillt die Garnison von Nazarick: Todesritter, Schädelkrieger, Gargoyles. Eine Armee rostet, wenn sie ruht.",
-      "days": 3, "difficulty": 34,
-      "weights": {"kampf": 2, "intellekt": 1},
-      "recommended": ["cocytus"],
-      "rewards": {"power": 3, "morale": 3},
-      "requires": {"chapter_min": 1},
+      "days": 3,
+      "difficulty": 34,
+      "weights": {
+        "kampf": 2,
+        "intellekt": 1
+      },
+      "recommended": [
+        "cocytus"
+      ],
+      "rewards": {
+        "power": 3,
+        "morale": 3
+      },
+      "requires": {
+        "chapter_min": 1
+      },
       "outcomes": {
         "triumph": "Die Garnison bewegt sich wie ein einziger Körper. Selbst die Gargoyles salutieren synchron.",
         "success": "Das Manöver war erfolgreich. Die Untoten sind kampfbereit.",
@@ -260,18 +539,34 @@
         "failure": "Das Manöver endete im Chaos. Aura musste ihre Bestien zurückpfeifen."
       },
       "char_outcomes": {
-        "cocytus": {"triumph": "Die. Truppen. Sind. Bereit. Für. Jeden. Feind. Sogar. Für. Shalltear."}
+        "cocytus": {
+          "triumph": "Die. Truppen. Sind. Bereit. Für. Jeden. Feind. Sogar. Für. Shalltear."
+        }
       }
     },
     {
-      "id": "s_maids", "repeatable": true, "title": "Inspektion der Neunten Ebene",
-      "category": "Verwaltung", "location": "Nazarick · Ebene 9",
+      "id": "s_maids",
+      "repeatable": true,
+      "title": "Inspektion der Neunten Ebene",
+      "category": "Verwaltung",
+      "location": "Nazarick · Ebene 9",
       "description": "Überprüft Dienerschaft, Vorräte und Ordnung in den königlichen Gemächern. Die 41 Homunkulus-Maids brennen darauf, gelobt zu werden.",
-      "days": 2, "difficulty": 30,
-      "weights": {"intellekt": 1, "diplomatie": 1},
-      "recommended": ["albedo", "sebas"],
-      "rewards": {"morale": 6},
-      "requires": {"chapter_min": 1},
+      "days": 2,
+      "difficulty": 30,
+      "weights": {
+        "intellekt": 1,
+        "diplomatie": 1
+      },
+      "recommended": [
+        "albedo",
+        "sebas"
+      ],
+      "rewards": {
+        "morale": 6
+      },
+      "requires": {
+        "chapter_min": 1
+      },
       "outcomes": {
         "triumph": "Makellos. Die Maids weinen vor Glück, als sie hören, dass der Overlord persönlich ihre Arbeit würdigt.",
         "success": "Alles in Ordnung. Ein paar Teppiche wurden dreimal statt zweimal gesaugt.",
@@ -279,19 +574,39 @@
         "failure": "Die Inspektion verlief chaotisch. Jemand hat Entoma gefragt, was sie zu Mittag isst."
       },
       "char_outcomes": {
-        "albedo": {"triumph": "Ich habe die Gemächer persönlich inspiziert, {lord}. Insbesondere Euer Schlafgemach. Sehr gründlich. Mehrere Stunden lang. Auf dem Bett. Zur Qualitätskontrolle."},
-        "shalltear": {"success": "Ich habe Euer Bett geprüft, Eure Herrlichkeit! Es ist weich. Ich habe es lange geprüft. Albedo hat mich rausgeworfen."}
+        "albedo": {
+          "triumph": "Ich habe die Gemächer persönlich inspiziert, {lord}. Insbesondere Euer Schlafgemach. Sehr gründlich. Mehrere Stunden lang. Auf dem Bett. Zur Qualitätskontrolle."
+        },
+        "shalltear": {
+          "success": "Ich habe Euer Bett geprüft, Eure Herrlichkeit! Es ist weich. Ich habe es lange geprüft. Albedo hat mich rausgeworfen."
+        }
       }
     },
     {
-      "id": "s_bandits", "repeatable": true, "title": "Räuber auf der Handelsstraße",
-      "category": "Militär", "location": "Straße nach E-Rantel",
+      "id": "s_bandits",
+      "repeatable": true,
+      "title": "Räuber auf der Handelsstraße",
+      "category": "Militär",
+      "location": "Straße nach E-Rantel",
       "description": "Eine Räuberbande überfällt Karawanen nahe E-Rantel. Ihre Beute wäre in Nazarick besser aufgehoben – und ihre Anführer vielleicht interessant für Demiurge.",
-      "days": 3, "difficulty": 40,
-      "weights": {"kampf": 2, "diskretion": 1},
-      "recommended": ["shalltear", "cocytus"],
-      "rewards": {"gold": 70, "power": 3, "reputation": 2},
-      "requires": {"chapter_min": 3},
+      "days": 3,
+      "difficulty": 40,
+      "weights": {
+        "kampf": 2,
+        "diskretion": 1
+      },
+      "recommended": [
+        "shalltear",
+        "cocytus"
+      ],
+      "rewards": {
+        "gold": 70,
+        "power": 3,
+        "reputation": 2
+      },
+      "requires": {
+        "chapter_min": 3
+      },
       "outcomes": {
         "triumph": "Die Bande ist zerschlagen, ihre Schatzkammer geborgen. Die Händler von E-Rantel preisen einen ›unbekannten Wohltäter‹.",
         "success": "Die Räuber sind Geschichte. Die Beute liegt in Nazaricks Schatzkammer.",
@@ -299,18 +614,35 @@
         "failure": "Die Räuber waren gewarnt. Nur leere Zelte."
       },
       "char_outcomes": {
-        "shalltear": {"triumph": "Ich habe sie gejagt, einen nach dem anderen, ~arinsu. Ihr Gold liegt in der Schatzkammer. Ihr Blut … nun ja, das habe ich behalten."}
+        "shalltear": {
+          "triumph": "Ich habe sie gejagt, einen nach dem anderen, ~arinsu. Ihr Gold liegt in der Schatzkammer. Ihr Blut … nun ja, das habe ich behalten."
+        }
       }
     },
     {
-      "id": "s_ruins", "title": "Die Ruinen der Katze-Ebene",
-      "category": "Erkundung", "location": "Katze-Ebene · Nebelgrenze",
+      "id": "s_ruins",
+      "title": "Die Ruinen der Katze-Ebene",
+      "category": "Erkundung",
+      "location": "Katze-Ebene · Nebelgrenze",
       "description": "Am Rand der verfluchten, nebelverhangenen Ebene liegen Ruinen einer untergegangenen Zivilisation. Untote spuken dort – und vielleicht Artefakte.",
-      "days": 5, "difficulty": 58,
-      "weights": {"kampf": 1, "intellekt": 1, "diskretion": 1},
-      "recommended": ["aura", "demiurge"],
-      "rewards": {"info": 9, "gold": 110},
-      "requires": {"chapter_min": 3},
+      "days": 5,
+      "difficulty": 58,
+      "weights": {
+        "kampf": 1,
+        "intellekt": 1,
+        "diskretion": 1
+      },
+      "recommended": [
+        "aura",
+        "demiurge"
+      ],
+      "rewards": {
+        "info": 9,
+        "gold": 110
+      },
+      "requires": {
+        "chapter_min": 3
+      },
       "outcomes": {
         "triumph": "Die Ruinen bargen eine Bibliothek von Steintafeln über die ›Acht Gierkönige‹ – Spieler, die vor 500 Jahren diese Welt beherrschten. Wir sind nicht die Ersten.",
         "success": "Uralte Münzen, magische Fragmente und Hinweise auf frühere Spieler.",
@@ -319,16 +651,37 @@
       }
     },
     {
-      "id": "s_slane", "title": "Spuren der Slane-Theokratie",
-      "category": "Spionage", "location": "Grenzgebiet · Theokratie",
+      "id": "s_slane",
+      "title": "Spuren der Slane-Theokratie",
+      "category": "Spionage",
+      "location": "Grenzgebiet · Theokratie",
       "description": "Die Sonnenlicht-Schrift war nur eine von sechs Schriften der Theokratie. Was wissen sie über Nazarick? Besitzen sie Weltgegenstände?",
-      "days": 6, "difficulty": 66,
-      "weights": {"intellekt": 2, "diskretion": 2},
-      "recommended": ["demiurge", "narberal"],
-      "rewards": {"info": 11, "attention": -4},
-      "failure": {"attention": 12, "morale": -4},
-      "requires": {"chapter_min": 3},
-      "on_success": {"set_flags": ["slane_known"]},
+      "days": 6,
+      "difficulty": 66,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2
+      },
+      "recommended": [
+        "demiurge",
+        "narberal"
+      ],
+      "rewards": {
+        "info": 11,
+        "attention": -4
+      },
+      "failure": {
+        "attention": 12,
+        "morale": -4
+      },
+      "requires": {
+        "chapter_min": 3
+      },
+      "on_success": {
+        "set_flags": [
+          "slane_known"
+        ]
+      },
       "outcomes": {
         "triumph": "Die Theokratie besitzt eine ›Schwarze Schrift‹ – Kämpfer jenseits menschlicher Grenzen. Und Gerüchte über einen Weltgegenstand, der Geist und Wille unterwerfen kann. Man nennt ihn ›Untergang von Burg und Land‹.",
         "success": "Die Theokratie verehrt sechs Götter – frühere Spieler, vermutlich. Ihre Elitetruppen sind gefährlich.",
@@ -337,14 +690,29 @@
       }
     },
     {
-      "id": "s_undead_labor", "repeatable": true, "title": "Untote Arbeitskräfte",
-      "category": "Wirtschaft", "location": "Nazarick · Umland",
+      "id": "s_undead_labor",
+      "repeatable": true,
+      "title": "Untote Arbeitskräfte",
+      "category": "Wirtschaft",
+      "location": "Nazarick · Umland",
       "description": "Untote ermüden nicht, essen nicht, klagen nicht. Setzt sie in Minen, auf Feldern und an Mühlen ein – Gold für die Schatzkammer.",
-      "days": 5, "difficulty": 38,
-      "weights": {"intellekt": 2, "diskretion": 1},
-      "recommended": ["albedo", "mare"],
-      "rewards": {"gold": 90, "power": 2},
-      "requires": {"chapter_min": 4},
+      "days": 5,
+      "difficulty": 38,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 1
+      },
+      "recommended": [
+        "albedo",
+        "mare"
+      ],
+      "rewards": {
+        "gold": 90,
+        "power": 2
+      },
+      "requires": {
+        "chapter_min": 4
+      },
       "outcomes": {
         "triumph": "Zweihundert Schädelarbeiter graben Tag und Nacht. Der Ertrag übertrifft alle Erwartungen.",
         "success": "Die Untoten arbeiten zuverlässig. Gold fließt.",
@@ -353,14 +721,32 @@
       }
     },
     {
-      "id": "s_adventurers", "repeatable": true, "title": "Grabräuber abwehren",
-      "category": "Verteidigung", "location": "Nazarick · Ebenen 1–3",
+      "id": "s_adventurers",
+      "repeatable": true,
+      "title": "Grabräuber abwehren",
+      "category": "Verteidigung",
+      "location": "Nazarick · Ebenen 1–3",
       "description": "Arbeiter und Abenteurer suchen nach dem ›verborgenen Grab voller Schätze‹. Empfangt sie. Gastfreundlich. Endgültig.",
-      "days": 2, "difficulty": 32,
-      "weights": {"kampf": 2, "grausamkeit": 1},
-      "recommended": ["shalltear"],
-      "rewards": {"power": 3, "info": 3, "gold": 30},
-      "requires": {"chapter_min": 4, "flags_all": ["shalltear_restored"]},
+      "days": 2,
+      "difficulty": 32,
+      "weights": {
+        "kampf": 2,
+        "grausamkeit": 1
+      },
+      "recommended": [
+        "shalltear"
+      ],
+      "rewards": {
+        "power": 3,
+        "info": 3,
+        "gold": 30
+      },
+      "requires": {
+        "chapter_min": 4,
+        "flags_all": [
+          "shalltear_restored"
+        ]
+      },
       "outcomes": {
         "triumph": "Die Eindringlinge erreichten die dritte Ebene. Dann nicht mehr. Ihre Ausrüstung und ihr Wissen gehören nun Nazarick.",
         "success": "Die Grabräuber wurden ›empfangen‹. Neuronist Painkill freut sich über neue Gesprächspartner.",
@@ -369,15 +755,34 @@
       }
     },
     {
-      "id": "s_dwarves", "title": "Gerüchte aus den Azerlisia-Bergen",
-      "category": "Erkundung", "location": "Azerlisia-Gebirge",
+      "id": "s_dwarves",
+      "title": "Gerüchte aus den Azerlisia-Bergen",
+      "category": "Erkundung",
+      "location": "Azerlisia-Gebirge",
       "description": "In den Bergen soll ein Zwergenreich existieren – mit Runenschmiedekunst, die es in Yggdrasil nie gab. Findet es.",
-      "days": 7, "difficulty": 60,
-      "weights": {"kampf": 1, "diplomatie": 1, "intellekt": 1},
-      "recommended": ["aura", "mare"],
-      "rewards": {"info": 10, "reputation": 3},
-      "requires": {"chapter_min": 5},
-      "on_success": {"set_flags": ["dwarves_found"]},
+      "days": 7,
+      "difficulty": 60,
+      "weights": {
+        "kampf": 1,
+        "diplomatie": 1,
+        "intellekt": 1
+      },
+      "recommended": [
+        "aura",
+        "mare"
+      ],
+      "rewards": {
+        "info": 10,
+        "reputation": 3
+      },
+      "requires": {
+        "chapter_min": 5
+      },
+      "on_success": {
+        "set_flags": [
+          "dwarves_found"
+        ]
+      },
       "outcomes": {
         "triumph": "Die Zwergenstadt Feo Jera wurde gefunden – bedrängt von Quagoa und einem Frostdrachen. Die Zwerge würden einen mächtigen Verbündeten … sehr willkommen heißen.",
         "success": "Spuren eines Zwergenreichs: verlassene Minen und Runeninschriften.",
@@ -386,15 +791,34 @@
       }
     },
     {
-      "id": "s_fluder", "title": "Der Turm von Fluder Paradyne",
-      "category": "Diplomatie", "location": "Arwintar · Magierakademie",
+      "id": "s_fluder",
+      "title": "Der Turm von Fluder Paradyne",
+      "category": "Diplomatie",
+      "location": "Arwintar · Magierakademie",
       "description": "Fluder Paradyne, der größte Magier des Kaiserreichs, ist besessen davon, den ›Abgrund der Magie‹ zu erblicken. Ein Mann, der seine Seele für Wissen verkaufen würde, ist ein wertvoller Diener.",
-      "days": 5, "difficulty": 55,
-      "weights": {"diplomatie": 2, "intellekt": 1},
-      "recommended": ["demiurge", "pandora"],
-      "rewards": {"info": 10, "reputation": 3, "power": 3},
-      "requires": {"chapter_min": 5},
-      "on_success": {"set_flags": ["fluder_servant"]},
+      "days": 5,
+      "difficulty": 55,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1
+      },
+      "recommended": [
+        "demiurge",
+        "pandora"
+      ],
+      "rewards": {
+        "info": 10,
+        "reputation": 3,
+        "power": 3
+      },
+      "requires": {
+        "chapter_min": 5
+      },
+      "on_success": {
+        "set_flags": [
+          "fluder_servant"
+        ]
+      },
       "outcomes": {
         "triumph": "Fluder Paradyne hat den Fuß des Overlords geküsst. Wörtlich. Er ist nun Euer Schüler – und Euer Spion am Kaiserhof.",
         "success": "Fluder ist fasziniert und zur Kooperation bereit.",
@@ -403,15 +827,35 @@
       }
     },
     {
-      "id": "s_eight_fingers", "title": "Die Acht Finger",
-      "category": "Intrige", "location": "Königshauptstadt · Unterwelt",
+      "id": "s_eight_fingers",
+      "title": "Die Acht Finger",
+      "category": "Intrige",
+      "location": "Königshauptstadt · Unterwelt",
       "description": "Die Unterwelt der Hauptstadt hat acht Abteilungen: Drogen, Sklaven, Schmuggel, Mord … Wer sie kontrolliert, kontrolliert das Königreich von unten.",
-      "days": 6, "difficulty": 60,
-      "weights": {"intellekt": 1, "grausamkeit": 1, "diskretion": 1},
-      "recommended": ["demiurge", "sebas"],
-      "rewards": {"gold": 200, "info": 6, "attention": 4},
-      "requires": {"chapter_min": 6},
-      "on_success": {"set_flags": ["eight_fingers_owned"]},
+      "days": 6,
+      "difficulty": 60,
+      "weights": {
+        "intellekt": 1,
+        "grausamkeit": 1,
+        "diskretion": 1
+      },
+      "recommended": [
+        "demiurge",
+        "sebas"
+      ],
+      "rewards": {
+        "gold": 200,
+        "info": 6,
+        "attention": 4
+      },
+      "requires": {
+        "chapter_min": 6
+      },
+      "on_success": {
+        "set_flags": [
+          "eight_fingers_owned"
+        ]
+      },
       "outcomes": {
         "triumph": "Die acht Anführer haben eine Woche in Nazarick ›Urlaub‹ gemacht. Sie sind nun die gehorsamsten Diener, die man sich wünschen kann. Sie zittern, wenn jemand ›Kyouhukou‹ sagt.",
         "success": "Die Acht Finger arbeiten nun für Nazarick.",
@@ -419,19 +863,39 @@
         "failure": "Die Acht Finger sind gewarnt und abgetaucht."
       },
       "char_outcomes": {
-        "sebas": {"success": "Ich habe die Gefangenen aus den Bordellen der Acht Finger befreit, {lord}. Die Anführer erwarten Euer Urteil. Ich bitte darum, dass es … streng ausfällt."}
+        "sebas": {
+          "success": "Ich habe die Gefangenen aus den Bordellen der Acht Finger befreit, {lord}. Die Anführer erwarten Euer Urteil. Ich bitte darum, dass es … streng ausfällt."
+        }
       }
     },
     {
-      "id": "s_dragon", "title": "Der Platin-Drachenlord",
-      "category": "Spionage", "location": "Argland-Rat · Grenze",
+      "id": "s_dragon",
+      "title": "Der Platin-Drachenlord",
+      "category": "Spionage",
+      "location": "Argland-Rat · Grenze",
       "description": "Ein uralter Drache – Tsaindorcus Vaision – soll seit Jahrhunderten über diese Welt wachen. Er könnte die größte Bedrohung für Nazarick sein. Findet heraus, was er weiß.",
-      "days": 8, "difficulty": 82,
-      "weights": {"intellekt": 2, "diskretion": 2, "kampf": 1},
-      "recommended": ["demiurge", "pandora"],
-      "rewards": {"info": 16, "attention": 5},
-      "failure": {"attention": 15, "morale": -8},
-      "requires": {"chapter_min": 6},
+      "days": 8,
+      "difficulty": 82,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2,
+        "kampf": 1
+      },
+      "recommended": [
+        "demiurge",
+        "pandora"
+      ],
+      "rewards": {
+        "info": 16,
+        "attention": 5
+      },
+      "failure": {
+        "attention": 15,
+        "morale": -8
+      },
+      "requires": {
+        "chapter_min": 6
+      },
       "outcomes": {
         "triumph": "Der Drache steuert eine leere Rüstung als Avatar und beobachtet ›Spieler‹ seit 600 Jahren. Er kennt die Gefahr von Weltgegenständen. Er weiß noch nichts von Nazarick. Noch nicht.",
         "success": "Die Existenz des Drachenlords ist bestätigt. Er ist mächtig – vielleicht mächtiger als jeder Wächter.",
@@ -440,14 +904,29 @@
       }
     },
     {
-      "id": "s_library", "repeatable": true, "title": "Bücher aus E-Rantel",
-      "category": "Spionage", "location": "E-Rantel · Magiergilde",
+      "id": "s_library",
+      "repeatable": true,
+      "title": "Bücher aus E-Rantel",
+      "category": "Spionage",
+      "location": "E-Rantel · Magiergilde",
       "description": "Kauft, kopiert oder ›leiht‹ Bücher über Magie, Geschichte und Geographie der Neuen Welt für die Bibliothek von Ashurbanipal.",
-      "days": 3, "difficulty": 34,
-      "weights": {"intellekt": 2, "diplomatie": 1},
-      "recommended": ["demiurge", "sebas"],
-      "rewards": {"info": 5, "gold": -15},
-      "requires": {"chapter_min": 3},
+      "days": 3,
+      "difficulty": 34,
+      "weights": {
+        "intellekt": 2,
+        "diplomatie": 1
+      },
+      "recommended": [
+        "demiurge",
+        "sebas"
+      ],
+      "rewards": {
+        "info": 5,
+        "gold": -15
+      },
+      "requires": {
+        "chapter_min": 3
+      },
       "outcomes": {
         "triumph": "Eine ganze Wagenladung Bücher. Darunter eine Abhandlung über ›Talente‹ – angeborene Fähigkeiten der Menschen dieser Welt.",
         "success": "Nützliche Bücher für die Bibliothek.",
@@ -455,18 +934,42 @@
         "failure": "Die Gilde wurde misstrauisch. Keine Bücher."
       }
     },
-
     {
-      "id": "p_albedo_succession", "proposal": true, "title": "Die Frage der Thronfolge",
-      "category": "Verwaltung", "location": "Nazarick · Thronsaal",
+      "id": "p_albedo_succession",
+      "proposal": true,
+      "title": "Die Frage der Thronfolge",
+      "category": "Verwaltung",
+      "location": "Nazarick · Thronsaal",
       "description": "Albedo hat ein dreihundertseitiges Dokument über ›die Sicherung der Zukunft Nazaricks‹ verfasst. Seite eins bis zweihundertneunundneunzig behandeln die Wahl der Mutter des Erben.",
       "proposal_text": "{lord} … Nazarick braucht eine Zukunft. Ein Erbe. Ich habe mir erlaubt, einen Plan zu erarbeiten – rein aus Verwaltungsgründen natürlich. Er umfasst die Auswahl einer geeigneten Mutter (ich habe bereits eine Kandidatin, sie ist sehr qualifiziert, sie steht vor Euch), die Zeremonie, die Gemächer und die Erziehung durch Cocytus. Ich bitte nur um Euer Einverständnis … für die Planung.",
-      "proposal_requires": {"chapter_min": 2},
-      "days": 3, "difficulty": 30,
-      "weights": {"intellekt": 1, "diplomatie": 1},
+      "proposal_requires": {
+        "chapter_min": 2
+      },
+      "days": 3,
+      "difficulty": 30,
+      "weights": {
+        "intellekt": 1,
+        "diplomatie": 1
+      },
       "required_char": "albedo",
-      "rewards": {"morale": 6},
-      "on_success": {"chars": {"albedo": {"favor": 6, "mood": 10}, "shalltear": {"jealousy": 15}, "cocytus": {"mood": 10}}, "rivalry": 8},
+      "rewards": {
+        "morale": 6
+      },
+      "on_success": {
+        "chars": {
+          "albedo": {
+            "favor": 6,
+            "mood": 10
+          },
+          "shalltear": {
+            "jealousy": 15
+          },
+          "cocytus": {
+            "mood": 10
+          }
+        },
+        "rivalry": 8
+      },
       "outcomes": {
         "triumph": "Die Planung ist abgeschlossen. Nazarick hat nun einen 300-seitigen Thronfolgeplan, ein vorbereitetes Kinderzimmer und einen Cocytus, der vor Glück Eiskristalle weint. Shalltear hat ein Gegenkonzept eingereicht. Es besteht aus einer Zeichnung.",
         "success": "Der Plan liegt vor. Ihr habt ihn ›zur Kenntnis genommen‹. Albedo interpretiert das als Verlobung.",
@@ -475,15 +978,27 @@
       }
     },
     {
-      "id": "p_albedo_spy_network", "proposal": true, "title": "Albedos Schattennetz",
-      "category": "Spionage", "location": "Re-Estize · Adelshäuser",
+      "id": "p_albedo_spy_network",
+      "proposal": true,
+      "title": "Albedos Schattennetz",
+      "category": "Spionage",
+      "location": "Re-Estize · Adelshäuser",
       "description": "Albedo will ein Netz aus Informanten in den Adelshäusern des Königreichs spinnen – kontrolliert von ihr allein.",
       "proposal_text": "{lord}, Demiurge hat seine Teufel, Sebas seine Kontakte. Ich wünsche mir ein eigenes Netz: Agenten in jedem Adelshaus des Königreichs, die nur mir berichten. Und ich berichte nur Euch. Nur Euch. Niemals jemand anderem.",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 6, "difficulty": 55,
-      "weights": {"intellekt": 2, "diskretion": 2},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 6,
+      "difficulty": 55,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2
+      },
       "required_char": "albedo",
-      "rewards": {"info": 12, "attention": -3},
+      "rewards": {
+        "info": 12,
+        "attention": -3
+      },
       "outcomes": {
         "triumph": "In jedem bedeutenden Adelshaus sitzt nun ein Diener, ein Koch oder ein Liebhaber, der Albedo berichtet. Sie weiß sogar, was Marquis Raeven zum Frühstück isst.",
         "success": "Das Netz steht. Informationen fließen.",
@@ -492,16 +1007,31 @@
       }
     },
     {
-      "id": "p_albedo_purge", "proposal": true, "title": "Die Suche nach den Höchsten Wesen",
-      "category": "Geheimoperation", "location": "Unbekannt",
+      "id": "p_albedo_purge",
+      "proposal": true,
+      "title": "Die Suche nach den Höchsten Wesen",
+      "category": "Geheimoperation",
+      "location": "Unbekannt",
       "description": "Albedo will eine geheime Einheit gründen, um nach den anderen Mitgliedern von Ainz Ooal Gown zu suchen. Ihr Blick dabei ist … schwer zu deuten.",
       "proposal_text": "{lord} … wenn auch die anderen Höchsten Wesen in diese Welt gelangt sind, müssen wir sie finden. Ich bitte darum, eine eigene Einheit aufzustellen. Unter meinem Befehl. Ganz diskret. Ich werde sie … gebührend empfangen. Ihr müsst Euch um nichts kümmern.",
-      "proposal_requires": {"chapter_min": 4},
-      "days": 8, "difficulty": 60,
-      "weights": {"intellekt": 1, "diskretion": 2},
+      "proposal_requires": {
+        "chapter_min": 4
+      },
+      "days": 8,
+      "difficulty": 60,
+      "weights": {
+        "intellekt": 1,
+        "diskretion": 2
+      },
       "required_char": "albedo",
-      "rewards": {"info": 8},
-      "on_success": {"set_flags": ["albedo_search"]},
+      "rewards": {
+        "info": 8
+      },
+      "on_success": {
+        "set_flags": [
+          "albedo_search"
+        ]
+      },
       "outcomes": {
         "triumph": "Die Einheit ist aufgestellt: Rubedo, Pandora's Actor in der Gestalt eines Gildenmitglieds, und eine Handvoll Wesen, deren Loyalität ausschließlich Albedo gilt. Ihre Befehle sind versiegelt. Albedo lächelt, als sie Euch den Bericht überreicht. Sie lächelt sehr lange.",
         "success": "Albedos Einheit sucht nach Spuren der Höchsten Wesen. Bisher ohne Ergebnis.",
@@ -510,16 +1040,36 @@
       }
     },
     {
-      "id": "p_shalltear_city", "proposal": true, "title": "Die Eroberung von E-Rantel – sofort!",
-      "category": "Militär", "location": "E-Rantel",
+      "id": "p_shalltear_city",
+      "proposal": true,
+      "title": "Die Eroberung von E-Rantel – sofort!",
+      "category": "Militär",
+      "location": "E-Rantel",
       "description": "Shalltear will E-Rantel stürmen. Heute Nacht. Mit Vampirbräuten. ›Als Geschenk.‹",
       "proposal_text": "Eure Herrlichkeit! Ich hatte eine wundervolle Idee! Ich erobere E-Rantel für Euch – heute Nacht, ganz allein, mit nur ein paar Bräuten! Dann gehört Euch eine ganze Stadt, und Albedo hat nur Papier vorzuweisen! Bitte, bitte, bitte?",
-      "proposal_requires": {"chapter_min": 3, "chapter_max": 6},
-      "days": 2, "difficulty": 50,
-      "weights": {"kampf": 3},
+      "proposal_requires": {
+        "chapter_min": 3,
+        "chapter_max": 6
+      },
+      "days": 2,
+      "difficulty": 50,
+      "weights": {
+        "kampf": 3
+      },
       "required_char": "shalltear",
-      "rewards": {"power": 12, "reputation": -12, "attention": 18},
-      "on_success": {"chars": {"albedo": {"jealousy": 10}}, "rivalry": 6},
+      "rewards": {
+        "power": 12,
+        "reputation": -12,
+        "attention": 18
+      },
+      "on_success": {
+        "chars": {
+          "albedo": {
+            "jealousy": 10
+          }
+        },
+        "rivalry": 6
+      },
       "outcomes": {
         "triumph": "E-Rantel ist in einer Nacht gefallen. Die Stadt erwacht unter einem Banner mit Totenkopf. Die Welt erbebt. Momon hatte allerdings ein sehr peinliches Gespräch mit der Abenteurergilde.",
         "success": "Die Stadtwache ist vernichtet. Die Bevölkerung verbarrikadiert sich. Ein Pyrrhussieg für jeden Plan, der auf Heimlichkeit setzte.",
@@ -528,15 +1078,28 @@
       }
     },
     {
-      "id": "p_shalltear_brides", "proposal": true, "title": "Neue Vampirbräute",
-      "category": "Rekrutierung", "location": "Nazarick · Ebene 2",
+      "id": "p_shalltear_brides",
+      "proposal": true,
+      "title": "Neue Vampirbräute",
+      "category": "Rekrutierung",
+      "location": "Nazarick · Ebene 2",
       "description": "Shalltear möchte ihr Gefolge ›auffrischen‹. Mit hübschen Mädchen aus der Neuen Welt.",
       "proposal_text": "Meine Bräute langweilen sich, ~arinsu. Ich möchte neue! Nur ein paar. Nur die hübschesten. Ich verspreche, ich nehme nur Verbrecherinnen. Meistens.",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 4, "difficulty": 40,
-      "weights": {"kampf": 1, "diskretion": 1},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 4,
+      "difficulty": 40,
+      "weights": {
+        "kampf": 1,
+        "diskretion": 1
+      },
       "required_char": "shalltear",
-      "rewards": {"power": 5, "morale": 3, "attention": 5},
+      "rewards": {
+        "power": 5,
+        "morale": 3,
+        "attention": 5
+      },
       "outcomes": {
         "triumph": "Sechs neue Bräute, alle aus Banditenlagern. Niemand vermisst sie. Shalltear ist entzückt.",
         "success": "Neue Bräute für die Zweite Ebene.",
@@ -545,16 +1108,37 @@
       }
     },
     {
-      "id": "p_shalltear_tournament", "proposal": true, "title": "Turnier zu Ehren des Overlords",
-      "category": "Training", "location": "Nazarick · Amphitheater",
+      "id": "p_shalltear_tournament",
+      "proposal": true,
+      "title": "Turnier zu Ehren des Overlords",
+      "category": "Training",
+      "location": "Nazarick · Amphitheater",
       "description": "Shalltear will beweisen, dass sie die Stärkste ist – vor allen, vor allem vor Albedo.",
       "proposal_text": "Ein Turnier! Alle Wächter gegeneinander! Und der Sieger – also ich – darf eine Nacht neben Eurem Thron verbringen, ~arinsu. Albedo darf natürlich auch mitmachen. Wenn sie sich traut.",
-      "proposal_requires": {"chapter_min": 2},
-      "days": 2, "difficulty": 35,
-      "weights": {"kampf": 2},
+      "proposal_requires": {
+        "chapter_min": 2
+      },
+      "days": 2,
+      "difficulty": 35,
+      "weights": {
+        "kampf": 2
+      },
       "required_char": "shalltear",
-      "rewards": {"morale": 7, "power": 2},
-      "on_success": {"rivalry": 10, "chars": {"albedo": {"jealousy": 8}, "shalltear": {"mood": 12}}},
+      "rewards": {
+        "morale": 7,
+        "power": 2
+      },
+      "on_success": {
+        "rivalry": 10,
+        "chars": {
+          "albedo": {
+            "jealousy": 8
+          },
+          "shalltear": {
+            "mood": 12
+          }
+        }
+      },
       "outcomes": {
         "triumph": "Shalltear hat das Turnier gewonnen. Albedo hat nach eigener Aussage ›aus Höflichkeit verloren‹. Das Amphitheater muss neu aufgebaut werden.",
         "success": "Ein glanzvolles Turnier. Cocytus und Shalltear lieferten sich ein legendäres Finale.",
@@ -563,15 +1147,28 @@
       }
     },
     {
-      "id": "p_demiurge_sheep", "proposal": true, "repeatable": true, "title": "Abelion-Schafzucht",
-      "category": "Wirtschaft", "location": "Abelion-Hügel",
+      "id": "p_demiurge_sheep",
+      "proposal": true,
+      "repeatable": true,
+      "title": "Abelion-Schafzucht",
+      "category": "Wirtschaft",
+      "location": "Abelion-Hügel",
       "description": "Demiurge betreibt eine ›Schafzucht‹ auf den Abelion-Hügeln, deren Häute ideales Material für Zauberschriftrollen sind. Ihr fragt besser nicht nach.",
       "proposal_text": "{lord}, die Häute der hiesigen Tiere eignen sich nicht für Schriftrollen höherer Stufe. Mit einer Ausnahme: eine gewisse … Schafart auf den Abelion-Hügeln. Zweibeinig. Sehr ergiebig. Ich würde gerne eine Zucht einrichten. Die Einzelheiten erspare ich Euch.",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 5, "difficulty": 40,
-      "weights": {"intellekt": 2, "grausamkeit": 1},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 5,
+      "difficulty": 40,
+      "weights": {
+        "intellekt": 2,
+        "grausamkeit": 1
+      },
       "required_char": "demiurge",
-      "rewards": {"gold": 140, "info": 2},
+      "rewards": {
+        "gold": 140,
+        "info": 2
+      },
       "outcomes": {
         "triumph": "Die Schriftrollenproduktion ist verdreifacht. Ihr fragt nicht. Demiurge sagt nichts. Das ist für alle das Beste.",
         "success": "Die ›Schafe‹ liefern zuverlässig. Neue Schriftrollen füllen die Lager.",
@@ -580,15 +1177,30 @@
       }
     },
     {
-      "id": "p_demiurge_cult", "proposal": true, "title": "Der Kult der Dunklen Gottheit",
-      "category": "Intrige", "location": "Re-Estize · Armenviertel",
+      "id": "p_demiurge_cult",
+      "proposal": true,
+      "title": "Der Kult der Dunklen Gottheit",
+      "category": "Intrige",
+      "location": "Re-Estize · Armenviertel",
       "description": "Demiurge will einen Kult gründen, der Ainz Ooal Gown als Gott verehrt – unwissentlich und ohne Verbindung zu Nazarick.",
       "proposal_text": "Glaube, {lord}, ist eine Waffe, die keine Rüstung abwehrt. Ich möchte in den Armenvierteln einen Kult säen, der einen namenlosen Gott des Todes verehrt – Euch. In zehn Jahren werden Tausende für Euch beten, ohne zu wissen, wem sie dienen. Oder, wie Ihr es zweifellos längst geplant habt: in fünf.",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 7, "difficulty": 58,
-      "weights": {"intellekt": 2, "diplomatie": 1, "diskretion": 1},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 7,
+      "difficulty": 58,
+      "weights": {
+        "intellekt": 2,
+        "diplomatie": 1,
+        "diskretion": 1
+      },
       "required_char": "demiurge",
-      "rewards": {"power": 6, "info": 6, "reputation": 3, "attention": 3},
+      "rewards": {
+        "power": 6,
+        "info": 6,
+        "reputation": 3,
+        "attention": 3
+      },
       "outcomes": {
         "triumph": "Der Kult wächst. Seine Anhänger tragen schwarze Roben mit einem Symbol, das verdächtig an das Gildenwappen erinnert. Sie singen. Ihr hört es bis Nazarick. Nicht wirklich, aber Demiurge erzählt es so gern.",
         "success": "Der Kult hat erste Anhänger gewonnen.",
@@ -597,16 +1209,31 @@
       }
     },
     {
-      "id": "p_demiurge_theocracy", "proposal": true, "title": "Infiltration der Theokratie",
-      "category": "Geheimoperation", "location": "Slane-Theokratie · Heiliger Bezirk",
+      "id": "p_demiurge_theocracy",
+      "proposal": true,
+      "title": "Infiltration der Theokratie",
+      "category": "Geheimoperation",
+      "location": "Slane-Theokratie · Heiliger Bezirk",
       "description": "Demiurge will einen Doppelgänger in die höchsten Kreise der Theokratie einschleusen. Riskant. Brillant. Typisch Demiurge.",
       "proposal_text": "Die Theokratie ist der gefährlichste Gegner auf diesem Kontinent, {lord}. Ich schlage vor, einen Doppelgänger an die Stelle eines Kardinals zu setzen. Das Risiko ist erheblich – doch Ihr hättet diesen Vorschlag schließlich nicht provoziert, wenn Ihr ihn nicht wolltet, nicht wahr?",
-      "proposal_requires": {"chapter_min": 5},
-      "days": 9, "difficulty": 78,
-      "weights": {"intellekt": 2, "diskretion": 2},
+      "proposal_requires": {
+        "chapter_min": 5
+      },
+      "days": 9,
+      "difficulty": 78,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2
+      },
       "required_char": "demiurge",
-      "rewards": {"info": 16, "power": 4},
-      "failure": {"attention": 18, "morale": -5},
+      "rewards": {
+        "info": 16,
+        "power": 4
+      },
+      "failure": {
+        "attention": 18,
+        "morale": -5
+      },
       "outcomes": {
         "triumph": "Ein Kardinal der Theokratie spricht nun mit Demiurges Stimme. Die Pläne der Schwarzen Schrift liegen offen auf Eurem Schreibtisch.",
         "success": "Ein niederer Priester wurde ersetzt. Die Informationen sind wertvoll.",
@@ -615,15 +1242,31 @@
       }
     },
     {
-      "id": "p_cocytus_lizard_rule", "proposal": true, "title": "Verwaltung der Echsenmenschen",
-      "category": "Verwaltung", "location": "Echsenmenschen-Dorf",
+      "id": "p_cocytus_lizard_rule",
+      "proposal": true,
+      "title": "Verwaltung der Echsenmenschen",
+      "category": "Verwaltung",
+      "location": "Echsenmenschen-Dorf",
       "description": "Cocytus bittet darum, die unterworfenen Echsenmenschen persönlich zu regieren – mit Ehre und Gerechtigkeit.",
       "proposal_text": "Ainz-sama. Ich. Bitte. Darum. Die. Echsenmenschen. Zu. Regieren. Sie. Sind. Tapfer. Sie. Verdienen. Einen. Gerechten. Herrn. Ich. Werde. Euch. Nicht. Enttäuschen.",
-      "proposal_requires": {"flags_all": ["lizard_conquered"]},
-      "days": 6, "difficulty": 45,
-      "weights": {"diplomatie": 2, "intellekt": 1},
+      "proposal_requires": {
+        "flags_all": [
+          "lizard_conquered"
+        ]
+      },
+      "days": 6,
+      "difficulty": 45,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1
+      },
       "required_char": "cocytus",
-      "rewards": {"reputation": 6, "power": 5, "morale": 5, "gold": 40},
+      "rewards": {
+        "reputation": 6,
+        "power": 5,
+        "morale": 5,
+        "gold": 40
+      },
       "outcomes": {
         "triumph": "Unter Cocytus blühen die Sümpfe. Die Echsenmenschen verehren ihn – und durch ihn den Overlord. Cocytus hat Fischzucht eingeführt. Er ist sehr stolz.",
         "success": "Die Echsenmenschen leben in Ordnung und Disziplin unter Nazaricks Banner.",
@@ -632,15 +1275,29 @@
       }
     },
     {
-      "id": "p_cocytus_arena", "proposal": true, "repeatable": true, "title": "Kriegerschule der Fünften Ebene",
-      "category": "Training", "location": "Nazarick · Ebene 5",
+      "id": "p_cocytus_arena",
+      "proposal": true,
+      "repeatable": true,
+      "title": "Kriegerschule der Fünften Ebene",
+      "category": "Training",
+      "location": "Nazarick · Ebene 5",
       "description": "Cocytus möchte die besten Krieger der Neuen Welt unterrichten – Echsenmenschen, Goblins, vielleicht sogar Menschen.",
       "proposal_text": "Ainz-sama. Ein. Krieger. Wird. Durch. Lehre. Unsterblich. Gestattet. Mir. Eine. Kriegerschule.",
-      "proposal_requires": {"chapter_min": 4},
-      "days": 4, "difficulty": 38,
-      "weights": {"kampf": 2, "diplomatie": 1},
+      "proposal_requires": {
+        "chapter_min": 4
+      },
+      "days": 4,
+      "difficulty": 38,
+      "weights": {
+        "kampf": 2,
+        "diplomatie": 1
+      },
       "required_char": "cocytus",
-      "rewards": {"power": 4, "morale": 4, "reputation": 2},
+      "rewards": {
+        "power": 4,
+        "morale": 4,
+        "reputation": 2
+      },
       "outcomes": {
         "triumph": "Die Schüler sind stärker als je zuvor. Einer von ihnen hat Cocytus einen Kratzer zugefügt. Cocytus hat ihn zum Meisterschüler ernannt.",
         "success": "Die Kriegerschule bildet hervorragende Kämpfer aus.",
@@ -649,15 +1306,29 @@
       }
     },
     {
-      "id": "p_aura_zoo", "proposal": true, "title": "Ein Tiergarten für Nazarick",
-      "category": "Verwaltung", "location": "Nazarick · Ebene 6",
+      "id": "p_aura_zoo",
+      "proposal": true,
+      "title": "Ein Tiergarten für Nazarick",
+      "category": "Verwaltung",
+      "location": "Nazarick · Ebene 6",
       "description": "Aura möchte Bestien aus der Neuen Welt sammeln und in der Sechsten Ebene ausstellen.",
       "proposal_text": "Ainz-sama! Hier gibt's so viele Tiere, die wir nicht kennen! Darf ich einen Tiergarten bauen? Mit Hamsuke als Hauptattraktion? Und vielleicht einem Drachen? Nur einem kleinen?",
-      "proposal_requires": {"chapter_min": 2},
-      "days": 5, "difficulty": 42,
-      "weights": {"kampf": 1, "intellekt": 1, "initiative": 1},
+      "proposal_requires": {
+        "chapter_min": 2
+      },
+      "days": 5,
+      "difficulty": 42,
+      "weights": {
+        "kampf": 1,
+        "intellekt": 1,
+        "initiative": 1
+      },
       "required_char": "aura",
-      "rewards": {"morale": 6, "power": 4, "info": 3},
+      "rewards": {
+        "morale": 6,
+        "power": 4,
+        "info": 3
+      },
       "outcomes": {
         "triumph": "Der Tiergarten ist eröffnet: Basilisken, Greifen, ein Riesenkäfer und Hamsuke im Ehrengehege. Die Maids machen sonntags Ausflüge dorthin.",
         "success": "Ein hübscher kleiner Zoo. Die Wächter besuchen ihn gern.",
@@ -666,15 +1337,27 @@
       }
     },
     {
-      "id": "p_aura_forest_dominion", "proposal": true, "title": "Herrschaft über den Großen Wald",
-      "category": "Militär", "location": "Großer Wald von Tob",
+      "id": "p_aura_forest_dominion",
+      "proposal": true,
+      "title": "Herrschaft über den Großen Wald",
+      "category": "Militär",
+      "location": "Großer Wald von Tob",
       "description": "Aura will alle Mächte des Großen Waldes – Ogers, Nagas, Trolle – unter Nazaricks Banner zwingen.",
       "proposal_text": "Im Wald gibt's noch drei Bosse: einen Troll, einen Naga und einen Riesen, der sich für den Größten hält. Ich will sie alle besiegen und Euch den ganzen Wald schenken, Ainz-sama!",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 6, "difficulty": 52,
-      "weights": {"kampf": 2, "initiative": 1},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 6,
+      "difficulty": 52,
+      "weights": {
+        "kampf": 2,
+        "initiative": 1
+      },
       "required_char": "aura",
-      "rewards": {"power": 8, "info": 6},
+      "rewards": {
+        "power": 8,
+        "info": 6
+      },
       "outcomes": {
         "triumph": "Der ganze Wald gehört Nazarick. Der Troll mäht nun Rasen auf der Sechsten Ebene.",
         "success": "Die Bosse des Waldes haben sich unterworfen.",
@@ -683,15 +1366,30 @@
       }
     },
     {
-      "id": "p_mare_farmland", "proposal": true, "title": "Fruchtbare Felder für Carne",
-      "category": "Wirtschaft", "location": "Dorf Carne",
+      "id": "p_mare_farmland",
+      "proposal": true,
+      "title": "Fruchtbare Felder für Carne",
+      "category": "Wirtschaft",
+      "location": "Dorf Carne",
       "description": "Mare möchte die Felder von Carne mit Druidenmagie segnen.",
       "proposal_text": "Ä-ähm … Ainz-sama … die Menschen in Carne sind so dünn … wenn ich ihre Felder ein bisschen … segne … dann würden sie Euch noch mehr lieben … n-nur wenn Ihr es erlaubt …",
-      "proposal_requires": {"flags_all": ["carne_saved"]},
-      "days": 3, "difficulty": 32,
-      "weights": {"intellekt": 1, "diskretion": 1},
+      "proposal_requires": {
+        "flags_all": [
+          "carne_saved"
+        ]
+      },
+      "days": 3,
+      "difficulty": 32,
+      "weights": {
+        "intellekt": 1,
+        "diskretion": 1
+      },
       "required_char": "mare",
-      "rewards": {"reputation": 8, "gold": 40, "morale": 2},
+      "rewards": {
+        "reputation": 8,
+        "gold": 40,
+        "morale": 2
+      },
       "outcomes": {
         "triumph": "Die Felder von Carne tragen dreimal im Jahr. Das Dorf errichtet Euch eine kleine Statue. Demiurge findet sie ›unzureichend‹.",
         "success": "Eine reiche Ernte. Die Bauern sind überglücklich.",
@@ -700,16 +1398,38 @@
       }
     },
     {
-      "id": "p_sebas_orphanage", "proposal": true, "title": "Ein Waisenhaus in E-Rantel",
-      "category": "Diplomatie", "location": "E-Rantel",
+      "id": "p_sebas_orphanage",
+      "proposal": true,
+      "title": "Ein Waisenhaus in E-Rantel",
+      "category": "Diplomatie",
+      "location": "E-Rantel",
       "description": "Sebas bittet darum, ein Waisenhaus zu gründen – finanziert von einem ›anonymen Wohltäter‹.",
       "proposal_text": "{lord}, ich bitte um die Erlaubnis, in E-Rantel ein Waisenhaus zu gründen. Die Kinder dieses Landes leiden. Ein Herrscher, dessen Name mit Güte verbunden ist, regiert länger als einer, den man nur fürchtet. … Demiurge-sama wird widersprechen. Ich bitte trotzdem.",
-      "proposal_requires": {"chapter_min": 4},
-      "days": 5, "difficulty": 36,
-      "weights": {"diplomatie": 2, "intellekt": 1},
+      "proposal_requires": {
+        "chapter_min": 4
+      },
+      "days": 5,
+      "difficulty": 36,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1
+      },
       "required_char": "sebas",
-      "rewards": {"reputation": 11, "gold": -40, "attention": 2},
-      "on_success": {"chars": {"demiurge": {"mood": -4}, "sebas": {"mood": 10}}},
+      "rewards": {
+        "reputation": 11,
+        "gold": -40,
+        "attention": 2
+      },
+      "on_success": {
+        "chars": {
+          "demiurge": {
+            "mood": -4
+          },
+          "sebas": {
+            "mood": 10
+          }
+        }
+      },
       "outcomes": {
         "triumph": "Das Waisenhaus ›Zum Schwarzen Mantel‹ beherbergt achtzig Kinder. Sie zeichnen Bilder von einem Skelett mit Krone. Sebas hängt sie alle auf.",
         "success": "Das Waisenhaus ist eröffnet. E-Rantel spricht wohlwollend von ›dem Wohltäter‹.",
@@ -718,15 +1438,28 @@
       }
     },
     {
-      "id": "p_sebas_trade", "proposal": true, "repeatable": true, "title": "Handelshaus der Pleiaden",
-      "category": "Wirtschaft", "location": "E-Rantel · Händlerviertel",
+      "id": "p_sebas_trade",
+      "proposal": true,
+      "repeatable": true,
+      "title": "Handelshaus der Pleiaden",
+      "category": "Wirtschaft",
+      "location": "E-Rantel · Händlerviertel",
       "description": "Sebas schlägt ein Handelshaus vor, geführt von den Pleiaden – Gold und Informationen zugleich.",
       "proposal_text": "Ein Handelshaus, {lord}. Yuri Alpha würde es leiten, Solution prüft die Kunden, Lupusregina … hält sich im Hintergrund. Es brächte Gold und Gespräche ein – beides nützlich.",
-      "proposal_requires": {"chapter_min": 3},
-      "days": 5, "difficulty": 40,
-      "weights": {"diplomatie": 2, "intellekt": 1},
+      "proposal_requires": {
+        "chapter_min": 3
+      },
+      "days": 5,
+      "difficulty": 40,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1
+      },
       "required_char": "sebas",
-      "rewards": {"gold": 120, "info": 4},
+      "rewards": {
+        "gold": 120,
+        "info": 4
+      },
       "outcomes": {
         "triumph": "Das Handelshaus floriert. Yuri Alphas Kunden kommen wieder – wegen der Preise, und weil sie sich nicht trauen, nicht wiederzukommen.",
         "success": "Gute Geschäfte, gute Gespräche.",
@@ -735,20 +1468,331 @@
       }
     },
     {
-      "id": "p_pandora_momon_double", "proposal": true, "title": "Momons Doppelgänger",
-      "category": "Tarnung", "location": "E-Rantel",
+      "id": "p_pandora_momon_double",
+      "proposal": true,
+      "title": "Momons Doppelgänger",
+      "category": "Tarnung",
+      "location": "E-Rantel",
       "description": "Pandora's Actor bietet an, in Momons Rüstung zu schlüpfen, damit Ihr Euch anderen Dingen widmen könnt.",
       "proposal_text": "Mein Schöpfer! Erlaubt mir, als Momon aufzutreten, während Ihr Wichtigeres vollbringt! Ich kenne jede Eurer Gesten! Jede Eurer Posen! Ich werde Momon sein – nur … ein wenig dramatischer!",
-      "proposal_requires": {"chapter_min": 4, "unlocked": ["pandora"], "flags_all": ["momon_rank"]},
-      "days": 6, "difficulty": 45,
-      "weights": {"diskretion": 1, "diplomatie": 1, "intellekt": 1},
+      "proposal_requires": {
+        "chapter_min": 4,
+        "unlocked": [
+          "pandora"
+        ],
+        "flags_all": [
+          "momon_rank"
+        ]
+      },
+      "days": 6,
+      "difficulty": 45,
+      "weights": {
+        "diskretion": 1,
+        "diplomatie": 1,
+        "intellekt": 1
+      },
       "required_char": "pandora",
-      "rewards": {"reputation": 9, "info": 4},
+      "rewards": {
+        "reputation": 9,
+        "info": 4
+      },
       "outcomes": {
         "triumph": "Momon wird gefeiert wie nie zuvor. Seine neuen ›Siegerposen‹ werden von Kindern auf der Straße nachgeahmt. Ihr wollt im Erdboden versinken.",
         "success": "Momons Ruf ist gefestigt. Niemand ahnt den Austausch.",
         "partial": "Momon hat auf dem Marktplatz salutiert. Auf Deutsch. Man redet darüber.",
         "failure": "Momon hat eine Ansprache gehalten, die drei Stunden dauerte. Die Gilde ist irritiert."
+      }
+    },
+    {
+      "id": "m_dwarf_contact",
+      "main": true,
+      "title": "Gesandtschaft nach Feo Jera",
+      "category": "Diplomatie",
+      "location": "Azerlisia-Gebirge",
+      "region": "azerlisia",
+      "description": "Findet die letzten Zwergenstädte, überzeugt ihren Regentschaftsrat von Nazaricks Wohlwollen – und von seiner Macht. Ein Runenschmied namens Gondo soll bereit sein, alles für das Überleben seiner Kunst zu geben.",
+      "days": 6,
+      "difficulty": 56,
+      "weights": {
+        "diplomatie": 2,
+        "intellekt": 1,
+        "kampf": 1
+      },
+      "recommended": [
+        "aura",
+        "albedo"
+      ],
+      "rewards": {
+        "info": 8,
+        "reputation": 4
+      },
+      "requires": {
+        "chapter": 8,
+        "region_discovered": [
+          "azerlisia"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "dwarf_contact"
+        ],
+        "factions": {
+          "dwarves": {
+            "relation": 20
+          }
+        }
+      },
+      "followup_event": "ev_dwarf_runes",
+      "outcomes": {
+        "triumph": "Der Regentschaftsrat empfing Nazaricks Gesandte mit Tränen in den Augen. Ein mächtiger Verbündeter – endlich.",
+        "success": "Die Zwerge sind misstrauisch, aber verzweifelt genug, um zuzuhören.",
+        "partial": "Nur ein einzelner Runenschmied – Gondo Firebeard – war bereit, mit uns zu sprechen.",
+        "failure": "Die Zwerge haben die Tore verriegelt."
+      },
+      "char_outcomes": {
+        "aura": {
+          "triumph": "Die Zwerge sind total nett, Ainz-sama! Ein bisschen kurz. Und sie riechen nach Bier. Aber nett!"
+        },
+        "shalltear": {
+          "partial": "Ich habe einen Zwerg gefunden! Er hat geschrien. Dann habe ich ihn gefunden … ein zweites Mal. Er heißt Gondo."
+        }
+      }
+    },
+    {
+      "id": "m_quagoa",
+      "main": true,
+      "title": "Säuberung der Zwergenhallen",
+      "category": "Militär",
+      "location": "Feo Berkana",
+      "region": "azerlisia",
+      "description": "Die alte Hauptstadt der Zwerge ist von Quagoa-Klans besetzt – und über ihnen thront der Frostdrache Olasird'arc. Befreit die Hallen.",
+      "days": 6,
+      "difficulty": 64,
+      "weights": {
+        "kampf": 3
+      },
+      "recommended": [
+        "cocytus",
+        "shalltear"
+      ],
+      "rewards": {
+        "power": 6,
+        "gold": 180
+      },
+      "requires": {
+        "chapter": 8,
+        "flags_all": [
+          "dwarf_contact"
+        ],
+        "region_discovered": [
+          "azerlisia"
+        ]
+      },
+      "on_success": {
+        "factions": {
+          "dwarves": {
+            "relation": 25,
+            "fear": 15
+          }
+        }
+      },
+      "followup_event": "ev_frost_dragon",
+      "outcomes": {
+        "triumph": "Die Quagoa sind gebrochen. Ihr König Pe Riyuro kniet. Über den Hallen brüllt ein Drache.",
+        "success": "Die Hallen von Feo Berkana sind frei. Fast. Ein Drache wartet im Thronsaal.",
+        "partial": "Die Quagoa ziehen sich in die Tiefen zurück. Der Drache bleibt.",
+        "failure": "Die Quagoa waren zahlreicher als erwartet."
+      }
+    },
+    {
+      "id": "m_roble_invasion",
+      "main": true,
+      "title": "Jaldabaoths Rückkehr",
+      "category": "Intrige",
+      "location": "Mauer von Roble",
+      "region": "roble",
+      "required_char": "demiurge",
+      "description": "Demiurge tritt erneut als Jaldabaoth auf und führt eine Armee von Halbmenschen der Abelion-Hügel gegen das Heilige Königreich. Das Königreich soll fallen – aber nicht zu tief.",
+      "days": 10,
+      "difficulty": 66,
+      "weights": {
+        "intellekt": 2,
+        "grausamkeit": 1,
+        "diskretion": 1
+      },
+      "rewards": {
+        "power": 8,
+        "info": 8,
+        "attention": 6
+      },
+      "requires": {
+        "chapter": 9,
+        "region_discovered": [
+          "roble"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "roble_invaded"
+        ],
+        "regions": {
+          "roble": {
+            "unrest": 40
+          }
+        },
+        "factions": {
+          "roble": {
+            "relation": -10
+          }
+        }
+      },
+      "followup_event": "ev_neia",
+      "outcomes": {
+        "triumph": "Die große Mauer ist gefallen. Die Heilige Königin ist ›verschollen‹. Das Königreich fleht die Welt um Hilfe an – und die Welt antwortet nicht. Nur einer wird antworten.",
+        "success": "Das Heilige Königreich brennt. Genau so, wie es brennen sollte.",
+        "partial": "Der Angriff war zu zögerlich. Einige Festungen halten noch.",
+        "failure": "Die Paladine waren besser organisiert als erwartet."
+      }
+    },
+    {
+      "id": "m_roble_rescue",
+      "main": true,
+      "title": "Der Zauberkönig als Retter",
+      "category": "Militär",
+      "location": "Heiliges Königreich",
+      "region": "roble",
+      "description": "Ainz Ooal Gown erscheint im Heiligen Königreich – als Retter. Begleitet ihn, kämpft an seiner Seite und sorgt dafür, dass jeder sieht, wer das Volk gerettet hat.",
+      "days": 8,
+      "difficulty": 60,
+      "weights": {
+        "kampf": 2,
+        "diplomatie": 1
+      },
+      "recommended": [
+        "sebas",
+        "pandora"
+      ],
+      "rewards": {
+        "reputation": 12,
+        "power": 4
+      },
+      "requires": {
+        "chapter": 9,
+        "flags_all": [
+          "roble_invaded"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "roble_saved"
+        ],
+        "regions": {
+          "roble": {
+            "influence": 35,
+            "unrest": -30
+          }
+        },
+        "factions": {
+          "roble": {
+            "relation": 35
+          }
+        }
+      },
+      "outcomes": {
+        "triumph": "Der Zauberkönig hat Jaldabaoth erneut ›vertrieben‹. Im Süden des Heiligen Königreichs knien Tausende vor einem Skelett mit Krone.",
+        "success": "Das Heilige Königreich ist gerettet. Viele verstehen nicht, warum ausgerechnet ein Untoter es rettete. Einige verstehen es zu gut.",
+        "partial": "Die Rettung gelang, aber der Adel des Nordens misstraut dem Retter.",
+        "failure": "Die Rettungsmission geriet ins Stocken."
+      },
+      "char_outcomes": {
+        "sebas": {
+          "triumph": "Ich habe dafür gesorgt, dass die Flüchtlinge versorgt wurden, {lord}. Ich hoffe, das war in Eurem Sinne. … Ich weiß, wer Jaldabaoth ist. Ich werde schweigen."
+        }
+      }
+    },
+    {
+      "id": "m_elf_truth",
+      "main": true,
+      "title": "Die Wahrheit über den Elfenkönig",
+      "category": "Spionage",
+      "location": "Ewiger Wald",
+      "region": "elfen",
+      "required_char": "aura",
+      "description": "Aura und Mare schleichen in das Elfenkönigreich. Was ist dran an den Gerüchten über einen König, der seine eigenen Kinder als Waffen züchtet?",
+      "days": 7,
+      "difficulty": 62,
+      "weights": {
+        "diskretion": 2,
+        "intellekt": 1,
+        "diplomatie": 1
+      },
+      "rewards": {
+        "info": 10
+      },
+      "requires": {
+        "chapter": 10,
+        "region_discovered": [
+          "elfen"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "elf_truth"
+        ]
+      },
+      "followup_event": "ev_elf_king",
+      "outcomes": {
+        "triumph": "Aura und Mare kennen nun die ganze Wahrheit: Der Elfenkönig Decem Hougan ist mächtig – und ein Ungeheuer. Seine Untertanen hassen ihn. Seine Kinder fürchten ihn.",
+        "success": "Der König ist grausam, die Elfen leiden. Aura ist sehr still.",
+        "partial": "Nur Gerüchte und Angst.",
+        "failure": "Die Wachen des Königs waren wachsamer als erwartet."
+      },
+      "char_outcomes": {
+        "aura": {
+          "triumph": "Ainz-sama … der König ist schrecklich. Er nennt die Elfen ›Material‹. Mare hat geweint. Ich nicht. Ich bin nur … wütend. Ganz doll wütend."
+        }
+      }
+    },
+    {
+      "id": "m_platinum",
+      "main": true,
+      "title": "Die Platinrüstung",
+      "category": "Diplomatie",
+      "location": "Rand der Katze-Ebene",
+      "region": "drachen",
+      "description": "Die Rüstung des Platin-Drachenlords wartet. Schickt Euren klügsten oder stärksten Diener, um sie zu empfangen – und herauszufinden, was der Drache wirklich will.",
+      "days": 5,
+      "difficulty": 78,
+      "weights": {
+        "intellekt": 2,
+        "diplomatie": 1,
+        "kampf": 1
+      },
+      "recommended": [
+        "demiurge",
+        "albedo",
+        "pandora"
+      ],
+      "rewards": {
+        "info": 15
+      },
+      "requires": {
+        "chapter": 11,
+        "region_discovered": [
+          "drachen"
+        ]
+      },
+      "on_success": {
+        "set_flags": [
+          "platinum_met"
+        ]
+      },
+      "followup_event": "ev_platinum_dragon",
+      "outcomes": {
+        "triumph": "Das Gespräch mit der Rüstung war lang und kalt. Der Drache weiß von Weltgegenständen, von Spielern, von der ›Welle der Hundert Jahre‹. Er will Euch sehen. Persönlich.",
+        "success": "Der Drache hat eine Botschaft hinterlassen: Er erwartet den Herrscher des Grabes.",
+        "partial": "Die Rüstung zog sich zurück, ohne viel zu sagen.",
+        "failure": "Die Rüstung hat den Gesandten mit einem Schlag zurückgeworfen. Eine Warnung."
       }
     }
   ]

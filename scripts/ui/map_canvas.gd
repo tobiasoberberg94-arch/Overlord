@@ -8,6 +8,8 @@ signal region_clicked(id: String)
 signal army_clicked(uid: String)
 
 var selected_region := ""
+## Bruchteil eines Tages für flüssige Marschanimation (0…1), gesetzt von der Zeitsteuerung
+var anim_frac := 0.0
 var selected_army := ""
 var _tex: Texture2D
 var _t := 0.0
@@ -65,13 +67,34 @@ func _draw() -> void:
 	# Regionen
 	for r in Content.regions:
 		_draw_region(r, font)
-	# Armeen
+	# Armeen – unterwegs gleiten sie entlang ihres Wegstücks
 	var i := 0
 	for a in Game.state.armies:
-		_draw_banner(region_pos(a.location) + Vector2(-34, -30 - (i % 2) * 10), Color("6a32b8"), str(Military.strength(a)), a.uid == selected_army, a.get("commander", ""))
+		_draw_banner(army_pos(a) + Vector2(-34, -30 - (i % 2) * 10), Color("6a32b8"), str(Military.strength(a)), a.uid == selected_army, a.get("commander", ""))
 		i += 1
 	for e in Game.state.enemy_armies:
-		_draw_banner(region_pos(e.location) + Vector2(14, -30), Color("a1061e"), str(int(e.strength)), false, "")
+		_draw_banner(army_pos(e) + Vector2(14, -30), Color("a1061e"), str(int(e.strength)), false, "")
+		_draw_dust(army_pos(e))
+	for a in Game.state.armies:
+		if not a.get("path", []).is_empty():
+			_draw_dust(army_pos(a))
+
+
+## Aktuelle Kartenposition einer Armee (interpoliert zwischen zwei Regionen).
+func army_pos(a: Dictionary) -> Vector2:
+	var from := region_pos(a.location)
+	if a.get("path", []).is_empty():
+		return from
+	var to := region_pos(a.path[0])
+	var t := Military.leg_progress(a, anim_frac)
+	return from.lerp(to, t)
+
+
+func _draw_dust(p: Vector2) -> void:
+	for k in 5:
+		var a := _t * 2.0 + k * 1.3
+		var off := Vector2(cos(a) * 14.0, 10.0 + sin(a * 1.7) * 4.0)
+		draw_circle(p + off, 2.0 + k * 0.6, Color(0.75, 0.65, 0.5, 0.18))
 
 
 func _draw_region(r: Dictionary, font: Font) -> void:
@@ -119,7 +142,7 @@ func _draw_region(r: Dictionary, font: Font) -> void:
 func _draw_route(a: Dictionary, col: Color) -> void:
 	if a.get("path", []).is_empty():
 		return
-	var cur: Vector2 = region_pos(a.location)
+	var cur: Vector2 = army_pos(a)
 	for n in a.path:
 		var nxt := region_pos(n)
 		_arrow(cur, nxt, col)
@@ -167,7 +190,7 @@ func _arrow(a: Vector2, b: Vector2, col: Color) -> void:
 
 func _hit(pos: Vector2) -> Dictionary:
 	for a in Game.state.armies:
-		var bp := region_pos(a.location) + Vector2(-34, -30)
+		var bp := army_pos(a) + Vector2(-34, -30)
 		if Rect2(bp - Vector2(0, 12), Vector2(36, 54)).has_point(pos):
 			return {"army": a.uid}
 	for r in Content.regions:

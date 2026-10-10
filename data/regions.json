@@ -41,7 +41,8 @@
         ]
       },
       "garrison": 8,
-      "defenders": "Dorfmiliz von Carne"
+      "defenders": "Dorfmiliz von Carne",
+      "faction": "kingdom"
     },
     {
       "id": "tob_wald",
@@ -87,7 +88,8 @@
         "chapter_min": 2
       },
       "garrison": 70,
-      "defenders": "Stadtwache von E-Rantel"
+      "defenders": "Stadtwache von E-Rantel",
+      "faction": "kingdom"
     },
     {
       "id": "sumpf",
@@ -131,7 +133,8 @@
         "chapter_min": 3
       },
       "garrison": 160,
-      "defenders": "Königliche Armee"
+      "defenders": "Königliche Armee",
+      "faction": "kingdom"
     },
     {
       "id": "katze",
@@ -175,7 +178,8 @@
         "chapter_min": 4
       },
       "garrison": 240,
-      "defenders": "Kaiserliche Legionen"
+      "defenders": "Kaiserliche Legionen",
+      "faction": "empire"
     },
     {
       "id": "azerlisia",
@@ -197,7 +201,8 @@
         "chapter_min": 5
       },
       "garrison": 90,
-      "defenders": "Quagoa-Horden"
+      "defenders": "Quagoa-Horden",
+      "faction": "dwarves"
     },
     {
       "id": "theokratie",
@@ -220,15 +225,16 @@
         "chapter_min": 4
       },
       "garrison": 320,
-      "defenders": "Heilige Armee & Schwarze Schrift"
+      "defenders": "Heilige Armee & Schwarze Schrift",
+      "faction": "theocracy"
     },
     {
       "id": "drachen",
       "name": "Argland & die Drachenlande",
       "short": "Drachenlande",
       "pos": [
-        0.7,
-        0.58
+        0.845,
+        0.215
       ],
       "image": "world_map",
       "difficulty": 85,
@@ -243,7 +249,54 @@
         "chapter_min": 6
       },
       "garrison": 450,
-      "defenders": "Drachenlords"
+      "defenders": "Drachenlords",
+      "faction": "argland"
+    },
+    {
+      "id": "roble",
+      "name": "Heiliges Königreich Roble",
+      "short": "Roble",
+      "pos": [
+        0.56,
+        0.8
+      ],
+      "image": "holy_kingdom",
+      "difficulty": 66,
+      "desc": "Ein frommes Königreich hinter einer gewaltigen Mauer im Süden, bedrängt von den Halbmenschen der Abelion-Hügel – und, bald, von einem Erzdämon namens Jaldabaoth.",
+      "income": {
+        "gold": 12,
+        "info": 0.12
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 8
+      },
+      "garrison": 180,
+      "defenders": "Heilige Armee von Roble",
+      "faction": "roble"
+    },
+    {
+      "id": "elfen",
+      "name": "Elfenkönigreich im Ewigen Wald",
+      "short": "Elfenreich",
+      "pos": [
+        0.705,
+        0.6
+      ],
+      "image": "forest",
+      "difficulty": 68,
+      "desc": "Ein uralter Wald jenseits der Theokratie, in dem das Elfenkönigreich unter einem grausamen König dahinsiecht – seit Jahrzehnten im Krieg mit der Slane-Theokratie.",
+      "income": {
+        "gold": 10,
+        "info": 0.15
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 10
+      },
+      "garrison": 200,
+      "defenders": "Garde des Elfenkönigs",
+      "faction": "elves"
     }
   ],
   "mission_regions": {
@@ -380,9 +433,29 @@
       4
     ],
     [
+      "roble",
       "theokratie",
-      "drachen",
+      3
+    ],
+    [
+      "roble",
+      "katze",
       4
+    ],
+    [
+      "theokratie",
+      "elfen",
+      3
+    ],
+    [
+      "elfen",
+      "roble",
+      4
+    ],
+    [
+      "elfen",
+      "drachen",
+      5
     ]
   ]
 }

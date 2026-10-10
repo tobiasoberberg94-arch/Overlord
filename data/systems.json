@@ -970,6 +970,34 @@
         "chapter_min": 7
       },
       "desc": "Die Reiter, die auf der Katze-Ebene Geschichte schrieben."
+    },
+    {
+      "id": "frost_dragon",
+      "name": "Frostdrachen",
+      "icon": "❄",
+      "strength": 170,
+      "cost": 520,
+      "upkeep": 8,
+      "requires": {
+        "flags_all": [
+          "frost_dragons"
+        ]
+      },
+      "desc": "Olasird'arc und seine Brut dienen nun Nazarick. Ihr Atem verwandelt Armeen in Eisstatuen."
+    },
+    {
+      "id": "rune_guard",
+      "name": "Runengarde der Zwerge",
+      "icon": "⚒",
+      "strength": 55,
+      "cost": 160,
+      "upkeep": 2,
+      "requires": {
+        "flags_all": [
+          "rune_smiths"
+        ]
+      },
+      "desc": "Zwergenkrieger in runenverstärkten Rüstungen – loyal bis in den Tod."
     }
   ],
   "commanders": {
@@ -1082,7 +1110,8 @@
         }
       },
       "origin_max_influence": 60,
-      "weight": 2
+      "weight": 2,
+      "faction_id": "kingdom"
     },
     {
       "id": "empire_legion",
@@ -1099,7 +1128,8 @@
         ]
       },
       "origin_max_influence": 50,
-      "weight": 2
+      "weight": 2,
+      "faction_id": "empire"
     },
     {
       "id": "quagoa",
@@ -1130,7 +1160,40 @@
         }
       },
       "origin_max_influence": 40,
-      "weight": 3
+      "weight": 3,
+      "faction_id": "theocracy"
+    },
+    {
+      "id": "argland_wrath",
+      "faction": "Drachenheer von Argland",
+      "faction_id": "argland",
+      "origin": "drachen",
+      "strength": [
+        400,
+        650
+      ],
+      "trigger": {
+        "chapter_min": 7
+      },
+      "origin_max_influence": 40,
+      "weight": 1,
+      "war_only": true
+    },
+    {
+      "id": "roble_crusade",
+      "faction": "Kreuzzug von Roble",
+      "faction_id": "roble",
+      "origin": "roble",
+      "strength": [
+        160,
+        260
+      ],
+      "trigger": {
+        "chapter_min": 8
+      },
+      "origin_max_influence": 40,
+      "weight": 1,
+      "war_only": true
     }
   ],
   "difficulties": [

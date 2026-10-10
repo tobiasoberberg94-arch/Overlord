@@ -1,0 +1,343 @@
+{
+  "stances": [
+    [
+      -100,
+      "Krieg",
+      "#ff4a5a"
+    ],
+    [
+      -60,
+      "Feindselig",
+      "#ff8a5a"
+    ],
+    [
+      -20,
+      "Neutral",
+      "#c9c2d8"
+    ],
+    [
+      20,
+      "Freundlich",
+      "#9be36a"
+    ],
+    [
+      55,
+      "Ergeben",
+      "#f5d77a"
+    ]
+  ],
+  "factions": [
+    {
+      "id": "kingdom",
+      "name": "Königreich Re-Estize",
+      "short": "Königreich",
+      "ruler": "König Ramposa III.",
+      "color": "#c9a24a",
+      "symbol": "♜",
+      "regions": [
+        "e_rantel",
+        "re_capital",
+        "carne"
+      ],
+      "image": "re_estize",
+      "power": 55,
+      "start_relation": 0,
+      "trade": 10,
+      "tribute": 140,
+      "desc": "Ein alterndes Königreich, zerrissen zwischen Königsfraktion und Adelsfraktion. Korrupt, schwach – aber reich an Land, Menschen und Gold. Gazef Stronoff ist sein einziges Schwert.",
+      "attitude": "Fürchtet Stärke, verachtet Untote, gierig nach Gold.",
+      "likes": {
+        "reputation": 0.04
+      },
+      "dislikes": {
+        "attention": -0.03
+      },
+      "known_requires": {
+        "chapter_min": 2
+      }
+    },
+    {
+      "id": "empire",
+      "name": "Baharuth-Kaiserreich",
+      "short": "Kaiserreich",
+      "ruler": "Kaiser Jircniv Rune Farlord El-Nix",
+      "color": "#d8743a",
+      "symbol": "♛",
+      "regions": [
+        "baharuth"
+      ],
+      "image": "baharuth",
+      "power": 75,
+      "start_relation": -5,
+      "trade": 16,
+      "tribute": 220,
+      "desc": "Ein zentralisierter Staat mit Berufsarmee und Magierakademie. Sein Kaiser ist brillant, pragmatisch – und erkennt eine Bedrohung, wenn er sie sieht.",
+      "attitude": "Pragmatisch: respektiert Macht, sucht Vorteile, plant langfristig.",
+      "likes": {
+        "power": 0.03
+      },
+      "dislikes": {},
+      "known_requires": {
+        "chapter_min": 4
+      }
+    },
+    {
+      "id": "theocracy",
+      "name": "Slane-Theokratie",
+      "short": "Theokratie",
+      "ruler": "Der Oberste Pontifex",
+      "color": "#e8e2c0",
+      "symbol": "✠",
+      "regions": [
+        "theokratie"
+      ],
+      "image": "holy_kingdom",
+      "power": 95,
+      "start_relation": -25,
+      "trade": 12,
+      "tribute": 260,
+      "desc": "Ein fanatischer Gottesstaat, Hüter der Menschheit gegen Halbmenschen und Untote. Er besitzt Weltgegenstände und die Schwarze Schrift – und wird einen Untoten auf einem Thron niemals dulden.",
+      "attitude": "Fanatisch: hasst Untote. Jede Aufmerksamkeit Nazaricks vergiftet die Beziehung.",
+      "likes": {},
+      "dislikes": {
+        "attention": -0.06
+      },
+      "known_requires": {
+        "chapter_min": 3
+      }
+    },
+    {
+      "id": "argland",
+      "name": "Argland-Rat",
+      "short": "Argland",
+      "ruler": "Tsaindorcus Vaision, der Platin-Drachenlord",
+      "color": "#b8d8e8",
+      "symbol": "❖",
+      "regions": [
+        "drachen"
+      ],
+      "image": "world_map",
+      "power": 100,
+      "start_relation": 0,
+      "trade": 14,
+      "tribute": 300,
+      "desc": "Ein Bund aus Drachen und Halbmenschen, angeführt von einem uralten Drachen, der seit sechs Jahrhunderten über die Welt wacht – und ›Spielern‹ zutiefst misstraut.",
+      "attitude": "Wachsam: beobachtet, wartet, schlägt zu, wenn das Gleichgewicht kippt.",
+      "likes": {},
+      "dislikes": {
+        "attention": -0.025,
+        "power": -0.02
+      },
+      "known_requires": {
+        "chapter_min": 6
+      }
+    },
+    {
+      "id": "dwarves",
+      "name": "Zwergenreich Feo Jera",
+      "short": "Zwerge",
+      "ruler": "Der Regentschaftsrat",
+      "color": "#9fb0c0",
+      "symbol": "⚒",
+      "regions": [
+        "azerlisia"
+      ],
+      "image": "world_map",
+      "power": 25,
+      "start_relation": 10,
+      "trade": 9,
+      "tribute": 90,
+      "desc": "Ein schrumpfendes Zwergenreich, bedrängt von Quagoa und einem Frostdrachen. Seine Runenschmiede beherrschen eine Kunst, die es in Yggdrasil nie gab.",
+      "attitude": "Verzweifelt: dankbar für jeden Beschützer, misstrauisch gegenüber Fremden.",
+      "likes": {
+        "reputation": 0.03
+      },
+      "dislikes": {},
+      "known_requires": {
+        "chapter_min": 5
+      }
+    },
+    {
+      "id": "roble",
+      "name": "Heiliges Königreich Roble",
+      "short": "Roble",
+      "ruler": "Heilige Königin Calca Bessarez",
+      "color": "#f0f0ff",
+      "symbol": "☩",
+      "regions": [
+        "roble"
+      ],
+      "image": "holy_kingdom",
+      "power": 60,
+      "start_relation": -10,
+      "trade": 12,
+      "tribute": 180,
+      "desc": "Ein frommes Königreich hinter einer gewaltigen Mauer, das sich gegen die Halbmenschen der Abelion-Hügel verteidigt. Sein Glaube ist stark, seine Einigkeit nicht.",
+      "attitude": "Fromm und stolz: misstraut Untoten, ehrt Retter.",
+      "likes": {
+        "reputation": 0.04
+      },
+      "dislikes": {
+        "attention": -0.03
+      },
+      "known_requires": {
+        "chapter_min": 8
+      }
+    },
+    {
+      "id": "elves",
+      "name": "Elfenkönigreich",
+      "short": "Elfen",
+      "ruler": "Elfenkönig Decem Hougan",
+      "color": "#8fe0a0",
+      "symbol": "❦",
+      "regions": [
+        "elfen"
+      ],
+      "image": "forest",
+      "power": 65,
+      "start_relation": -15,
+      "trade": 11,
+      "tribute": 170,
+      "desc": "Ein Reich der Elfen unter einem König, der nur Stärke achtet und seine eigenen Kinder als Werkzeuge betrachtet. Im endlosen Krieg mit der Theokratie ausgeblutet.",
+      "attitude": "Herrisch: verachtet Schwäche, beugt sich nur überlegener Macht.",
+      "likes": {
+        "power": 0.03
+      },
+      "dislikes": {},
+      "known_requires": {
+        "chapter_min": 10
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "gifts",
+      "name": "Gesandtschaft mit Geschenken",
+      "icon": "◈",
+      "cost": 100,
+      "days": 5,
+      "desc": "Ein Gesandter überbringt Geschenke und Grüße des Overlords. Verbessert die Beziehung.",
+      "requires": {
+        "not_war": true
+      },
+      "result": {
+        "relation": 15
+      }
+    },
+    {
+      "id": "trade",
+      "name": "Handelsabkommen",
+      "icon": "⚖",
+      "cost": 40,
+      "days": 6,
+      "desc": "Ein dauerhaftes Abkommen: tägliche Goldeinnahmen und bessere Beziehungen.",
+      "requires": {
+        "relation_min": 20,
+        "not_war": true,
+        "no_treaty": "trade"
+      },
+      "result": {
+        "relation": 5,
+        "treaty": "trade"
+      }
+    },
+    {
+      "id": "nonaggression",
+      "name": "Nichtangriffspakt",
+      "icon": "◐",
+      "cost": 60,
+      "days": 6,
+      "desc": "Die Fraktion verpflichtet sich, keine Heere gegen Nazarick zu entsenden.",
+      "requires": {
+        "relation_min": 10,
+        "not_war": true,
+        "no_treaty": "nonaggression"
+      },
+      "result": {
+        "relation": 5,
+        "treaty": "nonaggression"
+      }
+    },
+    {
+      "id": "intimidate",
+      "name": "Machtdemonstration",
+      "icon": "☠",
+      "cost": 0,
+      "days": 4,
+      "desc": "Ein Wächter zeigt der Fraktion, wozu Nazarick fähig ist. Furcht steigt, die Beziehung leidet.",
+      "requires": {
+        "power_min": 40
+      },
+      "result": {
+        "fear": 25,
+        "relation": -12,
+        "attention": 5
+      }
+    },
+    {
+      "id": "tribute",
+      "name": "Tribut fordern",
+      "icon": "♛",
+      "cost": 0,
+      "days": 5,
+      "desc": "Fordert Gold als Zeichen der Unterwerfung. Nur sinnvoll, wenn die Fraktion Euch fürchtet.",
+      "requires": {
+        "fear_min": 50,
+        "not_treaty": "vassal"
+      },
+      "result": {
+        "tribute": true,
+        "relation": -10,
+        "fear": -10
+      }
+    },
+    {
+      "id": "vassal",
+      "name": "Vasallentum fordern",
+      "icon": "⚜",
+      "cost": 0,
+      "days": 8,
+      "desc": "Die Fraktion soll sich Nazarick unterwerfen: dauerhafter Tribut, Einfluss in ihren Regionen, nie wieder Krieg.",
+      "requires": {
+        "fear_min": 70,
+        "relation_min": -40,
+        "no_treaty": "vassal"
+      },
+      "result": {
+        "treaty": "vassal",
+        "relation": 10
+      }
+    },
+    {
+      "id": "peace",
+      "name": "Frieden anbieten",
+      "icon": "☮",
+      "cost": 150,
+      "days": 5,
+      "desc": "Beendet den Krieg – sofern die Gegenseite Euch genug fürchtet oder respektiert.",
+      "requires": {
+        "war": true
+      },
+      "result": {
+        "end_war": true
+      }
+    },
+    {
+      "id": "war",
+      "name": "Krieg erklären",
+      "icon": "⚔",
+      "cost": 0,
+      "days": 0,
+      "instant": true,
+      "desc": "Offener Krieg. Eroberungen kosten keinen Ruf mehr – doch die Fraktion wird ihre Heere schicken.",
+      "requires": {
+        "not_war": true,
+        "not_treaty": "vassal"
+      },
+      "result": {
+        "war": true
+      }
+    }
+  ]
+}

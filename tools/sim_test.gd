@@ -12,7 +12,7 @@ func _ready() -> void:
 		Game.new_game(diffs[r % diffs.size()])
 		var steps := 0
 		var kinds := {}
-		while steps < 2000 and Game.state.chapter < 8:
+		while steps < 3000 and not Game.has_flag("game_completed"):
 			steps += 1
 			while not Game.pending().is_empty():
 				var d: Dictionary = Game.pending()[0]
@@ -47,6 +47,18 @@ func _ready() -> void:
 					var targets: Array = Game.state.regions.keys().filter(func(id): return Military.can_conquer(id))
 					if not targets.is_empty() and Military.strength(a) > 120:
 						Military.order_move(a.uid, targets[Game.rng.randi() % targets.size()], true)
+			# Diplomatie
+			if Game.rng.randf() < 0.08:
+				var kf := Diplomacy.known_factions()
+				if not kf.is_empty():
+					var f: Dictionary = kf[Game.rng.randi() % kf.size()]
+					var acts: Array = Diplomacy.data.actions
+					var act: Dictionary = acts[Game.rng.randi() % acts.size()]
+					if act.id != "war" or Game.rng.randf() < 0.2:
+						for cid in ["albedo", "demiurge", "sebas"]:
+							if Game.is_available(cid):
+								Diplomacy.start_action(f.id, act.id, cid)
+								break
 			# Erlasse gelegentlich wechseln
 			if Game.rng.randf() < 0.05:
 				var ds := World.available_decrees()
@@ -63,8 +75,15 @@ func _ready() -> void:
 		for id in Game.state.regions:
 			if Game.state.regions[id].discovered:
 				infl[id] = Game.state.regions[id].influence
-		print("Lauf %d [%s]: Kapitel %d an Tag %d | Gold %d | Depeschen %s | Einfluss %s | Armeen %d" % [
-			r, Game.state.difficulty, Game.state.chapter, Game.state.day, Game.state.resources.gold, kinds, infl, Game.state.armies.size()])
+		var dip := {}
+		for fid in Game.state.factions:
+			var fst: Dictionary = Game.state.factions[fid]
+			dip[fid] = "%d/%d%s" % [fst.relation, fst.fear, str(fst.treaties) if not fst.treaties.is_empty() else ""]
+		var open_obj := Game.objectives().filter(func(o): return not o[1]).map(func(o): return o[0])
+		if not open_obj.is_empty():
+			print("   offen: ", open_obj)
+		print("Lauf %d [%s]: Kapitel %d an Tag %d | Gold %d | Schlachten %d | Fraktionen %s" % [
+			r, Game.state.difficulty, Game.state.chapter, Game.state.day, Game.state.resources.gold, kinds.get("battle", 0), dip])
 		# Speichern/Laden-Rundlauf
 		SaveSystem.save_game(3)
 		var day: int = Game.state.day

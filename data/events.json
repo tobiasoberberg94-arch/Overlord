@@ -233,7 +233,13 @@
             "set_flags": [
               "nigun_resolved"
             ],
-            "log": "Die Sonnenlicht-Schrift wurde ausgelöscht."
+            "log": "Die Sonnenlicht-Schrift wurde ausgelöscht.",
+            "factions": {
+              "theocracy": {
+                "relation": -15,
+                "fear": 10
+              }
+            }
           },
           "reaction": "Der Engel zerfällt zu Licht. Nigun schreit, betet, fleht. Dann ist es still. Ein Beobachtungszauber der Theokratie zerbricht in der Luft – du hast ihn mit einer beiläufigen Geste gebrochen."
         },
@@ -255,7 +261,13 @@
               "nigun_resolved",
               "nigun_captured"
             ],
-            "log": "Nigun Grid Luin wurde nach Nazarick gebracht."
+            "log": "Nigun Grid Luin wurde nach Nazarick gebracht.",
+            "factions": {
+              "theocracy": {
+                "relation": -20,
+                "fear": 5
+              }
+            }
           },
           "reaction": "Nigun wird nach Nazarick gebracht. Neuronist Painkill ist begeistert. Was er über die Theokratie verrät, ist unbezahlbar – bis ein Fluch ihn nach der dritten Frage tötet. Demiurge findet das ›faszinierend‹."
         }
@@ -369,6 +381,11 @@
             "regions": {
               "e_rantel": {
                 "influence": 20
+              }
+            },
+            "factions": {
+              "kingdom": {
+                "relation": 10
               }
             }
           },
@@ -1186,6 +1203,19 @@
               "re_capital": {
                 "unrest": 30
               }
+            },
+            "factions": {
+              "kingdom": {
+                "relation": -40,
+                "fear": 60
+              },
+              "theocracy": {
+                "relation": -25,
+                "fear": 20
+              },
+              "empire": {
+                "fear": 40
+              }
             }
           },
           "reaction": "Siebzigtausend Seelen werden in einem Augenblick geerntet. Aus dem schwarzen Opfer erheben sich fünf Dunkle Jungen – Ziegen aus Fleisch und Mäulern – und stampfen in das Heer.\n\nAuf dem Hügel übergibt sich Kaiser Jircniv. Die Welt wird diesen Tag nie vergessen."
@@ -1222,6 +1252,15 @@
               },
               "baharuth": {
                 "influence": 20
+              }
+            },
+            "factions": {
+              "kingdom": {
+                "relation": -10,
+                "fear": 40
+              },
+              "empire": {
+                "fear": 20
               }
             }
           },
@@ -1263,6 +1302,11 @@
               "e_rantel": {
                 "influence": 40
               }
+            },
+            "factions": {
+              "kingdom": {
+                "fear": 10
+              }
             }
           },
           "reaction": "Albedos Hände zittern, als sie die Krone hebt. »Mein König«, flüstert sie. »Mein Gemahl.« Die Menge hört nur das erste Wort. Shalltear hört das zweite."
@@ -1293,6 +1337,11 @@
               "e_rantel": {
                 "influence": 40
               }
+            },
+            "factions": {
+              "kingdom": {
+                "fear": 15
+              }
             }
           },
           "reaction": "Shalltear schwebt empor, die Krone in beiden Händen, und setzt sie dir mit einem Kuss auf den Schädel. Die Menge erstarrt. Albedos Lächeln bekommt Risse, die man bis Arwintar sehen kann."
@@ -1319,6 +1368,11 @@
             "regions": {
               "e_rantel": {
                 "influence": 40
+              }
+            },
+            "factions": {
+              "kingdom": {
+                "fear": 10
               }
             }
           },
@@ -2227,6 +2281,416 @@
           "reaction": "Das Pergament verschwindet. Beide sehen sich an – und der Waffenstillstand ist vorbei."
         }
       ]
+    },
+    {
+      "id": "ev_dwarf_runes",
+      "type": "chain",
+      "char": "aura",
+      "title": "Gondo, der letzte Runenschmied",
+      "subtitle": "Feo Jera",
+      "body": "Ein Zwerg mit versengtem Bart kniet vor Euren Gesandten: Gondo Firebeard, einer der letzten Runenschmiede. Die Kunst der Runen stirbt, sagt er. Niemand will sie mehr lernen, niemand bezahlen.\n\n»Wenn der Zauberkönig die Runen rettet«, sagt er, »dann diene ich ihm. Ich und jeder Schmied, den ich finden kann.«\n\nDemiurge beugt sich zu Euch: »Eine neue Waffentechnologie, {lord} – und eine, die nur wir kontrollieren werden.«",
+      "choices": [
+        {
+          "label": "Die Runenkunst fördern (−200 Gold)",
+          "variant": "primary",
+          "requires": {
+            "res_min": {
+              "gold": 200
+            }
+          },
+          "effects": {
+            "res": {
+              "gold": -200,
+              "power": 5,
+              "reputation": 4
+            },
+            "set_flags": [
+              "rune_smiths"
+            ],
+            "factions": {
+              "dwarves": {
+                "relation": 15
+              }
+            }
+          },
+          "reaction": "Gondo weint in seinen Bart. In den Schmieden von Nazarick erklingen bald Hämmer – und Runen glühen auf Waffen, die Yggdrasil nie kannte. Die Runengarde der Zwerge kann ausgehoben werden."
+        },
+        {
+          "label": "Gondo nach Nazarick bringen – allein",
+          "variant": "default",
+          "effects": {
+            "res": {
+              "info": 10
+            },
+            "factions": {
+              "dwarves": {
+                "relation": -10
+              }
+            }
+          },
+          "reaction": "Gondo wird ›eingeladen‹. In der Bibliothek von Ashurbanipal schreibt er alles auf, was er weiß. Die Zwerge fragen sich, wo er geblieben ist."
+        },
+        {
+          "label": "Kein Interesse an alten Handwerken",
+          "variant": "default",
+          "effects": {
+            "factions": {
+              "dwarves": {
+                "relation": -5
+              }
+            }
+          },
+          "reaction": "Gondo senkt den Kopf. Die Runenkunst wird mit ihm sterben."
+        }
+      ]
+    },
+    {
+      "id": "ev_frost_dragon",
+      "type": "chain",
+      "char": "shalltear",
+      "title": "Olasird'arc, der Frostdrache",
+      "subtitle": "Thronsaal von Feo Berkana",
+      "body": "Im Thronsaal der alten Zwergenstadt erhebt sich ein weißer Drache, groß wie ein Haus, mit Augen wie gefrorene Seen. »Wer wagt es, Olasird'arc zu stören?«\n\nShalltear leckt sich die Lippen. Aura hält schon die Peitsche bereit. Und der Drache … beginnt zu zittern, als er Euch erblickt.",
+      "choices": [
+        {
+          "label": "»Shalltear. Er gehört dir.«",
+          "variant": "danger",
+          "effects": {
+            "res": {
+              "power": 6,
+              "gold": 250
+            },
+            "chars": {
+              "shalltear": {
+                "favor": 10,
+                "mood": 15
+              },
+              "albedo": {
+                "jealousy": 6
+              }
+            },
+            "set_flags": [
+              "frost_dragon_done"
+            ],
+            "factions": {
+              "dwarves": {
+                "fear": 20,
+                "relation": 10
+              }
+            }
+          },
+          "reaction": "Es dauert keine Minute. Shalltear kehrt mit einem Drachenzahn als Halskette zurück. »Für Euch, Eure Herrlichkeit, ~arinsu!« Der Drachenhort fällt an Nazarick."
+        },
+        {
+          "label": "»Aura – zähme ihn.«",
+          "variant": "primary",
+          "effects": {
+            "res": {
+              "power": 10
+            },
+            "chars": {
+              "aura": {
+                "favor": 15,
+                "mood": 20
+              }
+            },
+            "set_flags": [
+              "frost_dragon_done",
+              "frost_dragons"
+            ],
+            "factions": {
+              "dwarves": {
+                "fear": 25
+              }
+            }
+          },
+          "reaction": "Aura springt auf den Kopf des Drachen und knallt mit der Peitsche. Drei Minuten später schnurrt Olasird'arc wie eine Katze. Mit ihm unterwerfen sich seine Frau und seine Brut – Frostdrachen können nun als Einheit ausgehoben werden."
+        },
+        {
+          "label": "»Dein Hort für dein Leben, Drache.«",
+          "variant": "warning",
+          "effects": {
+            "res": {
+              "gold": 600,
+              "reputation": 3
+            },
+            "set_flags": [
+              "frost_dragon_done"
+            ],
+            "factions": {
+              "dwarves": {
+                "relation": 10
+              }
+            }
+          },
+          "reaction": "Olasird'arc überlässt Euch seinen gesamten Hort und flieht nach Norden. Albedo zählt das Gold persönlich nach. Zweimal."
+        }
+      ]
+    },
+    {
+      "id": "ev_neia",
+      "type": "chain",
+      "title": "Das Mädchen mit den bösen Augen",
+      "subtitle": "Heiliges Königreich · Ruinen von Kalinsha",
+      "body": "Unter den Flüchtlingen steht ein junges Mädchen in einer zerbeulten Knappenrüstung: Neia Baraja. Ihre Augen sind so scharf, dass Fremde sie für böse halten. Sie hat gesehen, wie der Zauberkönig – ein Untoter! – Kinder vor Halbmenschen rettete, während die Paladine ihres eigenen Ordens zögerten.\n\n»Warum?«, fragt sie Euch. »Warum rettet ein Untoter die Schwachen?«",
+      "choices": [
+        {
+          "label": "»Gerechtigkeit ist die Macht, die Schwachen zu schützen.«",
+          "variant": "primary",
+          "effects": {
+            "res": {
+              "reputation": 8
+            },
+            "set_flags": [
+              "neia_cult"
+            ],
+            "factions": {
+              "roble": {
+                "relation": 15
+              }
+            },
+            "regions": {
+              "roble": {
+                "influence": 10
+              }
+            }
+          },
+          "reaction": "Neias Augen weiten sich. In den kommenden Wochen predigt sie im ganzen Süden: Der Zauberkönig sei die Gerechtigkeit selbst. Eine Bewegung entsteht. Demiurge ist entzückt – das war nicht einmal sein Plan."
+        },
+        {
+          "label": "»Weil es mir nützt.«",
+          "variant": "default",
+          "effects": {
+            "res": {
+              "info": 3
+            },
+            "factions": {
+              "roble": {
+                "relation": 5
+              }
+            }
+          },
+          "reaction": "Neia nickt langsam. Ehrlichkeit, denkt sie. Ein Untoter, der nicht lügt. Sie wird es nie vergessen."
+        },
+        {
+          "label": "Schweigend weitergehen",
+          "variant": "default",
+          "effects": {},
+          "reaction": "Neia sieht Euch nach, bis Ihr hinter den Ruinen verschwunden seid."
+        }
+      ]
+    },
+    {
+      "id": "ev_elf_king",
+      "type": "chain",
+      "char": "aura",
+      "title": "Der Elfenkönig",
+      "subtitle": "Thronsaal im Ewigen Wald",
+      "body": "Decem Hougan, der Elfenkönig, sitzt auf einem Thron aus lebendem Holz. Er ist stark – stärker als jedes Wesen, dem Nazarick bisher in der Neuen Welt begegnet ist. Er betrachtet Aura und Mare mit kaltem Interesse.\n\n»Dunkelelfen«, sagt er. »Gutes Material. Ihr werdet mir starke Kinder schenken.«\n\nAura erbleicht. Mare umklammert seinen Stab. Und etwas in Euch, das lange geschlafen hat, erwacht.",
+      "choices": [
+        {
+          "label": "»Niemand spricht so über meine Kinder.« (selbst kämpfen)",
+          "variant": "danger",
+          "effects": {
+            "res": {
+              "power": 10,
+              "reputation": 6
+            },
+            "chars": {
+              "aura": {
+                "favor": 20,
+                "mood": 20
+              },
+              "mare": {
+                "favor": 20,
+                "mood": 20
+              }
+            },
+            "set_flags": [
+              "elf_king_done",
+              "elves_freed"
+            ],
+            "regions": {
+              "elfen": {
+                "influence": 45
+              }
+            },
+            "factions": {
+              "elves": {
+                "treaty_add": "vassal",
+                "relation": 40
+              },
+              "theocracy": {
+                "fear": 15
+              }
+            }
+          },
+          "reaction": "Der Kampf dauert keine drei Minuten. Als der Elfenkönig fällt, flüstert Mare: »Ainz-sama hat uns ›seine Kinder‹ genannt.« Aura weint – und lacht. Die Elfen knien vor dem Zauberkönig, nicht aus Furcht, sondern aus Erleichterung."
+        },
+        {
+          "label": "»Aura. Mare. Das ist euer Kampf.«",
+          "variant": "primary",
+          "effects": {
+            "res": {
+              "power": 6
+            },
+            "chars": {
+              "aura": {
+                "favor": 15,
+                "fatigue": 60
+              },
+              "mare": {
+                "favor": 15,
+                "fatigue": 60
+              }
+            },
+            "set_flags": [
+              "elf_king_done",
+              "elves_freed"
+            ],
+            "regions": {
+              "elfen": {
+                "influence": 40
+              }
+            },
+            "factions": {
+              "elves": {
+                "treaty_add": "vassal",
+                "relation": 30
+              }
+            }
+          },
+          "reaction": "Die Zwillinge kämpfen wie ein einziges Wesen. Bäume stürzen, die Erde bebt, Bestien heulen. Am Ende liegt der König besiegt – und die beiden stehen erschöpft, aber aufrecht. Ihr habt nie stolzere Kinder gesehen."
+        },
+        {
+          "label": "Ihn der Theokratie übergeben",
+          "variant": "default",
+          "effects": {
+            "set_flags": [
+              "elf_king_done"
+            ],
+            "factions": {
+              "theocracy": {
+                "relation": 40
+              },
+              "elves": {
+                "relation": -30
+              }
+            },
+            "chars": {
+              "aura": {
+                "mood": -15
+              },
+              "mare": {
+                "mood": -15
+              }
+            }
+          },
+          "reaction": "Die Theokratie nimmt ihren ältesten Feind dankbar entgegen. Aura sagt kein Wort. Mare auch nicht. Aber sie sehen Euch eine Weile nicht an."
+        }
+      ]
+    },
+    {
+      "id": "ev_platinum_dragon",
+      "type": "chain",
+      "title": "Das Gleichgewicht der Welt",
+      "subtitle": "Katze-Ebene · Mitternacht",
+      "body": "Die Platinrüstung steht reglos im Nebel. Dann spricht sie – mit einer Stimme, die sechs Jahrhunderte alt ist.\n\n»Du bist ein Spieler. Wie die Sechs Götter. Wie die Acht Gierkönige. Sie alle haben diese Welt verändert – und fast zerstört. Sag mir, Herrscher des Grabes: Was willst du?«\n\nHinter Euch stehen die Wächter. Albedo, Shalltear, Demiurge, Cocytus, Aura, Mare, Sebas. Bereit für jedes Wort, das Ihr sprecht.",
+      "choices": [
+        {
+          "label": "»Frieden. Und eine Welt, in der meine Kinder sicher sind.«",
+          "variant": "primary",
+          "effects": {
+            "res": {
+              "attention": -30,
+              "reputation": 10
+            },
+            "set_flags": [
+              "world_decided",
+              "ending_peace"
+            ],
+            "factions": {
+              "argland": {
+                "treaty_add": "nonaggression",
+                "relation": 40
+              }
+            }
+          },
+          "reaction": "Die Rüstung schweigt lange. »Kinder«, wiederholt sie. »Die Acht Gierkönige hatten keine Kinder. Nur Diener.« Sie neigt den Helm. »Ich werde dich beobachten, Ainz Ooal Gown. Aber ich werde dich nicht angreifen.«"
+        },
+        {
+          "label": "»Ich werde es dir zeigen.« (Weltgegenstand einsetzen)",
+          "variant": "danger",
+          "requires": {
+            "res_min": {
+              "power": 65
+            }
+          },
+          "effects": {
+            "res": {
+              "power": 12,
+              "attention": 20
+            },
+            "set_flags": [
+              "world_decided",
+              "ending_power",
+              "dragon_defeated"
+            ],
+            "factions": {
+              "argland": {
+                "fear": 70,
+                "relation": -20
+              }
+            }
+          },
+          "reaction": "Ein Weltgegenstand erwacht. Die Platinrüstung zerbricht in tausend Splitter, und tausend Kilometer entfernt brüllt ein Drache vor Schmerz. Die Welt hat ihre Antwort. Und sie wird sie nie vergessen."
+        },
+        {
+          "label": "»Die Welt gehört Nazarick.«",
+          "variant": "danger",
+          "effects": {
+            "res": {
+              "power": 6,
+              "attention": 30
+            },
+            "set_flags": [
+              "world_decided",
+              "ending_conquest"
+            ],
+            "factions": {
+              "argland": {
+                "treaty_add": "war"
+              },
+              "theocracy": {
+                "treaty_add": "war"
+              }
+            },
+            "chars": {
+              "demiurge": {
+                "favor": 15
+              },
+              "shalltear": {
+                "mood": 15
+              },
+              "sebas": {
+                "mood": -15
+              }
+            }
+          },
+          "reaction": "»Dann wird es Krieg geben«, sagt die Rüstung. »Einen Krieg, wie ihn diese Welt seit sechshundert Jahren nicht gesehen hat.« Demiurge lächelt. Er hat seit sechshundert Tagen auf diesen Satz gewartet."
+        }
+      ]
+    },
+    {
+      "id": "ev_ending",
+      "type": "story",
+      "special": "ending",
+      "title": "Epilog",
+      "subtitle": "Die Chronik von Ainz Ooal Gown",
+      "trigger": {
+        "chapter": 12
+      },
+      "body": ""
     }
   ],
   "initiatives": [

@@ -139,6 +139,15 @@ func commander_bonus(cid: String) -> float:
 	return float(Content.systems.commanders.get(cid, {}).get("bonus", 0.1))
 
 
+## Marschfortschritt auf dem aktuellen Wegstück (0…1), plus Bruchteil für Animationen.
+func leg_progress(a: Dictionary, frac: float = 0.0) -> float:
+	if a.get("path", []).is_empty():
+		return 0.0
+	var start := int(a.get("depart_day", Game.state.day))
+	var total := maxi(1, int(a.next_day) - start)
+	return clampf((Game.state.day - start + frac) / total, 0.0, 1.0)
+
+
 ## Effektive Stärke inkl. Feldherr (ohne Zufall/Taktik) – für die Anzeige.
 func strength(a: Dictionary) -> int:
 	return roundi(base_strength(a) * (1.0 + commander_bonus(a.get("commander", ""))))
@@ -235,6 +244,7 @@ func order_move(army_uid: String, target: String, conquer: bool = false) -> Dict
 	a.order = "conquer" if conquer else "move"
 	if not p.is_empty():
 		a.next_day = Game.state.day + link_days(a.location, p[0])
+		a["depart_day"] = Game.state.day
 	var days := path_days(a.location, p)
 	var rname: String = World.region(target).get("short", target)
 	Game.log_msg("%s marschiert nach %s (%d Tage)%s." % [a.name, rname, days, " – Eroberungsbefehl" if conquer else ""], "mission")
@@ -282,6 +292,7 @@ func _advance_army(a: Dictionary, hostile: bool) -> void:
 			_arrive(a)
 	else:
 		a.next_day = Game.state.day + link_days(a.location, a.path[0])
+		a["depart_day"] = Game.state.day
 
 
 func _arrive(a: Dictionary) -> void:
@@ -326,13 +337,23 @@ func _maybe_spawn_invasion() -> void:
 			continue
 		if World.rs(inv.origin).influence > int(inv.get("origin_max_influence", 100)):
 			continue
+		var w := Diplomacy.invasion_weight(inv.get("faction_id", ""), inv.get("war_only", false)) * float(inv.get("weight", 1))
+		if w <= 0.0:
+			continue
 		var target := _invasion_target(inv.origin)
 		if target != "":
-			options.append([inv, target])
+			options.append([inv, target, w])
 	if options.is_empty():
 		return
-	var pick: Array = options[Game.rng.randi() % options.size()]
-	_spawn_enemy(pick[0], pick[1])
+	var total := 0.0
+	for o in options:
+		total += float(o[2])
+	var roll := Game.rng.randf() * total
+	for o in options:
+		roll -= float(o[2])
+		if roll <= 0.0:
+			_spawn_enemy(o[0], o[1])
+			return
 
 
 func _invasion_target(origin: String) -> String:
@@ -363,6 +384,7 @@ func _spawn_enemy(inv: Dictionary, target: String) -> void:
 	var e := {
 		"uid": Game.next_uid("e"), "name": inv.faction, "strength": str, "location": inv.origin,
 		"target": target, "path": p, "next_day": Game.state.day + link_days(inv.origin, p[0]), "invasion": inv.id,
+		"depart_day": Game.state.day,
 	}
 	Game.state.enemy_armies.append(e)
 	var days := path_days(inv.origin, p)
@@ -468,12 +490,14 @@ func resolve_battle(uid: String, tactic_id: String) -> Array:
 	var rname: String = World.region(rid).short
 	var lines := PackedStringArray()
 	if won:
+		Game.state["battles_won"] = int(Game.state.get("battles_won", 0)) + 1
 		summary += Game.apply_effects({"res": {"power": 3, "morale": 4}})
 		if b.kind == "conquest":
 			var mil: Dictionary = Content.systems.military
 			World.rs(rid)["garrison_left"] = 0
 			var unrest := int(mil.conquest_unrest) + int(cmd.get("unrest", 0)) + int(tactic.get("unrest", 0))
 			summary += World.apply_region_effects({rid: {"influence": int(mil.conquest_influence), "unrest": unrest}})
+			summary += Diplomacy.on_region_conquered(rid)
 			summary += Game.apply_effects({"res": {"attention": int(mil.conquest_attention) + int(tactic.get("attention", 0))}})
 			lines.append("[color=#f5d77a][b]%s ist gefallen.[/b][/color] Die Banner von Ainz Ooal Gown wehen über der Region." % rname)
 		else:
@@ -534,6 +558,7 @@ func _retreat(a: Dictionary) -> void:
 	a.order = "move"
 	if not p.is_empty():
 		a.next_day = Game.state.day + link_days(a.location, p[0])
+		a["depart_day"] = Game.state.day
 
 
 func _commander_line(cid: String, won: bool) -> String:

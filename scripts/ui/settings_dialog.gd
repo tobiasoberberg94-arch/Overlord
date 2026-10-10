@@ -135,7 +135,7 @@ func _controls_tab() -> Control:
 	t.fit_content = true
 	t.scroll_active = false
 	t.add_theme_font_size_override("normal_font_size", 18)
-	var keys := [["A", "Auftragstafel"], ["K", "Weltkarte & Legionen"], ["V", "Verwaltung: Finanzen & Erlasse"],
+	var keys := [["A", "Auftragstafel"], ["K", "Weltkarte & Legionen"], ["P", "Diplomatie"], ["V", "Verwaltung: Finanzen & Erlasse"],
 		["U", "Untertanen & Audienzen"], ["C", "Chronik"], ["D", "Nächste Depesche öffnen"],
 		["1 / 2 / 3", "Einen Tag / eine Woche / einen Monat vergehen lassen"], ["F5", "Speichern"],
 		["F11", "Vollbild umschalten"], ["ESC", "Fenster schließen"], ["Klick in Text", "Schreibeffekt überspringen"]]

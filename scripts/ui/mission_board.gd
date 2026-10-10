@@ -228,7 +228,7 @@ func _select_mission(mid: String) -> void:
 		"repeat":
 			t += "[color=#8fb8ff]↻ Wiederkehrender Auftrag – bereits %d× erledigt, zuletzt an Tag %d.[/color]\n" % [int(Game.state.completed[m.id]), int(Game.state.completed_day.get(m.id, 0))]
 		"retry":
-			t += "[color=#ff9a3c]✗ Dieser Auftrag ist bereits %d× gescheitert. Wählt einen geeigneteren Vollstrecker.[/color]\n" % int(Game.state.failed[m.id])
+			t += "[color=#ff9a3c]✗ Dieser Auftrag ist bereits %d× gescheitert – Nazarick hat daraus gelernt (Erfolgsaussicht +%d).[/color]\n" % [int(Game.state.failed[m.id]), mini(15, int(Game.state.failed[m.id]) * 5)]
 	t += "[color=#d4af37]Dauer:[/color] %d Tage    [color=#d4af37]Schwierigkeit:[/color] %d\n" % [int(m.days), int(m.difficulty)]
 	var weights: Dictionary = m.get("weights", {})
 	var wl := PackedStringArray()
