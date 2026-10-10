@@ -41,8 +41,9 @@ func _ready() -> void:
 		mat.set_shader_parameter("architecture", 1.0 if architecture else 0.0)
 		rect.material = mat
 		add_child(rect)
-	_add_particles(Palette.GOLD_BRIGHT, 60, 2.5)
-	_add_particles(Palette.VIOLET_GLOW, 40, 3.5)
+	if Settings.particles:
+		_add_particles(Palette.GOLD_BRIGHT, 60, 2.5)
+		_add_particles(Palette.VIOLET_GLOW, 40, 3.5)
 	resized.connect(_layout_particles)
 
 

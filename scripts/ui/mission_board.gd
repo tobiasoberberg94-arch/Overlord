@@ -8,7 +8,7 @@ extends Overlay
 
 signal mission_assigned
 
-const KIND_BADGES := {"main": ["★ HAUPTAUFTRAG", "#f5d77a"], "proposal": ["✧ VORSCHLAG", "#c79bff"], "side": ["◆ NEBENAUFTRAG", "#8fb8ff"]}
+const KIND_BADGES := {"threat": ["⚠ BEDROHUNG", "#ff4a5a"], "main": ["★ HAUPTAUFTRAG", "#f5d77a"], "proposal": ["✧ VORSCHLAG", "#c79bff"], "side": ["◆ NEBENAUFTRAG", "#8fb8ff"]}
 
 var list_box := VBoxContainer.new()
 var detail := RichTextLabel.new()
@@ -17,6 +17,10 @@ var directives_box := GridContainer.new()
 var directive_desc := RichTextLabel.new()
 var forecast := RichTextLabel.new()
 var confirm := Button.new()
+var partner_opt := OptionButton.new()
+var region_filter := OptionButton.new()
+var _partner := ""
+var _region := ""
 
 var _mission_id := ""
 var _char_id := ""
@@ -26,8 +30,9 @@ var _char_group := ButtonGroup.new()
 var _dir_group := ButtonGroup.new()
 
 
-func _init() -> void:
-	super._init(Vector2(1460, 800))
+func _init(region_id: String = "") -> void:
+	super._init(Vector2(1480, 840))
+	_region = region_id
 	content.add_child(make_header("Auftragstafel von Nazarick", "Erteilt Euren Untertanen Befehle – sie werden sie auf ihre eigene Weise ausführen."))
 	content.add_child(HSeparator.new())
 	var row := HBoxContainer.new()
@@ -35,14 +40,20 @@ func _init() -> void:
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(row)
 
-	# ---------------- Spalte 1: Auftragsliste
+	# ---------------- Spalte 1: Filter + Auftragsliste
+	var lcol := VBoxContainer.new()
+	lcol.custom_minimum_size = Vector2(420, 0)
+	row.add_child(lcol)
+	region_filter.item_selected.connect(func(i): _region = region_filter.get_item_metadata(i); _build_list())
+	lcol.add_child(region_filter)
 	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.custom_minimum_size = Vector2(420, 0)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	list_box.add_theme_constant_override("separation", 8)
 	scroll.add_child(list_box)
-	row.add_child(scroll)
+	lcol.add_child(scroll)
 
 	# ---------------- Spalte 2: Details
 	var mid := PanelContainer.new()
@@ -63,6 +74,14 @@ func _init() -> void:
 	chars_box.add_theme_constant_override("h_separation", 6)
 	chars_box.add_theme_constant_override("v_separation", 6)
 	right.add_child(chars_box)
+	var prow := HBoxContainer.new()
+	var pl := Label.new()
+	pl.text = "Unterstützung:"
+	prow.add_child(pl)
+	partner_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	partner_opt.item_selected.connect(func(i): _partner = partner_opt.get_item_metadata(i); _update_forecast())
+	prow.add_child(partner_opt)
+	right.add_child(prow)
 	right.add_child(_section("Befehlsart"))
 	directives_box.columns = 3
 	directives_box.add_theme_constant_override("h_separation", 6)
@@ -111,7 +130,10 @@ func _section(t: String) -> Label:
 func _build_list() -> void:
 	for c in list_box.get_children():
 		c.queue_free()
+	_build_filter()
 	var missions := Game.available_missions()
+	if _region != "":
+		missions = missions.filter(func(m): return m.get("region", "") == _region)
 	if missions.is_empty():
 		_add_cooldown_note()
 		var l := Label.new()
@@ -136,6 +158,9 @@ func _build_list() -> void:
 		match Game.mission_badge(m):
 			"repeat": badge = "   ↻ WIEDERHOLT ×%d" % int(Game.state.completed[m.id])
 			"retry": badge = "   ✗ ERNEUTER VERSUCH"
+		if kind == "threat":
+			var t := World.threat_for_mission(m.id)
+			badge = "   · noch %d Tage!" % World.threat_days_left(t) if not t.is_empty() else ""
 		b.text = "%s%s\n%s\n⚑ %s  ·  ◷ %d T.  ·  %s" % [KIND_BADGES[kind][0], badge, m.title, m.get("location", "?"), int(m.days),
 			"◆".repeat(diff) + "◇".repeat(5 - diff)]
 		b.add_theme_color_override("font_color", Color(KIND_BADGES[kind][1]).lerp(Palette.PARCHMENT, 0.45))
@@ -147,6 +172,24 @@ func _build_list() -> void:
 		i += 1
 	_add_cooldown_note()
 	_select_mission(missions[0].id)
+
+
+## Regionsfilter (mit Anzahl verfügbarer Aufträge je Region).
+func _build_filter() -> void:
+	region_filter.clear()
+	var all := Game.available_missions()
+	region_filter.add_item("Alle Regionen (%d)" % all.size())
+	region_filter.set_item_metadata(0, "")
+	var idx := 1
+	for r in Content.regions:
+		var n := all.filter(func(m): return m.get("region", "") == r.id).size()
+		if n == 0 and r.id != _region:
+			continue
+		region_filter.add_item("%s (%d)" % [r.short, n])
+		region_filter.set_item_metadata(idx, r.id)
+		if r.id == _region:
+			region_filter.select(idx)
+		idx += 1
 
 
 ## Hinweis auf erledigte, wiederholbare Aufträge, die sich gerade „abkühlen“.
@@ -194,11 +237,20 @@ func _select_mission(mid: String) -> void:
 	t += "[color=#d4af37]Gefragt:[/color] %s\n" % ", ".join(wl)
 	if m.has("required_char"):
 		t += "[color=#ff7aa8]Nur durchführbar von: %s[/color]\n" % Game.char_name(m.required_char)
+		var rc := Game.cs(m.required_char)
+		if rc.status == "feldzug":
+			t += "[color=#ff9a3c]⚠ %s führt derzeit eine Armee – auf der Weltkarte [K] als Feldherr abberufen.[/color]\n" % Game.char_name(m.required_char).split(" ")[0]
+		elif rc.status != Game.STATUS_READY:
+			t += "[color=#ff9a3c]⚠ %s ist derzeit nicht verfügbar (%s).[/color]\n" % [Game.char_name(m.required_char).split(" ")[0], Game.STATUS_LABELS.get(rc.status, "")]
 	elif m.has("recommended"):
 		var rl := PackedStringArray()
 		for r in m.recommended:
 			rl.append(Game.char_name(r))
 		t += "[color=#9be36a]Empfohlen: %s[/color]\n" % ", ".join(rl)
+	var rid: String = m.get("region", "")
+	if rid != "" and not World.region(rid).get("home", false):
+		var st := World.rs(rid)
+		t += "[color=#d4af37]Region:[/color] %s – %s, Einfluss %d, Unruhe %d\n" % [World.region(rid).name, World.control_label(st.influence), st.influence, st.unrest]
 	var rewards: Dictionary = m.get("rewards", {})
 	if not rewards.is_empty():
 		var parts := PackedStringArray()
@@ -210,6 +262,7 @@ func _select_mission(mid: String) -> void:
 	detail.text = t
 
 	# Vollstrecker-Kacheln
+	_partner = ""
 	for cid in Game.unlocked_chars():
 		var check: Array = Game.can_assign(m, cid)
 		var nm: String = Content.char_data(cid).name.split(" ")[0]
@@ -222,12 +275,36 @@ func _select_mission(mid: String) -> void:
 		b.disabled = not check[0]
 		b.line2.add_theme_color_override("font_color", Color(est[1]))
 		b.set_meta("cid", cid)
-		b.pressed.connect(func(): _char_id = cid; _update_forecast())
+		b.pressed.connect(func(): _char_id = cid; _build_partners(); _update_forecast())
 		chars_box.add_child(b)
 		if check[0] and _char_id == "":
 			_char_id = cid
 			b.button_pressed = true
+	_build_partners()
 	_update_forecast()
+
+
+## Optionaler zweiter Untertan – mit Synergie-Hinweis.
+func _build_partners() -> void:
+	partner_opt.clear()
+	partner_opt.add_item("— allein —")
+	partner_opt.set_item_metadata(0, "")
+	partner_opt.disabled = _mission_id == ""
+	var idx := 1
+	for cid in Game.unlocked_chars():
+		if cid == _char_id or not Game.is_available(cid):
+			continue
+		var syn := World.synergy(_char_id, cid)
+		var tag := ""
+		if not syn.is_empty():
+			tag = "  ▲" if int(syn.bonus) > 0 else "  ▼"
+		partner_opt.add_item(Game.char_name(cid).split(" ")[0] + tag)
+		partner_opt.set_item_metadata(idx, cid)
+		if cid == _partner:
+			partner_opt.select(idx)
+		idx += 1
+	if _partner != "" and partner_opt.selected == 0:
+		_partner = ""
 
 
 func _update_forecast() -> void:
@@ -239,8 +316,16 @@ func _update_forecast() -> void:
 		return
 	var m := Game.mission(_mission_id)
 	var cd := Content.char_data(_char_id)
-	var est := Game.estimate(m, _char_id, _directive)
-	var t := "[color=#d4af37]Aussicht:[/color] [color=%s][b]%s[/b][/color]     [color=#d4af37]Dauer:[/color] %d Tage\n" % [est[1], est[0], Game.mission_days(m, _directive)]
+	var est := Game.estimate(m, _char_id, _directive, _partner)
+	var t := "[color=#d4af37]Aussicht:[/color] [color=%s][b]%s[/b][/color]     [color=#d4af37]Dauer:[/color] %d Tage     [color=#d4af37]Unterhalt:[/color] %d Gold/Tag\n" % [
+		est[1], est[0], Game.mission_days(m, _directive), int(Content.systems.economy.upkeep_per_agent) * (2 if _partner != "" else 1)]
+	if _partner != "":
+		var syn := World.synergy(_char_id, _partner)
+		var pb := World.partner_bonus(m, _char_id, _partner)
+		t += "[color=#8fb8ff]⚔ Unterstützung durch %s: %+d Erfolg.[/color]" % [Game.char_name(_partner).split(" ")[0], roundi(pb)]
+		if not syn.is_empty():
+			t += " [color=%s]%s[/color]" % ["#6fdc8c" if int(syn.bonus) > 0 else "#ff9a3c", syn.text]
+		t += "\n"
 	# Persönlichkeitshinweise
 	if _directive == "freie_hand" and cd.has("style"):
 		t += "[color=#c79bff]✧ %s handelt im Stil »%s«.[/color]\n" % [cd.name.split(" ")[0], cd.style.name]
@@ -256,12 +341,12 @@ func _update_forecast() -> void:
 	for b: PortraitButton in chars_box.get_children():
 		var cid: String = b.get_meta("cid", "")
 		if cid != "" and not b.disabled:
-			var e := Game.estimate(m, cid, _directive)
+			var e := Game.estimate(m, cid, _directive, _partner if _partner != cid else "")
 			b.set_lines(Content.char_data(cid).name.split(" ")[0], e[0], Color(e[1]))
 
 
 func _on_confirm() -> void:
-	if Game.assign(_mission_id, _char_id, _directive):
+	if Game.assign(_mission_id, _char_id, _directive, _partner):
 		Audio.sfx("order")
 		mission_assigned.emit()
 		_build_list()

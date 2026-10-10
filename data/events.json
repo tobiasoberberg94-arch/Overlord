@@ -143,7 +143,13 @@
             ],
             "queue_events": [
               "ev_nigun"
-            ]
+            ],
+            "regions": {
+              "carne": {
+                "discover": true,
+                "influence": 30
+              }
+            }
           },
           "reaction": "Ein Tor öffnet sich. Du trittst hindurch, ein Todesritter erhebt sich aus der Leiche eines Ritters, und Albedo folgt dir in voller schwarzer Rüstung. »Endlich ein gemeinsamer Ausflug«, flüstert sie verzückt. Die Mädchen sind gerettet. Das Dorf auch – was davon übrig ist."
         },
@@ -167,7 +173,13 @@
             ],
             "queue_events": [
               "ev_nigun"
-            ]
+            ],
+            "regions": {
+              "carne": {
+                "discover": true,
+                "influence": 25
+              }
+            }
           },
           "reaction": "Sebas verneigt sich. Minuten später liegen die Ritter am Boden. »Ich danke Euch, {lord}.« Seine Stimme bebt kaum merklich – zum ersten Mal, seit du ihn kennst."
         },
@@ -191,7 +203,13 @@
               "carne_abandoned",
               "carne_resolved",
               "nigun_resolved"
-            ]
+            ],
+            "regions": {
+              "carne": {
+                "discover": true,
+                "unrest": 60
+              }
+            }
           },
           "reaction": "Du schließt den Spiegel. Hinter dir schweigt Sebas. Demiurge nickt anerkennend. Am nächsten Morgen ist Carne nur noch Asche – und ein Kriegerhauptmann namens Gazef Stronoff findet die Leichen."
         }
@@ -347,7 +365,12 @@
             "set_flags": [
               "erantel_saved"
             ],
-            "log": "Momon rettet E-Rantel. Der Mithril-Rang ist ihm sicher."
+            "log": "Momon rettet E-Rantel. Der Mithril-Rang ist ihm sicher.",
+            "regions": {
+              "e_rantel": {
+                "influence": 20
+              }
+            }
           },
           "reaction": "Deine Arme schließen sich um Clementine. Langsam. Ihre Rüstung knirscht, dann ihre Knochen. Nfirea ist gerettet; seine Großmutter schwört Momon ewige Dankbarkeit – und Tränke.\n\n[color=#f1e6ff]In Nazarick hört Albedo nur: ›Momon hat eine Frau umarmt.‹ Ein Tisch geht zu Bruch.[/color]"
         },
@@ -373,7 +396,13 @@
               "erantel_saved",
               "nfirea_taken"
             ],
-            "log": "Nfirea Bareare verschwindet spurlos."
+            "log": "Nfirea Bareare verschwindet spurlos.",
+            "regions": {
+              "e_rantel": {
+                "influence": 10,
+                "unrest": 10
+              }
+            }
           },
           "reaction": "Momon besiegt die Kultisten – doch Nfirea gilt als ›in den Kämpfen verschollen‹. In Nazarick erforscht er nun Tränke für den Overlord. Er weiß nicht, wem er dient. Noch nicht."
         }
@@ -801,7 +830,12 @@
             "set_flags": [
               "lizard_resolved",
               "lizard_mercy"
-            ]
+            ],
+            "regions": {
+              "sumpf": {
+                "influence": 20
+              }
+            }
           },
           "reaction": "Cocytus erhebt sich. Dampf steigt aus seinen Mandibeln. »Ich. Werde. Euch. Nicht. Enttäuschen.« Demiurge lächelt dir zu. Natürlich hat er gewusst, dass du es von Anfang an so geplant hattest. Du nicht."
         },
@@ -825,7 +859,13 @@
               "lizard_conquered",
               "lizard_exterminated"
             ],
-            "log": "Die Echsenmenschen wurden ausgelöscht."
+            "log": "Die Echsenmenschen wurden ausgelöscht.",
+            "regions": {
+              "sumpf": {
+                "influence": 45,
+                "unrest": 40
+              }
+            }
           },
           "reaction": "Cocytus gehorcht. Natürlich gehorcht er. Die Sümpfe werden still. Als er zurückkehrt, ist er noch schweigsamer als sonst."
         },
@@ -851,7 +891,12 @@
             "set_flags": [
               "lizard_resolved",
               "lizard_mercy"
-            ]
+            ],
+            "regions": {
+              "sumpf": {
+                "influence": 20
+              }
+            }
           },
           "reaction": "»Dann. Gehorche. Ich. Doch. Ich. Würde. Es. Bedauern.« Du nickst. Genau diese Antwort wolltest du hören. Demiurge applaudiert leise. »Brillant. Ihr habt ihm Selbstständigkeit beigebracht.«"
         }
@@ -881,7 +926,13 @@
             },
             "set_flags": [
               "zaryusu_alive"
-            ]
+            ],
+            "regions": {
+              "sumpf": {
+                "influence": 15,
+                "unrest": -20
+              }
+            }
           },
           "reaction": "Zaryusu öffnet die Augen. Crusch weint. Die Echsenmenschen nennen dich von nun an ›den König, der den Tod beherrscht‹. Cocytus nickt zufrieden."
         },
@@ -892,6 +943,11 @@
             "res": {
               "power": 2,
               "reputation": -3
+            },
+            "regions": {
+              "sumpf": {
+                "unrest": 20
+              }
             }
           },
           "reaction": "Crusch senkt den Kopf. Die Echsenmenschen dienen dir – aus Furcht, nicht aus Dankbarkeit."
@@ -1048,6 +1104,11 @@
             },
             "res": {
               "morale": 4
+            },
+            "regions": {
+              "re_capital": {
+                "influence": 25
+              }
             }
           },
           "reaction": "Demiurge verneigt sich tief. »Ihr seid zu gütig. Wir alle sind nur Figuren auf Eurem Brett.« Albedo murmelt etwas über ›Brettspiele‹ und ›eingebildete Teufel‹."
@@ -1067,6 +1128,11 @@
             },
             "res": {
               "morale": 2
+            },
+            "regions": {
+              "re_capital": {
+                "influence": 25
+              }
             }
           },
           "reaction": "Albedo strahlt. Demiurge lächelt verständnisvoll. »Natürlich. Zwei Köpfe für einen Plan, der dreien würdig ist – Eurem eingeschlossen.«"
@@ -1108,7 +1174,19 @@
             "queue_events": [
               "ev_coronation"
             ],
-            "log": "Auf der Katze-Ebene sterben 70.000 Soldaten in einem Atemzug."
+            "log": "Auf der Katze-Ebene sterben 70.000 Soldaten in einem Atemzug.",
+            "regions": {
+              "katze": {
+                "discover": true,
+                "influence": 50
+              },
+              "baharuth": {
+                "influence": 25
+              },
+              "re_capital": {
+                "unrest": 30
+              }
+            }
           },
           "reaction": "Siebzigtausend Seelen werden in einem Augenblick geerntet. Aus dem schwarzen Opfer erheben sich fünf Dunkle Jungen – Ziegen aus Fleisch und Mäulern – und stampfen in das Heer.\n\nAuf dem Hügel übergibt sich Kaiser Jircniv. Die Welt wird diesen Tag nie vergessen."
         },
@@ -1136,7 +1214,16 @@
             "queue_events": [
               "ev_coronation"
             ],
-            "log": "Ainz zerschlägt das Heer des Königreichs mit beherrschter Macht."
+            "log": "Ainz zerschlägt das Heer des Königreichs mit beherrschter Macht.",
+            "regions": {
+              "katze": {
+                "discover": true,
+                "influence": 30
+              },
+              "baharuth": {
+                "influence": 20
+              }
+            }
           },
           "reaction": "Deine Todesreiter brechen durch die Reihen der Adligen. Die Bauernsoldaten fliehen – und du lässt sie fliehen. Gazef Stronoff fordert dich zum Duell. Du gewährst es ihm, und er stirbt als Held. Die Welt fürchtet dich. Aber sie wird sich auch erinnern, dass du Gnade kanntest."
         }
@@ -1171,7 +1258,12 @@
             "set_flags": [
               "crowned",
               "crown_albedo"
-            ]
+            ],
+            "regions": {
+              "e_rantel": {
+                "influence": 40
+              }
+            }
           },
           "reaction": "Albedos Hände zittern, als sie die Krone hebt. »Mein König«, flüstert sie. »Mein Gemahl.« Die Menge hört nur das erste Wort. Shalltear hört das zweite."
         },
@@ -1196,7 +1288,12 @@
             "set_flags": [
               "crowned",
               "crown_shalltear"
-            ]
+            ],
+            "regions": {
+              "e_rantel": {
+                "influence": 40
+              }
+            }
           },
           "reaction": "Shalltear schwebt empor, die Krone in beiden Händen, und setzt sie dir mit einem Kuss auf den Schädel. Die Menge erstarrt. Albedos Lächeln bekommt Risse, die man bis Arwintar sehen kann."
         },
@@ -1218,7 +1315,12 @@
             "set_flags": [
               "crowned",
               "crown_self"
-            ]
+            ],
+            "regions": {
+              "e_rantel": {
+                "influence": 40
+              }
+            }
           },
           "reaction": "Du hebst die Krone selbst und setzt sie auf. Demiurge keucht vor Bewunderung. »Natürlich! Kein Diener steht über dem König!« Albedo und Shalltear sehen sich an – zum ersten Mal an diesem Tag – und seufzen gleichzeitig."
         }

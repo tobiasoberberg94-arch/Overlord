@@ -4,14 +4,15 @@ extends Node
 ## Aufruf: godot --headless --path . res://tools/sim_test.tscn
 
 func _ready() -> void:
-	var runs := 6
+	var runs := 8
+	var diffs := ["easy", "normal", "hard", "nightmare"]
 	var reached: Array = []
 	for r in runs:
 		Game.rng.seed = 1000 + r
-		Game.new_game()
+		Game.new_game(diffs[r % diffs.size()])
 		var steps := 0
 		var kinds := {}
-		while steps < 900 and Game.state.chapter < 8:
+		while steps < 2000 and Game.state.chapter < 8:
 			steps += 1
 			while not Game.pending().is_empty():
 				var d: Dictionary = Game.pending()[0]
@@ -23,8 +24,34 @@ func _ready() -> void:
 				for cid in Game.unlocked_chars():
 					if Game.can_assign(m, cid)[0]:
 						var dirs := Content.directives.keys()
-						Game.assign(m.id, cid, dirs[Game.rng.randi() % dirs.size()])
+						var partner := ""
+						if Game.rng.randf() < 0.3:
+							for p in Game.unlocked_chars():
+								if p != cid and Game.is_available(p):
+									partner = p
+									break
+						Game.assign(m.id, cid, dirs[Game.rng.randi() % dirs.size()], partner)
 						break
+			# Militär: Armee aufstellen, rekrutieren, Feldherr, Feldzug
+			if Game.state.chapter >= 2 and Game.rng.randf() < 0.15:
+				var a: Dictionary = Game.state.armies[0] if not Game.state.armies.is_empty() else Military.create_army()
+				if a.location == "nazarick" and a.path.is_empty():
+					var us := Military.available_units()
+					for k in 2:
+						Military.recruit(a.uid, us[Game.rng.randi() % us.size()].id)
+					if a.commander == "":
+						for cid in ["mare", "aura", "pandora", "demiurge"]:
+							if Game.cs(cid).unlocked and Game.is_available(cid):
+								Military.set_commander(a.uid, cid)
+								break
+					var targets: Array = Game.state.regions.keys().filter(func(id): return Military.can_conquer(id))
+					if not targets.is_empty() and Military.strength(a) > 120:
+						Military.order_move(a.uid, targets[Game.rng.randi() % targets.size()], true)
+			# Erlasse gelegentlich wechseln
+			if Game.rng.randf() < 0.05:
+				var ds := World.available_decrees()
+				if not ds.is_empty():
+					World.toggle_decree(ds[Game.rng.randi() % ds.size()].id)
 			if Game.rng.randf() < 0.2:
 				for cid in Game.unlocked_chars():
 					if Game.is_available(cid) and Game.audiences_left() > 0:
@@ -32,8 +59,12 @@ func _ready() -> void:
 						break
 			Game.advance(7)
 		reached.append(Game.state.chapter)
-		print("Lauf %d: Kapitel %d an Tag %d | Rivalität %d | Gold %d | Depeschen %s | Flags %d" % [
-			r, Game.state.chapter, Game.state.day, Game.state.rivalry, Game.state.resources.gold, kinds, Game.state.flags.size()])
+		var infl := {}
+		for id in Game.state.regions:
+			if Game.state.regions[id].discovered:
+				infl[id] = Game.state.regions[id].influence
+		print("Lauf %d [%s]: Kapitel %d an Tag %d | Gold %d | Depeschen %s | Einfluss %s | Armeen %d" % [
+			r, Game.state.difficulty, Game.state.chapter, Game.state.day, Game.state.resources.gold, kinds, infl, Game.state.armies.size()])
 		# Speichern/Laden-Rundlauf
 		SaveSystem.save_game(3)
 		var day: int = Game.state.day

@@ -7,6 +7,7 @@ extends Overlay
 const KIND_LABELS := {
 	"report": "BERICHT", "event": "EREIGNIS", "story": "KAPITEL",
 	"proposal": "EIGENER VORSCHLAG", "initiative": "EIGENINITIATIVE",
+	"complication": "LAGEBERICHT", "threat": "BEDROHUNG", "battle": "SCHLACHT",
 }
 const TIER_COLORS := {
 	"triumph": Color("f5d77a"), "success": Color("6fdc8c"),
@@ -191,7 +192,33 @@ func _build_options() -> void:
 		i += 1
 
 
+## Großes Ergebnisbanner mit Kräftevergleich nach einer Schlacht.
+func _show_battle_result(r: Dictionary) -> void:
+	var won: bool = r.get("won", false)
+	Audio.sfx("gong" if won else "rebuke", 0.9)
+	var banner := Label.new()
+	banner.text = "⚔  SIEG  ⚔" if won else "✗  NIEDERLAGE  ✗"
+	banner.theme_type_variation = "TitleLabel"
+	banner.add_theme_font_size_override("font_size", 40)
+	banner.add_theme_color_override("font_color", Palette.GOLD_BRIGHT if won else Palette.DANGER)
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	extra_box.add_child(banner)
+	UIFx.pop_in(banner, 0.4)
+	var total := float(int(r.ours) + int(r.theirs))
+	for pair in [["Unsere Streitmacht", int(r.ours), Palette.VIOLET_GLOW], ["Der Feind", int(r.theirs), Palette.CRIMSON]]:
+		var sb := StatBar.new(pair[0], pair[2], "", 170)
+		sb.set_value(0.0, total)
+		extra_box.add_child(sb)
+		sb.set_value(float(pair[1]), total, str(pair[1]))
+	var tl := Label.new()
+	tl.text = "Taktik: " + str(r.get("tactic", ""))
+	tl.theme_type_variation = "MutedLabel"
+	tl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	extra_box.add_child(tl)
+
+
 func _choose(key: String) -> void:
+	var is_battle: bool = dispatch.kind == "battle"
 	var result := Game.respond(dispatch.uid, key)
 	if key in ["praise", "reward", "approve"]:
 		Audio.sfx("love" if dispatch.get("char_id", "") in ["albedo", "shalltear"] else "order", 0.8)
@@ -210,6 +237,8 @@ func _choose(key: String) -> void:
 		close()
 		return
 	text.text = reaction if reaction != "" else "[i]Euer Wille geschehe.[/i]"
+	if is_battle and not Military.last_result.is_empty():
+		_show_battle_result(Military.last_result)
 	_typing = UIFx.typewriter(text, 150.0)
 	if not summary.is_empty():
 		extra_box.add_child(effect_chips(summary))

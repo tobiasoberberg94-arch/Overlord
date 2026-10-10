@@ -33,7 +33,8 @@ func save_game(slot: int) -> bool:
 		return false
 	f.store_string(JSON.stringify(payload, "\t"))
 	f.close()
-	Game.log_msg("Die Chronik wurde in Siegel %d verwahrt." % slot, "info")
+	if slot > 0:
+		Game.log_msg("Die Chronik wurde in Siegel %d verwahrt." % slot, "info")
 	return true
 
 
@@ -59,8 +60,9 @@ func slot_meta(slot: int) -> Dictionary:
 	return parsed.get("meta", {})
 
 
+## Siegel 0 ist das automatische Speichern.
 func has_any_save() -> bool:
-	for i in range(1, SLOTS + 1):
+	for i in range(0, SLOTS + 1):
 		if FileAccess.file_exists(slot_path(i)):
 			return true
 	return false

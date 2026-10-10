@@ -96,5 +96,5 @@ func _apply_volume() -> void:
 func _on_node_added(node: Node) -> void:
 	var b := node as BaseButton
 	if b and not b.has_meta("silent"):
-		b.pressed.connect(sfx.bind("click", 0.7))
-		b.mouse_entered.connect(func(): if not b.disabled: sfx("hover", 0.25))
+		b.pressed.connect(func(): if Settings.ui_sounds: sfx("click", 0.7))
+		b.mouse_entered.connect(func(): if Settings.ui_sounds and not b.disabled: sfx("hover", 0.25))

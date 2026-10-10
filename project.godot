@@ -15,6 +15,8 @@ config/icon="res://icon.svg"
 
 Settings="*res://scripts/autoload/settings.gd"
 Content="*res://scripts/autoload/content.gd"
+World="*res://scripts/autoload/world.gd"
+Military="*res://scripts/autoload/military.gd"
 Game="*res://scripts/autoload/game.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 Audio="*res://scripts/autoload/audio.gd"

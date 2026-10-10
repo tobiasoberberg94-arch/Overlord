@@ -1,15 +1,17 @@
 # Overlord – Herrscher von Nazarick
 
-Ein 2D-Management- und Story-Spiel in **Godot 4** (GDScript), inspiriert von *Overlord* und optisch angelehnt an *Lord of Nazarick*.
-Du bist **Momonga / Ainz Ooal Gown**. Vom Thron des Großen Grabes aus erteilst du deinen Wächtern Befehle – und sie führen sie auf **ihre eigene Weise** aus.
+Ein 2D-Strategie-, Verwaltungs- und Story-Spiel in **Godot 4** (GDScript), inspiriert von *Overlord*, optisch angelehnt an *Lord of Nazarick*, spielerisch an Aufbau- und Strategiespiele wie *Anno* oder *Civilization*.
+Du bist **Momonga / Ainz Ooal Gown**: Herrscher und Verwalter des Großen Grabes. Du erteilst Befehle, verwaltest Finanzen und Erlasse, dehnst Nazaricks Einfluss über die Neue Welt aus, führst Legionen in die Schlacht – und deine Wächter führen alles auf **ihre eigene Weise** aus.
 
 ![Thronsaal](docs/screenshots/03_throne_room.png)
 
-| Titel | Auftragstafel |
+| Weltkarte & Legionen | Reichsverwaltung & Erlasse |
 |---|---|
-| ![Titel](docs/screenshots/01_title.png) | ![Auftragstafel](docs/screenshots/04_mission_board.png) |
-| **Bericht im Charakterstil** | **Charakteransicht & Audienz** |
-| ![Bericht](docs/screenshots/07_report.png) | ![Albedo](docs/screenshots/05_character_albedo.png) |
+| ![Weltkarte](docs/screenshots/14_world_map_legion.png) | ![Verwaltung](docs/screenshots/15_administration.png) |
+| **Bericht im Charakterstil** | **Schlacht** |
+| ![Bericht](docs/screenshots/07_report.png) | ![Schlacht](docs/screenshots/18_battle_result.png) |
+| **Auftragstafel mit Teams** | **Einführung** |
+| ![Auftragstafel](docs/screenshots/04_mission_board.png) | ![Tutorial](docs/screenshots/tutorial.png) |
 
 Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehlt ein Bild, zeichnet das Spiel automatisch einen stilisierten Platzhalter.
 
@@ -17,7 +19,7 @@ Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehl
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-1.0.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-1.1.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -26,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-1.0.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-1.1.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -52,11 +54,15 @@ Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikk
 | Aktion | Wo | Taste |
 |---|---|---|
 | Aufträge erteilen | Fußleiste → **Aufträge** | `A` |
+| Weltkarte, Legionen | Fußleiste → **Weltkarte** | `K` |
+| Finanzen & Erlasse | Fußleiste → **Verwaltung** | `V` |
 | Untertanen ansehen, Audienz gewähren | Wächterkarte anklicken / **Untertanen** | `U` |
 | Chronik (Event-Log) | **Chronik** | `C` |
 | Nächste Depesche öffnen | Depeschen-Panel | `D` |
 | Zeit vergehen lassen: 1 Tag / 1 Woche / 1 Monat | Fußleiste rechts | `1` / `2` / `3` |
 | Speichern | Kopfleiste | `F5` |
+| Vollbild | – | `F11` |
+| Optionen (Audio, Grafik, Spiel, Steuerung) | Kopfleiste ⚙ / Titelbildschirm | – |
 
 **Der Kreislauf**
 
@@ -70,6 +76,17 @@ Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikk
 **Ressourcen**: Macht · Wissen · Ruf · Stimmung · Gold · **Aufmerksamkeit** (wie sehr die Welt auf Nazarick aufmerksam wird – hohe Werte locken gefährliche Mächte an) · **Effizienz der Guardians** (aus Stimmung, Gunst und Erschöpfung).
 
 **Herzenskrieg**: Lobst du Albedo, wird Shalltear eifersüchtig – und umgekehrt. Steigt die Rivalität, kommt es zu Streit im Thronsaal, nächtlichen Besuchen, eigenmächtigen Intrigen und im Extremfall zu einem Duell im Amphitheater. Vernachlässigte oder eifersüchtige Untertanen ergreifen häufiger eigenmächtig die Initiative.
+
+**Die Strategie-Ebene**
+
+- **Weltkarte [K]** – 11 Regionen mit Einfluss, Unruhe und täglichen Einkünften. Regionen müssen erst erkundet werden; Einfluss wächst durch Aufträge (mit abnehmendem Ertrag), Grausamkeit erzeugt Unruhe und Aufstände.
+- **Reichsverwaltung [V]** – Finanzübersicht (Einkünfte je Region, Unterhalt für Grab, Einsätze, Erlasse und Legionen) und **Erlasse**: zehn Regierungsentscheidungen mit laufenden Kosten und Wirkungen, begrenzte Plätze, und jeder Wächter hat eine Meinung dazu.
+- **Legionen & Schlachten** – Skelette, Todesritter, Liche, Seelenfresser, Todesreiter … im Grab ausheben, einen Wächter zum Feldherrn ernennen (er fehlt dann für Aufträge), über das Wegenetz marschieren lassen, Regionen erobern oder feindliche Heere abfangen. Vor jeder Schlacht wählst du die Taktik.
+- **Bedrohungen mit Frist** – Inquisition, Spione, Aufstände, Abenteurer-Expeditionen, der Platin-Drache: Wer nicht rechtzeitig reagiert, verliert Gebiete, Gold und Ansehen.
+- **Lageberichte** – Mitten im Auftrag melden sich die Untertanen mit Komplikationen: Zeugen, starke Gegner, Doppelagenten … du entscheidest über Risiko, Dauer und Methode – oder lässt dem Wächter freie Hand.
+- **Teams** – zwei Untertanen gemeinsam entsenden; Synergien (Aura + Mare, Albedo + Demiurge) und Konflikte (Albedo + Shalltear, Demiurge + Sebas).
+- **Vier Schwierigkeitsgrade** – von *Gnädiger Herrscher* bis *Albtraum von Nazarick* (Startgold, Einkünfte, Unterhalt, Bedrohungen, Feindstärke).
+- **Kapitelziele** verlangen neben Story-Entscheidungen auch Einfluss, Ressourcen und Zeit – das Reich muss wirklich wachsen.
 
 **Story**: 7 Kapitel – *Die Ankunft · Das Dorf Carne · Der Dunkle Held · Blutiger Wahnsinn (der Shalltear-Zwischenfall) · Frost über dem Sumpf · Gehenna · Das Zauberkönigreich* – danach freies Spiel. Dazu 42 Aufträge (10 Haupt-, 15 Neben-, 17 Vorschlagsaufträge), 33 Ereignisse und 23 Eigeninitiativen, mit Verzweigungen (Carne retten oder ignorieren, Name „Ainz Ooal Gown“ annehmen oder Momonga bleiben, Shalltear selbst stellen oder Albedo schicken …).
 

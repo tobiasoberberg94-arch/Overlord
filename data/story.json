@@ -88,9 +88,18 @@
         {
           "text": "Das Große Grab vor neugierigen Blicken verbergen",
           "flag": "hidden"
+        },
+        {
+          "text": "Wissen über die Neue Welt sammeln",
+          "cond": {
+            "res_min": {
+              "info": 12
+            }
+          }
         }
       ],
-      "image": "nazarick_exterior"
+      "image": "nazarick_exterior",
+      "min_days": 6
     },
     {
       "number": 2,
@@ -110,9 +119,26 @@
         {
           "text": "Informationen über das Königreich Re-Estize sammeln",
           "flag": "kingdom_intel"
+        },
+        {
+          "text": "Den Großen Wald von Tob erkunden",
+          "cond": {
+            "region_discovered": [
+              "tob_wald"
+            ]
+          }
+        },
+        {
+          "text": "Wissen über die Neue Welt",
+          "cond": {
+            "res_min": {
+              "info": 22
+            }
+          }
         }
       ],
-      "image": "carne_village"
+      "image": "carne_village",
+      "min_days": 10
     },
     {
       "number": 3,
@@ -132,9 +158,26 @@
         {
           "text": "E-Rantel aus der Nacht der Untoten retten",
           "flag": "erantel_saved"
+        },
+        {
+          "text": "Einfluss in E-Rantel",
+          "cond": {
+            "region_min": {
+              "e_rantel": 30
+            }
+          }
+        },
+        {
+          "text": "Ruf von Ainz Ooal Gown",
+          "cond": {
+            "res_min": {
+              "reputation": 20
+            }
+          }
         }
       ],
-      "image": "re_estize"
+      "image": "re_estize",
+      "min_days": 12
     },
     {
       "number": 4,
@@ -154,9 +197,18 @@
         {
           "text": "Über Shalltears Schuld richten",
           "flag": "shalltear_forgiven"
+        },
+        {
+          "text": "Macht von Nazarick",
+          "cond": {
+            "res_min": {
+              "power": 45
+            }
+          }
         }
       ],
-      "image": "forest"
+      "image": "forest",
+      "min_days": 8
     },
     {
       "number": 5,
@@ -176,9 +228,26 @@
         {
           "text": "Die Sümpfe unter Nazaricks Banner bringen",
           "flag": "lizard_conquered"
+        },
+        {
+          "text": "Einfluss in den Sümpfen",
+          "cond": {
+            "region_min": {
+              "sumpf": 40
+            }
+          }
+        },
+        {
+          "text": "Das Baharuth-Kaiserreich erkunden",
+          "cond": {
+            "region_discovered": [
+              "baharuth"
+            ]
+          }
         }
       ],
-      "image": "battlefield"
+      "image": "battlefield",
+      "min_days": 12
     },
     {
       "number": 6,
@@ -194,9 +263,26 @@
         {
           "text": "Operation Gehenna vollenden",
           "flag": "gehenna_done"
+        },
+        {
+          "text": "Einfluss in der Königshauptstadt",
+          "cond": {
+            "region_min": {
+              "re_capital": 35
+            }
+          }
+        },
+        {
+          "text": "Wissen über die Neue Welt",
+          "cond": {
+            "res_min": {
+              "info": 55
+            }
+          }
         }
       ],
-      "image": "re_estize"
+      "image": "re_estize",
+      "min_days": 14
     },
     {
       "number": 7,
@@ -216,9 +302,26 @@
         {
           "text": "Die Krönung des Zauberkönigs",
           "flag": "crowned"
+        },
+        {
+          "text": "Einfluss im Kaiserreich",
+          "cond": {
+            "region_min": {
+              "baharuth": 25
+            }
+          }
+        },
+        {
+          "text": "Macht von Nazarick",
+          "cond": {
+            "res_min": {
+              "power": 65
+            }
+          }
         }
       ],
-      "image": "baharuth"
+      "image": "baharuth",
+      "min_days": 12
     },
     {
       "number": 8,

@@ -13,8 +13,10 @@ func _init(saving: bool) -> void:
 	content.add_child(make_header("Chronik versiegeln" if saving else "Chronik öffnen",
 		"Wählt eines der drei Siegel." if saving else "Welche Geschichte soll fortgesetzt werden?"))
 	content.add_child(HSeparator.new())
-	for i in range(1, SaveSystem.SLOTS + 1):
+	for i in range(0 if not saving else 1, SaveSystem.SLOTS + 1):
 		var meta := SaveSystem.slot_meta(i)
+		if i == 0 and meta.is_empty():
+			continue
 		var b := Button.new()
 		b.theme_type_variation = "ButtonCard"
 		b.custom_minimum_size = Vector2(0, 80)
@@ -24,7 +26,7 @@ func _init(saving: bool) -> void:
 			b.disabled = not saving
 		else:
 			var ch := Content.chapter(int(meta.get("chapter", 1)))
-			b.text = "Siegel %d  ·  %s\nKapitel %s: %s  ·  Tag %d  ·  %s" % [i, meta.get("lord_name", "?"),
+			b.text = "%s  ·  %s\nKapitel %s: %s  ·  Tag %d  ·  %s" % ["Automatisch" if i == 0 else "Siegel %d" % i, meta.get("lord_name", "?"),
 				ch.numeral, ch.title, int(meta.get("day", 0)), meta.get("saved_at", "")]
 		b.pressed.connect(_on_slot.bind(i))
 		content.add_child(b)

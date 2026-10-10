@@ -59,7 +59,7 @@ func _ready() -> void:
 		_add_button("Fortsetzen", "ButtonPrimary", _on_continue)
 	_add_button("Neues Spiel", "ButtonPrimary" if not SaveSystem.has_any_save() else "Button", _on_new)
 	_add_button("Chronik laden", "Button", _on_load)
-	_add_button("Einstellungen", "Button", func(): add_child(SettingsDialog.new(false)))
+	_add_button("Optionen", "Button", func(): add_child(SettingsDialog.new(false)))
 	_add_button("Nazarick verlassen", "ButtonGhost", func(): get_tree().quit())
 
 	var foot := Label.new()
@@ -99,15 +99,16 @@ func _add_button(text: String, variation: String, cb: Callable) -> void:
 
 
 func _on_new() -> void:
-	Game.new_game()
-	_go()
+	var dlg := NewGameDialog.new()
+	dlg.start.connect(func(diff): Game.new_game(diff); _go())
+	add_child(dlg)
 
 
 func _on_continue() -> void:
 	# Neuester Spielstand
 	var best := -1
 	var best_time := ""
-	for i in range(1, SaveSystem.SLOTS + 1):
+	for i in range(0, SaveSystem.SLOTS + 1):
 		var m := SaveSystem.slot_meta(i)
 		if not m.is_empty() and str(m.get("saved_at", "")) > best_time:
 			best_time = str(m.saved_at)

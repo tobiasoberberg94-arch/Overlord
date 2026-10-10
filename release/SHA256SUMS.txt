@@ -1,1 +1,1 @@
-3c8aba13f8680d76e10491298dbcef647e3b40a6a7df23148aed4bf8cbda5cad  release/OverlordNazarick-Setup-1.0.0.exe
+2544a9451725fa2970b7bcfca8ac4709df1222ab0f5a09bde141028512dee112  OverlordNazarick-Setup-1.1.0.exe

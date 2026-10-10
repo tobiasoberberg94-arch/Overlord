@@ -98,7 +98,7 @@ func refresh() -> void:
 	var st: String = c.status
 	var status_col: Color = {
 		Game.STATUS_READY: Palette.SUCCESS, Game.STATUS_MISSION: Palette.WARNING,
-		Game.STATUS_RECOVER: Palette.MUTED, Game.STATUS_CONTROLLED: Palette.DANGER,
+		Game.STATUS_RECOVER: Palette.MUTED, Game.STATUS_CONTROLLED: Palette.DANGER, "feldzug": Color("8fb8ff"),
 	}.get(st, Palette.MUTED)
 	var text: String = Game.STATUS_LABELS.get(st, st)
 	if st == Game.STATUS_MISSION:
@@ -107,7 +107,7 @@ func refresh() -> void:
 				text = "◷ noch %d T." % maxi(0, am.end_day - Game.state.day)
 	status_label.text = "● " + text
 	status_label.add_theme_color_override("font_color", status_col)
-	portrait.dimmed = st in [Game.STATUS_MISSION, Game.STATUS_RECOVER]
+	portrait.dimmed = st in [Game.STATUS_MISSION, Game.STATUS_RECOVER, "feldzug"]
 	favor_bar.value = c.favor
 	mood_bar.value = c.mood
 	tooltip_text = "%s\nGunst %d · Stimmung %d · Erschöpfung %d\nKlicken für Details" % [

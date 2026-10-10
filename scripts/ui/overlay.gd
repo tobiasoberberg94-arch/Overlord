@@ -36,10 +36,10 @@ func _init(panel_size: Vector2 = Vector2(1100, 720), variation: String = "PanelO
 		var sb := StyleBoxTexture.new()
 		sb.texture = pattern
 		sb.modulate_color = Color(0.75, 0.7, 0.8)
-		sb.content_margin_left = 66
-		sb.content_margin_right = 66
-		sb.content_margin_top = 62
-		sb.content_margin_bottom = 58
+		sb.content_margin_left = 88
+		sb.content_margin_right = 88
+		sb.content_margin_top = 76
+		sb.content_margin_bottom = 84
 		panel.add_theme_stylebox_override("panel", sb)
 		panel.draw.connect(_draw_frame)
 	content.add_theme_constant_override("separation", 12)

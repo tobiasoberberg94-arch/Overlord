@@ -128,6 +128,32 @@ static func build() -> Theme:
 	t.set_color("font_color", "TooltipLabel", Palette.PARCHMENT)
 	t.set_font_size("font_size", "TooltipLabel", 16)
 
+	# ------------------------------------------------------------ Reiter (TabContainer)
+	t.set_stylebox("panel", "TabContainer", box(Color(Palette.ABYSS, 0.6), Color(Palette.GOLD_DARK, 0.6), 1, 8, Color.TRANSPARENT, 0, 14))
+	t.set_stylebox("tab_selected", "TabContainer", box(Color("2b1a07"), Palette.GOLD, 1, 6, Color(Palette.GOLD, 0.3), 6, 10))
+	t.set_stylebox("tab_unselected", "TabContainer", box(Color(Palette.NIGHT, 0.9), Color(Palette.VIOLET, 0.5), 1, 6, Color.TRANSPARENT, 0, 10))
+	t.set_stylebox("tab_hovered", "TabContainer", box(Color(Palette.VIOLET_DEEP, 0.95), Palette.GOLD_DARK, 1, 6, Color.TRANSPARENT, 0, 10))
+	t.set_color("font_selected_color", "TabContainer", Palette.GOLD_BRIGHT)
+	t.set_color("font_unselected_color", "TabContainer", Palette.MUTED)
+	t.set_color("font_hovered_color", "TabContainer", Palette.PARCHMENT)
+	t.set_font("font", "TabContainer", display_font(600))
+	t.set_font_size("font_size", "TabContainer", 16)
+
+	# ------------------------------------------------------------ Auswahllisten (PopupMenu)
+	t.set_stylebox("panel", "PopupMenu", box(Palette.ABYSS, Palette.GOLD_DARK, 1, 8, Color(0, 0, 0, 0.7), 10, 8))
+	t.set_stylebox("hover", "PopupMenu", box(Color(Palette.VIOLET, 0.6), Color.TRANSPARENT, 0, 4, Color.TRANSPARENT, 0, 4))
+	t.set_color("font_color", "PopupMenu", Palette.PARCHMENT)
+	t.set_color("font_hover_color", "PopupMenu", Palette.GOLD_BRIGHT)
+	t.set_font_size("font_size", "PopupMenu", 18)
+
+	# ------------------------------------------------------------ Regler & Schalter
+	t.set_stylebox("slider", "HSlider", box(Color("0a0610"), Color(Palette.GOLD_DARK, 0.7), 1, 4, Color.TRANSPARENT, 0, 3))
+	t.set_stylebox("grabber_area", "HSlider", box(Palette.VIOLET_GLOW, Color.TRANSPARENT, 0, 4, Color(Palette.VIOLET_GLOW, 0.5), 4, 3))
+	t.set_stylebox("grabber_area_highlight", "HSlider", box(Palette.GOLD, Color.TRANSPARENT, 0, 4, Color(Palette.GOLD, 0.5), 6, 3))
+	t.set_color("font_color", "CheckButton", Palette.PARCHMENT)
+	t.set_color("font_hover_color", "CheckButton", Palette.GOLD_BRIGHT)
+	t.set_color("font_pressed_color", "CheckButton", Palette.GOLD_BRIGHT)
+
 	# ------------------------------------------------------------ Separator
 	var sep := StyleBoxLine.new()
 	sep.color = Color(Palette.GOLD, 0.35)

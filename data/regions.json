@@ -1,0 +1,388 @@
+{
+  "regions": [
+    {
+      "id": "nazarick",
+      "name": "Umland von Nazarick",
+      "short": "Nazarick",
+      "pos": [
+        0.245,
+        0.62
+      ],
+      "image": "nazarick_exterior",
+      "difficulty": 30,
+      "desc": "Das Grasland rund um das Große Grab. Hier herrscht Nazarick unangefochten – sofern niemand zu genau hinsieht.",
+      "income": {
+        "gold": 0,
+        "info": 0
+      },
+      "start_influence": 100,
+      "discovered": true,
+      "home": true
+    },
+    {
+      "id": "carne",
+      "name": "Dorf Carne",
+      "short": "Carne",
+      "pos": [
+        0.375,
+        0.6
+      ],
+      "image": "carne_village",
+      "difficulty": 32,
+      "desc": "Ein kleines Bauerndorf am Rand des Großen Waldes. Schwach, arm – und genau deshalb dankbar für einen mächtigen Beschützer.",
+      "income": {
+        "gold": 3,
+        "info": 0.05
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "flags_all": [
+          "scouted"
+        ]
+      },
+      "garrison": 8,
+      "defenders": "Dorfmiliz von Carne"
+    },
+    {
+      "id": "tob_wald",
+      "name": "Großer Wald von Tob",
+      "short": "Wald von Tob",
+      "pos": [
+        0.15,
+        0.52
+      ],
+      "image": "forest",
+      "difficulty": 40,
+      "desc": "Ein uralter Wald voller Monster, Waldgeister und eines verdächtig flauschigen ›Weisen Königs‹. Reich an Kräutern und Geheimnissen.",
+      "income": {
+        "gold": 2,
+        "info": 0.08
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "flags_all": [
+          "scouted"
+        ]
+      },
+      "garrison": 35,
+      "defenders": "Monster des Waldes"
+    },
+    {
+      "id": "e_rantel",
+      "name": "Festungsstadt E-Rantel",
+      "short": "E-Rantel",
+      "pos": [
+        0.33,
+        0.455
+      ],
+      "image": "re_estize",
+      "difficulty": 48,
+      "desc": "Die dreifach ummauerte Grenzstadt des Königreichs. Händler, Abenteurer, Magier – und ein schwarzer Held namens Momon.",
+      "income": {
+        "gold": 9,
+        "info": 0.12
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 2
+      },
+      "garrison": 70,
+      "defenders": "Stadtwache von E-Rantel"
+    },
+    {
+      "id": "sumpf",
+      "name": "Sümpfe der Echsenmenschen",
+      "short": "Sümpfe",
+      "pos": [
+        0.41,
+        0.28
+      ],
+      "image": "battlefield",
+      "difficulty": 50,
+      "desc": "Fünf Stämme der Echsenmenschen leben in den Nebelsümpfen am Fuß der Großen Kluft. Stolze Krieger, bescheidene Fischer.",
+      "income": {
+        "gold": 4,
+        "info": 0.05
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 4
+      },
+      "garrison": 55,
+      "defenders": "Vereinte Stämme der Echsenmenschen"
+    },
+    {
+      "id": "re_capital",
+      "name": "Königshauptstadt Re-Estize",
+      "short": "Hauptstadt",
+      "pos": [
+        0.222,
+        0.395
+      ],
+      "image": "re_estize",
+      "difficulty": 58,
+      "desc": "Herz eines verrottenden Königreichs: ein schwacher König, intrigante Adlige und die Unterwelt der Acht Finger.",
+      "income": {
+        "gold": 14,
+        "info": 0.15
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 3
+      },
+      "garrison": 160,
+      "defenders": "Königliche Armee"
+    },
+    {
+      "id": "katze",
+      "name": "Katze-Ebene",
+      "short": "Katze-Ebene",
+      "pos": [
+        0.515,
+        0.44
+      ],
+      "image": "battlefield",
+      "difficulty": 55,
+      "desc": "Eine nebelverhangene Ebene, auf der Untote aus der Erde steigen. Hier führen Königreich und Kaiserreich jährlich Krieg.",
+      "income": {
+        "gold": 2,
+        "info": 0.1
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 3
+      },
+      "garrison": 45,
+      "defenders": "Untote der Katze-Ebene"
+    },
+    {
+      "id": "baharuth",
+      "name": "Baharuth-Kaiserreich",
+      "short": "Kaiserreich",
+      "pos": [
+        0.735,
+        0.22
+      ],
+      "image": "baharuth",
+      "difficulty": 64,
+      "desc": "Ein Reich aus Eisen und Disziplin unter dem ›Blutigen Kaiser‹ Jircniv. Mächtig, wachsam – und neugierig.",
+      "income": {
+        "gold": 16,
+        "info": 0.12
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 4
+      },
+      "garrison": 240,
+      "defenders": "Kaiserliche Legionen"
+    },
+    {
+      "id": "azerlisia",
+      "name": "Azerlisia-Gebirge",
+      "short": "Azerlisia",
+      "pos": [
+        0.375,
+        0.12
+      ],
+      "image": "world_map",
+      "difficulty": 60,
+      "desc": "Eisige Gipfel, in denen ein Zwergenreich mit uralter Runenschmiedekunst ums Überleben kämpft.",
+      "income": {
+        "gold": 8,
+        "info": 0.1
+      },
+      "start_influence": 0,
+      "explore_requires": {
+        "chapter_min": 5
+      },
+      "garrison": 90,
+      "defenders": "Quagoa-Horden"
+    },
+    {
+      "id": "theokratie",
+      "name": "Slane-Theokratie",
+      "short": "Theokratie",
+      "pos": [
+        0.48,
+        0.66
+      ],
+      "image": "holy_kingdom",
+      "difficulty": 75,
+      "desc": "Ein fanatischer Gottesstaat mit sechs Schriften, Weltgegenständen und uraltem Wissen über Spieler. Nazaricks gefährlichster Feind.",
+      "income": {
+        "gold": 12,
+        "info": 0.2
+      },
+      "start_influence": 0,
+      "hostile": true,
+      "explore_requires": {
+        "chapter_min": 4
+      },
+      "garrison": 320,
+      "defenders": "Heilige Armee & Schwarze Schrift"
+    },
+    {
+      "id": "drachen",
+      "name": "Argland & die Drachenlande",
+      "short": "Drachenlande",
+      "pos": [
+        0.7,
+        0.58
+      ],
+      "image": "world_map",
+      "difficulty": 85,
+      "desc": "Ungezähmte Lande jenseits der Grenzen, in denen uralte Drachenlords wachen – allen voran der Platin-Drache.",
+      "income": {
+        "gold": 10,
+        "info": 0.2
+      },
+      "start_influence": 0,
+      "hostile": true,
+      "explore_requires": {
+        "chapter_min": 6
+      },
+      "garrison": 450,
+      "defenders": "Drachenlords"
+    }
+  ],
+  "mission_regions": {
+    "m_scout": "nazarick",
+    "m_hide": "nazarick",
+    "m_kingdom_intel": "e_rantel",
+    "m_momon": "e_rantel",
+    "m_sebas_capital": "re_capital",
+    "m_shalltear_hunt": "tob_wald",
+    "m_lizardmen": "sumpf",
+    "m_lizard_conquest": "sumpf",
+    "m_gehenna": "re_capital",
+    "m_empire": "baharuth",
+    "s_hamsuke": "tob_wald",
+    "s_carne_guard": "carne",
+    "s_patrol": "tob_wald",
+    "s_training": "nazarick",
+    "s_maids": "nazarick",
+    "s_bandits": "e_rantel",
+    "s_ruins": "katze",
+    "s_slane": "theokratie",
+    "s_undead_labor": "nazarick",
+    "s_adventurers": "nazarick",
+    "s_dwarves": "azerlisia",
+    "s_fluder": "baharuth",
+    "s_eight_fingers": "re_capital",
+    "s_dragon": "drachen",
+    "s_library": "e_rantel",
+    "p_albedo_succession": "nazarick",
+    "p_albedo_spy_network": "re_capital",
+    "p_albedo_purge": "nazarick",
+    "p_shalltear_city": "e_rantel",
+    "p_shalltear_brides": "nazarick",
+    "p_shalltear_tournament": "nazarick",
+    "p_demiurge_sheep": "katze",
+    "p_demiurge_cult": "re_capital",
+    "p_demiurge_theocracy": "theokratie",
+    "p_cocytus_lizard_rule": "sumpf",
+    "p_cocytus_arena": "nazarick",
+    "p_aura_zoo": "nazarick",
+    "p_aura_forest_dominion": "tob_wald",
+    "p_mare_farmland": "carne",
+    "p_sebas_orphanage": "e_rantel",
+    "p_sebas_trade": "e_rantel",
+    "p_pandora_momon_double": "e_rantel"
+  },
+  "mission_region_requirements": {
+    "s_bandits": "e_rantel",
+    "s_library": "e_rantel",
+    "s_ruins": "katze",
+    "s_slane": "theokratie",
+    "s_dwarves": "azerlisia",
+    "s_fluder": "baharuth",
+    "s_eight_fingers": "re_capital",
+    "s_dragon": "drachen",
+    "s_hamsuke": "tob_wald",
+    "s_patrol": "tob_wald",
+    "s_carne_guard": "carne"
+  },
+  "links": [
+    [
+      "nazarick",
+      "carne",
+      2
+    ],
+    [
+      "nazarick",
+      "tob_wald",
+      2
+    ],
+    [
+      "nazarick",
+      "e_rantel",
+      2
+    ],
+    [
+      "carne",
+      "tob_wald",
+      1
+    ],
+    [
+      "carne",
+      "e_rantel",
+      2
+    ],
+    [
+      "e_rantel",
+      "re_capital",
+      3
+    ],
+    [
+      "e_rantel",
+      "katze",
+      2
+    ],
+    [
+      "tob_wald",
+      "sumpf",
+      2
+    ],
+    [
+      "tob_wald",
+      "re_capital",
+      3
+    ],
+    [
+      "sumpf",
+      "azerlisia",
+      3
+    ],
+    [
+      "sumpf",
+      "katze",
+      2
+    ],
+    [
+      "katze",
+      "baharuth",
+      3
+    ],
+    [
+      "katze",
+      "theokratie",
+      3
+    ],
+    [
+      "baharuth",
+      "azerlisia",
+      3
+    ],
+    [
+      "baharuth",
+      "drachen",
+      4
+    ],
+    [
+      "theokratie",
+      "drachen",
+      4
+    ]
+  ]
+}

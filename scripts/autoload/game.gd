@@ -35,6 +35,7 @@ const STATUS_LABELS := {
 	"erholung": "Erholt sich",
 	"kontrolliert": "GEDANKENKONTROLLE",
 	"gesperrt": "Unbekannt",
+	"feldzug": "Führt eine Armee",
 }
 
 const RESOURCE_KEYS := ["power", "info", "reputation", "morale", "gold", "attention"]
@@ -70,7 +71,13 @@ func _ready() -> void:
 #  Spielstart / Laden
 # =====================================================================
 
-func new_game() -> void:
+## Wert des gewählten Schwierigkeitsgrads (gold, income, upkeep, mission, threat, enemy, influence).
+func diff(key: String) -> float:
+	var d := Content.difficulty(state.get("difficulty", "normal"))
+	return float(d.get(key, 0.0 if key == "mission" else 1.0))
+
+
+func new_game(difficulty: String = "normal") -> void:
 	state = {
 		"day": 1, "chapter": 1, "chapter_start_day": 1,
 		"lord_name": "Momonga", "rivalry": 25,
@@ -78,10 +85,14 @@ func new_game() -> void:
 		"resources": {}, "chars": {}, "flags": [], "unlocked_missions": [],
 		"completed": {}, "completed_day": {}, "failed": {}, "active": [], "dispatches": [], "log": [], "fired": {},
 	}
+	state["difficulty"] = difficulty
 	for k in Content.lord.get("start_resources", {}):
 		state.resources[k] = int(Content.lord.start_resources[k])
+	state.resources.gold = int(diff("gold"))
 	for cid in Content.character_order:
 		state.chars[cid] = _new_char_state(cid)
+	World.init_state(state)
+	Military.init_state(state)
 	log_msg("Das Große Grab von Nazarick erwacht in einer fremden Welt.", "story")
 	_enter_chapter(1)
 	state_changed.emit()
@@ -131,6 +142,10 @@ func _normalize() -> void:
 		state.completed_day[k] = int(state.completed_day[k])
 	for k in state.failed:
 		state.failed[k] = int(state.failed[k])
+	World.normalize(state)
+	Military.normalize(state)
+	if not state.has("difficulty"):
+		state["difficulty"] = "normal"
 	for k in state.fired:
 		state.fired[k] = int(state.fired[k])
 	for am in state.active:
@@ -293,6 +308,8 @@ func check(cond: Variant) -> bool:
 	for mid in c.get("missions_done", []):
 		if not state.completed.has(mid):
 			return false
+	if state.has("regions") and not World.check(c):
+		return false
 	return true
 
 
@@ -357,6 +374,12 @@ func apply_effects(eff: Variant) -> Array:
 		state.lord_name = eff.lord_name
 	if eff.has("log"):
 		log_msg(eff.log, eff.get("log_cat", "story"))
+	if eff.has("regions"):
+		summary += World.apply_region_effects(eff.regions)
+	if eff.has("mission_mod"):
+		summary += World.apply_mission_mod(eff.mission_mod)
+	if eff.has("battle"):
+		summary += Military.resolve_battle(eff.battle.uid, eff.battle.tactic)
 	for ev_id in eff.get("queue_events", []):
 		queue_event(ev_id)
 	return summary
@@ -390,11 +413,35 @@ func _enter_chapter(number: int) -> void:
 
 
 ## Liste der Kapitelziele als [Text, erledigt]-Paare.
+## Ziele sind entweder Story-Flags ("flag") oder Bedingungen ("cond", z. B. Einfluss/Ressourcen);
+## dazu kommt eine Mindestdauer je Kapitel ("min_days"), damit sich die Herrschaft entfalten kann.
 func objectives() -> Array:
 	var out: Array = []
-	for o in Content.chapter(state.chapter).get("objectives", []):
-		out.append([fmt(o.text), has_flag(o.flag)])
+	var ch := Content.chapter(state.chapter)
+	for o in ch.get("objectives", []):
+		out.append([fmt(o.text) + _objective_progress(o), _objective_done(o)])
+	if ch.has("min_days") and not ch.get("objectives", []).is_empty():
+		var need := int(ch.min_days)
+		out.append(["Die Herrschaft festigen (%d/%d Tage)" % [mini(day_in_chapter(), need), need], day_in_chapter() >= need])
 	return out
+
+
+func _objective_done(o: Dictionary) -> bool:
+	if o.has("flag"):
+		return has_flag(o.flag)
+	return check(o.get("cond"))
+
+
+## Fortschrittsanzeige wie „(12/30)“ für Einfluss- und Ressourcenziele.
+func _objective_progress(o: Dictionary) -> String:
+	var c: Dictionary = o.get("cond", {})
+	if c.has("region_min") and c.region_min.size() == 1:
+		var id: String = c.region_min.keys()[0]
+		return " (%d/%d)" % [World.rs(id).influence, int(c.region_min[id])]
+	if c.has("res_min") and c.res_min.size() == 1:
+		var k: String = c.res_min.keys()[0]
+		return " (%d/%d)" % [state.resources.get(k, 0), int(c.res_min[k])]
+	return ""
 
 
 func _check_chapter_progress() -> void:
@@ -403,8 +450,10 @@ func _check_chapter_progress() -> void:
 	if objs.is_empty() or state.chapter >= Content.chapters.size():
 		return
 	for o in objs:
-		if not has_flag(o.flag):
+		if not _objective_done(o):
 			return
+	if day_in_chapter() < int(ch.get("min_days", 0)):
+		return
 	apply_effects(ch.get("on_complete"))
 	_enter_chapter(state.chapter + 1)
 
@@ -415,6 +464,12 @@ func _check_chapter_progress() -> void:
 
 func _push(d: Dictionary) -> void:
 	state.dispatches.append(d)
+
+
+## Öffentlich für andere Systeme (World).
+func push_dispatch(d: Dictionary) -> void:
+	d["body"] = fmt(d.get("body", ""))
+	_push(d)
 
 
 func pending() -> Array:
@@ -474,7 +529,10 @@ func respond(uid: String, key: String) -> Dictionary:
 	state_changed.emit()
 	if state.chapter != before:
 		dispatches_arrived.emit(state.dispatches.size())
-	return {"reaction": opt.get("reaction", ""), "summary": summary}
+	var reaction: String = opt.get("reaction", "")
+	if opt.get("effects", {}).has("battle"):
+		reaction = Military.last_result.get("text", "")
+	return {"reaction": reaction, "summary": summary}
 
 
 # =====================================================================
@@ -482,7 +540,9 @@ func respond(uid: String, key: String) -> Dictionary:
 # =====================================================================
 
 func mission(mid: String) -> Dictionary:
-	return Content.missions.get(mid, {})
+	if Content.missions.has(mid):
+		return Content.missions[mid]
+	return state.get("dynamic_missions", {}).get(mid, {})
 
 
 func is_mission_active(mid: String) -> bool:
@@ -493,6 +553,8 @@ func is_mission_active(mid: String) -> bool:
 
 
 func mission_kind(m: Dictionary) -> String:
+	if m.has("threat"):
+		return "threat"
 	if m.get("main", false):
 		return "main"
 	if m.get("proposal", false):
@@ -513,9 +575,12 @@ func mission_available(m: Dictionary) -> bool:
 			return false
 		if repeat_days_left(m) > 0:
 			return false
+	if m.has("threat"):
+		return true
 	if m.id in state.unlocked_missions:
 		var req: Dictionary = m.get("requires", {})
-		return check({"flags_all": req.get("flags_all", []), "flags_none": req.get("flags_none", [])})
+		return check({"flags_all": req.get("flags_all", []), "flags_none": req.get("flags_none", []),
+			"region_discovered": req.get("region_discovered", [])})
 	if m.get("proposal", false) or m.get("locked", false):
 		return false
 	return check(m.get("requires"))
@@ -539,9 +604,12 @@ func mission_badge(m: Dictionary) -> String:
 
 
 func available_missions() -> Array:
-	var order := {"main": 0, "proposal": 1, "side": 2}
+	var order := {"threat": -1, "main": 0, "proposal": 1, "side": 2}
 	var out: Array = []
 	for m in Content.missions.values():
+		if mission_available(m):
+			out.append(m)
+	for m in state.get("dynamic_missions", {}).values():
 		if mission_available(m):
 			out.append(m)
 	out.sort_custom(func(a, b):
@@ -558,11 +626,11 @@ func can_assign(m: Dictionary, cid: String) -> Array:
 	var c := cs(cid)
 	if not c.unlocked:
 		return [false, "Unbekannt"]
-	if c.status != STATUS_READY:
-		return [false, STATUS_LABELS.get(c.status, "Nicht verfügbar")]
 	var req: String = m.get("required_char", "")
 	if req != "" and req != cid:
-		return [false, "Nur " + char_name(req)]
+		return [false, "Nur " + char_name(req).split(" ")[0]]
+	if c.status != STATUS_READY:
+		return [false, STATUS_LABELS.get(c.status, "Nicht verfügbar")]
 	return [true, ""]
 
 
@@ -571,7 +639,7 @@ func mission_days(m: Dictionary, directive: String) -> int:
 
 
 ## Erfolgswert eines Untertanen für einen Auftrag (Marge gegenüber der Schwierigkeit).
-func _score(m: Dictionary, cid: String, directive: String, roll: bool = true) -> float:
+func _score(m: Dictionary, cid: String, directive: String, roll: bool = true, partner: String = "", extra: float = 0.0) -> float:
 	var cd := Content.char_data(cid)
 	var c := cs(cid)
 	var dmod: Dictionary = Content.directives[directive]
@@ -590,15 +658,16 @@ func _score(m: Dictionary, cid: String, directive: String, roll: bool = true) ->
 		score += float(cd.get("style", {}).get("score", 0))
 	if cid in m.get("recommended", []):
 		score += 6.0
+	score += World.partner_bonus(m, cid, partner) + extra - diff("mission")
 	if roll:
-		var v := float(dmod.get("variance", 15))
+		var v := float(dmod.get("variance", 15)) + float(World.synergy(cid, partner).get("variance", 0))
 		score += rng.randf_range(-v, v)
 	return score - float(m.get("difficulty", 50))
 
 
 ## Grobe Erfolgsaussicht für die Auftragsvergabe: [Label, Farbe als Hex].
-func estimate(m: Dictionary, cid: String, directive: String) -> Array:
-	var margin := _score(m, cid, directive, false)
+func estimate(m: Dictionary, cid: String, directive: String, partner: String = "") -> Array:
+	var margin := _score(m, cid, directive, false, partner)
 	if margin >= 22: return ["Triumph gewiss", "#7dffa0"]
 	if margin >= 8: return ["Sehr gut", "#9be36a"]
 	if margin >= -4: return ["Solide", "#f2d15c"]
@@ -606,26 +675,37 @@ func estimate(m: Dictionary, cid: String, directive: String) -> Array:
 	return ["Gefährlich", "#ff4a5a"]
 
 
-func assign(mid: String, cid: String, directive: String) -> bool:
+func assign(mid: String, cid: String, directive: String, partner: String = "") -> bool:
 	var m := mission(mid)
 	if m.is_empty() or not can_assign(m, cid)[0]:
 		return false
+	if partner == cid or (partner != "" and not is_available(partner)):
+		partner = ""
 	var days := mission_days(m, directive)
 	var am := {
 		"uid": next_uid("m"), "mission_id": mid, "char_id": cid, "directive": directive,
-		"start_day": state.day, "end_day": state.day + days,
+		"start_day": state.day, "end_day": state.day + days, "partner": partner, "mods": {},
 	}
+	if m.has("threat"):
+		am["threat"] = m.threat
 	state.active.append(am)
 	var c := cs(cid)
 	c.status = STATUS_MISSION
 	c.mission_uid = am.uid
-	log_msg("%s bricht auf: »%s« (%s, %d Tage)." % [char_name(cid), m.title, Content.directives[directive].name, days], "mission")
+	if partner != "":
+		cs(partner).status = STATUS_MISSION
+		cs(partner).mission_uid = am.uid
+	var team := "" if partner == "" else " mit %s" % char_name(partner).split(" ")[0]
+	log_msg("%s bricht%s auf: »%s« (%s, %d Tage)." % [char_name(cid), team, m.title, Content.directives[directive].name, days], "mission")
 	# Wer mit Aufgaben betraut wird, gewinnt an Gunst – die Rivalin wird eifersüchtig.
 	var boost := 4 if m.get("main", false) else 2
 	var eff := {"chars": {cid: {"favor": boost}}}
 	var rival: String = Content.char_data(cid).get("rival", "")
-	if rival != "" and cs(rival).unlocked:
+	if rival != "" and cs(rival).unlocked and rival != partner:
 		eff.chars[rival] = {"jealousy": boost + 2}
+	if partner != "":
+		eff.chars[partner] = {"favor": 1}
+		eff["rivalry"] = int(World.synergy(cid, partner).get("rivalry", 0))
 	apply_effects(eff)
 	state_changed.emit()
 	return true
@@ -643,6 +723,8 @@ func _resolve_mission(am: Dictionary) -> void:
 	var c := cs(cid)
 	state.active.erase(am)
 	c.mission_uid = ""
+	var partner: String = am.get("partner", "")
+	var mods: Dictionary = am.get("mods", {})
 
 	# 1) Interpretiert der Untertan den Befehl eigenwillig?
 	var directive: String = am.directive
@@ -653,7 +735,7 @@ func _resolve_mission(am: Dictionary) -> void:
 		deviation_text = pick(dev.text)
 
 	# 2) Ergebnis bestimmen
-	var margin := _score(m, cid, directive)
+	var margin := _score(m, cid, directive, true, partner, float(mods.get("score", 0)))
 	var tier := "failure"
 	if margin >= 22: tier = "triumph"
 	elif margin >= 4: tier = "success"
@@ -674,16 +756,29 @@ func _resolve_mission(am: Dictionary) -> void:
 		res[k] = int(res.get(k, 0)) + int(dres[k])
 	var mood_delta: int = {"triumph": 10, "success": 5, "partial": -3, "failure": -15}[tier]
 	var fatigue := int(float(m.days) * 2 + float(m.get("difficulty", 50)) / 6.0)
-	var summary := apply_effects({"res": res, "chars": {cid: {"mood": mood_delta, "fatigue": fatigue}}})
+	var char_eff := {cid: {"mood": mood_delta, "fatigue": fatigue}}
+	if partner != "":
+		char_eff[partner] = {"mood": mood_delta / 2, "fatigue": fatigue - 4}
+	var summary := apply_effects({"res": res, "chars": char_eff})
+	summary += World.mission_region_effects(m, am, tier, directive, cid)
+	if m.has("threat"):
+		summary += World.resolve_threat_mission(m.id, tier != "failure")
 
-	if c.fatigue >= 75:
-		c.status = STATUS_RECOVER
-		c.recover_until = state.day + 3
-	elif c.status == STATUS_MISSION:
-		c.status = STATUS_READY
+	for who in ([cid, partner] if partner != "" else [cid]):
+		var wc := cs(who)
+		wc.mission_uid = ""
+		if wc.fatigue >= 75:
+			wc.status = STATUS_RECOVER
+			wc.recover_until = state.day + 3
+		elif wc.status == STATUS_MISSION:
+			wc.status = STATUS_READY
+	if partner != "":
+		_add_deed(partner, "Unterstützung: %s – %s" % [m.title, TIER_LABELS[tier]])
 
 	_add_deed(cid, "%s – %s" % [m.title, TIER_LABELS[tier]])
 	log_msg("%s kehrt zurück: »%s« – %s." % [cd.name, m.title, TIER_LABELS[tier]], "warning" if tier == "failure" else "mission")
+	if m.has("threat"):
+		state.dynamic_missions.erase(m.id)
 	if tier != "failure":
 		state.completed[m.id] = int(state.completed.get(m.id, 0)) + 1
 		state.completed_day[m.id] = state.day
@@ -701,17 +796,32 @@ func _resolve_mission(am: Dictionary) -> void:
 	_push({
 		"uid": next_uid("d"), "kind": "report", "char_id": cid, "day": state.day,
 		"title": "Bericht · " + m.title,
-		"body": _compose_report(m, cid, directive, am.directive, tier, deviation_text),
+		"body": _compose_report(m, cid, directive, am.directive, tier, deviation_text) + _partner_note(cid, partner),
 		"options": _report_options(cid, tier),
 		"context": {
 			"tier": tier, "mission": m.id, "summary": summary,
 			"directive": Content.directives[am.directive].name, "effective": effective_name,
 			"deviated": directive != am.directive, "location": m.get("location", ""),
+			"partner": partner,
 		},
 	})
 	if tier != "failure" and m.has("followup_event"):
 		queue_event(m.followup_event)
 	_maybe_proposal(cid, am.directive)
+
+
+## Zusatz im Bericht, wenn ein Team unterwegs war.
+func _partner_note(cid: String, partner: String) -> String:
+	if partner == "":
+		return ""
+	var syn := World.synergy(cid, partner)
+	var nm: String = char_name(partner).split(" ")[0]
+	var line := "\n\n[color=#8fb8ff]⚔ Unterstützt von %s.[/color]" % nm
+	if not syn.is_empty():
+		line += " [color=#8f86a3]%s[/color]" % syn.text
+	if "albedo" in [cid, partner] and "shalltear" in [cid, partner]:
+		line += "\n[color=#ff7aa8][i]Auf dem Rückweg haben sich beide dreimal gestritten, wer von ihnen mehr geleistet hat.[/i][/color]"
+	return line
 
 
 ## Baut den Berichtstext (BBCode) im Stil des Charakters zusammen.
@@ -913,6 +1023,8 @@ func _tick_day() -> void:
 	for am in due:
 		_resolve_mission(am)
 	_drift_emotions()
+	World.tick_day()
+	Military.tick_day()
 	var story_fired := _fire_story_events()
 	_check_chapter_progress()
 	if not story_fired:

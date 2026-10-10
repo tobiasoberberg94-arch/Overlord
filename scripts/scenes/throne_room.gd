@@ -20,6 +20,8 @@ var lord_label := Label.new()
 var efficiency_label := Label.new()
 var resource_bars: Dictionary = {}
 var efficiency_bar: StatBar
+var balance_label := RichTextLabel.new()
+var alerts_label := RichTextLabel.new()
 var chapter_title := Label.new()
 var chapter_sub := Label.new()
 var objectives_box := VBoxContainer.new()
@@ -66,6 +68,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_A: _open_missions()
+		KEY_K: _open_map()
+		KEY_V: _open_overlay(AdministrationView.new())
 		KEY_U: _open_characters("albedo")
 		KEY_C: _open_overlay(ChronicleView.new())
 		KEY_D: _open_next_dispatch()
@@ -178,6 +182,12 @@ func _build_left() -> Control:
 	efficiency_bar = StatBar.new("Effizienz", Palette.SUCCESS, "⚙", 118)
 	efficiency_bar.tooltip_text = "Effizienz der Guardians – Mittel aus Stimmung, Gunst und Erschöpfung."
 	rv.add_child(efficiency_bar)
+	balance_label.bbcode_enabled = true
+	balance_label.fit_content = true
+	balance_label.scroll_active = false
+	balance_label.add_theme_font_size_override("normal_font_size", 16)
+	balance_label.tooltip_text = "Tägliche Einkünfte aus Regionen und Erlassen abzüglich Unterhalt – Details unter Verwaltung [V]."
+	rv.add_child(balance_label)
 	col.add_child(rp)
 	tutorial_targets["resources"] = rp
 	# Kapitel
@@ -288,6 +298,11 @@ func _build_right() -> Control:
 	iv.add_child(ih)
 	inbox_box.add_theme_constant_override("separation", 5)
 	iv.add_child(inbox_box)
+	alerts_label.bbcode_enabled = true
+	alerts_label.fit_content = true
+	alerts_label.scroll_active = false
+	alerts_label.add_theme_font_size_override("normal_font_size", 15)
+	iv.add_child(alerts_label)
 	col.add_child(ip)
 	tutorial_targets["dispatches"] = ip
 	# Laufende Aufträge
@@ -328,11 +343,15 @@ func _build_bottom_bar() -> Control:
 	ticker.custom_minimum_size.y = 66
 	hb.add_child(ticker)
 	hb.add_child(VSeparator.new())
-	for spec in [["Aufträge  [A]", "ButtonPrimary", _open_missions, "icon_mission"],
-			["Untertanen  [U]", "Button", func(): _open_characters("albedo"), "icon_nazarick"],
-			["Chronik  [C]", "Button", func(): _open_overlay(ChronicleView.new()), "icon_floor"]]:
+	ticker.custom_minimum_size.x = 260
+	for spec in [["Aufträge", "ButtonPrimary", _open_missions, "icon_mission", "Auftragstafel [A]"],
+			["Weltkarte", "ButtonPrimary", _open_map, "icon_magic", "Weltkarte, Regionen & Legionen [K]"],
+			["Verwaltung", "Button", func(): _open_overlay(AdministrationView.new()), "icon_gold", "Finanzen & Erlasse [V]"],
+			["Untertanen", "Button", func(): _open_characters("albedo"), "icon_nazarick", "Wächter & Audienzen [U]"],
+			["Chronik", "Button", func(): _open_overlay(ChronicleView.new()), "icon_floor", "Chronik [C]"]]:
 		var b := Button.new()
 		b.text = spec[0]
+		b.tooltip_text = spec[4]
 		_set_button_icon(b, spec[3])
 		b.theme_type_variation = spec[1]
 		b.custom_minimum_size = Vector2(0, 54)
@@ -341,6 +360,10 @@ func _build_bottom_bar() -> Control:
 		hb.add_child(b)
 		if spec[3] == "icon_mission":
 			tutorial_targets["orders"] = b
+		elif spec[3] == "icon_magic":
+			tutorial_targets["map"] = b
+		elif spec[3] == "icon_gold":
+			tutorial_targets["admin"] = b
 	hb.add_child(VSeparator.new())
 	for spec in [["1 Tag", 1], ["1 Woche", 7], ["1 Monat", 30]]:
 		var b := Button.new()
@@ -381,6 +404,16 @@ func refresh() -> void:
 		else:
 			resource_bars[k].set_value(v)
 	efficiency_bar.set_value(Game.efficiency())
+	var net: float = World.daily_income().gold + World.decree_daily_gold() - World.daily_upkeep()
+	balance_label.text = "[color=#d4af37]Tagesbilanz:[/color] [color=%s]%+.0f Gold[/color]  [color=#8f86a3]· %d Erlasse · %d Legionen[/color]" % [
+		"#6fdc8c" if net >= 0 else "#ff4a5a", net, Game.state.decrees.size(), Game.state.armies.size()]
+	var alerts := PackedStringArray()
+	for t in Game.state.threats:
+		alerts.append("[color=#ff4a5a]⚠ %s – noch %d T.[/color]" % [Game.mission(t.mission_id).get("title", "Bedrohung"), World.threat_days_left(t)])
+	for e in Game.state.enemy_armies:
+		alerts.append("[color=#ff4a5a]⚔ %s → %s (%d T.)[/color]" % [e.name, World.region(e.target).short, Military.path_days(e.location, e.path)])
+	alerts_label.text = "\n".join(alerts)
+	alerts_label.visible = not alerts.is_empty()
 
 	chapter_title.text = "Kapitel %s · %s" % [ch.numeral, ch.title]
 	chapter_sub.text = ch.get("subtitle", "")
@@ -511,10 +544,16 @@ func _open_overlay(o: Control) -> Control:
 	return o
 
 
-func _open_missions() -> void:
-	var board := MissionBoard.new()
+func _open_missions(region: String = "") -> void:
+	var board := MissionBoard.new(region)
 	board.mission_assigned.connect(func(): toast("Befehl erteilt. Eure Untertanen brechen auf."))
 	_open_overlay(board)
+
+
+func _open_map(region: String = "nazarick") -> void:
+	var m := WorldMapView.new(region)
+	m.open_missions.connect(func(rid): await get_tree().create_timer(0.3).timeout; _open_missions(rid))
+	_open_overlay(m)
 
 
 func _open_characters(cid: String) -> void:
@@ -546,7 +585,8 @@ func _open_next_dispatch() -> void:
 		return
 	var pending := Game.pending()
 	if not pending.is_empty():
-		_open_dispatch(pending[0].uid)
+		if Settings.auto_open:
+			_open_dispatch(pending[0].uid)
 		return
 	Audio.play_music("throne")
 	# Beim ersten Spiel: Einführung nach dem Kapitel-Intro
@@ -580,8 +620,12 @@ func start_tutorial() -> void:
 			"text": "Wenn Ihr erlaubt, {lord}: Wir führen Befehle [i]auf unsere Weise[/i] aus. Bei [b]Freier Hand[/b] handelt jeder nach seinem eigenen Stil – ich etwa nach einem Plan von sieben Ebenen. Manche von uns legen Befehle auch … eigenwillig aus. Die Tafel warnt Euch, wenn jemand dazu neigt. Shalltear und das Wort ›diskret‹ beispielsweise."},
 		{"speaker": "albedo", "target": t.get("dispatches"), "title": "Depeschen",
 			"text": "Berichte, Ereignisse, Eigeninitiativen und Vorschläge erscheinen hier und öffnen sich automatisch. Ihr antwortet mit [color=#6fdc8c]Lob[/color], [color=#f2b43c]Belohnung[/color], [color=#ff4a5a]Tadel[/color] oder Schweigen – und jede Antwort hat Folgen. Für Gunst, Stimmung … und Eifersucht."},
+		{"speaker": "demiurge", "target": t.get("map"), "title": "Die Weltkarte  [K]",
+			"text": "Hier liegt die Neue Welt vor Euch, {lord}. Jede [b]Region[/b] muss erst erkundet werden; danach wächst unser [b]Einfluss[/b] durch Aufträge – und mit ihm die täglichen Einkünfte. Achtet auf die [color=#ff4a5a]Unruhe[/color]: Wer zu grausam herrscht, erntet Aufstände.\n\nHier hebt Ihr auch [b]Legionen[/b] aus, ernennt einen Wächter zum Feldherrn und schickt sie auf Feldzüge – zur Verteidigung oder zur Eroberung."},
+		{"speaker": "albedo", "target": t.get("admin"), "title": "Die Reichsverwaltung  [V]",
+			"text": "Ein Reich will verwaltet werden. Hier seht Ihr Einkünfte und [b]Unterhalt[/b] – das Grab, jeder Einsatz und jede Legion kosten Gold. Mit [b]Erlassen[/b] legt Ihr den Kurs Eurer Herrschaft fest. Die Plätze sind begrenzt, und wir Wächter haben … Meinungen dazu."},
 		{"speaker": "albedo", "target": t.get("running"), "title": "Laufende Aufträge",
-			"text": "Hier seht Ihr, wer gerade unterwegs ist und wann er zurückkehrt. Erledigte Aufträge verschwinden – wiederkehrende Aufgaben (↻) werden nach einiger Zeit erneut angeboten."},
+			"text": "Hier seht Ihr, wer gerade unterwegs ist. Mitten im Einsatz melden wir uns mit [b]Lageberichten[/b], wenn etwas Unerwartetes geschieht – dann entscheidet Ihr über Risiko und Vorgehen. Ihr könnt auch zwei Untertanen gemeinsam entsenden; manche ergänzen sich, andere … nicht."},
 		{"speaker": "albedo", "target": time_buttons, "title": "Der Lauf der Zeit  [1] [2] [3]",
 			"text": "Lasst einen Tag, eine Woche oder einen Monat vergehen. Die Zeit hält von selbst an, sobald eine Depesche eintrifft. Untätige Wächter ergreifen in dieser Zeit gern die [b]Initiative[/b] – besonders, wenn sie sich vernachlässigt fühlen."},
 		{"speaker": "shalltear", "variant": "love", "target": t.get("rivalry"), "title": "Der Herzenskrieg!",
@@ -626,6 +670,7 @@ func _advance(days: int) -> void:
 	tw.tween_property(lbl, "modulate:a", 1.0, 0.3)
 	await tw.finished
 	var result := Game.advance(days)
+	_autosave()
 	lbl.text = "%d %s vergangen" % [result.days, "Tag" if result.days == 1 else "Tage"]
 	await get_tree().create_timer(0.45).timeout
 	var tw2 := create_tween().set_parallel(true)
@@ -637,6 +682,16 @@ func _advance(days: int) -> void:
 	if result.get("interrupted", false):
 		toast("Die Zeit hält an – eine Depesche erwartet Euch.", Palette.GOLD_BRIGHT)
 	_open_next_dispatch()
+
+
+var _last_autosave := 0
+
+
+func _autosave() -> void:
+	var every := Settings.autosave_days()
+	if every > 0 and Game.state.day - _last_autosave >= every:
+		_last_autosave = Game.state.day
+		SaveSystem.save_game(0)
 
 
 func toast(text: String, color: Color = Palette.GOLD_BRIGHT) -> void:

@@ -14,6 +14,10 @@ var events: Dictionary = {}               ## id -> Ereignis (Story, Zufall, Riva
 var initiatives: Dictionary = {}          ## id -> Eigeninitiative eines Untertanen
 var chapters: Array = []                  ## Kapitel in Reihenfolge
 var directives: Dictionary = {}           ## Befehlsarten (Freie Hand, Diskret, …)
+var regions: Array = []                   ## Regionen der Weltkarte
+var region_by_id: Dictionary = {}
+var region_links: Array = []              ## Wegenetz [a, b, Tage]
+var systems: Dictionary = {}              ## Wirtschaft, Bedrohungen, Komplikationen, Synergien, Erlasse
 
 
 func _ready() -> void:
@@ -46,6 +50,89 @@ func reload() -> void:
 	var story: Dictionary = _load_json("story.json")
 	chapters = story.get("chapters", [])
 	directives = story.get("directives", {})
+
+	systems = _load_json("systems.json")
+	var reg: Dictionary = _load_json("regions.json")
+	regions = reg.get("regions", [])
+	region_links = reg.get("links", [])
+	region_by_id.clear()
+	for r in regions:
+		region_by_id[r.id] = r
+	# Aufträge ihren Regionen zuordnen; Aufträge außerhalb Nazaricks setzen eine entdeckte Region voraus
+	var mreg: Dictionary = reg.get("mission_regions", {})
+	for mid in mreg:
+		if missions.has(mid):
+			var m: Dictionary = missions[mid]
+			m["region"] = mreg[mid]
+			if not region_by_id.get(mreg[mid], {}).get("home", false):
+				var req: Dictionary = m.get("requires", {})
+				var disc: Array = req.get("region_discovered", [])
+				if not mreg[mid] in disc:
+					disc.append(mreg[mid])
+				req["region_discovered"] = disc
+				m["requires"] = req
+	_generate_region_missions()
+
+
+## Erzeugt je Region: Erkundung, Einfluss ausbauen, Unruhen befrieden.
+func _generate_region_missions() -> void:
+	for r in regions:
+		if r.get("home", false):
+			continue
+		var id: String = r.id
+		var diff := int(r.get("difficulty", 50))
+		var hostile: bool = r.get("hostile", false)
+		var explore_req: Dictionary = r.get("explore_requires", {}).duplicate()
+		explore_req["region_undiscovered"] = id
+		missions["x_" + id] = {
+			"id": "x_" + id, "title": "Erkundung: " + r.short, "category": "Erkundung", "location": r.name,
+			"region": id, "generated": true,
+			"description": "Sendet einen Kundschafter nach %s. %s Erst eine erkundete Region kann beeinflusst werden." % [r.name, r.desc],
+			"days": 4, "difficulty": diff - 12, "weights": {"intellekt": 1, "diskretion": 2, "kampf": 1},
+			"recommended": ["aura", "sebas"], "rewards": {"info": 5}, "influence": 5, "requires": explore_req,
+			"outcomes": {
+				"triumph": "%s ist vollständig kartiert: Machtverhältnisse, Handelswege, Schwachstellen." % r.name,
+				"success": "%s ist erkundet. Erste Kontakte sind geknüpft." % r.name,
+				"partial": "Ein grober Überblick über %s – mehr nicht." % r.name,
+				"failure": "Die Kundschafter kehrten aus %s ohne verwertbare Erkenntnisse zurück." % r.name,
+			},
+		}
+		missions["i_" + id] = {
+			"id": "i_" + id, "title": "Einfluss ausbauen: " + r.short, "category": "Diplomatie" if not hostile else "Geheimoperation",
+			"location": r.name, "region": id, "generated": true, "repeatable": true, "repeat_cooldown": 5,
+			"description": "Bestechung, Schutzversprechen, Informanten, Furcht – baut Nazaricks Einfluss in %s aus. Mehr Einfluss bringt höhere Einkünfte, zieht aber Aufmerksamkeit auf sich." % r.name,
+			"days": 5, "difficulty": diff + (10 if hostile else 0), "weights": {"diplomatie": 2, "diskretion": 1, "intellekt": 1},
+			"recommended": ["albedo", "demiurge"], "rewards": {"gold": 15, "attention": 2}, "influence": 14,
+			"requires": {"region_discovered": [id], "region_influence_below": {id: 100}},
+			"outcomes": {
+				"triumph": "In %s sprechen nun Händler, Priester und Hauptleute in Nazaricks Sinne – ohne es zu ahnen." % r.name,
+				"success": "Nazaricks Netz in %s ist dichter geworden." % r.name,
+				"partial": "Einige Kontakte in %s sind gewonnen, andere misstrauisch." % r.name,
+				"failure": "Die Bemühungen in %s sind gescheitert. Man beginnt, Fragen zu stellen." % r.name,
+			},
+		}
+		missions["u_" + id] = {
+			"id": "u_" + id, "title": "Unruhen befrieden: " + r.short, "category": "Verwaltung", "location": r.name,
+			"region": id, "generated": true, "repeatable": true, "repeat_cooldown": 3,
+			"description": "Die Bevölkerung von %s wird unruhig. Mit Güte, Brot oder blanker Furcht lässt sich die Lage beruhigen – Gnadenlosigkeit wirkt schnell, aber hinterlässt Narben." % r.name,
+			"days": 3, "difficulty": diff - 5, "weights": {"diplomatie": 2, "kampf": 1},
+			"recommended": ["sebas", "cocytus"], "rewards": {"reputation": 2}, "influence": 4,
+			"requires": {"region_discovered": [id], "region_unrest_min": {id: 35}},
+			"on_success": {"regions": {id: {"unrest": -35}}},
+			"outcomes": {
+				"triumph": "In %s herrscht wieder Ruhe – und Dankbarkeit." % r.name,
+				"success": "Die Unruhe in %s ist abgeklungen." % r.name,
+				"partial": "Die Lage in %s bleibt angespannt." % r.name,
+				"failure": "Die Unruhe in %s ist eskaliert." % r.name,
+			},
+		}
+
+
+func difficulty(id: String) -> Dictionary:
+	for d in systems.get("difficulties", []):
+		if d.id == id:
+			return d
+	return {}
 
 
 func chapter(number: int) -> Dictionary:

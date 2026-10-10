@@ -53,6 +53,11 @@ static func flash(node: CanvasItem, color: Color = Color(1.4, 1.25, 0.8)) -> voi
 
 ## Schreibmaschinen-Effekt für RichTextLabels.
 static func typewriter(label: RichTextLabel, chars_per_sec: float = 140.0) -> Tween:
+	var factor := Settings.text_speed_factor()
+	if factor <= 0.0:
+		label.visible_ratio = 1.0
+		return label.create_tween()
+	chars_per_sec *= factor
 	label.visible_ratio = 0.0
 	var length := maxi(1, label.get_total_character_count())
 	var tw := label.create_tween()
