@@ -21,8 +21,21 @@ func _ready() -> void:
 	get_tree().root.add_child(throne)
 	await _wait(1.6)
 	_shot("02_chapter_intro")
-	# Depeschen abarbeiten (Kapitel-Intro, Treueschwur)
-	for i in 3:
+	# Kapitel-Intro beantworten → Tutorial startet automatisch
+	await _answer_open_dialog(throne)
+	await _wait(1.0)
+	var tut = throne.overlay_layer.get_child(0) if throne.overlay_layer.get_child_count() > 0 else null
+	assert(tut is TutorialOverlay, "Tutorial sollte nach dem Intro starten")
+	await _wait(1.2)
+	_shot("02b_tutorial_start")
+	for step in [1, 3, 5, 9]:
+		tut._show(step)
+		await _wait(1.6)
+		_shot("02c_tutorial_%02d" % step)
+	tut._finish()
+	await _wait(0.8)
+	assert(Settings.tutorial_done)
+	for i in 2:
 		await _answer_open_dialog(throne)
 	await _wait(0.8)
 	_shot("03_throne_room")
@@ -73,6 +86,18 @@ func _ready() -> void:
 		await _answer_open_dialog(throne)
 	await _wait(0.5)
 	_shot("09_throne_later")
+	throne._open_settings()
+	await _wait(0.8)
+	_shot("11_settings")
+	throne.overlay_layer.get_child(0).close()
+	await _wait(0.5)
+	# Wiederholbare Aufträge dürfen nach Abschluss nicht sofort wieder erscheinen
+	var m := Game.mission("s_training")
+	Game.state.completed["s_training"] = 1
+	Game.state.completed_day["s_training"] = Game.state.day
+	assert(not Game.mission_available(m), "Wiederholbarer Auftrag sollte in der Abklingzeit sein")
+	Game.state.completed_day["s_training"] = Game.state.day - Game.REPEAT_COOLDOWN
+	assert(Game.mission_available(m) and Game.mission_badge(m) == "repeat")
 	throne._open_overlay(ChronicleView.new())
 	await _wait(0.8)
 	_shot("10_chronicle")
@@ -84,7 +109,9 @@ func _answer_open_dialog(throne: Node) -> void:
 	if throne.overlay_layer.get_child_count() == 0:
 		return
 	var dlg = throne.overlay_layer.get_child(0)
-	if dlg is DispatchDialog:
+	if dlg is TutorialOverlay:
+		dlg._finish()
+	elif dlg is DispatchDialog:
 		dlg._choose(dlg.dispatch.options[0].key)
 		await _wait(0.3)
 		if is_instance_valid(dlg):

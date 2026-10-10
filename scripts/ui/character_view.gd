@@ -210,6 +210,7 @@ func _audience(kind: String) -> void:
 	_show(cid)
 	reaction.text = res.get("text", "")
 	if res.get("ok", false):
+		Audio.sfx("rebuke" if kind == "rebuke" else ("love" if Content.char_data(cid).has("emotion") else "order"), 0.7)
 		UIFx.typewriter(reaction, 150.0)
 		if kind != "rebuke" and Content.char_data(cid).has("emotion"):
 			portrait.variant = "love"

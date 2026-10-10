@@ -153,6 +153,13 @@ func _add_location_banner(parent: Control, ctx: Dictionary) -> void:
 
 func _ready() -> void:
 	super._ready()
+	Audio.sfx("page", 0.8)
+	# Musik passend zur Depesche: Kapitel → Titel-Thema, Story/Rivalität → Spannung
+	var etype: String = dispatch.get("context", {}).get("type", "")
+	if dispatch.kind == "story":
+		Audio.play_music("title")
+	elif etype in ["story", "chain", "rivalry"]:
+		Audio.play_music("tension")
 	_typing = UIFx.typewriter(text, 160.0)
 
 
@@ -186,6 +193,10 @@ func _build_options() -> void:
 
 func _choose(key: String) -> void:
 	var result := Game.respond(dispatch.uid, key)
+	if key in ["praise", "reward", "approve"]:
+		Audio.sfx("love" if dispatch.get("char_id", "") in ["albedo", "shalltear"] else "order", 0.8)
+	elif key in ["rebuke", "deny"]:
+		Audio.sfx("rebuke", 0.8)
 	if key in ["praise", "reward", "approve"] and dispatch.get("char_id", "") in ["albedo", "shalltear"]:
 		portrait.variant = "love"
 		UIFx.flash(portrait, Color(1.5, 1.2, 1.3))

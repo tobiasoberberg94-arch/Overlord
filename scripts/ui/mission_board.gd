@@ -113,6 +113,7 @@ func _build_list() -> void:
 		c.queue_free()
 	var missions := Game.available_missions()
 	if missions.is_empty():
+		_add_cooldown_note()
 		var l := Label.new()
 		l.text = "Derzeit liegen keine Aufträge vor.\nLasst Zeit vergehen – Eure Untertanen werden neue Pläne schmieden."
 		l.theme_type_variation = "MutedLabel"
@@ -131,7 +132,11 @@ func _build_list() -> void:
 		b.custom_minimum_size = Vector2(0, 86)
 		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		var diff := clampi(int(m.difficulty) / 17, 1, 5)
-		b.text = "%s\n%s\n⚑ %s  ·  ◷ %d T.  ·  %s" % [KIND_BADGES[kind][0], m.title, m.get("location", "?"), int(m.days),
+		var badge := ""
+		match Game.mission_badge(m):
+			"repeat": badge = "   ↻ WIEDERHOLT ×%d" % int(Game.state.completed[m.id])
+			"retry": badge = "   ✗ ERNEUTER VERSUCH"
+		b.text = "%s%s\n%s\n⚑ %s  ·  ◷ %d T.  ·  %s" % [KIND_BADGES[kind][0], badge, m.title, m.get("location", "?"), int(m.days),
 			"◆".repeat(diff) + "◇".repeat(5 - diff)]
 		b.add_theme_color_override("font_color", Color(KIND_BADGES[kind][1]).lerp(Palette.PARCHMENT, 0.45))
 		b.pressed.connect(_select_mission.bind(m.id))
@@ -140,7 +145,26 @@ func _build_list() -> void:
 		if i == 0:
 			b.button_pressed = true
 		i += 1
+	_add_cooldown_note()
 	_select_mission(missions[0].id)
+
+
+## Hinweis auf erledigte, wiederholbare Aufträge, die sich gerade „abkühlen“.
+func _add_cooldown_note() -> void:
+	var waiting := PackedStringArray()
+	for m in Content.missions.values():
+		if m.get("repeatable", false) and Game.state.completed.has(m.id) and not Game.is_mission_active(m.id):
+			var left := Game.repeat_days_left(m)
+			if left > 0:
+				waiting.append("%s (in %d T.)" % [m.title, left])
+	if waiting.is_empty():
+		return
+	var l := Label.new()
+	l.text = "↻ Wieder verfügbar: " + ", ".join(waiting)
+	l.theme_type_variation = "MutedLabel"
+	l.add_theme_font_size_override("font_size", 15)
+	l.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	list_box.add_child(l)
 
 
 func _select_mission(mid: String) -> void:
@@ -157,6 +181,11 @@ func _select_mission(mid: String) -> void:
 	var t := "[font_size=28][color=#f5d77a]%s[/color][/font_size]\n" % m.title
 	t += "[color=%s]%s[/color]   [color=#8f86a3]%s · %s[/color]\n\n" % [KIND_BADGES[kind][1], KIND_BADGES[kind][0], m.get("category", ""), m.get("location", "")]
 	t += Game.fmt(m.description) + "\n\n"
+	match Game.mission_badge(m):
+		"repeat":
+			t += "[color=#8fb8ff]↻ Wiederkehrender Auftrag – bereits %d× erledigt, zuletzt an Tag %d.[/color]\n" % [int(Game.state.completed[m.id]), int(Game.state.completed_day.get(m.id, 0))]
+		"retry":
+			t += "[color=#ff9a3c]✗ Dieser Auftrag ist bereits %d× gescheitert. Wählt einen geeigneteren Vollstrecker.[/color]\n" % int(Game.state.failed[m.id])
 	t += "[color=#d4af37]Dauer:[/color] %d Tage    [color=#d4af37]Schwierigkeit:[/color] %d\n" % [int(m.days), int(m.difficulty)]
 	var weights: Dictionary = m.get("weights", {})
 	var wl := PackedStringArray()
@@ -233,5 +262,6 @@ func _update_forecast() -> void:
 
 func _on_confirm() -> void:
 	if Game.assign(_mission_id, _char_id, _directive):
+		Audio.sfx("order")
 		mission_assigned.emit()
 		_build_list()

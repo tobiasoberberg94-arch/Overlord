@@ -76,7 +76,7 @@ func new_game() -> void:
 		"lord_name": "Momonga", "rivalry": 25,
 		"audiences_day": 0, "audiences_used": 0, "uid": 0,
 		"resources": {}, "chars": {}, "flags": [], "unlocked_missions": [],
-		"completed": {}, "active": [], "dispatches": [], "log": [], "fired": {},
+		"completed": {}, "completed_day": {}, "failed": {}, "active": [], "dispatches": [], "log": [], "fired": {},
 	}
 	for k in Content.lord.get("start_resources", {}):
 		state.resources[k] = int(Content.lord.start_resources[k])
@@ -120,6 +120,17 @@ func _normalize() -> void:
 			cs[k] = int(cs.get(k, 0))
 	for k in state.completed:
 		state.completed[k] = int(state.completed[k])
+	# Ältere Spielstände kennen diese Felder noch nicht
+	if not state.has("completed_day"):
+		state["completed_day"] = {}
+		for k in state.completed:
+			state.completed_day[k] = state.day
+	if not state.has("failed"):
+		state["failed"] = {}
+	for k in state.completed_day:
+		state.completed_day[k] = int(state.completed_day[k])
+	for k in state.failed:
+		state.failed[k] = int(state.failed[k])
 	for k in state.fired:
 		state.fired[k] = int(state.fired[k])
 	for am in state.active:
@@ -489,17 +500,42 @@ func mission_kind(m: Dictionary) -> String:
 	return "side"
 
 
+## Standard-Abklingzeit wiederholbarer Aufträge (Tage); pro Auftrag per "repeat_cooldown" änderbar.
+const REPEAT_COOLDOWN := 12
+
+
 func mission_available(m: Dictionary) -> bool:
 	if is_mission_active(m.id):
 		return false
-	if state.completed.has(m.id) and not m.get("repeatable", false):
-		return false
+	if state.completed.has(m.id):
+		# Abgeschlossene Aufträge verschwinden – wiederholbare kehren erst nach ihrer Abklingzeit zurück.
+		if not m.get("repeatable", false):
+			return false
+		if repeat_days_left(m) > 0:
+			return false
 	if m.id in state.unlocked_missions:
 		var req: Dictionary = m.get("requires", {})
 		return check({"flags_all": req.get("flags_all", []), "flags_none": req.get("flags_none", [])})
 	if m.get("proposal", false) or m.get("locked", false):
 		return false
 	return check(m.get("requires"))
+
+
+## Tage, bis ein wiederholbarer Auftrag erneut angeboten wird.
+func repeat_days_left(m: Dictionary) -> int:
+	if not state.completed_day.has(m.id):
+		return 0
+	var cd := int(m.get("repeat_cooldown", REPEAT_COOLDOWN))
+	return maxi(0, int(state.completed_day[m.id]) + cd - state.day)
+
+
+## Status-Kennzeichen für die Auftragsliste: "" (neu), "repeat" (wiederholt), "retry" (zuvor gescheitert).
+func mission_badge(m: Dictionary) -> String:
+	if state.failed.has(m.id) and not state.completed.has(m.id):
+		return "retry"
+	if state.completed.has(m.id):
+		return "repeat"
+	return ""
 
 
 func available_missions() -> Array:
@@ -650,7 +686,11 @@ func _resolve_mission(am: Dictionary) -> void:
 	log_msg("%s kehrt zurück: »%s« – %s." % [cd.name, m.title, TIER_LABELS[tier]], "warning" if tier == "failure" else "mission")
 	if tier != "failure":
 		state.completed[m.id] = int(state.completed.get(m.id, 0)) + 1
+		state.completed_day[m.id] = state.day
+		state.failed.erase(m.id)
 		summary += apply_effects(m.get("on_success"))
+	else:
+		state.failed[m.id] = int(state.failed.get(m.id, 0)) + 1
 
 	# Spezialfall: Bericht wird durch ein Ereignis ersetzt (z. B. Shalltear-Zwischenfall)
 	if m.has("replace_report_with_event"):

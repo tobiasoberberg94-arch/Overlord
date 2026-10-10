@@ -9,6 +9,7 @@ var _menu := VBoxContainer.new()
 
 func _ready() -> void:
 	add_child(NazarickBackground.new("title" if Content.find_image("backgrounds", "title") else "nazarick_exterior", false, 0.3))
+	Audio.play_music("title")
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
@@ -58,6 +59,7 @@ func _ready() -> void:
 		_add_button("Fortsetzen", "ButtonPrimary", _on_continue)
 	_add_button("Neues Spiel", "ButtonPrimary" if not SaveSystem.has_any_save() else "Button", _on_new)
 	_add_button("Chronik laden", "Button", _on_load)
+	_add_button("Einstellungen", "Button", func(): add_child(SettingsDialog.new(false)))
 	_add_button("Nazarick verlassen", "ButtonGhost", func(): get_tree().quit())
 
 	var foot := Label.new()

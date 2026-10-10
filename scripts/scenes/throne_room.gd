@@ -31,6 +31,7 @@ var missions_box := VBoxContainer.new()
 var rivalry := RivalryMeter.new()
 var ticker := RichTextLabel.new()
 var time_buttons: Array[Button] = []
+var tutorial_targets: Dictionary = {}   ## Bereiche, die das Tutorial hervorhebt
 var _badge_tween: Tween
 var _busy := false
 
@@ -51,6 +52,8 @@ func _ready() -> void:
 
 	Game.state_changed.connect(refresh)
 	Game.log_added.connect(_on_log_added)
+	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
+	Audio.play_music("throne")
 	refresh()
 	UIFx.fade_in(self, 0.8)
 	await get_tree().create_timer(0.6).timeout
@@ -143,12 +146,15 @@ func _build_top_bar() -> Control:
 	hb.add_child(lord)
 	hb.add_child(VSeparator.new())
 	for spec in [["Speichern", func(): _open_overlay(SaveLoadDialog.new(true))],
-			["Laden", _open_load], ["Titel", _to_title]]:
+			["Laden", _open_load], ["⚙", _open_settings], ["Titel", _to_title]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.theme_type_variation = "ButtonGhost"
 		b.pressed.connect(spec[1])
+		if spec[0] == "⚙":
+			b.tooltip_text = "Einstellungen & Einführung"
 		hb.add_child(b)
+	tutorial_targets["topbar"] = p
 	return p
 
 
@@ -173,6 +179,7 @@ func _build_left() -> Control:
 	efficiency_bar.tooltip_text = "Effizienz der Guardians – Mittel aus Stimmung, Gunst und Erschöpfung."
 	rv.add_child(efficiency_bar)
 	col.add_child(rp)
+	tutorial_targets["resources"] = rp
 	# Kapitel
 	var cp := _panel()
 	cp.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -192,6 +199,7 @@ func _build_left() -> Control:
 	objectives_box.add_theme_constant_override("separation", 6)
 	cv.add_child(objectives_box)
 	col.add_child(cp)
+	tutorial_targets["chapter"] = cp
 	return col
 
 
@@ -223,6 +231,7 @@ func _build_center() -> Control:
 	hall.position = Vector2(14, 8)
 	throne_wrap.add_child(hall)
 	col.add_child(throne_wrap)
+	tutorial_targets["throne"] = throne_wrap
 
 	var gp := _panel()
 	var gv := VBoxContainer.new()
@@ -256,6 +265,7 @@ func _build_center() -> Control:
 		UIFx.pop_in(card, 0.35, 0.3 + i * 0.07)
 		i += 1
 	col.add_child(gp)
+	tutorial_targets["guardians"] = gp
 	return col
 
 
@@ -279,6 +289,7 @@ func _build_right() -> Control:
 	inbox_box.add_theme_constant_override("separation", 5)
 	iv.add_child(inbox_box)
 	col.add_child(ip)
+	tutorial_targets["dispatches"] = ip
 	# Laufende Aufträge
 	var mp := _panel()
 	mp.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -294,11 +305,13 @@ func _build_right() -> Control:
 	ms.add_child(missions_box)
 	mv.add_child(ms)
 	col.add_child(mp)
+	tutorial_targets["running"] = mp
 	# Herzenskrieg
 	var rp := _panel()
 	rp.add_theme_stylebox_override("panel", NazarickTheme.box(Color(0.1, 0.02, 0.06, 0.9), Color(Palette.CRIMSON, 0.5), 1, 12, Color(Palette.BLOOD, 0.5), 14, 12))
 	rp.add_child(rivalry)
 	col.add_child(rp)
+	tutorial_targets["rivalry"] = rp
 	return col
 
 
@@ -326,6 +339,8 @@ func _build_bottom_bar() -> Control:
 		b.pressed.connect(spec[2])
 		UIFx.add_hover_scale(b, 1.04)
 		hb.add_child(b)
+		if spec[3] == "icon_mission":
+			tutorial_targets["orders"] = b
 	hb.add_child(VSeparator.new())
 	for spec in [["1 Tag", 1], ["1 Woche", 7], ["1 Monat", 30]]:
 		var b := Button.new()
@@ -491,7 +506,7 @@ func _refresh_ticker() -> void:
 #  Aktionen
 # =====================================================================
 
-func _open_overlay(o: Overlay) -> Overlay:
+func _open_overlay(o: Control) -> Control:
 	overlay_layer.add_child(o)
 	return o
 
@@ -527,9 +542,60 @@ func _open_dispatch(uid: String) -> void:
 
 ## Öffnet automatisch die nächste offene Depesche (Berichte reihen sich aneinander).
 func _open_next_dispatch() -> void:
+	if overlay_layer.get_child_count() > 0:
+		return
 	var pending := Game.pending()
-	if not pending.is_empty() and overlay_layer.get_child_count() == 0:
+	if not pending.is_empty():
 		_open_dispatch(pending[0].uid)
+		return
+	Audio.play_music("throne")
+	# Beim ersten Spiel: Einführung nach dem Kapitel-Intro
+	if not Settings.tutorial_done:
+		start_tutorial()
+
+
+func _open_settings() -> void:
+	var dlg := SettingsDialog.new(true)
+	dlg.tutorial_requested.connect(func(): await get_tree().create_timer(0.3).timeout; start_tutorial())
+	_open_overlay(dlg)
+
+
+## Startet die geführte Einführung (Spotlight-Tour durch den Thronsaal).
+func start_tutorial() -> void:
+	if overlay_layer.get_child_count() > 0:
+		return
+	var t := tutorial_targets
+	var steps := [
+		{"speaker": "albedo", "variant": "love", "target": null, "title": "Willkommen, mein Gebieter",
+			"text": "{lord} … Ihr seid erwacht. Erlaubt Eurer Oberaufseherin, Euch in die Verwaltung des Großen Grabes einzuführen. Es wird nicht lange dauern. [i]Leider.[/i]"},
+		{"speaker": "albedo", "target": t.get("resources"), "title": "Die Macht von Nazarick",
+			"text": "[b]Macht[/b], [b]Wissen[/b] über die Neue Welt, [b]Ruf[/b], die [b]Stimmung[/b] in Nazarick und das [b]Gold[/b] der Schatzkammer. Achtet auf die [color=#ff8c1a][b]Aufmerksamkeit[/b][/color]: Je lauter wir auftreten, desto eher bemerken uns gefährliche Mächte. Die [b]Effizienz[/b] zeigt, wie gut es Euren Wächtern geht."},
+		{"speaker": "albedo", "target": t.get("chapter"), "title": "Die Chronik der Herrschaft",
+			"text": "Hier stehen die Ziele des aktuellen Kapitels. Erfüllt sie, und die Geschichte schreitet voran – von der Ankunft bis zur Krönung des Zauberkönigs. Eure Entscheidungen verändern den Weg dorthin."},
+		{"speaker": "albedo", "target": t.get("guardians"), "title": "Eure Wächter",
+			"text": "Jede Karte zeigt Status, [color=#d4af37]Gunst[/color] und [color=#9b5cff]Stimmung[/color] eines Untertanen. Ein Klick öffnet seine Akte – dort könnt Ihr [b]Audienzen[/b] gewähren, Geschenke machen oder tadeln (zwei Audienzen pro Tag).\n\nIhr werdet bemerken, dass meine Karte die schönste ist. Das ist reiner Zufall."},
+		{"speaker": "albedo", "target": t.get("orders"), "title": "Die Auftragstafel  [A]",
+			"text": "Hier erteilt Ihr Befehle: Wählt einen [b]Auftrag[/b], einen [b]Vollstrecker[/b] und die [b]Befehlsart[/b]. Hauptaufträge (★) treiben die Geschichte voran, Nebenaufträge (◆) bringen Ressourcen, und Vorschläge (✧) stammen von uns selbst."},
+		{"speaker": "demiurge", "target": t.get("orders"), "title": "Über die Kunst des Befehlens",
+			"text": "Wenn Ihr erlaubt, {lord}: Wir führen Befehle [i]auf unsere Weise[/i] aus. Bei [b]Freier Hand[/b] handelt jeder nach seinem eigenen Stil – ich etwa nach einem Plan von sieben Ebenen. Manche von uns legen Befehle auch … eigenwillig aus. Die Tafel warnt Euch, wenn jemand dazu neigt. Shalltear und das Wort ›diskret‹ beispielsweise."},
+		{"speaker": "albedo", "target": t.get("dispatches"), "title": "Depeschen",
+			"text": "Berichte, Ereignisse, Eigeninitiativen und Vorschläge erscheinen hier und öffnen sich automatisch. Ihr antwortet mit [color=#6fdc8c]Lob[/color], [color=#f2b43c]Belohnung[/color], [color=#ff4a5a]Tadel[/color] oder Schweigen – und jede Antwort hat Folgen. Für Gunst, Stimmung … und Eifersucht."},
+		{"speaker": "albedo", "target": t.get("running"), "title": "Laufende Aufträge",
+			"text": "Hier seht Ihr, wer gerade unterwegs ist und wann er zurückkehrt. Erledigte Aufträge verschwinden – wiederkehrende Aufgaben (↻) werden nach einiger Zeit erneut angeboten."},
+		{"speaker": "albedo", "target": time_buttons, "title": "Der Lauf der Zeit  [1] [2] [3]",
+			"text": "Lasst einen Tag, eine Woche oder einen Monat vergehen. Die Zeit hält von selbst an, sobald eine Depesche eintrifft. Untätige Wächter ergreifen in dieser Zeit gern die [b]Initiative[/b] – besonders, wenn sie sich vernachlässigt fühlen."},
+		{"speaker": "shalltear", "variant": "love", "target": t.get("rivalry"), "title": "Der Herzenskrieg!",
+			"text": "Endlich darf ich auch etwas sagen, ~arinsu! Das hier ist der [color=#ff2a4f][b]Herzenskrieg[/b][/color]. Lobt Ihr diese gehörnte Kuh, werde ich eifersüchtig – lobt Ihr mich, kocht sie vor Wut. Steigt die Rivalität zu hoch, passieren … interessante Dinge. Lobt einfach immer mich, dann bleibt alles friedlich!"},
+		{"speaker": "albedo", "target": t.get("rivalry"), "title": "Eine Richtigstellung",
+			"text": "Ignoriert sie, {lord}. Aber es stimmt: Wen Ihr bevorzugt, merken wir. [i]Alle[/i]. Haltet die Waage – oder entscheidet Euch. Für mich, vorzugsweise."},
+		{"speaker": "albedo", "target": t.get("topbar"), "title": "Chronik versiegeln",
+			"text": "Oben könnt Ihr [b]speichern[/b] und [b]laden[/b]. Unter ⚙ findet Ihr Lautstärke, Vollbild (F11) und diese Einführung, falls Ihr sie erneut hören möchtet. Ich erkläre es Euch jederzeit gern noch einmal. Und noch einmal."},
+		{"speaker": "albedo", "variant": "love", "target": t.get("throne"), "title": "Nazarick erwartet Euch",
+			"text": "Das war alles. Öffnet die Auftragstafel [b][A][/b] und schickt Eure ersten Wächter aus – die Umgebung muss erkundet und das Grab verborgen werden.\n\nIch werde immer an Eurer Seite sein, {lord}. Immer."},
+	]
+	var tut := TutorialOverlay.new(steps)
+	tut.finished.connect(func(): toast("Die Einführung ist beendet. Ihr findet sie jederzeit unter ⚙."); _open_next_dispatch.call_deferred())
+	_open_overlay(tut)
 
 
 func _advance(days: int) -> void:
@@ -540,6 +606,7 @@ func _advance(days: int) -> void:
 		_open_next_dispatch()
 		return
 	_busy = true
+	Audio.sfx("gong", 0.6)
 	# Übergang „Die Zeit vergeht …“
 	var veil := ColorRect.new()
 	veil.color = Color(0.02, 0.0, 0.04, 0.0)

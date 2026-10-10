@@ -13,9 +13,11 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+Settings="*res://scripts/autoload/settings.gd"
 Content="*res://scripts/autoload/content.gd"
 Game="*res://scripts/autoload/game.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
+Audio="*res://scripts/autoload/audio.gd"
 
 [display]
 
