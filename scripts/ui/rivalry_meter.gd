@@ -5,7 +5,8 @@ extends VBoxContainer
 
 var left := Portrait.new()
 var right := Portrait.new()
-var bar := ProgressBar.new()
+var bar: Range
+var _ornate := false
 var value_label := Label.new()
 var hint_label := Label.new()
 var jl := Label.new()
@@ -44,15 +45,36 @@ func _init() -> void:
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	value_label.theme_type_variation = "GoldLabel"
 	value_label.add_theme_font_size_override("font_size", 15)
-	bar.show_percentage = false
-	bar.custom_minimum_size = Vector2(0, 12)
-	_fill = NazarickTheme.box(Palette.CRIMSON, Color.TRANSPARENT, 0, 5, Color(Palette.CRIMSON, 0.6), 6, 0)
-	bar.add_theme_stylebox_override("fill", _fill)
+	# Hinweis: Die Ornament-Leiste (bar_red) war zu kleinteilig – klarer Balken liest sich besser.
+	var tex: Texture2D = null
+	if tex:
+		# Ornamentierter Balken: gedimmte Grafik als Grund, leuchtende als Füllung
+		var tp := TextureProgressBar.new()
+		tp.texture_under = tex
+		tp.texture_progress = tex
+		tp.tint_under = Color(0.3, 0.25, 0.35)
+		tp.nine_patch_stretch = true
+		tp.stretch_margin_left = 120
+		tp.stretch_margin_right = 110
+		tp.custom_minimum_size = Vector2(0, 54)
+		tp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bar = tp
+		_ornate = true
+	else:
+		var pb := ProgressBar.new()
+		pb.show_percentage = false
+		pb.custom_minimum_size = Vector2(0, 12)
+		_fill = NazarickTheme.box(Palette.CRIMSON, Color.TRANSPARENT, 0, 5, Color(Palette.CRIMSON, 0.6), 6, 0)
+		pb.add_theme_stylebox_override("fill", _fill)
+		bar = pb
 	mid.add_child(value_label)
-	mid.add_child(bar)
 	row.add_child(left)
 	row.add_child(mid)
 	row.add_child(right)
+	if _ornate:
+		add_child(bar)
+	else:
+		mid.add_child(bar)
 
 	var jrow := HBoxContainer.new()
 	add_child(jrow)
@@ -75,9 +97,12 @@ func refresh() -> void:
 	var create := create_tween()
 	create.tween_property(bar, "value", float(r), 0.6).set_trans(Tween.TRANS_CUBIC)
 	value_label.text = "Rivalität %d" % r
-	var col := Palette.VIOLET_GLOW.lerp(Palette.CRIMSON, r / 100.0)
-	_fill.bg_color = col
-	_fill.shadow_color = Color(col, 0.6)
+	if _ornate:
+		(bar as TextureProgressBar).tint_progress = Color(1, 1, 1).lerp(Color(1.4, 0.8, 0.8), r / 100.0)
+	else:
+		var col := Palette.VIOLET_GLOW.lerp(Palette.CRIMSON, r / 100.0)
+		_fill.bg_color = col
+		_fill.shadow_color = Color(col, 0.6)
 	for h in HINTS:
 		if r < h[0]:
 			hint_label.text = "»%s«" % h[1]

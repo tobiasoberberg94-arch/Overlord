@@ -9,6 +9,11 @@ signal closed
 var panel := PanelContainer.new()
 var content := VBoxContainer.new()
 var closable := true
+var frame_texture: Texture2D:
+	set(v):
+		frame_texture = v
+		_frame_box = null
+var _frame_box: StyleBoxTexture
 var _dim := ColorRect.new()
 
 
@@ -24,8 +29,41 @@ func _init(panel_size: Vector2 = Vector2(1100, 720), variation: String = "PanelO
 	panel.theme_type_variation = variation
 	panel.custom_minimum_size = panel_size
 	center.add_child(panel)
+	# Ornamentaler Goldrahmen + dunkles Muster aus assets/ui (falls vorhanden)
+	frame_texture = Palette.frame("frame_gold")
+	var pattern: Texture2D = Content.find_image("backgrounds", "pattern_dark")
+	if frame_texture and pattern and variation == "PanelOrnate":
+		var sb := StyleBoxTexture.new()
+		sb.texture = pattern
+		sb.modulate_color = Color(0.75, 0.7, 0.8)
+		sb.content_margin_left = 66
+		sb.content_margin_right = 66
+		sb.content_margin_top = 62
+		sb.content_margin_bottom = 58
+		panel.add_theme_stylebox_override("panel", sb)
+		panel.draw.connect(_draw_frame)
 	content.add_theme_constant_override("separation", 12)
 	panel.add_child(content)
+
+
+## Rahmen wird über den Hintergrund des Panels gezeichnet (unter dem Inhalt).
+## 9-Slice: Ecken in Originalgröße, Kanten gekachelt – unabhängig von der Panelgröße.
+func _draw_frame() -> void:
+	if frame_texture == null:
+		return
+	if _frame_box == null:
+		_frame_box = StyleBoxTexture.new()
+		_frame_box.texture = frame_texture
+		var ts := frame_texture.get_size()
+		_frame_box.texture_margin_left = ts.x * 0.16
+		_frame_box.texture_margin_right = ts.x * 0.16
+		_frame_box.texture_margin_top = ts.y * 0.2
+		_frame_box.texture_margin_bottom = ts.y * 0.2
+		_frame_box.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		_frame_box.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
+		_frame_box.draw_center = false
+	panel.draw_rect(Rect2(Vector2(14, 14), panel.size - Vector2(28, 28)), Color(0.02, 0.0, 0.04, 0.5))
+	panel.draw_style_box(_frame_box, Rect2(Vector2(-22, -22), panel.size + Vector2(44, 44)))
 
 
 func _ready() -> void:

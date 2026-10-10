@@ -33,10 +33,26 @@ const RESOURCE_ICONS := {
 	"morale": "♥", "gold": "◈", "attention": "◉",
 }
 
+## Icon-Grafiken (assets/ui/icons/) je Ressource; fehlt die Datei, wird das Zeichen genutzt.
+const RESOURCE_ICON_FILES := {
+	"power": "icon_power", "info": "icon_magic", "reputation": "icon_emblem",
+	"morale": "icon_loyalty", "gold": "icon_gold", "attention": "icon_mana",
+}
+
 const LOG_COLORS := {
 	"info": "#b7aecb", "mission": "#d4af37", "story": "#c79bff",
 	"emotion": "#ff7aa8", "warning": "#ff4a5a", "initiative": "#7fd8ff",
 }
+
+
+static func icon(name: String) -> Texture2D:
+	var p := "res://assets/ui/icons/%s.webp" % name
+	return load(p) if ResourceLoader.exists(p) else null
+
+
+static func frame(name: String) -> Texture2D:
+	var p := "res://assets/ui/frames/%s.webp" % name
+	return load(p) if ResourceLoader.exists(p) else null
 
 
 static func hex(c: Color) -> String:

@@ -27,7 +27,9 @@ func reload() -> void:
 	characters = chars
 	character_order.clear()
 	for cid in chars.keys():
-		character_order.append(cid)
+		# NPCs (Pleiaden, Victim …) sind nur Sprecher in Ereignissen, keine spielbaren Untertanen
+		if not chars[cid].get("npc", false):
+			character_order.append(cid)
 
 	missions.clear()
 	for m in _load_json("missions.json").get("missions", []):
@@ -49,6 +51,33 @@ func reload() -> void:
 func chapter(number: int) -> Dictionary:
 	var idx := clampi(number, 1, chapters.size()) - 1
 	return chapters[idx]
+
+
+## Sucht ein Bild unter res://assets/<dir>/<name>.(webp|png|jpg|jpeg).
+func find_image(dir: String, name: String) -> Texture2D:
+	for ext in ["webp", "png", "jpg", "jpeg"]:
+		var p := "res://assets/%s/%s.%s" % [dir, name, ext]
+		if ResourceLoader.exists(p):
+			return load(p)
+	return null
+
+
+## Ordnet einem Ortsnamen ein passendes Hintergrundbild zu (Stichwortsuche).
+const LOCATION_IMAGES := [
+	["Thronsaal", "throne_room"], ["Carne", "carne_village"], ["Arwintar", "baharuth"], ["Kaiser", "baharuth"],
+	["E-Rantel", "re_estize"], ["Hauptstadt", "re_estize"], ["Re-Estize", "re_estize"], ["Adelsh", "re_estize"],
+	["Theokratie", "holy_kingdom"], ["Wald", "forest"], ["Tob", "forest"], ["Waldrand", "forest"],
+	["Katze", "battlefield"], ["Sumpf", "battlefield"], ["Echsen", "battlefield"], ["Amphitheater", "battlefield"],
+	["Arena", "battlefield"], ["Nazarick", "nazarick_exterior"], ["Ebene", "nazarick_exterior"],
+	["Gebirge", "world_map"], ["Argland", "world_map"], ["Abelion", "world_map"], ["Grasland", "nazarick_exterior"],
+]
+
+
+func location_image(location: String) -> Texture2D:
+	for pair in LOCATION_IMAGES:
+		if location.findn(pair[0]) >= 0:
+			return find_image("backgrounds", pair[1])
+	return find_image("backgrounds", "world_map") if location != "" else null
 
 
 func char_data(cid: String) -> Dictionary:

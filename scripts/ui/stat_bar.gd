@@ -3,6 +3,7 @@ extends HBoxContainer
 ## Beschriftete, animierte Statusleiste (Icon · Name · Balken · Wert).
 
 var icon_label := Label.new()
+var icon_rect := TextureRect.new()
 var name_label := Label.new()
 var bar := ProgressBar.new()
 var value_label := Label.new()
@@ -16,6 +17,10 @@ func _init(label_text: String = "", color: Color = Palette.VIOLET_GLOW, icon: St
 	icon_label.custom_minimum_size.x = 18 if icon != "" else 0
 	icon_label.add_theme_color_override("font_color", color)
 	icon_label.visible = icon != ""
+	icon_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_rect.custom_minimum_size = Vector2(26, 26)
+	icon_rect.visible = false
 	name_label.text = label_text
 	name_label.custom_minimum_size.x = name_width
 	name_label.add_theme_font_size_override("font_size", 16)
@@ -27,10 +32,20 @@ func _init(label_text: String = "", color: Color = Palette.VIOLET_GLOW, icon: St
 	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	value_label.add_theme_font_size_override("font_size", 16)
 	set_color(color)
+	add_child(icon_rect)
 	add_child(icon_label)
 	add_child(name_label)
 	add_child(bar)
 	add_child(value_label)
+
+
+## Ersetzt das Zeichen-Icon durch eine Grafik.
+func set_icon_texture(tex: Texture2D) -> void:
+	if tex == null:
+		return
+	icon_rect.texture = tex
+	icon_rect.visible = true
+	icon_label.visible = false
 
 
 func set_color(color: Color) -> void:

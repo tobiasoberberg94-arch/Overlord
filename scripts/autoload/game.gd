@@ -373,7 +373,7 @@ func _enter_chapter(number: int) -> void:
 		"title": "Kapitel %s · %s" % [ch.numeral, ch.title],
 		"body": fmt(ch.intro),
 		"options": [{"key": "go", "label": "Die Geschicke Nazaricks lenken", "effects": {}, "reaction": "", "variant": "primary"}],
-		"context": {"subtitle": ch.get("subtitle", ""), "chapter": number},
+		"context": {"subtitle": ch.get("subtitle", ""), "chapter": number, "image": ch.get("image", "")},
 	})
 	chapter_changed.emit(number)
 
@@ -439,7 +439,7 @@ func queue_event(ev_id: String) -> void:
 	_push({
 		"uid": next_uid("d"), "kind": ev.get("kind", "event"), "char_id": ev.get("char", ""),
 		"day": state.day, "title": fmt(ev.title), "body": fmt(ev.body), "options": options,
-		"context": {"event_id": ev_id, "subtitle": fmt(ev.get("subtitle", "")), "type": ev.get("type", "")},
+		"context": {"event_id": ev_id, "subtitle": fmt(ev.get("subtitle", "")), "type": ev.get("type", ""), "image": ev.get("image", "")},
 	})
 
 
@@ -789,7 +789,7 @@ func create_proposal(cid: String, mid: String) -> void:
 				"effects": {"chars": {cid: {"favor": -4, "mood": -6}}},
 				"reaction": pick(reactions.get("deny", reactions.rebuke))},
 		],
-		"context": {"mission": mid},
+		"context": {"mission": mid, "location": m.get("location", "")},
 	})
 
 

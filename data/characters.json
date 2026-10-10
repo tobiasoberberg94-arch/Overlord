@@ -1143,5 +1143,54 @@
     "proposals": [
       "p_pandora_momon_double"
     ]
+  },
+  "solution": {
+    "name": "Solution Epsilon",
+    "title": "Pleiade · Schleim",
+    "color": "#f2d36b",
+    "accent": "#7a5c00",
+    "npc": true
+  },
+  "yuri": {
+    "name": "Yuri Alpha",
+    "title": "Pleiade · Anführerin",
+    "color": "#b9a7ff",
+    "accent": "#3d2c7a",
+    "npc": true
+  },
+  "lupusregina": {
+    "name": "Lupusregina Beta",
+    "title": "Pleiade · Werwölfin",
+    "color": "#ff7a4a",
+    "accent": "#7a2a10",
+    "npc": true
+  },
+  "entoma": {
+    "name": "Entoma Vasilissa Zeta",
+    "title": "Pleiade · Arachnoid",
+    "color": "#c58bff",
+    "accent": "#3b1a5c",
+    "npc": true
+  },
+  "cz": {
+    "name": "CZ2128 Delta",
+    "title": "Pleiade · Automaton",
+    "color": "#b8c4d0",
+    "accent": "#3a4652",
+    "npc": true
+  },
+  "victim": {
+    "name": "Victim",
+    "title": "Wächter der 8. Ebene",
+    "color": "#e8e2f0",
+    "accent": "#5b4a6e",
+    "npc": true
+  },
+  "neuronist": {
+    "name": "Neuronist Painkill",
+    "title": "Oberste Folterknechtin",
+    "color": "#c9a0ff",
+    "accent": "#40206a",
+    "npc": true
   }
 }

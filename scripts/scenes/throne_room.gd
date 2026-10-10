@@ -38,7 +38,7 @@ var _busy := false
 func _ready() -> void:
 	if Game.state.is_empty():
 		Game.new_game()
-	add_child(NazarickBackground.new("res://assets/backgrounds/throne_room.png"))
+	add_child(NazarickBackground.new("throne_room", true, 0.62))
 	_build_layout()
 	overlay_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -165,6 +165,7 @@ func _build_left() -> Control:
 	for k in Game.RESOURCE_KEYS:
 		var sb := StatBar.new(Game.RESOURCE_LABELS[k], Palette.RESOURCE_COLORS[k], Palette.RESOURCE_ICONS[k], 118)
 		sb.tooltip_text = _resource_tooltip(k)
+		sb.set_icon_texture(Palette.icon(Palette.RESOURCE_ICON_FILES[k]))
 		resource_bars[k] = sb
 		rv.add_child(sb)
 	rv.add_child(HSeparator.new())
@@ -314,20 +315,22 @@ func _build_bottom_bar() -> Control:
 	ticker.custom_minimum_size.y = 66
 	hb.add_child(ticker)
 	hb.add_child(VSeparator.new())
-	for spec in [["⚔ Aufträge  [A]", "ButtonPrimary", _open_missions],
-			["♛ Untertanen  [U]", "Button", func(): _open_characters("albedo")],
-			["✒ Chronik  [C]", "Button", func(): _open_overlay(ChronicleView.new())]]:
+	for spec in [["Aufträge  [A]", "ButtonPrimary", _open_missions, "icon_mission"],
+			["Untertanen  [U]", "Button", func(): _open_characters("albedo"), "icon_nazarick"],
+			["Chronik  [C]", "Button", func(): _open_overlay(ChronicleView.new()), "icon_floor"]]:
 		var b := Button.new()
 		b.text = spec[0]
+		_set_button_icon(b, spec[3])
 		b.theme_type_variation = spec[1]
 		b.custom_minimum_size = Vector2(0, 54)
 		b.pressed.connect(spec[2])
 		UIFx.add_hover_scale(b, 1.04)
 		hb.add_child(b)
 	hb.add_child(VSeparator.new())
-	for spec in [["☀ 1 Tag", 1], ["☾ 1 Woche", 7], ["✦ 1 Monat", 30]]:
+	for spec in [["1 Tag", 1], ["1 Woche", 7], ["1 Monat", 30]]:
 		var b := Button.new()
 		b.text = spec[0]
+		_set_button_icon(b, "icon_time")
 		b.theme_type_variation = "ButtonWarning"
 		b.custom_minimum_size = Vector2(0, 54)
 		b.tooltip_text = "Zeit vergehen lassen (hält an, sobald Depeschen eintreffen)"
@@ -336,6 +339,13 @@ func _build_bottom_bar() -> Control:
 		time_buttons.append(b)
 		hb.add_child(b)
 	return p
+
+
+func _set_button_icon(b: Button, icon_name: String) -> void:
+	var tex := Palette.icon(icon_name)
+	if tex:
+		b.icon = tex
+		b.add_theme_constant_override("icon_max_width", 30)
 
 
 # =====================================================================

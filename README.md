@@ -11,11 +11,27 @@ Du bist **Momonga / Ainz Ooal Gown**. Vom Thron des Großen Grabes aus erteilst 
 | **Bericht im Charakterstil** | **Charakteransicht & Audienz** |
 | ![Bericht](docs/screenshots/07_report.png) | ![Albedo](docs/screenshots/05_character_albedo.png) |
 
-> Alle Portraits und Hintergründe sind **prozedural gezeichnete Platzhalter**. Sie werden automatisch durch echte Artworks ersetzt, sobald du Bilddateien ablegst (siehe unten).
+Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehlt ein Bild, zeichnet das Spiel automatisch einen stilisierten Platzhalter.
 
 ---
 
-## Starten
+## Installieren (Windows)
+
+1. `OverlordNazarick-Setup-1.0.0.exe` ausführen (liegt nach dem Build unter `build/`).
+2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
+3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
+
+Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
+
+```bash
+GODOT=/pfad/zu/godot ./tools/build_windows.sh
+# → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
+# → build/OverlordNazarick-Setup-1.0.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+```
+
+---
+
+## Starten aus dem Quellcode
 
 1. **Godot 4.3** oder neuer installieren (Standard-Version, kein .NET nötig): <https://godotengine.org/download>
 2. Godot öffnen → **Importieren** → `project.godot` in diesem Ordner wählen → **Importieren & Bearbeiten**.
@@ -103,16 +119,20 @@ tools/                     Theme-Builder, Simulations- und UI-Tests
 
 ---
 
-## Echte Art-Assets einsetzen
+## Art-Assets
 
-Einfach Dateien ablegen – kein Code nötig:
+Enthalten: 10 Charakterportraits (+ verliebte Varianten von Albedo und Shalltear, die bei hoher Gunst oder Lob erscheinen), 7 NPC-Portraits (Pleiaden, Victim, Neuronist), 9 Hintergründe (Thronsaal, Nazarick, Carne, Re-Estize, Baharuth, Heiliges Königreich, Wald, Schlachtfeld, Weltkarte), Ornamentrahmen und Icons. Die ursprünglich eingebrannten Schachbrett-„Transparenzen“ wurden freigestellt (WebP mit Alphakanal).
+
+Eigene Bilder ersetzen oder ergänzen – kein Code nötig:
 
 | Datei | Wirkung |
 |---|---|
-| `assets/characters/<id>.png` | Portrait des Charakters (`albedo`, `shalltear`, `demiurge`, `cocytus`, `aura`, `mare`, `sebas`, `narberal`, `pandora`, `ainz`). Hochformat ca. 3:4 empfohlen; wird formatfüllend, oben ausgerichtet beschnitten. `.webp`/`.jpg` gehen auch. |
-| `assets/backgrounds/throne_room.png` | Hintergrund des Thronsaals (ersetzt den Shader) |
-| `assets/backgrounds/title.png` | Hintergrund des Titelbildschirms |
-| `assets/backgrounds/throne.png` | Bild des Throns mit Ainz in der Mitte des Thronsaals |
+| `assets/characters/<id>.webp` (.png/.jpg) | Portrait (`albedo`, `shalltear`, `demiurge`, …, `ainz`). Hochformat; wird oben ausgerichtet beschnitten. `<id>_love.webp` = verliebte Variante. |
+| `assets/backgrounds/throne_room.jpg` | Thronsaal (Hintergrund + Thronansicht) |
+| `assets/backgrounds/title.jpg` | Titelbildschirm (sonst `nazarick_exterior`) |
+| `assets/backgrounds/<ort>.jpg` | Ortsbilder in Berichten – Zuordnung per Stichwort in `Content.LOCATION_IMAGES` oder per `"image"` im Ereignis |
+| `assets/ui/frames/frame_gold.webp`, `frame_skull.webp` | Ornamentrahmen der Fenster (9-Slice) |
+| `assets/ui/icons/icon_*.webp` | Icons für Ressourcen und Aktionsknöpfe |
 
 Bitte nur Bilder verwenden, an denen du die Rechte hast.
 

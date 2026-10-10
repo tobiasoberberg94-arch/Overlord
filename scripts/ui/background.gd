@@ -1,33 +1,38 @@
 class_name NazarickBackground
 extends Control
-## Vollbild-Hintergrund: echtes Bild (falls vorhanden) oder animierter Shader,
-## darüber aufsteigende Glut- und Seelenfunken (CPUParticles2D).
+## Vollbild-Hintergrund: echtes Bild aus assets/backgrounds/ (falls vorhanden)
+## oder animierter Shader, darüber violetter Nebel-Shader und aufsteigende
+## Glut- und Seelenfunken (CPUParticles2D).
 
 const SHADER := "res://assets/shaders/nazarick_bg.gdshader"
 
-var image_path := ""
+var image_name := ""
 var architecture := true
+var shade := 0.35
 
 
-func _init(img: String = "", with_architecture: bool = true) -> void:
-	image_path = img
+## img: Name in assets/backgrounds/ ohne Endung (z. B. "throne_room").
+func _init(img: String = "", with_architecture: bool = true, darkness: float = 0.35) -> void:
+	image_name = img
 	architecture = with_architecture
+	shade = darkness
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 
 
 func _ready() -> void:
-	if image_path != "" and ResourceLoader.exists(image_path):
+	var tex: Texture2D = Content.find_image("backgrounds", image_name) if image_name != "" else null
+	if tex:
 		var tr := TextureRect.new()
-		tr.texture = load(image_path)
+		tr.texture = tex
 		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 		tr.set_anchors_preset(Control.PRESET_FULL_RECT)
 		add_child(tr)
-		var shade := ColorRect.new()
-		shade.color = Color(0.02, 0.0, 0.04, 0.35)
-		shade.set_anchors_preset(Control.PRESET_FULL_RECT)
-		add_child(shade)
+		var dark := ColorRect.new()
+		dark.color = Color(0.02, 0.0, 0.04, shade)
+		dark.set_anchors_preset(Control.PRESET_FULL_RECT)
+		add_child(dark)
 	else:
 		var rect := ColorRect.new()
 		rect.set_anchors_preset(Control.PRESET_FULL_RECT)

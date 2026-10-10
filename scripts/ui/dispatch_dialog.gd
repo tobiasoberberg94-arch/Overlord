@@ -17,6 +17,7 @@ var dispatch: Dictionary
 var text := RichTextLabel.new()
 var options_box := VBoxContainer.new()
 var extra_box := VBoxContainer.new()
+var portrait := Portrait.new()
 var _typing: Tween
 
 
@@ -26,8 +27,10 @@ func _init(d: Dictionary) -> void:
 	closable = false
 	var cid: String = d.get("char_id", "")
 	var accent := Content.char_color(cid) if cid != "" else Palette.GOLD
-	var ornate := NazarickTheme.box(Color(Palette.ABYSS, 0.97), accent.lerp(Palette.GOLD, 0.4), 2, 16, Color(accent, 0.35), 32, 22)
-	panel.add_theme_stylebox_override("panel", ornate)
+	if Palette.frame("frame_skull"):
+		frame_texture = Palette.frame("frame_skull")
+	else:
+		panel.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.ABYSS, 0.97), accent.lerp(Palette.GOLD, 0.4), 2, 16, Color(accent, 0.35), 32, 22))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 22)
@@ -45,8 +48,10 @@ func _init(d: Dictionary) -> void:
 	kind.add_theme_color_override("font_color", accent)
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left.add_child(kind)
-	var portrait := Portrait.new()
 	portrait.char_id = cid if cid != "" else "ainz"
+	# Verliebte Variante, wenn Albedo/Shalltear triumphieren oder sehr in Gunst stehen
+	if cid in ["albedo", "shalltear"] and (d.get("context", {}).get("tier", "") == "triumph" or Game.cs(cid).favor >= 80):
+		portrait.variant = "love"
 	portrait.custom_minimum_size = Vector2(300, 420)
 	left.add_child(portrait)
 	var nm := Label.new()
@@ -77,6 +82,7 @@ func _init(d: Dictionary) -> void:
 	row.add_child(right)
 	var ctx: Dictionary = d.get("context", {})
 	right.add_child(make_header(d.title, ctx.get("subtitle", ctx.get("location", ""))))
+	_add_location_banner(right, ctx)
 	right.add_child(HSeparator.new())
 
 	if d.kind == "report":
@@ -122,6 +128,29 @@ func _init(d: Dictionary) -> void:
 	_build_options()
 
 
+## Ortsbild über dem Text (aus assets/backgrounds/, per Stichwort oder explizit).
+func _add_location_banner(parent: Control, ctx: Dictionary) -> void:
+	var tex: Texture2D = null
+	if str(ctx.get("image", "")) != "":
+		tex = Content.find_image("backgrounds", ctx.image)
+	if tex == null:
+		tex = Content.location_image(str(ctx.get("location", ctx.get("subtitle", ""))))
+	if tex == null:
+		return
+	var frame := PanelContainer.new()
+	frame.add_theme_stylebox_override("panel", NazarickTheme.box(Color.BLACK, Color(Palette.GOLD, 0.7), 1, 8, Color(0, 0, 0, 0.6), 6, 0))
+	frame.custom_minimum_size.y = 130
+	frame.clip_contents = true
+	var tr := TextureRect.new()
+	tr.texture = tex
+	tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	tr.modulate = Color(0.85, 0.8, 0.9)
+	frame.add_child(tr)
+	parent.add_child(frame)
+	UIFx.fade_in(tr, 0.8, 0.2)
+
+
 func _ready() -> void:
 	super._ready()
 	_typing = UIFx.typewriter(text, 160.0)
@@ -157,6 +186,9 @@ func _build_options() -> void:
 
 func _choose(key: String) -> void:
 	var result := Game.respond(dispatch.uid, key)
+	if key in ["praise", "reward", "approve"] and dispatch.get("char_id", "") in ["albedo", "shalltear"]:
+		portrait.variant = "love"
+		UIFx.flash(portrait, Color(1.5, 1.2, 1.3))
 	for c in options_box.get_children():
 		c.queue_free()
 	for c in extra_box.get_children():

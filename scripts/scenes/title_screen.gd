@@ -8,7 +8,7 @@ var _menu := VBoxContainer.new()
 
 
 func _ready() -> void:
-	add_child(NazarickBackground.new("res://assets/backgrounds/title.png", false))
+	add_child(NazarickBackground.new("title" if Content.find_image("backgrounds", "title") else "nazarick_exterior", false, 0.3))
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)

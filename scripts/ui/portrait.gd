@@ -17,6 +17,18 @@ const EXTENSIONS := ["png", "webp", "jpg", "jpeg"]
 		queue_redraw()
 @export var framed: bool = true
 @export var show_symbol: bool = true
+## Emotionale Variante, z. B. "love" → sucht zuerst <id>_love.webp
+@export var variant: String = "":
+	set(v):
+		variant = v
+		_texture = null
+		if v != "":
+			_texture = find_texture(char_id + "_" + v)
+		if _texture == null:
+			_texture = find_texture(char_id)
+		queue_redraw()
+## Vertikaler Bildausschnitt bei Hochformat-Bildern: 0 = oben (Gesicht), 1 = unten
+@export var focus_y: float = 0.08
 @export var dimmed: bool = false:
 	set(v):
 		dimmed = v
@@ -62,6 +74,7 @@ func _draw_texture_cover(r: Rect2) -> void:
 		src.position.x = (ts.x - src.size.x) / 2.0
 	else:
 		src.size.y = ts.x / target_aspect
+		src.position.y = (ts.y - src.size.y) * focus_y
 	draw_texture_rect_region(_texture, r, src)
 	# leichter Verlauf nach unten für lesbare Namensleisten
 	draw_polygon([Vector2(0, r.size.y * 0.6), Vector2(r.size.x, r.size.y * 0.6), r.size, Vector2(0, r.size.y)],

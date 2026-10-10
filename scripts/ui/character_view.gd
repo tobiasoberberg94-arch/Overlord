@@ -131,6 +131,7 @@ func _show(cid: String) -> void:
 	var c := Game.cs(cid)
 	var col := Content.char_color(cid)
 	portrait.char_id = cid
+	portrait.variant = "love" if (cd.has("emotion") and c.favor >= 75) else ""
 	name_label.text = cd.name
 	name_label.add_theme_color_override("font_color", col.lerp(Palette.GOLD_BRIGHT, 0.35))
 	title_label.text = "%s\n%s · %s" % [cd.title, cd.get("race", ""), cd.get("floor", "")]
@@ -210,6 +211,9 @@ func _audience(kind: String) -> void:
 	reaction.text = res.get("text", "")
 	if res.get("ok", false):
 		UIFx.typewriter(reaction, 150.0)
+		if kind != "rebuke" and Content.char_data(cid).has("emotion"):
+			portrait.variant = "love"
+			UIFx.flash(portrait, Color(1.5, 1.2, 1.3))
 		var chips := effect_chips(res.get("summary", []))
 		reaction.get_parent().add_child(chips)
 		get_tree().create_timer(6.0).timeout.connect(func(): if is_instance_valid(chips): chips.queue_free())
