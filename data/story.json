@@ -1,0 +1,110 @@
+{
+  "directives": {
+    "freie_hand": {
+      "name": "Freie Hand", "icon": "✧",
+      "desc": "Der Untertan handelt nach eigenem Ermessen – ganz im Stil seiner Persönlichkeit. Hohe Schwankung, eigener Stil, häufige eigene Vorschläge.",
+      "days": 1.0, "score": 2, "variance": 24, "res": {}
+    },
+    "diskret": {
+      "name": "Im Verborgenen", "icon": "◐",
+      "desc": "Keine Zeugen, keine Spuren. Senkt die Aufmerksamkeit der Welt, dauert aber länger. Belohnt Diskretion.",
+      "days": 1.25, "score": 0, "variance": 14, "stat_bonus": {"diskretion": 2},
+      "res": {"attention": -4, "info": 2}
+    },
+    "gnadenlos": {
+      "name": "Gnadenlos", "icon": "☠",
+      "desc": "Furcht ist die verlässlichste Währung. Mehr Macht, schneller – doch der Ruf leidet und die Welt horcht auf.",
+      "days": 0.9, "score": 2, "variance": 16, "stat_bonus": {"kampf": 1, "grausamkeit": 1},
+      "res": {"power": 4, "reputation": -4, "attention": 5}
+    },
+    "diplomatisch": {
+      "name": "Diplomatisch", "icon": "⚖",
+      "desc": "Worte statt Klingen. Steigert den Ruf und das Wissen über die Neue Welt. Belohnt Diplomatie.",
+      "days": 1.15, "score": 0, "variance": 14, "stat_bonus": {"diplomatie": 2},
+      "res": {"reputation": 4, "info": 2, "power": -1}
+    },
+    "schnell": {
+      "name": "Mit höchster Eile", "icon": "⚡",
+      "desc": "Der Auftrag wird in knapp der Hälfte der Zeit erledigt – auf Kosten der Gründlichkeit.",
+      "days": 0.6, "score": -9, "variance": 18, "res": {"attention": 2}
+    }
+  },
+
+  "chapters": [
+    {
+      "number": 1, "numeral": "I", "title": "Die Ankunft",
+      "subtitle": "Das Ende von Yggdrasil – der Anfang einer Legende",
+      "intro": "Die Server von Yggdrasil sollten um Mitternacht abgeschaltet werden. Du, Momonga, Gildenmeister von Ainz Ooal Gown, saßt allein auf dem Thron, als die Uhr auf 00:00 sprang.\n\nDoch nichts endete.\n\nDie Fackeln flackern. Die Luft riecht nach Weihrauch und kaltem Stein. Und vor den Stufen deines Throns kniet Albedo – lebendig, atmend, mit Augen voll glühender Hingabe. Eine Stunde zuvor hattest du aus einer Laune heraus ihre Einstellungen geändert: »…ist in Momonga verliebt.«\n\nSebas meldet: Draußen liegt kein Sumpf mehr. Nur Grasland unter einem Himmel voller Sterne, wie du ihn in deiner alten Welt nie gesehen hast.\n\n[b][color=#d4af37]Das Große Grab von Nazarick ist in einer neuen Welt erwacht. Und du bist ihr Overlord.[/color][/b]",
+      "objectives": [
+        {"text": "Die Treue der Wächter prüfen", "flag": "loyalty_sworn"},
+        {"text": "Die Umgebung von Nazarick erkunden", "flag": "scouted"},
+        {"text": "Das Große Grab vor neugierigen Blicken verbergen", "flag": "hidden"}
+      ]
+    },
+    {
+      "number": 2, "numeral": "II", "title": "Das Dorf Carne",
+      "subtitle": "Erste Begegnungen mit den Menschen der Neuen Welt",
+      "intro": "Durch den Spiegel der Fernsicht erblickst du ein kleines Dorf am Rande des Großen Waldes von Tob. Bauern. Felder. Rauch aus Kaminen.\n\nZum ersten Mal begreifst du die Größe dieser Welt – und wie wenig du über sie weißt. Wer herrscht hier? Wie stark sind die Krieger dieses Landes? Gibt es Spieler wie dich?\n\nAlbedo steht dicht neben dir. Sehr dicht. »Wollt Ihr, dass ich das Dorf für Euch… erobere, {lord}?«",
+      "objectives": [
+        {"text": "Über das Schicksal von Carne entscheiden", "flag": "carne_resolved"},
+        {"text": "Einen Namen für die Neue Welt wählen", "flag": "name_chosen"},
+        {"text": "Informationen über das Königreich Re-Estize sammeln", "flag": "kingdom_intel"}
+      ]
+    },
+    {
+      "number": 3, "numeral": "III", "title": "Der Dunkle Held",
+      "subtitle": "Momon, der schwarze Krieger, betritt die Bühne",
+      "intro": "Wissen ist Macht – und das beste Wissen erlangt man von innen. Unter dem Namen ›Momon‹, in schwarzer Vollrüstung und mit zwei gewaltigen Großschwertern, wirst du als Abenteurer in der Festungsstadt E-Rantel auftreten. Narberal Gamma begleitet dich als Zauberin ›Nabe‹.\n\nGleichzeitig reist Sebas, getarnt als Butler einer reichen Händlerstochter, in die Königshauptstadt.\n\nAlbedo hat zu diesem Plan nur eine Frage: »Warum darf Narberal mit Euch reisen und nicht ich?«",
+      "objectives": [
+        {"text": "Momon zum angesehenen Abenteurer machen", "flag": "momon_rank"},
+        {"text": "Sebas' Tarnung in der Königshauptstadt etablieren", "flag": "sebas_capital"},
+        {"text": "E-Rantel aus der Nacht der Untoten retten", "flag": "erantel_saved"}
+      ]
+    },
+    {
+      "number": 4, "numeral": "IV", "title": "Blutiger Wahnsinn",
+      "subtitle": "Wenn die Treueste zur Feindin wird",
+      "intro": "Die Welt besitzt Kampfkünste – Techniken, die es in Yggdrasil nie gab. Nazarick muss sie verstehen. Shalltear Bloodfallen soll Anwender dieser Künste aufspüren und gefangen nehmen, gemeinsam mit Sebas' Informationen über Verbrecher, die niemand vermissen würde.\n\nShalltear strahlt: »Ein Auftrag nur für mich, ~arinsu! Albedo wird vor Neid platzen!«\n\nAlbedo lächelt nur. Ein dünnes, sehr ruhiges Lächeln.",
+      "objectives": [
+        {"text": "Shalltear auf die Jagd schicken", "flag": "hunt_done"},
+        {"text": "Shalltear Bloodfallen zurückholen", "flag": "shalltear_restored"},
+        {"text": "Über Shalltears Schuld richten", "flag": "shalltear_forgiven"}
+      ]
+    },
+    {
+      "number": 5, "numeral": "V", "title": "Frost über dem Sumpf",
+      "subtitle": "Die Prüfung des Cocytus",
+      "intro": "Nördlich des Großen Waldes leben fünf Stämme der Echsenmenschen. Ein idealer Prüfstein: Cocytus soll mit einer Armee niederer Untoter einen Feldzug führen – und lernen, was es heißt, ein Heer zu befehligen statt nur ein Schwert.\n\nDemiurge rückt seine Brille zurecht. »Eine bewusst unterlegene Armee? Ich verstehe. Ihr wollt Cocytus' Geist schärfen, nicht seine Klinge. Brillant.«\n\nDu wolltest eigentlich nur Untote sparen.",
+      "objectives": [
+        {"text": "Cocytus' Feldzug gegen die Echsenmenschen", "flag": "lizard_war"},
+        {"text": "Über das Schicksal der Echsenmenschen entscheiden", "flag": "lizard_resolved"},
+        {"text": "Die Sümpfe unter Nazaricks Banner bringen", "flag": "lizard_conquered"}
+      ]
+    },
+    {
+      "number": 6, "numeral": "VI", "title": "Gehenna",
+      "subtitle": "Die Hauptstadt brennt",
+      "intro": "In der Königshauptstadt herrscht eine Unterweltorganisation: die Acht Finger. Drogen, Sklaverei, Mord. Sebas hat dort Dinge gesehen, die einem Gentleman nicht gleichgültig sein können.\n\nDemiurge hingegen sieht eine Bühne. »Eine Stadt voller Ressourcen, ein Königreich voller Narren – und ein Held namens Momon, der es retten wird. Erlaubt Ihr mir, das Stück zu inszenieren, {lord}?«",
+      "objectives": [
+        {"text": "Sebas' Geheimnis aufdecken", "flag": "sebas_resolved"},
+        {"text": "Operation Gehenna vollenden", "flag": "gehenna_done"}
+      ]
+    },
+    {
+      "number": 7, "numeral": "VII", "title": "Das Zauberkönigreich",
+      "subtitle": "Ein Untoter auf dem Thron der Lebenden",
+      "intro": "Das Baharuth-Kaiserreich hat Arbeiter nach Nazarick geschickt – Grabräuber, die nie zurückkehrten. Kaiser Jircniv Rune Farlord El-Nix hat einen Fehler gemacht, und er weiß es.\n\nDie Zeit des Versteckens ist vorbei. Nazarick wird sich der Welt offenbaren: als Staat. Als Königreich. Als Zauberkönigreich von Ainz Ooal Gown.\n\nAlbedo hat bereits drei Entwürfe für die Krönungszeremonie vorbereitet. In allen dreien trägt sie Weiß.",
+      "objectives": [
+        {"text": "Einen Pakt mit dem Baharuth-Kaiserreich schließen", "flag": "empire_pact"},
+        {"text": "Die Schlacht auf der Katze-Ebene", "flag": "katze_done"},
+        {"text": "Die Krönung des Zauberkönigs", "flag": "crowned"}
+      ]
+    },
+    {
+      "number": 8, "numeral": "VIII", "title": "Ewige Herrschaft",
+      "subtitle": "Die Welt gehört Nazarick",
+      "intro": "Du sitzt auf dem Thron eines Reiches, das es vor einem Jahr noch nicht gab. Menschen, Echsenmenschen, Goblins und Untote leben unter deinem Banner.\n\nDoch die Welt ist groß. Die Slane-Theokratie rüstet. Ein Platin-Drache beobachtet dich aus der Ferne. Zwergenreiche, Elfenkönige, uralte Drachenlords …\n\nUnd zwei Frauen streiten noch immer darüber, wer an deiner Seite sitzen darf.\n\n[b][color=#d4af37]Die Geschichte des Overlords ist nicht zu Ende. Sie hat gerade erst begonnen.[/color][/b]",
+      "objectives": []
+    }
+  ]
+}

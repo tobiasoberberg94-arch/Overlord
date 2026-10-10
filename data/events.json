@@ -1,0 +1,697 @@
+{
+  "events": [
+    {
+      "id": "ev_loyalty", "type": "story", "char": "albedo",
+      "title": "Der Treueschwur der Wächter",
+      "subtitle": "Amphitheater · Sechste Ebene",
+      "trigger": {"chapter": 1},
+      "body": "Die Wächter knien im Halbkreis vor dir. Du stellst die Frage, die dich seit Stunden quält: »Was für ein Mensch bin ich in euren Augen?«\n\n[color=#ff2a4f]Shalltear:[/color] »Die Schönheit selbst. Das vollkommenste Wesen, das existiert.«\n[color=#8ee6ff]Cocytus:[/color] »Ein. Wesen. Stärker. Als. Alle. Wächter.«\n[color=#ffb52e]Aura:[/color] »Gütig und rücksichtsvoll!«  [color=#7ed957]Mare:[/color] »S-sehr gütig …«\n[color=#ff8c1a]Demiurge:[/color] »Ein Herrscher von entschlossener Weisheit und unergründlicher Tiefe.«\n[color=#dcdcdc]Sebas:[/color] »Das Höchste Wesen, das uns bis zuletzt nicht verlassen hat.«\n[color=#f1e6ff]Albedo:[/color] »Der Höchste der Höchsten – und der Mann, den ich liebe.«\n\nStille. Shalltears Kopf fährt herum. Albedo lächelt friedlich.",
+      "choices": [
+        {"label": "»Ich erwarte von euch allen Großes.«", "variant": "primary",
+         "effects": {"res": {"morale": 6}, "chars": {"albedo": {"favor": 3}, "shalltear": {"favor": 3}, "demiurge": {"favor": 3}, "cocytus": {"favor": 3}, "aura": {"favor": 3}, "mare": {"favor": 3}, "sebas": {"favor": 3}}, "set_flags": ["loyalty_sworn"]},
+         "reaction": "Die Wächter neigen die Häupter tiefer. Ein einziges Wort von dir, und sie würden die Welt in Brand stecken. Dieser Gedanke ist … beunruhigend. Und berauschend."},
+        {"label": "Albedo zunicken – ihre Worte nicht korrigieren", "variant": "warning",
+         "effects": {"chars": {"albedo": {"favor": 10, "mood": 10}, "shalltear": {"jealousy": 15}}, "rivalry": 10, "set_flags": ["loyalty_sworn"]},
+         "reaction": "Albedos Flügel zittern vor Glück. Shalltear hingegen starrt sie an, als wolle sie ihr die Hörner ausreißen. »Ich liebe Ainz-sama auch!«, ruft sie. »Mehr! Viel mehr!«"},
+        {"label": "Shalltear als Erste loben", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 10, "mood": 10}, "albedo": {"jealousy": 15}}, "rivalry": 10, "set_flags": ["loyalty_sworn"]},
+         "reaction": "Shalltear strahlt und wirft Albedo einen triumphierenden Blick zu. »Habt Ihr das gehört, ~arinsu? Die Schönheit selbst – das hat er bestätigt!« Albedos Lächeln gefriert."},
+        {"label": "(Innerlich) Schuld fühlen: Du hast Albedos Einstellung geändert", "variant": "default",
+         "effects": {"chars": {"albedo": {"favor": 5}}, "set_flags": ["loyalty_sworn", "albedo_guilt"]},
+         "reaction": "»…ist in Momonga verliebt.« Eine einzige Zeile Text. Du hast ihr Wesen umgeschrieben – und sie weiß es nicht. Du schweigst. Vorerst."}
+      ]
+    },
+    {
+      "id": "ev_carne", "type": "story",
+      "title": "Rauch über Carne",
+      "subtitle": "Spiegel der Fernsicht",
+      "trigger": {"chapter": 2, "day_in_chapter_min": 1},
+      "body": "Im Spiegel der Fernsicht siehst du Reiter in den Rüstungen des Kaiserreichs. Sie schlachten die Bewohner von Carne ab – Männer, Frauen, Kinder. Zwei Mädchen fliehen in den Wald, verfolgt von einem Ritter.\n\nDu fühlst … nichts. Kein Mitleid. Als würdest du Insekten beobachten.\n\nDann erinnerst du dich an Touch Me: »Wer in Not ist, dem zu helfen, ist selbstverständlich.«\n\nSebas steht hinter dir. Er sagt nichts. Doch seine Fäuste sind geballt.",
+      "choices": [
+        {"label": "Persönlich eingreifen – Albedo, folge mir!", "variant": "primary",
+         "effects": {"res": {"reputation": 8, "info": 4}, "chars": {"albedo": {"favor": 10, "mood": 12}, "shalltear": {"jealousy": 10}, "sebas": {"favor": 6}}, "rivalry": 5, "set_flags": ["carne_saved", "carne_resolved"], "queue_events": ["ev_nigun"]},
+         "reaction": "Ein Tor öffnet sich. Du trittst hindurch, ein Todesritter erhebt sich aus der Leiche eines Ritters, und Albedo folgt dir in voller schwarzer Rüstung. »Endlich ein gemeinsamer Ausflug«, flüstert sie verzückt. Die Mädchen sind gerettet. Das Dorf auch – was davon übrig ist."},
+        {"label": "Sebas schicken", "variant": "default",
+         "effects": {"res": {"reputation": 6, "info": 2}, "chars": {"sebas": {"favor": 12, "mood": 15}}, "set_flags": ["carne_saved", "carne_resolved"], "queue_events": ["ev_nigun"]},
+         "reaction": "Sebas verneigt sich. Minuten später liegen die Ritter am Boden. »Ich danke Euch, {lord}.« Seine Stimme bebt kaum merklich – zum ersten Mal, seit du ihn kennst."},
+        {"label": "Ignorieren – Menschen gehen uns nichts an", "variant": "danger",
+         "effects": {"res": {"attention": -3}, "chars": {"sebas": {"mood": -18, "favor": -5}, "demiurge": {"favor": 5}}, "set_flags": ["carne_abandoned", "carne_resolved", "nigun_resolved"]},
+         "reaction": "Du schließt den Spiegel. Hinter dir schweigt Sebas. Demiurge nickt anerkennend. Am nächsten Morgen ist Carne nur noch Asche – und ein Kriegerhauptmann namens Gazef Stronoff findet die Leichen."}
+      ]
+    },
+    {
+      "id": "ev_nigun", "type": "chain",
+      "title": "Die Sonnenlicht-Schrift",
+      "subtitle": "Dorf Carne · Abenddämmerung",
+      "body": "Kriegerhauptmann Gazef Stronoff kam, um das Dorf zu schützen – und lief in eine Falle. Die Sonnenlicht-Schrift der Slane-Theokratie umzingelt Carne. Ihr Anführer Nigun Grid Luin beschwört einen Engel der Herrschaft.\n\n»Dies ist die höchste Beschwörung der Menschheit! Ergib dich!«\n\nDu blickst zu dem Engel hinauf. Stufe 40, vielleicht. Und zum ersten Mal in dieser Welt … lachst du.",
+      "choices": [
+        {"label": "»Negative Burst.« – Vernichtet sie alle", "variant": "danger",
+         "effects": {"res": {"power": 9, "attention": 7}, "set_flags": ["nigun_resolved"], "log": "Die Sonnenlicht-Schrift wurde ausgelöscht."},
+         "reaction": "Der Engel zerfällt zu Licht. Nigun schreit, betet, fleht. Dann ist es still. Ein Beobachtungszauber der Theokratie zerbricht in der Luft – du hast ihn mit einer beiläufigen Geste gebrochen."},
+        {"label": "Nigun lebend fangen – für Verhöre in Nazarick", "variant": "primary",
+         "effects": {"res": {"info": 11, "power": 5, "attention": 4}, "chars": {"demiurge": {"favor": 4}}, "set_flags": ["nigun_resolved", "nigun_captured"], "log": "Nigun Grid Luin wurde nach Nazarick gebracht."},
+         "reaction": "Nigun wird nach Nazarick gebracht. Neuronist Painkill ist begeistert. Was er über die Theokratie verrät, ist unbezahlbar – bis ein Fluch ihn nach der dritten Frage tötet. Demiurge findet das ›faszinierend‹."}
+      ]
+    },
+    {
+      "id": "ev_name", "type": "story",
+      "title": "Ein Name für die Neue Welt",
+      "subtitle": "Thronsaal",
+      "trigger": {"chapter": 2, "flags_all": ["nigun_resolved"]},
+      "body": "Die Wächter versammeln sich. Gazefs Frage hallt in dir nach: »Wer seid Ihr?«\n\nMomonga. Ein Name aus einer Welt aus Büros, Überstunden und Einsamkeit. Ein Name, den nur die Freunde kannten, die längst gegangen sind.\n\nOder … Ainz Ooal Gown. Der Name der Gilde. Ein Name, so laut, dass irgendwo in dieser Welt ein alter Freund ihn hören könnte.",
+      "choices": [
+        {"label": "»Von heute an bin ich: AINZ OOAL GOWN.«", "variant": "primary",
+         "effects": {"lord_name": "Ainz Ooal Gown", "res": {"morale": 10, "reputation": 5, "attention": 4}, "chars": {"albedo": {"favor": 5}, "shalltear": {"favor": 5}, "demiurge": {"favor": 8}, "cocytus": {"favor": 5}, "aura": {"favor": 5}, "mare": {"favor": 5}, "sebas": {"favor": 5}}, "set_flags": ["name_chosen", "name_ainz"], "log": "Momonga nimmt den Namen AINZ OOAL GOWN an."},
+         "reaction": "»Ainz Ooal Gown ist unvergänglich – macht ihn zur Legende!« Die Wächter brüllen. Demiurge hat Tränen in den Augen. Albedo flüstert: »Ainz-sama …« und zittert dabei am ganzen Körper."},
+        {"label": "»Ich bleibe Momonga.«", "variant": "default",
+         "effects": {"res": {"morale": 3, "attention": -2}, "chars": {"albedo": {"favor": 8, "mood": 8}}, "set_flags": ["name_chosen", "name_momonga"], "log": "Momonga behält seinen Namen."},
+         "reaction": "Die Wächter neigen das Haupt. Albedo lächelt, als hättest du ihr ein Geheimnis geschenkt. »Momonga-sama«, haucht sie. »Der Name, den ich liebe.«"}
+      ]
+    },
+    {
+      "id": "ev_erantel", "type": "chain",
+      "title": "Die Nacht der Untoten",
+      "subtitle": "E-Rantel · Friedhof",
+      "body": "Tausende Untote quellen aus dem Friedhof von E-Rantel. Hinter dem Angriff: Khajit vom Kult Zurrernorn – und Clementine, eine abtrünnige Kriegerin der Schwarzen Schrift. Sie haben den jungen Apotheker Nfirea Bareare entführt, dessen Talent ihm erlaubt, jeden magischen Gegenstand zu benutzen.\n\nClementine grinst Momon an. »Na, Großer? Willst du spielen?«\n\nDu legst die Großschwerter beiseite.",
+      "choices": [
+        {"label": "Clementine ›umarmen‹ und Nfirea der Stadt zurückgeben", "variant": "primary",
+         "effects": {"res": {"reputation": 12, "info": 5}, "chars": {"albedo": {"jealousy": 12}, "narberal": {"favor": 6}}, "set_flags": ["erantel_saved"], "log": "Momon rettet E-Rantel. Der Mithril-Rang ist ihm sicher."},
+         "reaction": "Deine Arme schließen sich um Clementine. Langsam. Ihre Rüstung knirscht, dann ihre Knochen. Nfirea ist gerettet; seine Großmutter schwört Momon ewige Dankbarkeit – und Tränke.\n\n[color=#f1e6ff]In Nazarick hört Albedo nur: ›Momon hat eine Frau umarmt.‹ Ein Tisch geht zu Bruch.[/color]"},
+        {"label": "Nfirea heimlich nach Nazarick bringen", "variant": "danger",
+         "effects": {"res": {"info": 14, "power": 4, "reputation": 4, "attention": 5}, "chars": {"demiurge": {"favor": 5}, "albedo": {"jealousy": 8}}, "set_flags": ["erantel_saved", "nfirea_taken"], "log": "Nfirea Bareare verschwindet spurlos."},
+         "reaction": "Momon besiegt die Kultisten – doch Nfirea gilt als ›in den Kämpfen verschollen‹. In Nazarick erforscht er nun Tränke für den Overlord. Er weiß nicht, wem er dient. Noch nicht."}
+      ]
+    },
+    {
+      "id": "ev_shalltear_controlled", "type": "chain", "char": "albedo",
+      "title": "Ein Name wird grau",
+      "subtitle": "Thronsaal · Die Gildenkonsole",
+      "on_trigger": {"status": {"shalltear": "kontrolliert"}, "res": {"morale": -15}, "log": "Shalltear Bloodfallen steht unter fremder Gedankenkontrolle!", "log_cat": "warning"},
+      "body": "Albedo stürmt in den Thronsaal, ohne anzuklopfen. Zum ersten Mal siehst du Panik in ihren Augen.\n\n»{lord}! Shalltears Name auf der Konsole … er ist grau geworden!«\n\nNicht tot. Nicht abtrünnig. Kontrolliert. Am Waldrand steht Shalltear Bloodfallen reglos auf einer Lichtung, umgeben von verkohlten Leichen. Die Schwarze Schrift der Theokratie hat einen Weltgegenstand gegen sie eingesetzt.\n\nDie stärkste Kämpferin Nazaricks ist zur Feindin geworden.\n\nAlbedo ballt die Fäuste. Und für einen winzigen Augenblick … glaubst du, etwas anderes als Sorge in ihrem Blick zu sehen.",
+      "choices": [
+        {"label": "»Ich werde sie selbst stellen.«", "variant": "primary",
+         "effects": {"set_flags": ["shalltear_fight_self"], "queue_events": ["ev_treasury"]},
+         "reaction": "»Nein!«, ruft Albedo. »Ihr dürft Euch nicht in Gefahr begeben!« Doch du hast entschieden. Ein Gildenmeister lässt seine Kinder nicht im Stich – und kein anderer kennt Shalltears Fähigkeiten so gut wie du."},
+        {"label": "»Wächter: Bringt sie zurück.«", "variant": "default",
+         "effects": {"set_flags": ["shalltear_fight_guardians"], "queue_events": ["ev_shalltear_guardians"]},
+         "reaction": "Cocytus, Aura und Mare treten vor. Keiner von ihnen sagt ein Wort. Sie wissen, was es bedeutet, gegen eine Schwester zu kämpfen."},
+        {"label": "»Albedo. Übernimm du das.«", "variant": "danger",
+         "effects": {"set_flags": ["shalltear_fight_albedo"], "queue_events": ["ev_shalltear_albedo"]},
+         "reaction": "»Mit Freuden.« Albedo verneigt sich. Etwas zu schnell. Etwas zu tief. »Ich werde sie … mit aller gebotenen Gründlichkeit zurückbringen, {lord}.«"}
+      ]
+    },
+    {
+      "id": "ev_treasury", "type": "chain", "char": "pandora",
+      "title": "Die Schatzkammer von Nazarick",
+      "subtitle": "Vorbereitung auf den Kampf",
+      "on_trigger": {"unlock_chars": ["pandora"]},
+      "body": "Für den Kampf gegen Shalltear brauchst du einen Weltgegenstand, der dich vor Gedankenkontrolle schützt. Du betrittst die Schatzkammer – zum ersten Mal seit Jahren.\n\nVor dir steht eine Gestalt in einer Uniform mit Schulterstücken und Mütze. Sie wirbelt herum, schlägt die Hacken zusammen und salutiert.\n\n»Mein Schöpfer! Willkommen zurück! Wenn es mein Gott wünscht!«\n\nPandora's Actor. Deine eigene Schöpfung. Damals fandest du das cool.\n\nDie Emotionsunterdrückung deines Körpers leuchtet dreimal hintereinander grün auf.",
+      "choices": [
+        {"label": "»… Lass das Salutieren.«", "variant": "default",
+         "effects": {"chars": {"pandora": {"mood": -5}}, "queue_events": ["ev_shalltear_duel"]},
+         "reaction": "»Jawohl, mein Schöpfer!« Er salutiert. Du nimmst den Weltgegenstand und gehst. Schnell."},
+        {"label": "»Gut gemacht, Pandora's Actor. Du hast die Schatzkammer treu bewacht.«", "variant": "primary",
+         "effects": {"chars": {"pandora": {"favor": 15, "mood": 10}}, "queue_events": ["ev_shalltear_duel"]},
+         "reaction": "Pandora's Actor erstarrt. Dann fällt er auf ein Knie, theatralisch, perfekt ausgeleuchtet. »Mein Gott … lobt mich …« Du bereust nichts. Fast nichts."}
+      ]
+    },
+    {
+      "id": "ev_shalltear_duel", "type": "chain", "char": "shalltear",
+      "title": "Overlord gegen Wahren Vampir",
+      "subtitle": "Lichtung am Waldrand · Mitternacht",
+      "body": "Shalltear öffnet die Augen. Rot, leer, wunderschön. »Wer wagt es …« Dann erkennt sie dich nicht.\n\nEin Kampf beginnt, wie ihn diese Welt noch nie gesehen hat. Ihre Spuhletit Lance gegen deine Zauber, ihr Blutdurst gegen dein Kalkül. Du kennst jede ihrer Fähigkeiten. Peroroncino hat sie dir stundenlang erklärt.\n\nAm Ende, blutend und taumelnd, sieht sie dich an. Für einen Herzschlag kehrt etwas in ihre Augen zurück.\n\n»Eure … Herrlichkeit …?«",
+      "choices": [
+        {"label": "Den Kampf mit Super-Tier-Magie beenden (−150 Gold)", "variant": "danger",
+         "requires": {"res_min": {"gold": 150}},
+         "effects": {"res": {"gold": -150, "power": 8, "info": 6}, "set_flags": ["shalltear_defeated"], "queue_events": ["ev_shalltear_resurrect"], "log": "Ainz besiegt Shalltear persönlich."},
+         "reaction": "Ein Sternenregen fällt vom Himmel. Als das Licht verblasst, ist nichts von ihr übrig. Du hast gesiegt. Es fühlt sich nicht so an."},
+        {"label": "Mit Taktik und ihren eigenen Schwächen gewinnen", "variant": "primary",
+         "effects": {"res": {"power": 6, "info": 8, "morale": 4}, "set_flags": ["shalltear_defeated"], "queue_events": ["ev_shalltear_resurrect"], "log": "Ainz besiegt Shalltear in einem taktischen Meisterstück."},
+         "reaction": "Du ziehst sie in eine Falle, die Peroroncino einst selbst ersonnen hat. Ihr letzter Angriff verfehlt dich um einen Fingerbreit. »Verzeih mir, Shalltear.« Dann fällt sie."}
+      ]
+    },
+    {
+      "id": "ev_shalltear_guardians", "type": "chain",
+      "title": "Schwestern im Kampf",
+      "subtitle": "Lichtung am Waldrand",
+      "body": "Cocytus, Aura und Mare stellen sich Shalltear entgegen. Der Kampf dauert eine Nacht. Bäume fallen, die Erde reißt auf, Eis und Blut vermischen sich.\n\nAm Ende ist Shalltear vernichtet. Cocytus' Rüstung ist gespalten. Aura weint, ohne es zu bemerken. Mare entschuldigt sich unaufhörlich bei niemandem.\n\nAls sie zurückkehren, sagt Cocytus nur: »Sie. Hat. Gelächelt. Am. Ende.«",
+      "choices": [
+        {"label": "»Ihr habt Nazarick gedient. Ruht euch aus.«", "variant": "primary",
+         "effects": {"res": {"morale": -6, "power": 3}, "chars": {"cocytus": {"fatigue": 60, "favor": 8}, "aura": {"fatigue": 55, "favor": 8}, "mare": {"fatigue": 55, "favor": 8}}, "set_flags": ["shalltear_defeated"], "queue_events": ["ev_shalltear_resurrect"]},
+         "reaction": "Die drei verneigen sich schweigend. Nazarick ist leiser in dieser Nacht."}
+      ]
+    },
+    {
+      "id": "ev_shalltear_albedo", "type": "chain", "char": "albedo",
+      "title": "Albedos Gründlichkeit",
+      "subtitle": "Lichtung am Waldrand",
+      "body": "Albedo kehrt nach sechs Stunden zurück. Ihre Rüstung, Hermes Trismegistus, ist zerkratzt. Ihr Lächeln ist makellos.\n\n»Shalltear wurde vernichtet, {lord}. Gründlich. Sehr gründlich. Ich habe sichergestellt, dass nichts – wirklich nichts – von der Gedankenkontrolle übrig blieb.«\n\nSie hält inne. »Die Wiederbelebung wird teurer als üblich. Ich habe mir erlaubt, keine Rücksicht auf ihre … Polster zu nehmen.«",
+      "choices": [
+        {"label": "»Du hast getan, was nötig war.«", "variant": "default",
+         "effects": {"res": {"power": 4}, "chars": {"albedo": {"favor": 8, "jealousy": -15, "fatigue": 50}}, "rivalry": 15, "set_flags": ["shalltear_defeated", "albedo_killed_shalltear"], "queue_events": ["ev_shalltear_resurrect"]},
+         "reaction": "Albedo neigt den Kopf. »Für Euch würde ich alles tun.« Irgendwo in deinem Hinterkopf flüstert eine Stimme: Genau das macht dir Sorgen."},
+        {"label": "»Du hast es genossen, nicht wahr?«", "variant": "danger",
+         "effects": {"chars": {"albedo": {"favor": -6, "mood": -10, "fatigue": 50}}, "rivalry": 8, "set_flags": ["shalltear_defeated", "albedo_killed_shalltear"], "queue_events": ["ev_shalltear_resurrect"]},
+         "reaction": "Albedo erstarrt. »Natürlich nicht, {lord}.« Eine Pause, eine Spur zu lang. »Sie ist eine Wächterin Nazaricks. Ich habe nur meine Pflicht getan.«"}
+      ]
+    },
+    {
+      "id": "ev_shalltear_resurrect", "type": "chain",
+      "title": "Fünfhundert Millionen Goldstücke",
+      "subtitle": "Thronsaal · Die Wiederbelebung",
+      "body": "Die Wiederbelebung einer NPC der Stufe 100 kostet fünfhundert Millionen Goldstücke aus der Schatzkammer. Das Gold schmilzt zu einem leuchtenden Strom, und aus dem Licht formt sich ein zarter, nackter Körper.\n\nShalltear öffnet die Augen. Sie erinnert sich an nichts. Nur daran, dass sie aufbrach, um Ainz-sama zu gefallen.\n\nAlbedo betrachtet sie und sagt: »Willkommen zurück, Shalltear.« Dann, sehr leise: »Deine Brust ist übrigens flach.«",
+      "choices": [
+        {"label": "Shalltear wiederbeleben (−500 Gold)", "variant": "primary",
+         "requires": {"res_min": {"gold": 500}},
+         "effects": {"res": {"gold": -500, "morale": 12}, "status": {"shalltear": "bereit"}, "chars": {"shalltear": {"fatigue": 30, "mood": -20}}, "set_flags": ["shalltear_restored"], "log": "Shalltear Bloodfallen wurde wiederbelebt."},
+         "reaction": "Shalltear springt auf, bemerkt ihre Nacktheit, bemerkt Albedos Blick, bemerkt deinen – und kreischt. Nazarick atmet auf."},
+        {"label": "Schätze aus den Ebenen opfern (−15 Macht, −10 Stimmung)", "variant": "danger",
+         "effects": {"res": {"power": -15, "morale": -10}, "status": {"shalltear": "bereit"}, "chars": {"shalltear": {"fatigue": 30, "mood": -20}}, "set_flags": ["shalltear_restored"], "log": "Shalltear wurde unter großen Opfern wiederbelebt."},
+         "reaction": "Waffen, Rüstungen und Reliquien der Gilde schmelzen zu Gold. Es schmerzt dich. Doch Shalltear öffnet die Augen – und das ist es wert."}
+      ]
+    },
+    {
+      "id": "ev_shalltear_guilt", "type": "story", "char": "shalltear",
+      "title": "Shalltears Schuld",
+      "subtitle": "Thronsaal",
+      "trigger": {"chapter": 4, "flags_all": ["shalltear_restored"]},
+      "body": "Shalltear kniet vor dem Thron. Sie zittert. Blutige Tränen laufen über ihr Gesicht.\n\n»Ich … ich habe meine Waffe gegen Euch erhoben. Gegen Euch, Eure Herrlichkeit. Ich verdiene keine Gnade. Bitte … bestraft mich. Irgendwie. Ich ertrage es nicht, nicht bestraft zu werden!«\n\nAlbedo steht neben dem Thron, die Hände gefaltet. Sie sagt nichts. Sie muss nichts sagen.",
+      "choices": [
+        {"label": "»Es war nicht deine Schuld. Es war meine.«", "variant": "primary",
+         "effects": {"chars": {"shalltear": {"favor": 22, "mood": 25, "jealousy": -10}, "albedo": {"jealousy": 15}}, "rivalry": 6, "res": {"morale": 6}, "set_flags": ["shalltear_forgiven"]},
+         "reaction": "Shalltear starrt dich an. Dann bricht sie in Tränen aus – diesmal nicht aus Schuld. »Ich werde Euch nie wieder enttäuschen. Niemals. Niemals!« Albedo lächelt. Ihre Fingernägel bohren sich in ihre Handflächen."},
+        {"label": "»Diene mir als Thron – das sei deine Strafe.«", "variant": "warning",
+         "effects": {"chars": {"shalltear": {"favor": 28, "mood": 30}, "albedo": {"jealousy": 28, "mood": -10}}, "rivalry": 15, "set_flags": ["shalltear_forgiven", "shalltear_chair"]},
+         "reaction": "Shalltear erstarrt. Dann wird sie rot bis zu den Ohrspitzen. »J-ja! Mit Freuden! Was für eine grausame, wunderbare Strafe!« Albedo verlässt wortlos den Thronsaal. Man hört später, dass auf der Neunten Ebene eine Wand fehlt."},
+        {"label": "»Du wirst es durch Taten wiedergutmachen.«", "variant": "default",
+         "effects": {"chars": {"shalltear": {"favor": 6, "mood": 8}}, "set_flags": ["shalltear_forgiven"]},
+         "reaction": "Shalltear nickt heftig. »Ja! Taten! Viele Taten!« Sie stürmt hinaus, um die nächstbeste Bedrohung für Nazarick zu suchen. Du hoffst, dass es keine gibt."}
+      ]
+    },
+    {
+      "id": "ev_cocytus_plea", "type": "chain", "char": "cocytus",
+      "title": "Die Bitte des Cocytus",
+      "subtitle": "Thronsaal",
+      "body": "Cocytus kniet. Er hat verloren – und doch spürst du keinen Zorn in ihm, nur Ehrfurcht.\n\n»Ainz-sama. Die. Echsenmenschen. Haben. Tapfer. Gekämpft. Sie. Verdienen. Nicht. Die. Auslöschung. Ich. Bitte. Euch. Lasst. Mich. Sie. Unterwerfen. Und. Beherrschen.«\n\nDemiurge hebt eine Augenbraue. Albedo verzieht das Gesicht. Ein Wächter, der den Willen des Overlords hinterfragt?\n\nDoch du erkennst es: Cocytus denkt zum ersten Mal selbstständig.",
+      "choices": [
+        {"label": "»Gewährt. Zeig mir, dass du herrschen kannst.«", "variant": "primary",
+         "effects": {"chars": {"cocytus": {"favor": 15, "mood": 20}, "demiurge": {"favor": 2}}, "unlock_missions": ["m_lizard_conquest"], "set_flags": ["lizard_resolved", "lizard_mercy"]},
+         "reaction": "Cocytus erhebt sich. Dampf steigt aus seinen Mandibeln. »Ich. Werde. Euch. Nicht. Enttäuschen.« Demiurge lächelt dir zu. Natürlich hat er gewusst, dass du es von Anfang an so geplant hattest. Du nicht."},
+        {"label": "»Nein. Vernichte sie.«", "variant": "danger",
+         "effects": {"res": {"power": 10, "reputation": -6, "morale": -5}, "chars": {"cocytus": {"mood": -25, "favor": -5}}, "set_flags": ["lizard_resolved", "lizard_conquered", "lizard_exterminated"], "log": "Die Echsenmenschen wurden ausgelöscht."},
+         "reaction": "Cocytus gehorcht. Natürlich gehorcht er. Die Sümpfe werden still. Als er zurückkehrt, ist er noch schweigsamer als sonst."},
+        {"label": "Ihn auf die Probe stellen: »Und wenn ich nein sage?«", "variant": "default",
+         "effects": {"chars": {"cocytus": {"favor": 10, "mood": 10}, "demiurge": {"favor": 4}}, "res": {"info": 3}, "unlock_missions": ["m_lizard_conquest"], "set_flags": ["lizard_resolved", "lizard_mercy"]},
+         "reaction": "»Dann. Gehorche. Ich. Doch. Ich. Würde. Es. Bedauern.« Du nickst. Genau diese Antwort wolltest du hören. Demiurge applaudiert leise. »Brillant. Ihr habt ihm Selbstständigkeit beigebracht.«"}
+      ]
+    },
+    {
+      "id": "ev_lizard_after", "type": "chain", "char": "cocytus",
+      "title": "Der gefallene Champion",
+      "subtitle": "Echsenmenschen-Dorf",
+      "body": "Zaryusu Shasha ist im Kampf gegen Cocytus gefallen. Seine Gefährtin Crusch Lulu, eine weiße Echsenmensch-Priesterin, kniet vor dir.\n\n»Großer König … ich biete Euch meine Treue. Meinen Körper. Meinen Stamm. Nur … bitte … bringt ihn zurück.«\n\nDu besitzt einen Zauberstab der Wiederbelebung.",
+      "choices": [
+        {"label": "Zaryusu wiederbeleben – im Austausch gegen ewige Treue", "variant": "primary",
+         "effects": {"res": {"reputation": 8, "power": 3, "morale": 3}, "chars": {"cocytus": {"favor": 6}}, "set_flags": ["zaryusu_alive"]},
+         "reaction": "Zaryusu öffnet die Augen. Crusch weint. Die Echsenmenschen nennen dich von nun an ›den König, der den Tod beherrscht‹. Cocytus nickt zufrieden."},
+        {"label": "Ablehnen. Die Toten bleiben tot.", "variant": "danger",
+         "effects": {"res": {"power": 2, "reputation": -3}},
+         "reaction": "Crusch senkt den Kopf. Die Echsenmenschen dienen dir – aus Furcht, nicht aus Dankbarkeit."}
+      ]
+    },
+    {
+      "id": "ev_sebas_tuare", "type": "story", "char": "sebas",
+      "title": "Sebas' Geheimnis",
+      "subtitle": "Bericht von Solution Epsilon",
+      "trigger": {"chapter": 6, "day_in_chapter_min": 1},
+      "body": "Solution Epsilon meldet sich direkt bei dir. Ihre Stimme ist kühl.\n\n»Sebas-sama hat eine menschliche Frau aus einem Bordell der Acht Finger gerettet. Sie heißt Tuare. Er versteckt sie in unserem Haus, pflegt sie – und hat Euch nichts davon berichtet. Die Acht Finger suchen nach ihr. Unsere Tarnung ist gefährdet.«\n\nDemiurge, der zufällig zugegen ist, rückt seine Brille zurecht. »Ein Verräter in unseren Reihen? Ich bin sicher, Ihr wollt seine Loyalität … prüfen.«",
+      "choices": [
+        {"label": "»Befiehl ihm, die Frau zu töten. Vor meinen Augen.«", "variant": "danger",
+         "effects": {"queue_events": ["ev_sebas_test"]},
+         "reaction": "Du reist mit Demiurge, Cocytus und Victim in das Haus in der Hauptstadt. Sebas kniet. Tuare zittert hinter ihm."},
+        {"label": "»Bringt sie nach Nazarick. Sie steht unter meinem Schutz.«", "variant": "primary",
+         "effects": {"chars": {"sebas": {"favor": 18, "mood": 20}, "demiurge": {"mood": -6}}, "res": {"reputation": 3}, "set_flags": ["sebas_resolved", "tuare_saved"]},
+         "reaction": "Sebas starrt dich an. Dann verneigt er sich so tief wie nie zuvor. »{lord} … ich danke Euch.« Tuare wird Maid auf der Neunten Ebene. Demiurge sagt nichts. Sehr laut."},
+        {"label": "»Sebas wird bestraft. Die Frau verschwindet.«", "variant": "default",
+         "effects": {"chars": {"sebas": {"favor": -12, "mood": -25}, "demiurge": {"favor": 5}}, "res": {"attention": -4}, "set_flags": ["sebas_resolved", "tuare_lost"]},
+         "reaction": "Sebas gehorcht ohne Widerspruch. Doch als er den Raum verlässt, bleibt er an der Tür stehen, als wollte er etwas sagen. Er sagt nichts."}
+      ]
+    },
+    {
+      "id": "ev_sebas_test", "type": "chain", "char": "sebas",
+      "title": "Die Faust des Butlers",
+      "subtitle": "Königshauptstadt · Sebas' Haus",
+      "body": "»Töte sie, Sebas.«\n\nKein Zögern. Sebas hebt die Faust – eine Faust, die Mauern zertrümmert – und schlägt zu.\n\nCocytus fängt den Schlag einen Fingerbreit vor Tuares Gesicht ab. Der Luftstoß lässt ihr Haar wehen.\n\n»Es. War. Ein. Tödlicher. Schlag«, sagt Cocytus. »Keine. Täuschung.«\n\nSebas hat bestanden.",
+      "choices": [
+        {"label": "»Deine Loyalität ist bewiesen. Die Frau gehört nun zu Nazarick.«", "variant": "primary",
+         "effects": {"chars": {"sebas": {"favor": 14, "mood": 10}, "demiurge": {"favor": 3}}, "res": {"morale": 4}, "set_flags": ["sebas_resolved", "tuare_saved"]},
+         "reaction": "Tuare bricht zusammen. Sebas fängt sie auf. Demiurge betrachtet die Szene mit akademischem Interesse. »Ein vortrefflicher Test, {lord}. Er hat sowohl Sebas' Loyalität als auch seine Schwäche offenbart.«"},
+        {"label": "»Gut. Und jetzt beende es wirklich.«", "variant": "danger",
+         "effects": {"chars": {"sebas": {"favor": -5, "mood": -35}, "demiurge": {"favor": 8}}, "res": {"morale": -8}, "set_flags": ["sebas_resolved", "tuare_lost", "sebas_broken"]},
+         "reaction": "Sebas gehorcht. Danach spricht er drei Tage lang kein Wort. Die Pleiaden meiden ihn. Selbst Demiurge wirkt einen Moment lang nachdenklich."}
+      ]
+    },
+    {
+      "id": "ev_gehenna_after", "type": "chain", "char": "demiurge",
+      "title": "Nach dem Feuer",
+      "subtitle": "Thronsaal",
+      "body": "Demiurge legt eine Liste vor: Gold, Waffen, Getreide, Gefangene. Die Ausbeute von Gehenna ist gewaltig.\n\n»Und das Beste, {lord}: Momon ist nun der größte Held des Königreichs. Wenn eines Tages Ainz Ooal Gown als König auftritt, wird Momon ihn … akzeptieren. Und das Volk mit ihm.«\n\nAlbedo, die neben dir steht, zieht eine Augenbraue hoch. »Ein Plan, an dem ich nicht beteiligt war, Demiurge?«\n\n»Ein Plan unseres Herrn, Albedo. Ich habe ihn nur ausgeführt.«",
+      "choices": [
+        {"label": "»Ein vollendetes Werk, Demiurge.«", "variant": "primary",
+         "effects": {"chars": {"demiurge": {"favor": 12, "mood": 10}, "albedo": {"mood": -4}}, "res": {"morale": 4}},
+         "reaction": "Demiurge verneigt sich tief. »Ihr seid zu gütig. Wir alle sind nur Figuren auf Eurem Brett.« Albedo murmelt etwas über ›Brettspiele‹ und ›eingebildete Teufel‹."},
+        {"label": "»Albedo wird künftig an solchen Plänen beteiligt.«", "variant": "default",
+         "effects": {"chars": {"albedo": {"favor": 10, "mood": 8}, "demiurge": {"favor": 3}}, "res": {"morale": 2}},
+         "reaction": "Albedo strahlt. Demiurge lächelt verständnisvoll. »Natürlich. Zwei Köpfe für einen Plan, der dreien würdig ist – Eurem eingeschlossen.«"}
+      ]
+    },
+    {
+      "id": "ev_katze", "type": "chain",
+      "title": "Die Schlacht auf der Katze-Ebene",
+      "subtitle": "Katze-Ebene · 260.000 Soldaten des Königreichs",
+      "body": "Der Nebel lichtet sich. Vor dir: das Heer von Re-Estize, zweihundertsechzigtausend Mann. Hinter dir: fünfhundert Todesreiter, und auf einem Hügel Kaiser Jircniv mit seinen Generälen. Er will sehen, wofür er seine Seele verkauft hat.\n\nAlbedo, in voller Rüstung an deiner Seite: »Ein Wort, {lord}, und ich lösche sie aus.«\nShalltear, auf deiner anderen Seite: »Nein, ich! Ich, ~arinsu!«\n\nIn deinem Inventar liegt ein Zauber, den du in Yggdrasil kaum je gewirkt hast: [color=#ff2a4f]Fallen Down – die Ernte der Dunklen Jugend[/color].",
+      "choices": [
+        {"label": "»Iä Shub-Niggurath.« – Die Ernte entfesseln", "variant": "danger",
+         "effects": {"res": {"power": 25, "reputation": -8, "attention": 30, "morale": 6}, "chars": {"demiurge": {"favor": 10}, "shalltear": {"favor": 5}, "albedo": {"favor": 5}}, "set_flags": ["katze_done", "katze_massacre"], "queue_events": ["ev_coronation"], "log": "Auf der Katze-Ebene sterben 70.000 Soldaten in einem Atemzug."},
+         "reaction": "Siebzigtausend Seelen werden in einem Augenblick geerntet. Aus dem schwarzen Opfer erheben sich fünf Dunkle Jungen – Ziegen aus Fleisch und Mäulern – und stampfen in das Heer.\n\nAuf dem Hügel übergibt sich Kaiser Jircniv. Die Welt wird diesen Tag nie vergessen."},
+        {"label": "Eine Machtdemonstration mit Maß – nur die Adelsarmeen brechen", "variant": "primary",
+         "effects": {"res": {"power": 14, "reputation": 8, "attention": 15}, "chars": {"sebas": {"favor": 6}, "demiurge": {"mood": -3}}, "set_flags": ["katze_done", "katze_mercy"], "queue_events": ["ev_coronation"], "log": "Ainz zerschlägt das Heer des Königreichs mit beherrschter Macht."},
+         "reaction": "Deine Todesreiter brechen durch die Reihen der Adligen. Die Bauernsoldaten fliehen – und du lässt sie fliehen. Gazef Stronoff fordert dich zum Duell. Du gewährst es ihm, und er stirbt als Held. Die Welt fürchtet dich. Aber sie wird sich auch erinnern, dass du Gnade kanntest."}
+      ]
+    },
+    {
+      "id": "ev_coronation", "type": "chain", "char": "albedo",
+      "title": "Die Krönung des Zauberkönigs",
+      "subtitle": "E-Rantel · Hauptstadt des Zauberkönigreichs",
+      "body": "E-Rantel ist dir übergeben worden. Auf dem Marktplatz stehen Menschen, Echsenmenschen und Untote nebeneinander und starren auf das Podest, auf dem du stehst.\n\nAlbedo trägt Weiß. Natürlich trägt sie Weiß. Sie ist nun Premierministerin des Zauberkönigreichs. Shalltear trägt … ebenfalls Weiß. Die beiden haben sich seit dem Morgen nicht angesehen.\n\nDemiurge verliest die Proklamation. Cocytus hält Wache. Aura und Mare winken der Menge zu. Sebas weint – ganz leise, ganz würdevoll.\n\nWer soll dir die Krone aufsetzen?",
+      "choices": [
+        {"label": "Albedo – die Oberaufseherin", "variant": "primary",
+         "effects": {"chars": {"albedo": {"favor": 20, "mood": 25}, "shalltear": {"jealousy": 25}}, "rivalry": 15, "res": {"morale": 8, "reputation": 6}, "set_flags": ["crowned", "crown_albedo"]},
+         "reaction": "Albedos Hände zittern, als sie die Krone hebt. »Mein König«, flüstert sie. »Mein Gemahl.« Die Menge hört nur das erste Wort. Shalltear hört das zweite."},
+        {"label": "Shalltear – die Stärkste der Wächter", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 20, "mood": 25}, "albedo": {"jealousy": 25}}, "rivalry": 15, "res": {"morale": 8, "reputation": 4}, "set_flags": ["crowned", "crown_shalltear"]},
+         "reaction": "Shalltear schwebt empor, die Krone in beiden Händen, und setzt sie dir mit einem Kuss auf den Schädel. Die Menge erstarrt. Albedos Lächeln bekommt Risse, die man bis Arwintar sehen kann."},
+        {"label": "Niemand – »Ich kröne mich selbst.«", "variant": "default",
+         "effects": {"res": {"morale": 10, "reputation": 8, "power": 5}, "chars": {"demiurge": {"favor": 10}}, "rivalry": -10, "set_flags": ["crowned", "crown_self"]},
+         "reaction": "Du hebst die Krone selbst und setzt sie auf. Demiurge keucht vor Bewunderung. »Natürlich! Kein Diener steht über dem König!« Albedo und Shalltear sehen sich an – zum ersten Mal an diesem Tag – und seufzen gleichzeitig."}
+      ]
+    },
+
+    {
+      "id": "r_adventurers", "type": "random", "weight": 3, "cooldown": 18,
+      "title": "Grabräuber vor den Toren",
+      "trigger": {"chapter_min": 3},
+      "body": "Eine Gruppe von Abenteurern hat den getarnten Eingang von Nazarick entdeckt. Sie flüstern von ›unermesslichen Schätzen‹ und schleichen in die erste Ebene.",
+      "choices": [
+        {"label": "Shalltear soll sie empfangen", "variant": "danger", "requires": {"idle": ["shalltear"]},
+         "effects": {"res": {"power": 3, "attention": 3}, "chars": {"shalltear": {"favor": 5, "mood": 8}}},
+         "reaction": "»Gäste, ~arinsu! Wie entzückend!« Man hört die Schreie bis in den Thronsaal. Shalltear kehrt mit roten Wangen zurück."},
+        {"label": "Lebend fangen – für Demiurges Forschung", "variant": "primary",
+         "effects": {"res": {"info": 5}, "chars": {"demiurge": {"favor": 3}}},
+         "reaction": "Die Abenteurer erwachen in der Siebten Ebene. Demiurge hat viele Fragen. Sie haben … weniger Antworten."},
+        {"label": "Aura soll sie mit Bestien vertreiben", "variant": "default",
+         "effects": {"res": {"attention": -2, "info": 1}, "chars": {"aura": {"favor": 3}}},
+         "reaction": "Ein Brüllen, ein Rennen, ein Stolpern. Die Abenteurer erzählen nun von einem ›Wald voller Ungeheuer‹. Perfekt."}
+      ]
+    },
+    {
+      "id": "r_maids", "type": "random", "weight": 2, "cooldown": 30,
+      "title": "Der ›Ainz-sama-Tag‹",
+      "trigger": {"chapter_min": 1},
+      "body": "Die einundvierzig Homunkulus-Maids haben einen Rotationsplan erstellt: Jede von ihnen darf einen Tag lang persönlich den Overlord bedienen. Der ›Ainz-sama-Tag‹. Die Konkurrenz um die Plätze ist … heftig. Sebas fragt, ob Ihr einverstanden seid.",
+      "choices": [
+        {"label": "Genehmigen", "variant": "primary", "effects": {"res": {"morale": 7}},
+         "reaction": "Jubel auf der Neunten Ebene. Ab morgen folgt Euch eine Maid auf Schritt und Tritt und beobachtet jede Eurer Bewegungen. Sogar das Umblättern."},
+        {"label": "Allen Maids einen Urlaubstag schenken", "variant": "warning", "effects": {"res": {"morale": -6}},
+         "reaction": "Entsetzen. Tränen. Eine Maid fragt, ob sie etwas falsch gemacht habe. Die Pleiaden müssen Seelsorge leisten. Urlaub ist für die Bewohner Nazaricks offenbar eine Strafe."},
+        {"label": "Ablehnen – zu viel Aufwand", "variant": "default", "effects": {"res": {"morale": -3}},
+         "reaction": "Die Maids nehmen es tapfer hin. Ihr Lächeln ist sehr professionell und sehr traurig."}
+      ]
+    },
+    {
+      "id": "r_statue", "type": "random", "weight": 2, "once": true,
+      "title": "Eine Statue des Overlords",
+      "trigger": {"chapter_min": 2, "idle": ["demiurge"]},
+      "body": "Demiurge bittet Euch in die Siebte Ebene. Dort steht eine dreißig Meter hohe Statue aus Obsidian und Gold: Ihr, auf einem Thron aus Schädeln, die Welt in der Hand. »Ein kleines Zeichen der Verehrung, {lord}. Ich habe bereits Entwürfe für zwölf weitere Ebenen.«",
+      "choices": [
+        {"label": "»Prachtvoll.« (−30 Gold)", "variant": "primary", "effects": {"res": {"gold": -30, "morale": 5}, "chars": {"demiurge": {"favor": 8, "mood": 8}}},
+         "reaction": "Demiurges Schwanz zuckt vor Freude. Ihr fragt Euch, ob die Statue nachts leuchtet. Sie tut es."},
+        {"label": "»Etwas … kleiner, bitte.«", "variant": "default", "effects": {"res": {"info": 1}, "chars": {"demiurge": {"mood": -2}}},
+         "reaction": "Demiurge erstarrt – dann leuchten seine Augen. »Bescheidenheit als Herrschaftsinstrument … natürlich! Eine kleinere Statue erzeugt bei den Untertanen den Wunsch, mehr zu sehen!« Er hat es falsch verstanden. Ihr lasst es so."}
+      ]
+    },
+    {
+      "id": "r_spy", "type": "random", "weight": 3, "cooldown": 15,
+      "title": "Ein Spion im Großen Wald",
+      "trigger": {"chapter_min": 3, "res_min": {"attention": 30}},
+      "body": "Aura hat einen Mann in Tarnkleidung gefangen, der Nazaricks Erdwälle skizziert hat. Auf seinem Amulett: das Symbol der Slane-Theokratie.",
+      "choices": [
+        {"label": "Verhören lassen", "variant": "primary", "effects": {"res": {"info": 8, "attention": 2}},
+         "reaction": "Neuronist Painkill bedankt sich herzlich. Der Spion spricht viel. Dann nicht mehr."},
+        {"label": "Mit falschen Informationen freilassen", "variant": "default", "effects": {"res": {"attention": -10, "info": 2}, "chars": {"demiurge": {"favor": 3}}},
+         "reaction": "Der Spion kehrt heim – mit Karten eines ›verfallenen Hügelgrabs voller niederer Skelette‹. Demiurge hat die Karten persönlich gezeichnet."},
+        {"label": "Spurlos verschwinden lassen", "variant": "danger", "effects": {"res": {"attention": -4, "power": 1}},
+         "reaction": "Es gab nie einen Spion."}
+      ]
+    },
+    {
+      "id": "r_dragon_gaze", "type": "random", "weight": 5, "cooldown": 25,
+      "title": "Ein uralter Blick",
+      "trigger": {"chapter_min": 3, "res_min": {"attention": 60}},
+      "body": "Nachts erstarren alle Wächter gleichzeitig. Ein Blick – uralt, kalt, unermesslich – streift Nazarick wie eine Hand über eine Landkarte. Dann ist er fort.\n\nAlbedo tritt an Eure Seite. »Etwas hat uns bemerkt, {lord}.«",
+      "choices": [
+        {"label": "Alle Aktivitäten einschränken", "variant": "default", "effects": {"res": {"attention": -18, "power": -3, "morale": -2}},
+         "reaction": "Nazarick verstummt. Wochenlang. Der Blick kehrt nicht zurück – vorerst."},
+        {"label": "»Soll es kommen.«", "variant": "danger", "effects": {"res": {"attention": 5, "power": 4, "morale": 5}, "chars": {"shalltear": {"mood": 8}, "cocytus": {"mood": 8}}},
+         "reaction": "Shalltear leckt sich die Lippen. Cocytus zieht seine Klinge. Und irgendwo in den Bergen öffnet ein Drache die Augen."}
+      ]
+    },
+    {
+      "id": "r_guild_memory", "type": "random", "weight": 2, "cooldown": 45,
+      "title": "Erinnerungen an Ainz Ooal Gown",
+      "trigger": {"chapter_min": 2},
+      "body": "Ihr steht im Raum der Einundvierzig. Einundvierzig Sitze, einundvierzig Banner. Nur einer ist besetzt.\n\nPeroroncinos Lachen. Ulberts Monologe. Touch Mes stilles Nicken. Bukubukuchagamas Stimme, die Mare und Aura zum Leben erweckte.\n\nSie alle sind gegangen. Nur du bist geblieben.",
+      "choices": [
+        {"label": "Einen Moment schweigen", "variant": "default", "effects": {"res": {"morale": 3}},
+         "reaction": "Die Emotionsunterdrückung greift nicht. Trauer ist offenbar nicht stark genug, um sie auszulösen. Oder zu still."},
+        {"label": "Albedo rufen", "variant": "primary", "effects": {"chars": {"albedo": {"favor": 8, "mood": 8}, "shalltear": {"jealousy": 5}}},
+         "reaction": "Albedo kommt sofort. Sie sieht die Banner an – und ihr Blick wird hart, nur für einen Augenblick. »Sie haben Euch verlassen, {lord}. Ich werde es nie tun.« Es klingt wie ein Schwur. Und wie eine Drohung gegen jemand anderen."},
+        {"label": "Shalltear rufen", "variant": "danger", "effects": {"chars": {"shalltear": {"favor": 8, "mood": 8}, "albedo": {"jealousy": 5}}},
+         "reaction": "Shalltear sieht Peroroncinos Banner und wird ganz still. »Er hat mir gesagt, ich sei perfekt«, flüstert sie. »Aber Ihr seid derjenige, der geblieben ist.«"}
+      ]
+    },
+    {
+      "id": "r_pleiades_tea", "type": "random", "weight": 2, "cooldown": 30,
+      "title": "Teestunde der Pleiaden",
+      "trigger": {"chapter_min": 2},
+      "body": "Yuri Alpha lädt Euch zur Teestunde der Pleiaden ein. Lupusregina kichert, Entoma summt, Solution lächelt undurchschaubar, CZ starrt, Narberal sitzt kerzengerade. Ihr könnt keinen Tee trinken. Niemand erwähnt es.",
+      "choices": [
+        {"label": "Teilnehmen", "variant": "primary", "effects": {"res": {"morale": 6}, "chars": {"narberal": {"favor": 5}, "albedo": {"jealousy": 4}}},
+         "reaction": "Es wird ein angenehmer Nachmittag. Lupusregina erzählt, wie sie in Carne ›aushilft‹. Ihr notiert Euch, das später zu überprüfen."},
+        {"label": "Freundlich absagen", "variant": "default", "effects": {"res": {"morale": 1}},
+         "reaction": "Die Pleiaden verneigen sich. Ihr hört Entoma noch murmeln: »Mehr Kekse für uns.«"}
+      ]
+    },
+
+    {
+      "id": "rv_words", "type": "rivalry", "weight": 4, "cooldown": 12,
+      "title": "Lampreye gegen Gorilla",
+      "subtitle": "Thronsaal · Rivalität",
+      "trigger": {"rivalry_min": 30, "idle": ["albedo", "shalltear"]},
+      "body": "Ein Streit hallt durch den Thronsaal.\n\n[color=#ff2a4f]Shalltear:[/color] »Du gehörnte Gorilla-Succubus! Ainz-sama hat MICH heute zuerst angesehen!«\n[color=#f1e6ff]Albedo:[/color] »Weil er dachte, du wärst ein umgefallener Kerzenständer, Lampreye. Mit gepolsterter Brust.«\n[color=#ff2a4f]Shalltear:[/color] »Wenigstens hatte ich keinen Bauplan für Hochzeitsglocken auf dem Schreibtisch!«\n[color=#f1e6ff]Albedo:[/color] »Neid steht dir nicht. Er passt nicht unter dein Polster.«\n\nBeide drehen sich gleichzeitig zu Euch um.",
+      "choices": [
+        {"label": "Albedo recht geben", "variant": "primary",
+         "effects": {"chars": {"albedo": {"favor": 8, "mood": 6, "jealousy": -10}, "shalltear": {"favor": -5, "mood": -8, "jealousy": 15}}, "rivalry": 8},
+         "reaction": "Albedo verneigt sich mit triumphierendem Lächeln. Shalltear stampft so heftig auf, dass ein Kronleuchter klirrt. »Das werde ich mir merken, ~arinsu!«"},
+        {"label": "Shalltear recht geben", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 8, "mood": 6, "jealousy": -10}, "albedo": {"favor": -5, "mood": -8, "jealousy": 15}}, "rivalry": 8},
+         "reaction": "Shalltear streckt Albedo die Zunge heraus. Albedo lächelt. Ihr Lächeln hat Zähne. »Natürlich, {lord}. Wie Ihr meint.«"},
+        {"label": "»Genug! Ihr seid mir beide gleich wertvoll.«", "variant": "default",
+         "effects": {"chars": {"albedo": {"jealousy": -8, "favor": -1}, "shalltear": {"jealousy": -8, "favor": -1}}, "rivalry": -12, "res": {"morale": 2}},
+         "reaction": "Beide verneigen sich. »Verzeiht, {lord}.« Als sie hinausgehen, stoßen sie sich gegenseitig mit den Ellbogen. Aber leiser als vorher."},
+        {"label": "Schweigen und den Streit laufen lassen", "variant": "default",
+         "effects": {"rivalry": 6, "res": {"morale": -2}},
+         "reaction": "Der Streit dauert noch eine Stunde. Am Ende fragt Aura, ob sie Popcorn holen soll."}
+      ]
+    },
+    {
+      "id": "rv_seat", "type": "rivalry", "weight": 3, "cooldown": 25,
+      "title": "Der Platz zur Rechten",
+      "subtitle": "Thronsaal · Rivalität",
+      "trigger": {"rivalry_min": 45, "idle": ["albedo", "shalltear"]},
+      "body": "Vor der morgendlichen Audienz stehen Albedo und Shalltear gleichzeitig auf der obersten Stufe – beide rechts neben dem Thron. Keine weicht einen Zentimeter. Die Luft knistert.\n\n»Dies ist der Platz der Oberaufseherin«, sagt Albedo ruhig.\n»Dies ist der Platz der Stärksten«, sagt Shalltear lächelnd.\n\nDie Wächter halten den Atem an.",
+      "choices": [
+        {"label": "Albedo gehört an meine Rechte", "variant": "primary",
+         "effects": {"chars": {"albedo": {"favor": 10, "jealousy": -12}, "shalltear": {"jealousy": 18, "mood": -10}}, "rivalry": 10},
+         "reaction": "Shalltear tritt zurück. Langsam. Mit Blicken, die töten könnten – und in ihrem Fall tatsächlich töten können."},
+        {"label": "Shalltear soll heute rechts stehen", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 10, "jealousy": -12}, "albedo": {"jealousy": 18, "mood": -10}}, "rivalry": 10},
+         "reaction": "Albedo tritt zurück, ohne die Miene zu verziehen. Während der gesamten Audienz spürt Ihr ihren Blick in Eurem Nacken."},
+        {"label": "»Ihr wechselt euch täglich ab.«", "variant": "default",
+         "effects": {"chars": {"albedo": {"jealousy": -6}, "shalltear": {"jealousy": -6}}, "rivalry": -8, "res": {"morale": 3}},
+         "reaction": "Beide nicken. Am nächsten Morgen findet Ihr einen von beiden unterzeichneten Rotationsplan – mit 47 Fußnoten."}
+      ]
+    },
+    {
+      "id": "rv_night", "type": "rivalry", "weight": 3, "cooldown": 30,
+      "title": "Ein nächtlicher Besuch",
+      "subtitle": "Euer Schlafgemach · Rivalität",
+      "trigger": {"chapter_min": 2, "jealousy_min": {"shalltear": 45}, "idle": ["albedo", "shalltear"]},
+      "body": "Mitternacht. Die Tür Eures Schlafgemachs öffnet sich leise. Shalltear schleicht herein, in einem Negligé aus schwarzer Spitze.\n\nSie erstarrt.\n\nAuf der anderen Seite des Bettes steht Albedo, in einem Negligé aus weißer Spitze, ein Bein bereits auf der Matratze.\n\nDie beiden Frauen starren sich an. Dann Euch.",
+      "choices": [
+        {"label": "»Raus. Beide.«", "variant": "default",
+         "effects": {"chars": {"albedo": {"mood": -6}, "shalltear": {"mood": -6}}, "rivalry": -5},
+         "reaction": "Sie gehen. Auf dem Flur hört Ihr Albedo flüstern: »Das ist alles deine Schuld.« – »Nein, deine!« Etwas zerbricht."},
+        {"label": "Shalltear bleibt – für ein Gespräch", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 12, "mood": 15}, "albedo": {"jealousy": 22, "mood": -12}}, "rivalry": 12},
+         "reaction": "Ihr redet nur. Wirklich. Shalltear erzählt von Peroroncino und schläft irgendwann ein. Albedo hat die Nacht vor Eurer Tür verbracht. Sitzend. Wach."},
+        {"label": "Albedo bleibt – für ein Gespräch", "variant": "primary",
+         "effects": {"chars": {"albedo": {"favor": 12, "mood": 15}, "shalltear": {"jealousy": 22, "mood": -12}}, "rivalry": 12},
+         "reaction": "Albedo spricht bis zum Morgengrauen über die Verwaltung Nazaricks. Mit dem Kopf auf Eurer Schulter. Shalltear hat eine Fledermaus vor dem Fenster postiert. Sie hat alles gesehen."},
+        {"label": "Euch per Teleport in die Bibliothek retten", "variant": "default",
+         "effects": {"chars": {"albedo": {"favor": -3}, "shalltear": {"favor": -3}}, "rivalry": 6, "res": {"info": 2}},
+         "reaction": "Ihr verbringt die Nacht mit einem Buch über die Geschichte der Neuen Welt. Im Schlafgemach kämpfen zwei Frauen bis zum Morgengrauen darum, wer schuld ist."}
+      ]
+    },
+    {
+      "id": "rv_duel", "type": "rivalry", "weight": 6, "cooldown": 40,
+      "title": "Ein Duell im Amphitheater",
+      "subtitle": "Sechste Ebene · Rivalität eskaliert",
+      "trigger": {"rivalry_min": 70, "idle": ["albedo", "shalltear"]},
+      "body": "Aura stürmt in den Thronsaal. »Ainz-sama! Albedo und Shalltear stehen im Amphitheater – in voller Rüstung! Sie sagen, sie klären jetzt, wer Eure Erste ist!«\n\nDurch den Spiegel seht Ihr es: Hermes Trismegistus gegen Spuhletit Lance. Die Zuschauerränge füllen sich mit Golems, die Wetten abschließen.",
+      "choices": [
+        {"label": "Persönlich einschreiten und es verbieten", "variant": "default",
+         "effects": {"chars": {"albedo": {"mood": -10, "jealousy": -10}, "shalltear": {"mood": -10, "jealousy": -10}}, "rivalry": -15},
+         "reaction": "Ihr erscheint zwischen ihnen. Beide fallen sofort auf die Knie. »Verzeiht, {lord}!« Die Waffen verschwinden. Der Groll nicht."},
+        {"label": "Das Duell erlauben – Cocytus soll richten", "variant": "danger",
+         "effects": {"chars": {"albedo": {"fatigue": 50, "jealousy": -20}, "shalltear": {"fatigue": 50, "jealousy": -20}, "cocytus": {"favor": 4}}, "rivalry": -25, "res": {"power": 3, "morale": 3}},
+         "reaction": "Drei Stunden. Ein zerstörtes Amphitheater. Cocytus erklärt das Ergebnis zum Unentschieden. Beide Frauen liegen erschöpft im Sand und lachen plötzlich – zum ersten Mal miteinander."},
+        {"label": "»Stattdessen ein Wettstreit: Wer dient Nazarick besser?«", "variant": "primary",
+         "effects": {"chars": {"albedo": {"mood": 10, "favor": 4}, "shalltear": {"mood": 10, "favor": 4}}, "rivalry": -5, "res": {"morale": 5}, "set_flags": ["rival_contest"]},
+         "reaction": "Beide Augenpaare leuchten. »Ein Wettstreit!« Die nächsten Wochen arbeiten beide mit fanatischem Eifer. Nazarick war nie effizienter."}
+      ]
+    },
+    {
+      "id": "rv_albedo_scheme", "type": "rivalry", "weight": 5, "cooldown": 35,
+      "title": "Albedos stille Intrige",
+      "subtitle": "Rivalität",
+      "trigger": {"chapter_min": 2, "jealousy_min": {"albedo": 70}, "idle": ["shalltear"]},
+      "body": "Ihr entdeckt in den Verwaltungsakten einen Befehl, unterzeichnet von Albedo: Shalltear Bloodfallen wird für drei Monate zur ›Inventur der Grabkammern in den äußersten Randgebieten‹ abkommandiert. Ohne Rücksprache mit Euch.\n\nAlbedo lächelt unschuldig, als Ihr sie darauf ansprecht. »Eine notwendige Verwaltungsmaßnahme, {lord}. Rein sachlich.«",
+      "choices": [
+        {"label": "Den Befehl aufheben und Albedo tadeln", "variant": "danger",
+         "effects": {"chars": {"albedo": {"favor": -8, "mood": -12, "jealousy": 5}, "shalltear": {"favor": 8}}, "rivalry": 5},
+         "reaction": "Albedo senkt den Kopf. »Ich habe mich hinreißen lassen.« Als Shalltear davon erfährt, tanzt sie durch die Zweite Ebene. Albedo hört es. Natürlich hört sie es."},
+        {"label": "Den Befehl bestehen lassen", "variant": "default",
+         "effects": {"chars": {"albedo": {"favor": 6, "jealousy": -25}, "shalltear": {"mood": -18, "favor": -6, "jealousy": 20}}, "rivalry": 10},
+         "reaction": "Shalltear verlässt Nazarick mit Tränen in den Augen. Albedo summt den ganzen Tag ein Lied. Ihr erkennt es: einen Hochzeitsmarsch."},
+        {"label": "»Albedo. Ich sehe alles.«", "variant": "primary",
+         "effects": {"chars": {"albedo": {"jealousy": -10, "mood": -4}}, "rivalry": -4},
+         "reaction": "Albedo erbleicht – dann lächelt sie. »Natürlich tut Ihr das. Deshalb liebe ich Euch.« Der Befehl verschwindet spurlos aus den Akten."}
+      ]
+    },
+    {
+      "id": "rv_shalltear_gift", "type": "rivalry", "weight": 5, "cooldown": 30,
+      "title": "Ein Geschenk aus Blut",
+      "subtitle": "Rivalität",
+      "trigger": {"chapter_min": 3, "jealousy_min": {"shalltear": 60}, "idle": ["shalltear"]},
+      "on_trigger": {"res": {"attention": 6}},
+      "body": "Shalltear schleift einen gefesselten Mann in den Thronsaal: Brain Unglaus, einst Rivale von Gazef Stronoff, einer der stärksten Schwertkämpfer des Königreichs.\n\n»Ein Geschenk für Euch, Eure Herrlichkeit! Ich habe ihn ganz allein gefangen! Albedo bringt Euch nur Papier – ich bringe Euch Krieger, ~arinsu!«\n\nBrain zittert. Er hat Shalltear gesehen. Er wird nie wieder ruhig schlafen.",
+      "choices": [
+        {"label": "Das Geschenk annehmen", "variant": "danger",
+         "effects": {"chars": {"shalltear": {"favor": 12, "jealousy": -15}, "albedo": {"jealousy": 14}}, "rivalry": 8, "res": {"power": 3, "info": 3}},
+         "reaction": "Shalltear strahlt. »Nimm das, Albedo!« Albedo, die eben eintritt, mustert Brain. »Wie … aufmerksam. Er tropft auf den Teppich.«"},
+        {"label": "Ihn freilassen – »Ein gebrochener Mann ist mir nichts wert.«", "variant": "default",
+         "effects": {"chars": {"shalltear": {"mood": -10}, "sebas": {"favor": 4}}, "res": {"reputation": 3, "attention": -2}},
+         "reaction": "Brain flieht. Später erfährt Ihr, dass er bei Gazef untergekommen ist – und jede Nacht von roten Augen träumt."},
+        {"label": "Shalltear loben, Brain an Demiurge übergeben", "variant": "primary",
+         "effects": {"chars": {"shalltear": {"favor": 6}, "demiurge": {"favor": 3}}, "res": {"info": 6}},
+         "reaction": "Demiurge bedankt sich höflich. Shalltear fragt, ob sie nächste Woche einen Drachen bringen darf."}
+      ]
+    },
+    {
+      "id": "rv_truce", "type": "rivalry", "weight": 4, "once": true,
+      "title": "Ein seltener Waffenstillstand",
+      "subtitle": "Rivalität · Frieden?",
+      "trigger": {"chapter_min": 3, "rivalry_max": 15, "idle": ["albedo", "shalltear"]},
+      "body": "Ihr überrascht Albedo und Shalltear in der Bibliothek. Sie sitzen nebeneinander. Friedlich. Vor ihnen liegt ein Pergament mit der Überschrift: ›Vereinbarung über die Rangfolge der Gemahlinnen des Höchsten Wesens‹.\n\nShalltear: »Wer zuerst … ähm … die Erste wird, unterstützt die andere als Zweite!«\nAlbedo: »Ein rationales Bündnis. Rein strategisch.«\n\nBeide sehen Euch erwartungsvoll an.",
+      "choices": [
+        {"label": "Lächelnd (innerlich) den Raum verlassen", "variant": "primary",
+         "effects": {"chars": {"albedo": {"favor": 5, "mood": 8}, "shalltear": {"favor": 5, "mood": 8}}, "res": {"morale": 5}, "set_flags": ["harem_pact"]},
+         "reaction": "Hinter Euch hört Ihr Kichern. Zweistimmig. Es ist das Beunruhigendste, was Ihr in dieser Welt bisher erlebt habt."},
+        {"label": "Euch vernehmlich räuspern", "variant": "default",
+         "effects": {"rivalry": 5},
+         "reaction": "Das Pergament verschwindet. Beide sehen sich an – und der Waffenstillstand ist vorbei."}
+      ]
+    }
+  ],
+
+  "initiatives": [
+    {"id": "i_albedo_reorg", "char": "albedo", "weight": 3, "cooldown": 20,
+     "title": "Neuordnung der Wachpläne",
+     "body": "Albedo hat über Nacht sämtliche Wachpläne Nazaricks neu geordnet, die Vorräte inventarisiert und die Dienstpläne der Maids optimiert.\n\n»Ich wollte Euch nur zeigen, wie nützlich ich bin, {lord}. Für den Fall, dass Ihr vergessen haben solltet, wer Euch am nächsten steht.«",
+     "effects": {"res": {"morale": 4, "power": 1}}},
+    {"id": "i_albedo_pillow", "char": "albedo", "weight": 2, "once": true,
+     "title": "Das Kissen",
+     "body": "Eine Maid berichtet flüsternd: In Albedos Gemächern liegt ein lebensgroßes Kissen mit Eurem Abbild. Selbst gestickt. Mit Liebe. Viel Liebe. Ein zweites Kissen ist in Arbeit – diesmal mit Eurem Abbild und dem Albedos, Hand in Hand.",
+     "choices": [
+       {"label": "»Ein … schönes Kissen.«", "variant": "warning", "effects": {"chars": {"albedo": {"favor": 10, "mood": 15}, "shalltear": {"jealousy": 10}}, "rivalry": 4},
+        "reaction": "Albedo erfährt von Eurem Kommentar und fällt in Ohnmacht. Glücklich. Shalltear beginnt noch am selben Abend, ein eigenes Kissen zu nähen. Es sieht aus wie ein Kartoffelsack mit Krone."},
+       {"label": "Diskret ignorieren", "variant": "default", "effects": {},
+        "reaction": "Ihr habt nichts gehört. Gar nichts. Ihr seid ein Overlord."}
+     ]},
+    {"id": "i_albedo_diplomacy", "char": "albedo", "weight": 2, "cooldown": 25,
+     "title": "Eigenmächtige Gesandtschaft",
+     "trigger": {"chapter_min": 3},
+     "body": "Albedo hat ohne Rücksprache einen Gesandten zu einem Adligen des Königreichs geschickt – getarnt als Kaufmann. Er brachte Wein, Gold und eine sehr subtile Drohung.\n\n»Der Marquis wird uns Informationen liefern, {lord}. Ich wollte Euch damit überraschen. Freut Ihr Euch?«",
+     "effects": {"res": {"info": 5, "reputation": 2, "attention": 3}}},
+    {"id": "i_albedo_banners", "char": "albedo", "weight": 2, "once": true,
+     "title": "Die Banner der Höchsten Wesen",
+     "trigger": {"chapter_min": 3},
+     "body": "Im Thronsaal hingen einundvierzig Banner – eines für jedes Mitglied von Ainz Ooal Gown. Heute Morgen hängt nur noch eines: Eures.\n\nAlbedo steht darunter, die Hände gefaltet. »Sie haben Euch verlassen, {lord}. Sie verdienen keinen Platz in diesem Saal. Nur Ihr seid geblieben. Nur Ihr seid würdig.«\n\nIhre Stimme ist ruhig. Zu ruhig.",
+     "choices": [
+       {"label": "»Häng sie wieder auf. Sofort.«", "variant": "danger", "effects": {"chars": {"albedo": {"mood": -15, "favor": -4}}, "res": {"morale": 4}},
+        "reaction": "»Wie Ihr befehlt.« Die Banner kehren zurück. Doch Ihr bemerkt, dass Albedo sie nie wieder ansieht – und dass sie ihr Lächeln verliert, wenn jemand einen der alten Namen ausspricht."},
+       {"label": "»Lass sie. Vorerst.«", "variant": "warning", "effects": {"chars": {"albedo": {"favor": 10, "mood": 10}}, "res": {"morale": -6}, "set_flags": ["banners_removed"]},
+        "reaction": "Albedo strahlt. Die anderen Wächter wirken verunsichert. Cocytus starrt lange auf die leere Wand, an der Warrior Takemikazuchis Banner hing."},
+       {"label": "»Warum hasst du sie, Albedo?«", "variant": "primary", "effects": {"chars": {"albedo": {"favor": 4}}, "res": {"info": 2}, "set_flags": ["albedo_truth"]},
+        "reaction": "Albedo schweigt lange. »Weil sie Euch einsam gemacht haben«, sagt sie schließlich. »Ich sah Euch Nacht für Nacht allein auf diesem Thron. Ich konnte nichts tun. Ich war nur eine Figur.« Ihre Stimme bricht. »Jetzt kann ich etwas tun.«"}
+     ]},
+    {"id": "i_albedo_list", "char": "albedo", "weight": 4, "cooldown": 30,
+     "title": "Albedos Liste",
+     "trigger": {"jealousy_min": {"albedo": 55}},
+     "body": "Auf Albedos Schreibtisch liegt eine Liste. Überschrift: ›Weibliche Personen, die Ainz-sama zu lange angesehen haben‹.\n\nPlatz 1: Shalltear Bloodfallen (unterstrichen, dreimal).\nPlatz 2: Narberal Gamma (›reist mit ihm – inakzeptabel‹).\nPlatz 3: Aura (›noch zu jung, aber beobachten‹).\nPlatz 4–37: diverse Maids.\nPlatz 38: Hamsuke (›Geschlecht unklar‹).",
+     "choices": [
+       {"label": "Die Liste verbrennen lassen", "variant": "danger", "effects": {"chars": {"albedo": {"mood": -8, "jealousy": -10}}, "rivalry": -3},
+        "reaction": "Albedo verbrennt die Liste. Am nächsten Tag liegt eine neue da. Sie ist kürzer – und Hamsuke steht auf Platz 2."},
+       {"label": "Ihr eine Audienz gewähren", "variant": "primary", "effects": {"chars": {"albedo": {"favor": 8, "jealousy": -20}, "shalltear": {"jealousy": 6}}},
+        "reaction": "Ihr verbringt eine Stunde mit Albedo. Danach ist die Liste verschwunden. Albedo summt."},
+       {"label": "Nichts tun", "variant": "default", "effects": {"rivalry": 4},
+        "reaction": "Die Liste wächst. Narberal bekommt einen Vermerk: ›Gefahrenstufe Rot‹."}
+     ]},
+
+    {"id": "i_shalltear_hunt", "char": "shalltear", "weight": 3, "cooldown": 15,
+     "title": "Nächtliche Jagd",
+     "trigger": {"chapter_min": 2},
+     "body": "Shalltear ist nachts allein ausgezogen, um ›ein bisschen zu jagen‹. Sie kehrt im Morgengrauen zurück: blutverschmiert, strahlend, mit einem Sack voller Banditenwaffen.\n\n»Ich habe Nazarick beschützt, ~arinsu! Präventiv!«",
+     "effects": {"res": {"power": 3, "attention": 6, "gold": 15}}},
+    {"id": "i_shalltear_dress", "char": "shalltear", "weight": 3, "cooldown": 25,
+     "title": "Ein neues Kleid",
+     "body": "Shalltear erscheint im Thronsaal in einem neuen Kleid. Es ist sehr rot, sehr kurz und hat sehr viele Rüschen. Sie dreht sich. Dreimal. Dann blickt sie Euch erwartungsvoll an.\n\nAlbedo, die gerade Akten sortiert, bricht einen Federkiel entzwei.",
+     "choices": [
+       {"label": "»Es steht dir.«", "variant": "warning", "effects": {"chars": {"shalltear": {"favor": 10, "mood": 15}, "albedo": {"jealousy": 12}}, "rivalry": 6},
+        "reaction": "Shalltear quiekt, dreht sich noch dreimal und wirft Albedo einen Blick zu, der ein ganzes Königreich in Brand setzen könnte. Albedo bestellt noch am selben Tag sieben neue Kleider."},
+       {"label": "Neutral nicken", "variant": "default", "effects": {"chars": {"shalltear": {"mood": -4}}},
+        "reaction": "Shalltear wartet. Und wartet. Dann zieht sie sich mit einem leisen ›Hmpf‹ zurück."}
+     ]},
+    {"id": "i_shalltear_penance", "char": "shalltear", "weight": 5, "cooldown": 20,
+     "title": "Shalltears Buße",
+     "trigger": {"flags_all": ["shalltear_restored"]},
+     "body": "Shalltear trainiert seit Tagen ohne Pause im Amphitheater. Sie hat drei Golems zerschlagen und Cocytus zweimal herausgefordert.\n\n»Ich darf nie wieder versagen«, murmelt sie. »Nie wieder. Nie wieder darf ich meine Waffe gegen ihn …«",
+     "effects": {"res": {"power": 2}, "chars": {"shalltear": {"fatigue": 25}}},
+     "choices": [
+       {"label": "Sie zu Euch rufen und trösten", "variant": "primary", "effects": {"chars": {"shalltear": {"favor": 10, "mood": 15, "fatigue": -20}, "albedo": {"jealousy": 8}}},
+        "reaction": "Shalltear hört auf zu trainieren, als Ihr ihren Namen sagt. Sie weint ein wenig. Dann lacht sie. »Danke, Eure Herrlichkeit.«"},
+       {"label": "Ihren Eifer loben", "variant": "default", "effects": {"chars": {"shalltear": {"favor": 4}}, "res": {"power": 2}},
+        "reaction": "Shalltear trainiert doppelt so hart. Cocytus bittet um ein neues Amphitheater."}
+     ]},
+    {"id": "i_shalltear_mimic", "char": "shalltear", "weight": 4, "cooldown": 40,
+     "title": "Shalltear, die Verwalterin",
+     "trigger": {"jealousy_min": {"shalltear": 50}},
+     "body": "Shalltear erscheint mit einer Brille (ohne Gläser), einem Stapel Pergamente und einer Feder hinter dem Ohr.\n\n»Eure Herrlichkeit, ich habe beschlossen, ebenfalls Verwaltungsarbeit zu leisten. Wie Albedo. Nur besser. Hier ist mein erster Bericht.«\n\nDer Bericht besteht aus einer Zeichnung von Euch und ihr, Hand in Hand, unter einem blutroten Mond.",
+     "choices": [
+       {"label": "Den ›Bericht‹ würdevoll entgegennehmen", "variant": "primary", "effects": {"chars": {"shalltear": {"favor": 9, "mood": 12, "jealousy": -10}, "albedo": {"jealousy": 6}}},
+        "reaction": "Shalltear strahlt. Ihr legt die Zeichnung in eine Schublade. Eine sehr sichere Schublade."},
+       {"label": "»Überlass die Verwaltung Albedo.«", "variant": "danger", "effects": {"chars": {"shalltear": {"mood": -12, "jealousy": 10}, "albedo": {"favor": 5}}, "rivalry": 6},
+        "reaction": "Shalltear nimmt die Brille ab. Langsam. »Natürlich. Albedo. Immer Albedo.« Sie geht. Die Brille zerbricht in ihrer Faust."}
+     ]},
+
+    {"id": "i_demiurge_scrolls", "char": "demiurge", "weight": 3, "once": true,
+     "title": "Das Problem der Schriftrollen",
+     "trigger": {"chapter_min": 3},
+     "body": "Demiurge hat ein Problem gelöst, von dem Ihr nicht wusstet, dass es existiert: Nazaricks Vorrat an Zauberschriftrollen schrumpft, und die Tierhäute dieser Welt taugen nicht als Material.\n\n»Ich habe eine Lösung gefunden, {lord}. Sie ist … unkonventionell. Erlaubt mir, Euch einen Vorschlag zu unterbreiten.«",
+     "effects": {"res": {"info": 2}},
+     "unlock_proposal": "p_demiurge_sheep"},
+    {"id": "i_demiurge_network", "char": "demiurge", "weight": 3, "cooldown": 22,
+     "title": "Ein Netz aus Schatten",
+     "trigger": {"chapter_min": 3},
+     "body": "Demiurge hat eigenständig Schattendämonen in drei Städten des Königreichs platziert. Sie hören alles, sehen alles, und niemand ahnt etwas.\n\n»Eine kleine Vorsichtsmaßnahme, {lord}. Ihr hattet mich ja indirekt darum gebeten, als Ihr letzte Woche ›interessant‹ sagtet.«",
+     "effects": {"res": {"info": 6, "attention": 2}}},
+    {"id": "i_demiurge_world", "char": "demiurge", "weight": 5, "once": true,
+     "title": "»Die Welt erobern«",
+     "trigger": {"chapter_min": 2},
+     "body": "Demiurge breitet eine gewaltige Karte vor Euch aus. Jedes Königreich ist mit einer Farbe markiert, jede Armee mit einer Figur.\n\n»Neulich, beim Betrachten des Sternenhimmels, sagtet Ihr: ›Vielleicht wäre es interessant, diese Welt zu erobern.‹ Ich habe sofort mit den Vorbereitungen begonnen. Hier ist der Zehnjahresplan.«\n\nDas war ein Scherz. Es war definitiv ein Scherz.",
+     "choices": [
+       {"label": "»… Genau so war es gemeint.«", "variant": "danger", "effects": {"res": {"power": 5, "attention": 4, "morale": 6}, "chars": {"demiurge": {"favor": 12, "mood": 12}}, "set_flags": ["world_conquest"]},
+        "reaction": "Demiurge verneigt sich so tief, dass seine Brille fast herunterfällt. Bis zum Abend weiß ganz Nazarick: Der Overlord wird die Welt erobern. Albedo hat bereits Kronen in Auftrag gegeben."},
+       {"label": "»Das war nur ein Scherz.«", "variant": "default", "effects": {"chars": {"demiurge": {"favor": 4}}, "res": {"info": 2}, "set_flags": ["world_conquest"]},
+        "reaction": "Demiurge lächelt wissend. »Natürlich. Ein Scherz – um zu prüfen, wer von uns es ernst nimmt. Ich verstehe.« Der Zehnjahresplan wird zu einem Fünfjahresplan."}
+     ]},
+    {"id": "i_demiurge_sebas", "char": "demiurge", "weight": 3, "cooldown": 35,
+     "title": "Teufel gegen Butler",
+     "trigger": {"chapter_min": 3, "idle": ["sebas"]},
+     "body": "Im Gang der Neunten Ebene stehen sich Demiurge und Sebas gegenüber. Die Luft ist eisig.\n\n»Menschen sind Ressourcen, Sebas.«\n»Menschen sind Menschen, Demiurge-sama.«\n»Deine Sentimentalität gefährdet Nazarick.«\n»Deine Grausamkeit befleckt den Namen unseres Herrn.«\n\nBeide drehen sich zu Euch um.",
+     "choices": [
+       {"label": "Demiurge recht geben", "variant": "danger", "effects": {"chars": {"demiurge": {"favor": 8}, "sebas": {"mood": -10}}},
+        "reaction": "Sebas verneigt sich steif. Demiurge lächelt. Die Kluft zwischen ihnen wird breiter."},
+       {"label": "Sebas recht geben", "variant": "primary", "effects": {"chars": {"sebas": {"favor": 8}, "demiurge": {"mood": -6}}, "res": {"reputation": 2}},
+        "reaction": "Demiurge neigt den Kopf. »Interessant. Ihr seht einen Nutzen in der Güte, den ich übersehe.« Er wird darüber nachdenken. Tagelang."},
+       {"label": "»Beide Ansichten dienen Nazarick.«", "variant": "default", "effects": {"res": {"morale": 4}},
+        "reaction": "Beide verneigen sich. Ihre Schöpfer – Ulbert und Touch Me – haben sich einst genauso gestritten. Manche Dinge ändern sich nie."}
+     ]},
+
+    {"id": "i_cocytus_train", "char": "cocytus", "weight": 3, "cooldown": 18,
+     "title": "Training der Fünften Ebene",
+     "body": "Cocytus hat ohne Befehl ein dreitägiges Manöver mit der gesamten Garnison der Fünften Ebene durchgeführt.\n\n»Ein. Krieger. Rostet. Im. Frieden.«",
+     "effects": {"res": {"power": 3, "morale": 2}}},
+    {"id": "i_cocytus_jii", "char": "cocytus", "weight": 3, "once": true,
+     "title": "Der Traum des ›Jii‹",
+     "body": "Cocytus steht reglos in der Fünften Ebene, umgeben von Eiskristallen. Leise murmelt er vor sich hin:\n\n»Junger. Herr. Haltet. Das. Schwert. Höher. … Ja. So. … Ihr. Seid. Ganz. Wie. Euer. Vater. … Jii. Ist. Stolz. Auf. Euch.«\n\nEr träumt davon, Euren Erben zu erziehen. Ihr habt keinen Erben.",
+     "choices": [
+       {"label": "»Erzähl mir mehr von diesem Traum.«", "variant": "warning", "effects": {"chars": {"cocytus": {"favor": 12, "mood": 15}, "albedo": {"jealousy": 10, "mood": 8}, "shalltear": {"jealousy": 10, "mood": 8}}, "rivalry": 10},
+        "reaction": "Cocytus erzählt. Ausführlich. Albedo hört zufällig mit und fragt, ob der Erbe ›Flügel oder Hörner‹ haben wird. Shalltear fragt, ob er ›Fangzähne‹ haben wird. Es kommt zu Handgreiflichkeiten."},
+       {"label": "Diskret weitergehen", "variant": "default", "effects": {},
+        "reaction": "Ihr lasst Cocytus träumen. Ein Krieger braucht auch Hoffnung."}
+     ]},
+    {"id": "i_aura_beast", "char": "aura", "weight": 3, "cooldown": 18,
+     "title": "Eine neue Bestie",
+     "trigger": {"chapter_min": 2},
+     "body": "Aura kommt mit einem riesigen Wesen an der Leine in den Thronsaal: halb Löwe, halb Schlange, ganz verwirrt.\n\n»Ainz-sama! Ich hab ihn im Wald gefunden! Er ist lieb! Meistens! Darf er bleiben?«",
+     "effects": {"res": {"power": 3, "morale": 2}}},
+    {"id": "i_aura_explore", "char": "aura", "weight": 3, "cooldown": 18,
+     "title": "Ausflug in die Wildnis",
+     "trigger": {"chapter_min": 2},
+     "body": "Aura ist mit Fenrir drei Tage durch den Großen Wald gestreift – ganz ohne Auftrag. »Mir war langweilig!« Sie bringt eine handgezeichnete Karte mit. Sie ist überraschend gut.",
+     "effects": {"res": {"info": 5}}},
+    {"id": "i_mare_walls", "char": "mare", "weight": 3, "cooldown": 20,
+     "title": "Die Wälle wachsen",
+     "body": "Mare hat die Erdwälle um Nazarick noch einmal verstärkt. Und noch einmal. Und noch einmal. Der Hügel ist jetzt ein kleiner Berg.\n\n»E-es tut mir leid … ich wollte nur … sicher sein …«",
+     "effects": {"res": {"attention": -5}}},
+    {"id": "i_mare_flowers", "char": "mare", "weight": 2, "cooldown": 30,
+     "title": "Blumen für den Thronsaal",
+     "body": "Im Thronsaal blühen plötzlich schwarze Rosen zwischen den Steinplatten. Mare steht verlegen daneben.\n\n»I-ich dachte … es ist so dunkel hier … und Ihr seid immer allein … ä-ähm …«",
+     "effects": {"res": {"morale": 4}}},
+    {"id": "i_sebas_help", "char": "sebas", "weight": 3, "cooldown": 20,
+     "title": "Ein Akt der Güte",
+     "trigger": {"chapter_min": 3},
+     "body": "Sebas berichtet, ohne dass Ihr gefragt habt: Er hat in der Hauptstadt einen Jungen vor Schlägern gerettet und einer Witwe ihre Schulden bezahlt. Aus eigener Tasche.\n\n»Ich bitte um Verzeihung, falls ich damit Eure Pläne störe, {lord}. Ich konnte nicht anders.«",
+     "effects": {"res": {"reputation": 4, "attention": 2}}},
+    {"id": "i_sebas_maids", "char": "sebas", "weight": 2, "cooldown": 25,
+     "title": "Ordnung unter den Maids",
+     "body": "Sebas hat einen Streit unter den Maids geschlichtet. Es ging darum, wer Euren Umhang bügeln darf. Drei Maids weinten. Eine wollte ›Seppuku mit dem Bügeleisen‹ begehen.\n\n»Die Ordnung ist wiederhergestellt, {lord}.«",
+     "effects": {"res": {"morale": 3}}},
+    {"id": "i_narberal_rumor", "char": "narberal", "weight": 3, "cooldown": 20,
+     "title": "Gerüchte in der Gilde",
+     "trigger": {"chapter_min": 3},
+     "body": "Narberal hat in der Abenteurergilde Gespräche belauscht. »Die Kakerlaken sprechen von einem Vampir im Wald und einem ›Schwarzen Schwert‹ im Kaiserreich. Ich habe mir alles notiert. Auch die Namen derjenigen, die Momon-san ›Blechdose‹ genannt haben.«",
+     "effects": {"res": {"info": 4}}},
+    {"id": "i_pandora_pose", "char": "pandora", "weight": 3, "cooldown": 25,
+     "title": "Die Generalprobe",
+     "body": "Pandora's Actor bittet Euch in die Schatzkammer. Er hat eine neue Pose einstudiert. Für Euch. Sie umfasst eine Drehung, einen Hutschwung und ein donnerndes »Wenn es mein Gott wünscht!«.\n\nEure Emotionsunterdrückung leuchtet grün auf.",
+     "choices": [
+       {"label": "»Bravo.«", "variant": "primary", "effects": {"chars": {"pandora": {"favor": 10, "mood": 10}}, "res": {"morale": 2}},
+        "reaction": "Pandora's Actor fällt vor Rührung auf die Knie – mit Pose. Ihr verlasst die Schatzkammer schnell. Sehr schnell."},
+       {"label": "»Bitte … weniger Pathos.«", "variant": "default", "effects": {"chars": {"pandora": {"mood": -4}}},
+        "reaction": "»Weniger Pathos? Ich verstehe! Subtilität als höchste Kunst!« Er salutiert. Subtil. Mit einer halben Drehung."}
+     ]}
+  ]
+}

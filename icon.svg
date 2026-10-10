@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
+  <defs>
+    <radialGradient id="g" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#5b2a8c"/><stop offset="100%" stop-color="#0b0612"/>
+    </radialGradient>
+  </defs>
+  <rect width="128" height="128" rx="22" fill="url(#g)"/>
+  <rect x="6" y="6" width="116" height="116" rx="18" fill="none" stroke="#d4af37" stroke-width="4"/>
+  <!-- stilisierter Schädel -->
+  <path d="M64 26c-20 0-34 14-34 32 0 11 5 19 12 24v12h44V82c7-5 12-13 12-24 0-18-14-32-34-32z" fill="#e9e1cf"/>
+  <ellipse cx="51" cy="60" rx="8" ry="9" fill="#0b0612"/><ellipse cx="77" cy="60" rx="8" ry="9" fill="#0b0612"/>
+  <circle cx="51" cy="60" r="3" fill="#ff2a4f"/><circle cx="77" cy="60" r="3" fill="#ff2a4f"/>
+  <path d="M60 72l4-7 4 7z" fill="#0b0612"/>
+  <path d="M50 86v8M58 86v8M66 86v8M74 86v8" stroke="#0b0612" stroke-width="3"/>
+  <path d="M40 22l8 10 8-12 8 10 8-10 8 12 8-10-4 14H44z" fill="#d4af37"/>
+</svg>
