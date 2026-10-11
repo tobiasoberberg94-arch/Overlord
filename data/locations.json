@@ -18,7 +18,17 @@
    "keeper": "shalltear",
    "floor": "tombs",
    "music": "tension",
-   "desc": "Endlose Gruften, Särge und die Vampirbräute Shalltears."
+   "desc": "Endlose Gruften, Särge und die Vampirbräute Shalltears.",
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 3,
+     "at": [
+      -12,
+      -8
+     ]
+    }
+   ]
   },
   {
    "id": "glacier",
@@ -40,11 +50,21 @@
    "keeper": "aura",
    "floor": "jungle",
    "music": "throne",
-   "desc": "Ein künstlicher Himmel über endlosem Dschungel – und die Arena der Dunklen Elfen.",
+   "desc": "Ein künstlicher Himmel über endlosem Dschungel – und die Arena der Dunklen Elfen. In der Arena wartet ein Übungsgolem – ideal, um Kampf und Zauber zu üben.",
    "npcs": [
     {
      "id": "hamsuke",
      "line": "Der Weise König des Waldes steht zu Diensten, de gozaru!"
+    }
+   ],
+   "encounters": [
+    {
+     "enemy": "golem",
+     "count": 1,
+     "at": [
+      0,
+      -10
+     ]
     }
    ]
   },
@@ -57,7 +77,17 @@
    "keeper": "demiurge",
    "floor": "lava",
    "music": "tension",
-   "desc": "Ströme aus Magma, Teufelspaläste und Demiurges Arbeitszimmer."
+   "desc": "Ströme aus Magma, Teufelspaläste und Demiurges Arbeitszimmer.",
+   "encounters": [
+    {
+     "enemy": "death_knight",
+     "count": 1,
+     "at": [
+      0,
+      -24
+     ]
+    }
+   ]
   },
   {
    "id": "royal",
@@ -122,6 +152,30 @@
     {
      "id": "nigun",
      "line": "Ein Engel der Herrschaft! Höchste Beschwörung der Menschheit!",
+     "requires": {
+      "chapter": 2
+     }
+    }
+   ],
+   "encounters": [
+    {
+     "enemy": "soldier",
+     "count": 3,
+     "at": [
+      0,
+      -18
+     ],
+     "requires": {
+      "chapter": 2
+     }
+    },
+    {
+     "enemy": "angel",
+     "count": 1,
+     "at": [
+      0,
+      -26
+     ],
      "requires": {
       "chapter": 2
      }
@@ -228,6 +282,24 @@
      "id": "nigun",
      "line": "Die sechs Götter werden Euch vernichten, Untoter!"
     }
+   ],
+   "encounters": [
+    {
+     "enemy": "soldier",
+     "count": 4,
+     "at": [
+      0,
+      6
+     ]
+    },
+    {
+     "enemy": "angel",
+     "count": 1,
+     "at": [
+      0,
+      -10
+     ]
+    }
    ]
   },
   {
@@ -247,6 +319,24 @@
       "chapter_max": 3
      }
     }
+   ],
+   "encounters": [
+    {
+     "enemy": "wolf",
+     "count": 3,
+     "at": [
+      -12,
+      -10
+     ]
+    },
+    {
+     "enemy": "wolf",
+     "count": 2,
+     "at": [
+      14,
+      -16
+     ]
+    }
    ]
   },
   {
@@ -258,7 +348,17 @@
    "region": "elfen",
    "style": "elf",
    "music": "tension",
-   "desc": "Baumpaläste, uralte Magie und ein König, der nur Stärke achtet."
+   "desc": "Baumpaläste, uralte Magie und ein König, der nur Stärke achtet.",
+   "encounters": [
+    {
+     "enemy": "elf",
+     "count": 4,
+     "at": [
+      0,
+      -10
+     ]
+    }
+   ]
   },
   {
    "id": "sumpf",
@@ -268,7 +368,20 @@
    "sky": "battlefield",
    "region": "sumpf",
    "music": "tension",
-   "desc": "Nebel, Schilf und die Dörfer der fünf Echsenstämme."
+   "desc": "Nebel, Schilf und die Dörfer der fünf Echsenstämme.",
+   "encounters": [
+    {
+     "enemy": "lizard",
+     "count": 4,
+     "at": [
+      -8,
+      -14
+     ],
+     "requires": {
+      "chapter_max": 5
+     }
+    }
+   ]
   },
   {
    "id": "katze",
@@ -285,6 +398,32 @@
      "line": "…",
      "solid": true
     }
+   ],
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 4,
+     "at": [
+      0,
+      -8
+     ]
+    },
+    {
+     "enemy": "death_knight",
+     "count": 1,
+     "at": [
+      -10,
+      -18
+     ]
+    },
+    {
+     "enemy": "skeleton",
+     "count": 3,
+     "at": [
+      14,
+      -14
+     ]
+    }
    ]
   },
   {
@@ -295,7 +434,17 @@
    "sky": "world_map",
    "region": "azerlisia",
    "music": "tension",
-   "desc": "Schneebedeckte Gipfel, Zwergenhallen voller Runen – und irgendwo ein Frostdrache."
+   "desc": "Schneebedeckte Gipfel, Zwergenhallen voller Runen – und irgendwo ein Frostdrache.",
+   "encounters": [
+    {
+     "enemy": "quagoa",
+     "count": 5,
+     "at": [
+      0,
+      -10
+     ]
+    }
+   ]
   },
   {
    "id": "drachen",

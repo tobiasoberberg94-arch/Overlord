@@ -211,7 +211,32 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     entsprechender Lizenz). Keine Original-Anime-Musik.
 
 ===============================================================================
-  6. RECHTLICHER HINWEIS
+  6. 3D-MODELLE (.glb)  – für den Third-Person-Modus
+===============================================================================
+    Format: .glb (glTF binär), 1 Einheit = 1 m, Blick nach +Z, Ursprung an den Füßen.
+    Figuren mit Skelett + Animationen: idle, walk, run, attack_light, attack_heavy,
+    dodge/roll, block, hit, death, cast (Namen frei – Teilwort genügt).
+    Mixamo-Animationen funktionieren gut.
+
+    Ordner assets/models/characters/   [A] = zuerst
+      [A] ainz.glb  ainz_momon.glb  albedo.glb  shalltear.glb
+      [A] skeleton.glb  death_knight.glb  soldier.glb
+      [B] demiurge.glb  cocytus.glb  aura.glb  mare.glb  sebas.glb  narberal.glb
+      [B] pandora.glb  wolf.glb  angel.glb  golem.glb
+      [C] gazef.glb  jircniv.glb  neia.glb  hamsuke.glb  clementine.glb  nigun.glb
+      [C] platinum_dragon.glb  solution.glb  yuri.glb  lupusregina.glb  entoma.glb  cz.glb
+
+    Ordner assets/models/props/  (ersetzen die Grundformen überall)
+      [A] throne.glb  pillar.glb  brazier.glb  house.glb  tree.glb  gate_portal.glb
+      [B] tower.glb  rock.glb  crystal.glb  banner.glb  tree_conifer.glb  coffin.glb
+      [C] bookshelf.glb  tent.glb  stilt_hut.glb  gold_pile.glb  chest.glb  statue.glb
+
+    Ordner assets/models/locations/  (optional: ganzer Ort als ein Modell)
+      throne.glb (Thronsaal), carne.glb, e_rantel.glb … – mit Leer-Objekten
+      „Spawn“, „Gate“, „Throne“, „Slot1…“ als Ankerpunkte.
+
+===============================================================================
+  7. RECHTLICHER HINWEIS
 ===============================================================================
     Für ein privates Fan-Projekt ist das unkritisch. Falls das Spiel jemals
     öffentlich verteilt wird: keine offiziellen Anime-/Light-Novel-Bilder

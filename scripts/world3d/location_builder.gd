@@ -16,6 +16,10 @@ static var _rng := RandomNumberGenerator.new()
 
 static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	_rng.seed = hash(loc.id)
+	# Ein komplettes Ortsmodell (assets/models/locations/<id>.glb) ersetzt das Rezept
+	var scene := ModelLib.instance("locations", loc.id)
+	if scene:
+		return _from_model(loc, root, scene)
 	var a: Dictionary
 	match loc.kind:
 		"throne": a = _throne(root)
@@ -38,6 +42,36 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 		"peaks": a = _peaks(root)
 		_: a = _village(root)
 	_gate(root, a.gate)
+	return a
+
+
+## Ortsmodell einsetzen. Ankerpunkte über benannte Knoten (Marker3D/Node3D):
+##   Spawn, Gate, Throne, Table, Desk, Board, Keeper, Slot1…SlotN
+## Fehlende Anker bekommen sinnvolle Standardwerte.
+static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
+	root.add_child(scene)
+	ModelLib.add_collision(scene)
+	var named := {}
+	for n in scene.find_children("*", "Node3D", true, false):
+		named[String(n.name).to_lower()] = n
+	var at := func(key: String, fallback: Vector3) -> Vector3:
+		return (named[key] as Node3D).global_position if named.has(key) else fallback
+	var a := {"spawn": at.call("spawn", Vector3(0, 0.2, 10)), "yaw": 0.0, "gate": at.call("gate", Vector3(0, 0, 14))}
+	for k in ["throne", "table", "desk", "board", "keeper"]:
+		if named.has(k):
+			a[k] = (named[k] as Node3D).global_position
+	if loc.group == "world" and not a.has("board"):
+		a["board"] = a.spawn + Vector3(3, 0, -4)
+	var slots: Array = []
+	for i in range(1, 20):
+		if named.has("slot%d" % i):
+			slots.append((named["slot%d" % i] as Node3D).global_position)
+	a["slots"] = slots if not slots.is_empty() else _arc(a.spawn + Vector3(0, 0, -8), 5, 6, 60, 300)
+	if named.has("spawn"):
+		a["yaw"] = (named["spawn"] as Node3D).global_rotation.y
+	if loc.group == "nazarick" and not a.has("keeper"):
+		a["keeper"] = a.spawn + Vector3(0, 0, -10)
+	B3.bounds(root, 120)
 	return a
 
 
@@ -111,6 +145,9 @@ static func preset(kind: String) -> Dictionary:
 
 ## Gate: magisches Portal (Teleport zwischen den Orten).
 static func _gate(root: Node3D, pos: Vector3) -> void:
+	if ModelLib.place_prop(root, "gate_portal", pos):
+		B3.light(root, pos + Vector3(0, 2, 1), VIOLET, 2.0, 7.0)
+		return
 	var g := Node3D.new()
 	g.name = "GatePortal"
 	g.position = pos

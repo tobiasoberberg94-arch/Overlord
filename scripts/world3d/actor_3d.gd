@@ -63,6 +63,14 @@ func _ready() -> void:
 
 
 func _make_standee(cid: String, variant: String, height: float) -> void:
+	# Echtes 3D-Modell (assets/models/characters/<id>.glb) hat Vorrang vor dem Aufsteller
+	if ModelLib.has("characters", cid):
+		var rig := CharacterRig.create(cid, Callable())
+		rig.position.y = 0.13
+		add_child(rig)
+		if variant == "battle":
+			rig.play("block")
+		return
 	var tex: Texture2D = null
 	if variant != "":
 		tex = Portrait.find_texture(cid + "_" + variant)

@@ -1,0 +1,163 @@
+{
+ "_info": "Optionale Feineinstellungen für 3D-Modelle. Ohne Eintrag gelten scale=1, rot_y=0, y=0. Siehe README › 3D-Modelle.",
+ "animation_aliases": {
+  "idle": [
+   "idle",
+   "stand",
+   "breath",
+   "wait"
+  ],
+  "walk": [
+   "walk"
+  ],
+  "run": [
+   "run",
+   "sprint",
+   "jog"
+  ],
+  "attack_light": [
+   "attack_light",
+   "light",
+   "slash",
+   "attack1",
+   "attack_1",
+   "sword_attack",
+   "attack",
+   "punch",
+   "swing"
+  ],
+  "attack_heavy": [
+   "attack_heavy",
+   "heavy",
+   "attack2",
+   "attack_2",
+   "slam",
+   "smash",
+   "power"
+  ],
+  "dodge": [
+   "dodge",
+   "roll",
+   "evade"
+  ],
+  "block": [
+   "block",
+   "guard",
+   "defend"
+  ],
+  "hit": [
+   "hit",
+   "hurt",
+   "damage",
+   "impact"
+  ],
+  "stagger": [
+   "stagger",
+   "stun"
+  ],
+  "death": [
+   "death",
+   "die",
+   "dead"
+  ],
+  "cast": [
+   "cast",
+   "spell",
+   "magic"
+  ]
+ },
+ "characters": {
+  "ainz": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
+  }
+ },
+ "props": {},
+ "locations": {},
+ "expected": {
+  "characters": [
+   "ainz",
+   "ainz_momon",
+   "albedo",
+   "shalltear",
+   "demiurge",
+   "cocytus",
+   "aura",
+   "mare",
+   "sebas",
+   "narberal",
+   "pandora",
+   "solution",
+   "yuri",
+   "lupusregina",
+   "entoma",
+   "cz",
+   "victim",
+   "neuronist",
+   "gazef",
+   "jircniv",
+   "neia",
+   "hamsuke",
+   "nigun",
+   "clementine",
+   "platinum_dragon",
+   "death_knight",
+   "skeleton",
+   "death_knight",
+   "soldier",
+   "wolf",
+   "angel",
+   "golem"
+  ],
+  "props": [
+   "house",
+   "tower",
+   "tree",
+   "tree_conifer",
+   "rock",
+   "brazier",
+   "pillar",
+   "crystal",
+   "banner",
+   "throne",
+   "war_table",
+   "desk",
+   "gate_portal",
+   "coffin",
+   "bookshelf",
+   "tent",
+   "stilt_hut",
+   "gold_pile",
+   "chest",
+   "palace",
+   "cathedral",
+   "city_wall_segment",
+   "ice_spike",
+   "statue"
+  ],
+  "locations": [
+   "throne",
+   "tombs",
+   "glacier",
+   "jungle",
+   "lava",
+   "royal",
+   "library",
+   "treasury",
+   "carne",
+   "e_rantel",
+   "re_capital",
+   "baharuth",
+   "roble",
+   "theokratie",
+   "tob_wald",
+   "elfen",
+   "sumpf",
+   "katze",
+   "azerlisia",
+   "drachen"
+  ]
+ }
+}

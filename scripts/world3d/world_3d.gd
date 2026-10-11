@@ -32,6 +32,13 @@ var hud_weekly := RichTextLabel.new()
 var hud_help := RichTextLabel.new()
 var day_bar := ProgressBar.new()
 
+var hud_bars: Dictionary = {}           ## hp/stamina/mana → [ProgressBar, Label]
+var hud_style := Label.new()
+var hud_spells := HBoxContainer.new()
+var hud_feedback := Label.new()
+var hud_vignette := ColorRect.new()
+var enemies: Array[Enemy3D] = []
+var _spell_slots: Array = []
 var _focus: Actor3D
 var _day_timer := 0.0
 var _time_running := true
@@ -44,6 +51,12 @@ func _ready() -> void:
 		Game.new_game()
 	add_child(player)
 	_build_ui()
+	_build_combat_hud()
+	player.feedback.connect(_on_feedback)
+	player.style_changed.connect(func(_s): _rebuild_spell_bar())
+	player.damaged.connect(_on_player_damaged)
+	player.died.connect(func(_f): _on_player_died())
+	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
 	Game.log_added.connect(func(_e): _refresh_ticker())
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
@@ -65,6 +78,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	if level:
 		level.queue_free()
 	actors.clear()
+	enemies.clear()
 	_focus = null
 	loc = Content.location_by_id[id]
 	level = Node3D.new()
@@ -73,6 +87,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	LocationBuilder.environment(level, loc, LocationBuilder.preset(loc.kind))
 	anchors = LocationBuilder.build(loc, level)
 	_place_actors()
+	_spawn_encounters()
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
@@ -175,11 +190,16 @@ func _add_actor(a: Actor3D, pos: Vector3) -> void:
 func _process(delta: float) -> void:
 	var blocked := overlay_layer.get_child_count() > 0 or _busy
 	player.input_enabled = not blocked
+	# Während ein Fenster offen ist, steht der Kampf still
+	for e in enemies:
+		if is_instance_valid(e):
+			e.process_mode = Node.PROCESS_MODE_DISABLED if blocked else Node.PROCESS_MODE_INHERIT
 	if blocked:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_update_focus()
 	_animate(delta)
+	_update_combat_hud()
 	# Echtzeit: Tage vergehen, solange niemand wartet
 	if not blocked and _time_running and Game.pending().is_empty():
 		_day_timer += delta
@@ -402,6 +422,9 @@ func _open_next_dispatch(force: bool = false) -> void:
 	var pending := Game.pending()
 	if pending.is_empty():
 		return
+	if in_combat() and not force:
+		toast("Eine Depesche wartet – erst der Kampf. [Enter] öffnet sie.", Palette.GOLD_BRIGHT)
+		return
 	if not Settings.auto_open and not force:
 		toast("Eine Depesche ist eingetroffen – [Enter] zum Öffnen.", Palette.GOLD_BRIGHT)
 		return
@@ -483,11 +506,11 @@ func _build_ui() -> void:
 	hud_ticker.bbcode_enabled = true
 	hud_ticker.fit_content = true
 	hud_ticker.scroll_active = false
-	hud_ticker.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	hud_ticker.offset_top = -110
+	hud_ticker.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	hud_ticker.offset_top = 96
 	hud_ticker.offset_right = 620
 	hud_ticker.offset_left = 18
-	hud_ticker.offset_bottom = -14
+	hud_ticker.offset_bottom = 200
 	hud_ticker.add_theme_font_size_override("normal_font_size", 15)
 	hud_ticker.add_theme_constant_override("outline_size", 6)
 	hud_ticker.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
@@ -510,14 +533,16 @@ func _build_ui() -> void:
 	hud_help.scroll_active = false
 	hud_help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	hud_help.offset_left = -360
-	hud_help.offset_top = -250
+	hud_help.offset_top = -330
 	hud_help.offset_right = -18
 	hud_help.offset_bottom = -14
 	hud_help.add_theme_font_size_override("normal_font_size", 14)
 	hud_help.add_theme_stylebox_override("normal", NazarickTheme.box(Color(Palette.VOID, 0.65), Color(Palette.GOLD_DARK, 0.6), 1, 10, Color.TRANSPARENT, 0, 10))
 	hud_help.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_help.text = "[color=#d4af37][b]Steuerung[/b][/color]  [color=#8f86a3](H ausblenden)[/color]\n" + \
-		"WASD gehen · Shift rennen · Leertaste schweben\nMaus (Klick zum Fangen) Kamera · Rad Zoom\n" + \
+		"WASD gehen · Shift rennen · Maus Kamera · Rad Zoom\n" + \
+		"[color=#ff9a8a]LMB[/color] leichte · [color=#ff9a8a]RMB[/color] schwere Attacke\n[b]Leertaste[/b] Rolle · [b]F[/b] Block/Parade · [b]Q[/b] Lock-on\n" + \
+		"[b]1–4, R[/b] Zauber · [b]X[/b] Ainz ↔ Momon\n" + \
 		"[b]E[/b] sprechen / benutzen · [b]G[/b] Gate · [b]T[/b] Zeit\n[b]J[/b] Aufträge · [b]M[/b] Karte · [b]P[/b] Diplomatie\n" + \
 		"[b]V[/b] Verwaltung · [b]N[/b] Nazarick · [b]U[/b] Wächter\n[b]Tab[/b] klassische Übersicht · [b]Esc[/b] Menü"
 	ui_root.add_child(hud_help)
@@ -628,3 +653,216 @@ func _fade(to: float, t: float) -> void:
 	var tw := create_tween()
 	tw.tween_property(_veil, "color:a", to, t)
 	await tw.finished
+
+
+# =====================================================================
+#  Kampf
+# =====================================================================
+
+func _spawn_encounters() -> void:
+	for enc in loc.get("encounters", []):
+		if not Game.check(enc.get("requires", {})):
+			continue
+		var at: Array = enc.get("at", [0, 0])
+		var center := Vector3(float(at[0]), 0.2, float(at[1]))
+		for i in int(enc.get("count", 1)):
+			var off := Vector3(randf_range(-3.5, 3.5), 0, randf_range(-3.5, 3.5)) if i > 0 else Vector3.ZERO
+			spawn_enemy(enc.enemy, center + off)
+
+
+func spawn_enemy(id: String, pos: Vector3) -> Enemy3D:
+	var e := Enemy3D.create(id)
+	e.position = pos
+	e.target = player
+	level.add_child(e)
+	e.add_to_group("enemies")
+	enemies.append(e)
+	e.damaged.connect(_on_enemy_damaged)
+	e.defeated.connect(_on_enemy_defeated)
+	return e
+
+
+func _on_enemy_damaged(f: Fighter, amount: int, kind: String) -> void:
+	var col: Color = {"fire": Color(1, 0.6, 0.2), "negative": Color(0.75, 0.4, 1.0), "holy": Color(1, 0.95, 0.6)}.get(kind, Color(1, 1, 1))
+	_float_text(f.global_position + Vector3(randf_range(-0.4, 0.4), 2.4, 0), str(amount), col, 56 if amount >= 40 else 44)
+
+
+func _on_player_damaged(_f: Fighter, amount: int, _kind: String) -> void:
+	_float_text(player.global_position + Vector3(0, 2.4, 0), "−%d" % amount, Color(1, 0.3, 0.3), 40)
+	hud_vignette.color.a = clampf(0.15 + amount / 120.0, 0.0, 0.5)
+
+
+func _on_enemy_defeated(e: Enemy3D) -> void:
+	enemies.erase(e)
+	var gold := int(e.data.get("gold", 0))
+	if gold > 0:
+		Game.apply_effects({"res": {"gold": gold}})
+		_float_text(e.global_position + Vector3(0, 3.0, 0), "+%d Gold" % gold, Palette.GOLD_BRIGHT, 40)
+	Progress.bump("enemies_slain")
+	if e.data.get("elite", false):
+		Progress.roll_loot("battle", "Bezwungen: " + e.display_name)
+		Game.log_msg("%s bezwingt %s." % [Game.state.lord_name, e.display_name], "mission")
+	if e.data.get("respawn", false):
+		var id := e.type_id
+		var home := e.home
+		get_tree().create_timer(6.0).timeout.connect(func():
+			if is_instance_valid(level) and loc.get("encounters", []).size() > 0:
+				spawn_enemy(id, home))
+	if enemies.is_empty() and not e.data.get("respawn", false):
+		toast("Die Gegend ist gesäubert.", Palette.SUCCESS)
+	_refresh_hud()
+
+
+func _on_player_died() -> void:
+	_busy = true
+	await get_tree().create_timer(1.8).timeout
+	_show_banner("Ainz zieht sich zurück", "Ein Overlord stirbt nicht – doch die Niederlage schmerzt Nazarick.")
+	Game.apply_effects({"res": {"morale": -4}})
+	Game.log_msg("Ainz musste sich aus %s nach Nazarick zurückziehen." % loc.name, "warning")
+	await _fade(1.0, 0.6)
+	player.revive()
+	_busy = false
+	await load_location("throne")
+	await _fade(0.0, 0.6)
+
+
+func _on_feedback(text: String, color: Color) -> void:
+	hud_feedback.text = text
+	hud_feedback.add_theme_color_override("font_color", color)
+	hud_feedback.modulate.a = 1.0
+	var tw := hud_feedback.create_tween()
+	tw.tween_interval(0.9)
+	tw.tween_property(hud_feedback, "modulate:a", 0.0, 0.5)
+
+
+func _float_text(at: Vector3, text: String, col: Color, size: int) -> void:
+	var l := Label3D.new()
+	l.text = text
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	l.font = NazarickTheme.display_font(800)
+	l.font_size = size
+	l.outline_size = 10
+	l.modulate = col
+	l.pixel_size = 0.006
+	l.no_depth_test = true
+	level.add_child(l)
+	l.global_position = at
+	var tw := l.create_tween().set_parallel(true)
+	tw.tween_property(l, "global_position", at + Vector3(0, 1.2, 0), 0.9)
+	tw.tween_property(l, "modulate:a", 0.0, 0.9).set_delay(0.3)
+	tw.chain().tween_callback(l.queue_free)
+
+
+func _build_combat_hud() -> void:
+	var box := VBoxContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	box.offset_left = 18
+	box.offset_top = -170
+	box.offset_bottom = -16
+	box.offset_right = 420
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.add_child(box)
+	hud_style.theme_type_variation = "GoldLabel"
+	hud_style.add_theme_constant_override("outline_size", 6)
+	hud_style.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	box.add_child(hud_style)
+	for spec in [["hp", "Leben", Color(0.85, 0.12, 0.2)], ["stamina", "Ausdauer", Color(0.95, 0.78, 0.3)], ["mana", "Mana", Color(0.35, 0.55, 1.0)]]:
+		var row := HBoxContainer.new()
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var bar := ProgressBar.new()
+		bar.show_percentage = false
+		bar.custom_minimum_size = Vector2(320, 14 if spec[0] == "hp" else 9)
+		bar.add_theme_stylebox_override("fill", NazarickTheme.box(spec[2], Color.TRANSPARENT, 0, 4, Color(spec[2], 0.5), 6, 0))
+		bar.add_theme_stylebox_override("background", NazarickTheme.box(Color(0, 0, 0, 0.6), Color(spec[2], 0.4), 1, 4))
+		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(bar)
+		var l := Label.new()
+		l.add_theme_font_size_override("font_size", 14)
+		l.add_theme_constant_override("outline_size", 5)
+		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+		row.add_child(l)
+		box.add_child(row)
+		hud_bars[spec[0]] = [bar, l]
+	hud_spells.add_theme_constant_override("separation", 6)
+	hud_spells.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(hud_spells)
+	hud_feedback.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	hud_feedback.offset_top = 60
+	hud_feedback.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hud_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud_feedback.theme_type_variation = "GoldLabel"
+	hud_feedback.add_theme_font_size_override("font_size", 28)
+	hud_feedback.add_theme_constant_override("outline_size", 8)
+	hud_feedback.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	hud_feedback.modulate.a = 0.0
+	ui_root.add_child(hud_feedback)
+	hud_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud_vignette.color = Color(0.6, 0.0, 0.05, 0.0)
+	hud_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.add_child(hud_vignette)
+	ui_root.move_child(hud_vignette, 0)
+
+
+func _rebuild_spell_bar() -> void:
+	for c in hud_spells.get_children():
+		c.queue_free()
+	_spell_slots.clear()
+	var keys := ["1", "2", "3", "4", "R"]
+	var sp: Array = player.spells()
+	for i in sp.size():
+		var d: Dictionary = Content.combat.spells[sp[i]]
+		var slot := PanelContainer.new()
+		slot.custom_minimum_size = Vector2(58, 58)
+		slot.tooltip_text = "%s [%s] – %s\nKosten: %d %s · Abklingzeit %.0f s" % [d.name, keys[i], d.desc, int(d.cost), "Mana" if d.cost_type == "mana" else "Ausdauer", float(d.cooldown)]
+		slot.add_theme_stylebox_override("panel", NazarickTheme.box(Color(0, 0, 0, 0.7), Color(d.color), 2, 8, Color(Color(d.color), 0.3), 6, 2))
+		var vb := VBoxContainer.new()
+		vb.add_theme_constant_override("separation", -4)
+		slot.add_child(vb)
+		var ic := Label.new()
+		ic.text = d.icon
+		ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		ic.add_theme_font_size_override("font_size", 24)
+		ic.add_theme_color_override("font_color", Color(d.color))
+		vb.add_child(ic)
+		var k := Label.new()
+		k.text = keys[i]
+		k.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		k.add_theme_font_size_override("font_size", 13)
+		vb.add_child(k)
+		hud_spells.add_child(slot)
+		_spell_slots.append([sp[i], slot, k, keys[i]])
+
+
+func _update_combat_hud() -> void:
+	if hud_bars.is_empty():
+		return
+	var vals := {"hp": [player.hp, player.max_hp], "stamina": [maxf(0.0, player.stamina), player.max_stamina], "mana": [player.mana, player.max_mana]}
+	for k in vals:
+		var bar: ProgressBar = hud_bars[k][0]
+		bar.max_value = maxf(1.0, vals[k][1])
+		bar.value = vals[k][0]
+		(hud_bars[k][1] as Label).text = "%d / %d" % [int(vals[k][0]), int(vals[k][1])]
+		bar.get_parent().visible = vals[k][1] > 0.0
+	var st: String = Fighter.STATE_NAMES[player.state]
+	var extra := ""
+	if player.lock and is_instance_valid(player.lock):
+		extra = "  ·  ◆ " + player.lock.display_name
+	if player.shield_time > 0.0:
+		extra += "  ·  ⛨ Barriere %.0fs" % player.shield_time
+	hud_style.text = "%s  [%s]%s" % [player.display_name, st, extra]
+	for s in _spell_slots:
+		var cd := float(player.cooldowns.get(s[0], 0.0))
+		var ready := player.spell_ready(s[0])
+		(s[1] as Control).modulate = Color(1, 1, 1, 1) if ready else Color(0.5, 0.5, 0.55, 0.85)
+		(s[2] as Label).text = ("%.0f" % ceilf(cd)) if cd > 0.0 else s[3]
+	if hud_vignette.color.a > 0.0:
+		hud_vignette.color.a = maxf(0.0, hud_vignette.color.a - get_process_delta_time() * 0.8)
+
+
+## Kampf läuft, wenn ein lebender Gegner Ainz bemerkt hat.
+func in_combat() -> bool:
+	for e in enemies:
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(player.global_position) < e.aggro * 1.3:
+			return true
+	return false

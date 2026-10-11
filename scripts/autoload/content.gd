@@ -20,6 +20,7 @@ var region_links: Array = []              ## Wegenetz [a, b, Tage]
 var systems: Dictionary = {}              ## Wirtschaft, Bedrohungen, Komplikationen, Synergien, Erlasse
 var locations: Array = []                 ## begehbare 3D-Orte (data/locations.json)
 var location_by_id: Dictionary = {}
+var combat: Dictionary = {}               ## Kampfwerte: Spielerstile, Zauber, Gegner (data/combat.json)
 
 
 func _ready() -> void:
@@ -54,6 +55,7 @@ func reload() -> void:
 	directives = story.get("directives", {})
 
 	systems = _load_json("systems.json")
+	combat = _load_json("combat.json")
 	locations = _load_json("locations.json").get("locations", [])
 	for l in locations:
 		location_by_id[l.id] = l

@@ -194,6 +194,9 @@ static func light(parent: Node, pos: Vector3, color: Color, energy: float = 1.5,
 
 ## Feuerschale mit flackerndem Licht und Funken.
 static func brazier(parent: Node, pos: Vector3, color: Color = Color(1.0, 0.55, 0.2), solid: bool = true) -> void:
+	if ModelLib.place_prop(parent, "brazier", pos, 0.0, 1.0, solid):
+		B3.light(parent, pos + Vector3(0, 1.8, 0), color, 2.2, 9.0).set_meta("flicker", true)
+		return
 	cyl(parent, 0.35, 0.15, 1.1, pos + Vector3(0, 0.55, 0), mat(Color(0.12, 0.1, 0.1), 0.6, 0.6), solid, 10)
 	cyl(parent, 0.5, 0.3, 0.25, pos + Vector3(0, 1.2, 0), mat(Color(0.75, 0.58, 0.2), 0.35, 0.9), false, 12)
 	sphere(parent, 0.28, pos + Vector3(0, 1.45, 0), mat(color, 1.0, 0.0, color, 4.0), Vector3(1, 1.4, 1))
@@ -249,6 +252,9 @@ static func motes(parent: Node, center: Vector3, extent: Vector3, color: Color, 
 
 
 static func crystal(parent: Node, pos: Vector3, color: Color, h: float = 1.6) -> void:
+	if ModelLib.place_prop(parent, "crystal", pos, 0.0, h / 1.6, false):
+		light(parent, pos + Vector3(0, h * 0.6, 0), color, 0.9, 4.5)
+		return
 	var m := mat(Color(color, 0.85), 0.1, 0.2, color, 2.5)
 	prism(parent, Vector3(0.5, h, 0.5), pos + Vector3(0, h / 2.0, 0), m, Vector3(0, 45, 0))
 	prism(parent, Vector3(0.5, h, 0.5), pos + Vector3(0, h * 0.75 - 0.01, 0), m, Vector3(180, 45, 0)).scale = Vector3(1, 0.5, 1)
@@ -260,6 +266,8 @@ static func crystal(parent: Node, pos: Vector3, color: Color, h: float = 1.6) ->
 # =====================================================================
 
 static func pillar(parent: Node, pos: Vector3, h: float, r: float, stone: Material, gold: Material) -> void:
+	if ModelLib.place_prop(parent, "pillar", pos, 0.0, h / 15.5):
+		return
 	cyl(parent, r, r, h, pos + Vector3(0, h / 2.0, 0), stone, true, 12)
 	box(parent, Vector3(r * 2.6, 0.35, r * 2.6), pos + Vector3(0, 0.17, 0), gold, false)
 	box(parent, Vector3(r * 2.6, 0.35, r * 2.6), pos + Vector3(0, h - 0.17, 0), gold, false)
@@ -267,6 +275,8 @@ static func pillar(parent: Node, pos: Vector3, h: float, r: float, stone: Materi
 
 ## Banner mit Wappen-Textur (Fraktions-Icon) oder Farbe.
 static func banner(parent: Node, pos: Vector3, color: Color, emblem: Texture2D = null, h: float = 3.0, rot_y: float = 0.0) -> void:
+	if ModelLib.place_prop(parent, "banner", pos, rot_y, h / 3.0, false):
+		return
 	var holder := Node3D.new()
 	holder.position = pos
 	holder.rotation_degrees.y = rot_y
@@ -281,6 +291,8 @@ static func banner(parent: Node, pos: Vector3, color: Color, emblem: Texture2D =
 
 
 static func tree(parent: Node, pos: Vector3, h: float, trunk: Material, leaves: Material, conifer: bool = false) -> void:
+	if ModelLib.place_prop(parent, "tree_conifer" if conifer else "tree", pos, pos.x * 37.0, h / 10.0):
+		return
 	cyl(parent, h * 0.04, h * 0.07, h * 0.5, pos + Vector3(0, h * 0.25, 0), trunk, true, 7)
 	if conifer:
 		cone(parent, h * 0.3, h * 0.55, pos + Vector3(0, h * 0.3, 0), leaves)
@@ -291,6 +303,8 @@ static func tree(parent: Node, pos: Vector3, h: float, trunk: Material, leaves: 
 
 
 static func house(parent: Node, pos: Vector3, size: Vector3, wall: Material, roof: Material, rot_y: float = 0.0) -> void:
+	if ModelLib.place_prop(parent, "house", pos, rot_y, size.y / 3.0):
+		return
 	var h := Node3D.new()
 	h.position = pos
 	h.rotation_degrees.y = rot_y
@@ -303,6 +317,8 @@ static func house(parent: Node, pos: Vector3, size: Vector3, wall: Material, roo
 
 
 static func tower(parent: Node, pos: Vector3, r: float, h: float, stone: Material, roof: Material) -> void:
+	if ModelLib.place_prop(parent, "tower", pos, 0.0, h / 12.0):
+		return
 	cyl(parent, r, r * 1.05, h, pos + Vector3(0, h / 2.0, 0), stone, true, 12)
 	cone(parent, r * 1.25, r * 2.4, pos + Vector3(0, h, 0), roof)
 
@@ -323,6 +339,8 @@ static func city_wall(parent: Node, half: float, h: float, stone: Material, roof
 
 
 static func rock(parent: Node, pos: Vector3, s: float, material: Material) -> void:
+	if ModelLib.place_prop(parent, "rock", pos, pos.x * 37.0, s):
+		return
 	sphere(parent, s, pos, material, Vector3(1.3, 0.7, 1.0), true).rotation_degrees.y = pos.x * 37.0
 
 

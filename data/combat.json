@@ -1,0 +1,625 @@
+{
+ "player": {
+  "parry_window": 0.22,
+  "dodge_time": 0.5,
+  "iframes": [
+   0.05,
+   0.38
+  ],
+  "dodge_speed": 11.0,
+  "dodge_stamina": 22,
+  "block_stamina_mult": 0.6,
+  "stamina_regen": 22,
+  "stamina_delay": 0.8,
+  "mana_regen": 4.0,
+  "poise": 60,
+  "styles": {
+   "ainz": {
+    "name": "Ainz Ooal Gown",
+    "hp": 320,
+    "stamina": 100,
+    "mana": 220,
+    "armor": 30,
+    "speed": 5.0,
+    "light": [
+     {
+      "id": "staff1",
+      "name": "Stabhieb",
+      "windup": 0.18,
+      "active": 0.14,
+      "recovery": 0.3,
+      "damage": 14,
+      "range": 1.9,
+      "stamina": 0,
+      "stagger": 15,
+      "lunge": 2.0,
+      "arc": 110
+     },
+     {
+      "id": "staff2",
+      "name": "Rückhandschlag",
+      "windup": 0.16,
+      "active": 0.14,
+      "recovery": 0.36,
+      "damage": 16,
+      "range": 1.9,
+      "stamina": 0,
+      "stagger": 18,
+      "lunge": 2.0,
+      "arc": 120
+     }
+    ],
+    "heavy": {
+     "id": "staff_slam",
+     "name": "Stabschmetterer",
+     "windup": 0.55,
+     "active": 0.18,
+     "recovery": 0.55,
+     "damage": 38,
+     "range": 2.6,
+     "stamina": 28,
+     "stagger": 55,
+     "lunge": 1.0,
+     "arc": 360,
+     "type": "negative"
+    },
+    "spells": [
+     "fireball",
+     "shockwave",
+     "shield",
+     "hold",
+     "grasp_heart"
+    ]
+   },
+   "momon": {
+    "name": "Momon – der Dunkle Held",
+    "hp": 420,
+    "stamina": 150,
+    "mana": 60,
+    "armor": 65,
+    "speed": 5.4,
+    "light": [
+     {
+      "id": "sword1",
+      "name": "Doppelhieb",
+      "windup": 0.2,
+      "active": 0.16,
+      "recovery": 0.28,
+      "damage": 16,
+      "range": 2.4,
+      "stamina": 4,
+      "stagger": 20,
+      "lunge": 2.5,
+      "arc": 130
+     },
+     {
+      "id": "sword2",
+      "name": "Kreuzschnitt",
+      "windup": 0.18,
+      "active": 0.16,
+      "recovery": 0.3,
+      "damage": 16,
+      "range": 2.4,
+      "stamina": 4,
+      "stagger": 20,
+      "lunge": 2.5,
+      "arc": 130
+     },
+     {
+      "id": "sword3",
+      "name": "Zwillingsstoß",
+      "windup": 0.3,
+      "active": 0.2,
+      "recovery": 0.5,
+      "damage": 26,
+      "range": 2.8,
+      "stamina": 8,
+      "stagger": 40,
+      "lunge": 4.0,
+      "arc": 80
+     }
+    ],
+    "heavy": {
+     "id": "cleave",
+     "name": "Großschwert-Spaltung",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.6,
+     "damage": 48,
+     "range": 3.0,
+     "stamina": 30,
+     "stagger": 80,
+     "lunge": 2.0,
+     "arc": 200
+    },
+    "spells": [
+     "leap",
+     "whirl"
+    ]
+   }
+  }
+ },
+ "spells": {
+  "fireball": {
+   "name": "Feuerkugel",
+   "icon": "✹",
+   "key": "1",
+   "cost": 14,
+   "cost_type": "mana",
+   "cooldown": 0.9,
+   "cast": 0.25,
+   "kind": "projectile",
+   "damage": 26,
+   "type": "fire",
+   "speed": 22,
+   "status": {
+    "burn": 3.0
+   },
+   "stagger": 20,
+   "color": "#ff7a2a",
+   "desc": "Schneller Feuerball – entzündet das Ziel."
+  },
+  "shockwave": {
+   "name": "Druckwelle",
+   "icon": "◎",
+   "key": "2",
+   "cost": 20,
+   "cost_type": "mana",
+   "cooldown": 3.0,
+   "cast": 0.3,
+   "kind": "cone",
+   "range": 6.5,
+   "arc": 100,
+   "damage": 10,
+   "type": "negative",
+   "stagger": 90,
+   "knockback": 9,
+   "color": "#b98cff",
+   "desc": "Schleudert Gegner zurück und bricht ihre Deckung (wie Aard)."
+  },
+  "shield": {
+   "name": "Größere Magische Schutzbarriere",
+   "icon": "⛨",
+   "key": "3",
+   "cost": 25,
+   "cost_type": "mana",
+   "cooldown": 8.0,
+   "cast": 0.2,
+   "kind": "self",
+   "duration": 15,
+   "color": "#f5d77a",
+   "desc": "Absorbiert den nächsten Treffer vollständig (wie Quen)."
+  },
+  "hold": {
+   "name": "Lähmung",
+   "icon": "✧",
+   "key": "4",
+   "cost": 22,
+   "cost_type": "mana",
+   "cooldown": 6.0,
+   "cast": 0.35,
+   "kind": "target",
+   "range": 14,
+   "status": {
+    "stun": 3.0
+   },
+   "damage": 0,
+   "color": "#7fd8ff",
+   "desc": "Lähmt ein Ziel für drei Sekunden (wie Axii)."
+  },
+  "grasp_heart": {
+   "name": "Herzgriff",
+   "icon": "♥",
+   "key": "R",
+   "cost": 70,
+   "cost_type": "mana",
+   "cooldown": 20.0,
+   "cast": 1.1,
+   "kind": "target",
+   "range": 18,
+   "damage": 220,
+   "type": "negative",
+   "status": {
+    "stun": 2.0
+   },
+   "stagger": 200,
+   "color": "#ff2a4f",
+   "desc": "Zerquetscht das Herz des Ziels. Langsam zu wirken, verheerend."
+  },
+  "leap": {
+   "name": "Sprungangriff",
+   "icon": "⤒",
+   "key": "1",
+   "cost": 35,
+   "cost_type": "stamina",
+   "cooldown": 5.0,
+   "cast": 0.45,
+   "kind": "leap",
+   "range": 7,
+   "damage": 40,
+   "radius": 3.0,
+   "type": "physical",
+   "stagger": 90,
+   "knockback": 5,
+   "color": "#d4af37",
+   "desc": "Ein Satz zum Ziel mit verheerendem Aufschlag."
+  },
+  "whirl": {
+   "name": "Schwerterwirbel",
+   "icon": "✺",
+   "key": "2",
+   "cost": 40,
+   "cost_type": "stamina",
+   "cooldown": 7.0,
+   "cast": 0.3,
+   "kind": "cone",
+   "range": 3.6,
+   "arc": 360,
+   "damage": 34,
+   "type": "physical",
+   "stagger": 60,
+   "knockback": 4,
+   "color": "#d4af37",
+   "desc": "Beide Großschwerter kreisen – trifft alles ringsum."
+  }
+ },
+ "enemies": {
+  "skeleton": {
+   "name": "Skelettkrieger",
+   "hp": 70,
+   "armor": 10,
+   "speed": 3.6,
+   "poise": 30,
+   "aggro": 14,
+   "model": "skeleton",
+   "color": "#d8d2c0",
+   "gold": 6,
+   "resist": {
+    "fire": 1.2
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Säbelhieb",
+     "windup": 0.65,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 14,
+     "range": 1.9,
+     "stagger": 20,
+     "arc": 100
+    },
+    {
+     "id": "lunge",
+     "name": "Ausfallstoß",
+     "windup": 0.8,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 18,
+     "range": 2.6,
+     "lunge": 3.0,
+     "stagger": 25,
+     "arc": 60
+    }
+   ]
+  },
+  "death_knight": {
+   "name": "Todesritter",
+   "hp": 260,
+   "armor": 45,
+   "speed": 3.0,
+   "poise": 120,
+   "aggro": 16,
+   "model": "death_knight",
+   "color": "#6a3aa8",
+   "gold": 30,
+   "elite": true,
+   "resist": {
+    "negative": 0.5
+   },
+   "attacks": [
+    {
+     "id": "cleave",
+     "name": "Flamberge-Spaltung",
+     "windup": 1.0,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 30,
+     "range": 2.6,
+     "stagger": 60,
+     "arc": 140
+    },
+    {
+     "id": "bash",
+     "name": "Schildstoß",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 12,
+     "range": 1.8,
+     "stagger": 80,
+     "arc": 90,
+     "knockback": 6
+    },
+    {
+     "id": "overhead",
+     "name": "Todesurteil",
+     "windup": 1.4,
+     "active": 0.25,
+     "recovery": 1.2,
+     "damage": 48,
+     "range": 2.8,
+     "stagger": 120,
+     "arc": 50,
+     "unblockable": true,
+     "lunge": 2.0
+    }
+   ]
+  },
+  "soldier": {
+   "name": "Ritter der Schrift",
+   "hp": 110,
+   "armor": 30,
+   "speed": 3.9,
+   "poise": 50,
+   "aggro": 15,
+   "model": "soldier",
+   "color": "#c8d0e8",
+   "gold": 12,
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schwerthieb",
+     "windup": 0.55,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 15,
+     "range": 2.0,
+     "stagger": 25,
+     "arc": 110
+    },
+    {
+     "id": "thrust",
+     "name": "Stich",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 20,
+     "range": 2.6,
+     "lunge": 2.5,
+     "stagger": 30,
+     "arc": 50
+    }
+   ]
+  },
+  "wolf": {
+   "name": "Waldwolf",
+   "hp": 55,
+   "armor": 5,
+   "speed": 6.2,
+   "poise": 20,
+   "aggro": 18,
+   "model": "wolf",
+   "color": "#5a5048",
+   "gold": 3,
+   "resist": {
+    "fire": 1.4
+   },
+   "attacks": [
+    {
+     "id": "bite",
+     "name": "Biss",
+     "windup": 0.45,
+     "active": 0.14,
+     "recovery": 0.5,
+     "damage": 10,
+     "range": 1.7,
+     "stagger": 15,
+     "arc": 90
+    },
+    {
+     "id": "pounce",
+     "name": "Sprung",
+     "windup": 0.75,
+     "active": 0.25,
+     "recovery": 0.9,
+     "damage": 16,
+     "range": 4.0,
+     "lunge": 7.0,
+     "stagger": 40,
+     "arc": 60,
+     "unblockable": true
+    }
+   ]
+  },
+  "angel": {
+   "name": "Engel der Herrschaft",
+   "hp": 340,
+   "armor": 35,
+   "speed": 2.6,
+   "poise": 150,
+   "aggro": 18,
+   "model": "angel",
+   "color": "#fff6d0",
+   "gold": 40,
+   "elite": true,
+   "resist": {
+    "negative": 1.5,
+    "fire": 0.7
+   },
+   "attacks": [
+    {
+     "id": "mace",
+     "name": "Heiliges Zepter",
+     "windup": 0.9,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 26,
+     "range": 2.6,
+     "stagger": 50,
+     "arc": 140,
+     "type": "holy"
+    },
+    {
+     "id": "judgement",
+     "name": "Urteil des Himmels",
+     "windup": 1.6,
+     "active": 0.3,
+     "recovery": 1.3,
+     "damage": 45,
+     "range": 3.5,
+     "stagger": 120,
+     "arc": 360,
+     "unblockable": true,
+     "type": "holy"
+    }
+   ]
+  },
+  "golem": {
+   "name": "Übungsgolem",
+   "hp": 400,
+   "armor": 20,
+   "speed": 2.4,
+   "poise": 80,
+   "aggro": 12,
+   "model": "golem",
+   "color": "#8a8478",
+   "gold": 0,
+   "respawn": true,
+   "attacks": [
+    {
+     "id": "swing",
+     "name": "Steinfaust",
+     "windup": 1.0,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 8,
+     "range": 2.2,
+     "stagger": 30,
+     "arc": 120
+    },
+    {
+     "id": "stomp",
+     "name": "Stampfer",
+     "windup": 1.5,
+     "active": 0.25,
+     "recovery": 1.2,
+     "damage": 12,
+     "range": 3.0,
+     "stagger": 60,
+     "arc": 360,
+     "unblockable": true
+    }
+   ]
+  },
+  "lizard": {
+   "name": "Echsenkrieger",
+   "hp": 90,
+   "armor": 20,
+   "speed": 4.0,
+   "poise": 40,
+   "aggro": 15,
+   "model": "soldier",
+   "color": "#5f8a52",
+   "gold": 8,
+   "attacks": [
+    {
+     "id": "spear",
+     "name": "Speerstoß",
+     "windup": 0.6,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 16,
+     "range": 2.8,
+     "lunge": 2.0,
+     "stagger": 25,
+     "arc": 60
+    },
+    {
+     "id": "tail",
+     "name": "Schwanzschlag",
+     "windup": 0.5,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 10,
+     "range": 2.0,
+     "stagger": 50,
+     "arc": 180
+    }
+   ]
+  },
+  "quagoa": {
+   "name": "Quagoa",
+   "hp": 70,
+   "armor": 25,
+   "speed": 4.8,
+   "poise": 30,
+   "aggro": 16,
+   "model": "wolf",
+   "color": "#7a6a58",
+   "gold": 5,
+   "attacks": [
+    {
+     "id": "claw",
+     "name": "Krallenhieb",
+     "windup": 0.5,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 13,
+     "range": 1.8,
+     "stagger": 20,
+     "arc": 100
+    },
+    {
+     "id": "dig",
+     "name": "Grabangriff",
+     "windup": 1.0,
+     "active": 0.22,
+     "recovery": 1.0,
+     "damage": 20,
+     "range": 3.5,
+     "lunge": 5.0,
+     "stagger": 50,
+     "arc": 60,
+     "unblockable": true
+    }
+   ]
+  },
+  "elf": {
+   "name": "Elfenkrieger",
+   "hp": 85,
+   "armor": 15,
+   "speed": 4.6,
+   "poise": 30,
+   "aggro": 16,
+   "model": "soldier",
+   "color": "#7ad890",
+   "gold": 10,
+   "attacks": [
+    {
+     "id": "blade",
+     "name": "Klingentanz",
+     "windup": 0.45,
+     "active": 0.15,
+     "recovery": 0.55,
+     "damage": 13,
+     "range": 2.0,
+     "stagger": 20,
+     "arc": 110
+    },
+    {
+     "id": "dash",
+     "name": "Sturmschritt",
+     "windup": 0.7,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 18,
+     "range": 3.5,
+     "lunge": 4.5,
+     "stagger": 30,
+     "arc": 60
+    }
+   ]
+  }
+ }
+}

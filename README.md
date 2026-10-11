@@ -23,7 +23,7 @@ Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehl
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-1.4.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-1.5.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -32,7 +32,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-1.4.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-1.5.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -75,6 +75,62 @@ Seit Version 1.4 betrittst du Nazarick und die Neue Welt **selbst** – als Ainz
 - Story-Figuren begegnen dir je nach Kapitel: Gazef, Nigun, Clementine, Hamsuke, Jircniv, Neia, die Platinrüstung …
 
 Alle Umgebungen werden prozedural aus Primitiven aufgebaut (keine externen 3D-Modelle nötig); Himmel und Figuren nutzen die Artworks aus `assets/`.
+
+## Kampfsystem (Third-Person, im Stil von The Witcher 3)
+
+| Aktion | Taste |
+|---|---|
+| Leichte Attacke (Kombo) / Schwere Attacke | linke / rechte Maustaste |
+| Ausweichrolle (mit i-Frames) | `Leertaste` |
+| Blocken – früh gedrückt = **Parieren** | `F` halten |
+| Ziel fixieren (Lock-on) | `Q` |
+| Zauber bzw. Techniken | `1` `2` `3` `4` `R` |
+| Kampfstil wechseln: Ainz ↔ Momon | `X` |
+
+- **Zustandsautomat** für Spieler und Gegner (`scripts/combat/fighter.gd`): Bereit · Bewegung · Angriff (*Wind-up → aktiv → Recovery*) · Ausweichen · Block · Zauber · Taumeln · Gelähmt · Tot.
+- **Hitboxes/Hurtboxes** (`hitbox.gd`, `hurtbox.gd`): echte Area3D-Trefferzonen auf getrennten Physik-Ebenen; jeder Angriff trifft ein Ziel höchstens einmal, Bogen-/Reichweitenprüfung inklusive.
+- **Ausdauer** (schwere Attacken, Rolle, Blocken, Momons Techniken) und **Mana** (Ainz' Zauber) regenerieren sich; **Haltung (Poise)** bricht bei wuchtigen Treffern → Taumeln.
+- **Schaden**: Rüstung mindert physischen Schaden, Widerstände je Schadensart (physisch, Feuer, negativ, heilig); wer nach einem verfehlten Angriff in der Recovery steht, nimmt mehr Schaden.
+- **Statuseffekte**: Brennen (Schaden über Zeit), Unterkühlt (verlangsamt), Gelähmt, Schutzbarriere.
+- **Ainz** – magiefokussiert: Stabhiebe plus *Feuerkugel* (Projektil, entzündet), *Druckwelle* (stößt zurück, bricht Deckung – wie Aard), *Größere Magische Schutzbarriere* (absorbiert einen Treffer – wie Quen), *Lähmung* (wie Axii) und der starke **Herzgriff**.
+- **Momon** – zwei Großschwerter: 3-Schlag-Kombo, Großschwert-Spaltung, *Sprungangriff* und *Schwerterwirbel* (Ausdauer); mehr Leben und Rüstung, kaum Mana.
+- **Gegner mit lesbaren Mustern** (`enemy_3d.gd`, Werte in `data/combat.json`): Skelettkrieger, Todesritter, Ritter der Schrift, Wölfe, Engel der Herrschaft, Echsenkrieger, Quagoa, Elfenkrieger und ein Übungsgolem in der Arena der 6. Ebene. Beim Ausholen leuchten sie **orange (blockbar)** oder **rot (nur ausweichen!)**, zielen bis kurz vor dem Schlag nach und bleiben danach in ihrer Richtung – Ausweichen zur Seite lohnt sich.
+- Begegnungen je Ort in `data/locations.json` (`encounters`). Besiegte Gegner bringen Gold, Eliten zusätzlich Beute. Fällt Ainz, zieht er sich nach Nazarick zurück (Stimmung −4).
+- Werte anpassen: `data/combat.json` (Stile, Angriffe mit `windup/active/recovery/damage/range/arc/stagger/lunge/unblockable`, Zauber, Gegner).
+
+---
+
+## 3D-Modelle (.glb) einbinden
+
+Das Spiel nutzt **echte 3D-Modelle**, sobald sie vorhanden sind – sonst automatisch die bisherigen Ersatzfiguren (Portrait-Aufsteller bzw. prozedurale Modelle aus Grundformen). Die 2D-Portraits bleiben für Dialoge, Berichte und Menüs erhalten.
+
+**Ablage** (Dateiname = ID, `.glb` empfohlen, auch `.gltf`/`.tscn`):
+
+| Ordner | Inhalt |
+|---|---|
+| `assets/models/characters/<id>.glb` | Figuren: Ainz, Momon, Wächter, NPCs, Gegner |
+| `assets/models/props/<id>.glb` | Requisiten/Gebäude, ersetzen die Grundformen überall im Spiel |
+| `assets/models/locations/<ort>.glb` | ein ganzer Ort – ersetzt das prozedurale Rezept komplett |
+
+Zusätzlich lädt das Spiel Modelle **zur Laufzeit ohne Neu-Export** aus `<Spielordner>/models/<kind>/` und `user://models/<kind>/` (z. B. `%APPDATA%\Godot\app_userdata\Overlord – Herrscher von Nazarick\models\characters\albedo.glb`).
+
+**Anforderungen**
+- Maßstab 1 Einheit = 1 Meter, Figuren ca. 1,8–2,3 m, Ursprung zwischen den Füßen, Blick nach **+Z** (sonst `rot_y` in `data/models.json`).
+- Figuren mit Skelett und Animationen im selben `.glb`. Erkannt werden (Groß-/Kleinschreibung egal, Teilwort genügt – erweiterbar in `data/models.json → animation_aliases`):
+  `idle`, `walk`, `run`, `attack_light` (*attack, slash, attack1 …*), `attack_heavy` (*heavy, slam, attack2 …*), `dodge` (*roll*), `block`, `hit`, `stagger`, `death`, `cast`.
+  Angriffs-Animationen werden automatisch auf die Dauer des jeweiligen Angriffs gestreckt.
+- Pro Modell optional in `data/models.json`: `{"characters": {"albedo": {"scale": 1.0, "rot_y": 180, "y": 0, "anims": {"attack_light": "Albedo_Slash"}}}}`.
+- Requisiten erhalten automatisch eine Kollision aus ihren Meshes.
+- Orts-Modelle können Ankerpunkte als benannte Knoten (Empty/Marker) enthalten: `Spawn`, `Gate`, `Throne`, `Table`, `Desk`, `Board`, `Keeper`, `Slot1` … `SlotN`.
+- Quellen: selbst modelliert (Blender), lizenzfreie Pakete oder KI-Generatoren mit passender Lizenz; Animationen z. B. über Mixamo. Keine Modelle aus offiziellen Spielen/Anime ohne Rechte.
+
+**Noch fehlende Modelle** (alle derzeit Ersatzfiguren):
+
+- Figuren: `ainz`, `ainz_momon`, `albedo`, `shalltear`, `demiurge`, `cocytus`, `aura`, `mare`, `sebas`, `narberal`, `pandora`, `solution`, `yuri`, `lupusregina`, `entoma`, `cz`, `victim`, `neuronist`, `gazef`, `jircniv`, `neia`, `hamsuke`, `nigun`, `clementine`, `platinum_dragon`, `death_knight`, `skeleton`, `death_knight`, `soldier`, `wolf`, `angel`, `golem`
+- Requisiten: `house`, `tower`, `tree`, `tree_conifer`, `rock`, `brazier`, `pillar`, `crystal`, `banner`, `throne`, `war_table`, `desk`, `gate_portal`, `coffin`, `bookshelf`, `tent`, `stilt_hut`, `gold_pile`, `chest`, `palace`, `cathedral`, `city_wall_segment`, `ice_spike`, `statue`
+- Ganze Orte (optional): `throne`, `tombs`, `glacier`, `jungle`, `lava`, `royal`, `library`, `treasury`, `carne`, `e_rantel`, `re_capital`, `baharuth`, `roble`, `theokratie`, `tob_wald`, `elfen`, `sumpf`, `katze`, `azerlisia`, `drachen`
+
+Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Animationen, lädt es über `ModelLib`, prüft die Animationszuordnung und das Platzieren eines Requisits mit Kollision.
 
 ---
 
@@ -148,11 +204,19 @@ scripts/
     world.gd, military.gd, diplomacy.gd   Regionen/Wirtschaft, Legionen/Schlachten, Fraktionen
     progress.gd            Ränge, Artefakte, Ausbau, Wochenziele, Errungenschaften
   world3d/
-    world_3d.gd            Third-Person-Welt: Orte laden, HUD, Interaktion, Echtzeit, Depeschen
-    player_3d.gd           Ainz (prozedurales Modell) + Third-Person-Kamera
+    world_3d.gd            Third-Person-Welt: Orte laden, HUD, Interaktion, Echtzeit, Depeschen, Kampf-HUD
+    player_3d.gd           Ainz/Momon: Steuerung, Kamera, Kampf, Lock-on, Zauber
+    model_lib.gd           findet/lädt .glb-Modelle (auch zur Laufzeit)
+    character_rig.gd       Modell oder Ersatzfigur + Animationssteuerung
+    proc_model.gd          prozedurale Ersatzfiguren mit Gelenken
     actor_3d.gd            Figuren als Portrait-Aufsteller, Interaktionsobjekte
     location_builder.gd    Rezepte der 20 Orte (Thronsaal, Gletscher, Stadt, Wald …)
     b3.gd                  3D-Baukasten (Materialien, Primitive mit Kollision, Licht, Partikel)
+  combat/
+    fighter.gd             Kämpfer-Basis: Zustandsautomat, Werte, Treffer, Status
+    hitbox.gd, hurtbox.gd  Trefferzonen
+    enemy_3d.gd            Gegner-KI mit Wind-up/Angriff/Recovery
+    projectile.gd          Zauberprojektile
     save_system.gd         JSON-Speichern/Laden (3 Slots)
   scenes/                  Skripte der Szenen
   ui/
@@ -176,7 +240,9 @@ data/
   story.json               Kapitel und Befehlsarten
   regions.json, factions.json, systems.json   Strategie-Ebene
   progression.json         Ränge, Artefakte, Ebenen, Wochenziele, Errungenschaften
-  locations.json           begehbare 3D-Orte, Story-Figuren und ihre Sätze
+  locations.json           begehbare 3D-Orte, Story-Figuren, Begegnungen
+  combat.json              Kampfstile, Angriffe, Zauber, Gegner
+  models.json              Einstellungen & Animationsnamen für 3D-Modelle
 assets/
   ui/                      Theme, Schriften (Cinzel, Cormorant Garamond, DejaVu – alle frei lizenziert)
   shaders/                 Hintergrund-Shader
@@ -258,7 +324,8 @@ godot --headless --path . --script res://tools/build_theme.gd
 godot --headless --path . res://tools/sim_test.tscn
 # Öffnet alle Fenster der UI und speichert Screenshots nach tools/screenshots/
 godot --path . res://tools/ui_smoke_test.tscn
-godot --path . res://tools/world3d_test.tscn     # besucht alle 3D-Orte (LOC=<id> für einen)
+godot --path . res://tools/world3d_test.tscn     # besucht alle 3D-Orte (LOC=<id> für einen, LOC=combat für den Kampf)
+godot --headless --path . res://tools/combat_test.tscn   # Kampfsystem + .glb-Laden
 ```
 
 ---
