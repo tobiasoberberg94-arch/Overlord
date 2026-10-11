@@ -31,6 +31,9 @@ var inbox_box := VBoxContainer.new()
 var inbox_badge := Label.new()
 var missions_box := VBoxContainer.new()
 var rivalry := RivalryMeter.new()
+var weekly_label := RichTextLabel.new()
+var weekly_button := Button.new()
+var celebrations := CelebrationLayer.new()
 var ticker := RichTextLabel.new()
 var time_buttons: Array[Button] = []
 var tutorial_targets: Dictionary = {}   ## Bereiche, die das Tutorial hervorhebt
@@ -51,6 +54,7 @@ func _ready() -> void:
 	toast_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(toast_box)
+	add_child(celebrations)
 
 	Game.state_changed.connect(refresh)
 	Game.log_added.connect(_on_log_added)
@@ -72,6 +76,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_P: _open_overlay(DiplomacyView.new())
 		KEY_V: _open_overlay(AdministrationView.new())
 		KEY_U: _open_characters("albedo")
+		KEY_N: _open_nazarick()
 		KEY_C: _open_overlay(ChronicleView.new())
 		KEY_D: _open_next_dispatch()
 		KEY_1: _advance(1)
@@ -208,7 +213,13 @@ func _build_left() -> Control:
 	cv.add_child(chapter_sub)
 	cv.add_child(HSeparator.new())
 	objectives_box.add_theme_constant_override("separation", 6)
-	cv.add_child(objectives_box)
+	objectives_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Scrollbar, damit lange Kapitelziele die Fußleiste nicht aus dem Bild schieben
+	var osc := ScrollContainer.new()
+	osc.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	osc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	osc.add_child(objectives_box)
+	cv.add_child(osc)
 	col.add_child(cp)
 	tutorial_targets["chapter"] = cp
 	return col
@@ -306,6 +317,24 @@ func _build_right() -> Control:
 	iv.add_child(alerts_label)
 	col.add_child(ip)
 	tutorial_targets["dispatches"] = ip
+	# Albedos Wochenziele & Ausbau
+	var wp := _panel()
+	wp.add_theme_stylebox_override("panel", NazarickTheme.box(Color(0.08, 0.03, 0.1, 0.9), Color(Palette.GOLD, 0.45), 1, 12, Color(Palette.VIOLET, 0.35), 10, 10))
+	var wv := VBoxContainer.new()
+	wv.add_theme_constant_override("separation", 4)
+	wp.add_child(wv)
+	weekly_label.bbcode_enabled = true
+	weekly_label.fit_content = true
+	weekly_label.scroll_active = false
+	weekly_label.add_theme_font_size_override("normal_font_size", 14)
+	weekly_label.add_theme_font_size_override("bold_font_size", 15)
+	weekly_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	wv.add_child(weekly_label)
+	weekly_button.theme_type_variation = "ButtonPrimary"
+	weekly_button.pressed.connect(func(): _open_nazarick(2))
+	wv.add_child(weekly_button)
+	col.add_child(wp)
+	tutorial_targets["weekly"] = wp
 	# Laufende Aufträge
 	var mp := _panel()
 	mp.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -349,7 +378,8 @@ func _build_bottom_bar() -> Control:
 			["Weltkarte", "ButtonPrimary", _open_map, "icon_magic", "Weltkarte, Regionen & Legionen [K]"],
 			["Diplomatie", "Button", func(): _open_overlay(DiplomacyView.new()), "icon_emblem", "Fraktionen & Gesandtschaften [P]"],
 			["Verwaltung", "Button", func(): _open_overlay(AdministrationView.new()), "icon_gold", "Finanzen & Erlasse [V]"],
-			["Untertanen", "Button", func(): _open_characters("albedo"), "icon_nazarick", "Wächter & Audienzen [U]"]]:
+			["Untertanen", "Button", func(): _open_characters("albedo"), "icon_loyalty", "Wächter & Audienzen [U]"],
+			["Nazarick", "Button", func(): _open_nazarick(), "icon_nazarick", "Ausbau, Schatzkammer, Wochenziele & Errungenschaften [N]"]]:
 		var b := Button.new()
 		b.text = spec[0]
 		b.tooltip_text = spec[4]
@@ -367,6 +397,8 @@ func _build_bottom_bar() -> Control:
 			tutorial_targets["admin"] = b
 		elif spec[3] == "icon_emblem":
 			tutorial_targets["diplomacy"] = b
+		elif spec[3] == "icon_nazarick":
+			tutorial_targets["nazarick"] = b
 	hb.add_child(VSeparator.new())
 	for spec in [["1 Tag", 1], ["1 Woche", 7], ["1 Monat", 30]]:
 		var b := Button.new()
@@ -437,12 +469,45 @@ func refresh() -> void:
 		l.add_theme_color_override("font_color", Palette.SUCCESS if o[1] else Palette.PARCHMENT)
 		objectives_box.add_child(l)
 
+	_refresh_weekly()
 	for cid in cards:
 		cards[cid].refresh()
 	_refresh_inbox()
 	_refresh_missions()
 	rivalry.refresh()
 	_refresh_ticker()
+
+
+func _refresh_weekly() -> void:
+	var p := Progress.ps()
+	var lines := PackedStringArray()
+	lines.append("[color=#d4af37][b]❤ Albedos Wochenziele[/b][/color]  [color=#8f86a3]noch %d T.%s[/color]" % [
+		Progress.week_days_left(), "  ·  Serie %d" % int(p.streak) if int(p.streak) > 0 else ""])
+	for g in p.goals:
+		var v := mini(Progress.goal_value(g), int(g.target))
+		var done := Progress.goal_done(g)
+		lines.append("[color=%s]%s %s[/color] [color=#8f86a3](%d/%d)[/color]" % ["#6fdc8c" if done else "#ebe2cc", "✔" if done else "◇", g.text, v, int(g.target)])
+	var b: Dictionary = p.build
+	if not b.is_empty():
+		lines.append("[color=#c79bff]⚒ %s → Stufe %d · noch %d T.[/color]" % [Progress.floor_def(b.id).name, int(b.level), maxi(0, int(b.done_day) - Game.state.day)])
+	else:
+		lines.append("[color=#ff9a3c]⚒ Die Baumeister warten auf einen Befehl.[/color]")
+	weekly_label.text = "\n".join(lines)
+	var chest := Progress.can_claim_chest()
+	weekly_button.text = "♛ Albedos Truhe öffnen!" if chest else "Nazarick verwalten  [N]"
+	weekly_button.theme_type_variation = "ButtonPrimary" if chest else "Button"
+	if chest and not weekly_button.has_meta("pulse"):
+		weekly_button.set_meta("pulse", UIFx.pulse(weekly_button, 0.7, 0.8))
+	elif not chest and weekly_button.has_meta("pulse"):
+		(weekly_button.get_meta("pulse") as Tween).kill()
+		weekly_button.remove_meta("pulse")
+		weekly_button.modulate.a = 1.0
+
+
+func _open_nazarick(tab: int = 0) -> void:
+	var v := NazarickView.new(tab)
+	v.closed.connect(func(): refresh())
+	_open_overlay(v)
 
 
 func _refresh_inbox() -> void:
@@ -638,6 +703,10 @@ func start_tutorial() -> void:
 			"text": "Endlich darf ich auch etwas sagen, ~arinsu! Das hier ist der [color=#ff2a4f][b]Herzenskrieg[/b][/color]. Lobt Ihr diese gehörnte Kuh, werde ich eifersüchtig – lobt Ihr mich, kocht sie vor Wut. Steigt die Rivalität zu hoch, passieren … interessante Dinge. Lobt einfach immer mich, dann bleibt alles friedlich!"},
 		{"speaker": "albedo", "target": t.get("rivalry"), "title": "Eine Richtigstellung",
 			"text": "Ignoriert sie, {lord}. Aber es stimmt: Wen Ihr bevorzugt, merken wir. [i]Alle[/i]. Haltet die Waage – oder entscheidet Euch. Für mich, vorzugsweise."},
+		{"speaker": "pandora", "target": t.get("nazarick"), "title": "Das Große Grab  [N]",
+			"text": "Herr der Schöpfung! Euer bescheidener Diener verwaltet die [b]Schatzkammer[/b]: Triumphe, Schlachten und gebannte Bedrohungen bringen [color=#6fb3ff]seltene[/color], [color=#c37bff]epische[/color], ja sogar [color=#ffb347]legendäre[/color] Artefakte – legt sie Euren Wächtern an! Jeder Einsatz bringt [b]Erfahrung[/b] und neue [b]Ränge[/b]. Und baut die [b]Ebenen Nazaricks[/b] aus – jede Stufe macht das Grab mächtiger. Wenn Ihr erlaubt: [i]Wenn es mein Gott wünscht![/i]"},
+		{"speaker": "albedo", "variant": "love", "target": t.get("weekly"), "title": "Meine Wochenziele für Euch",
+			"text": "Jede Woche lege ich Euch [b]drei Ziele[/b] vor. Erfüllt sie alle, und meine [b]Truhe[/b] gehört Euch – Gold und ein garantiert seltenes Artefakt. Jede Woche in Folge macht die Belohnung größer. Und lasst Euch von den [b]Errungenschaften[/b] nicht ablenken. Oder doch. Solange Ihr bei mir bleibt."},
 		{"speaker": "albedo", "target": t.get("topbar"), "title": "Chronik versiegeln",
 			"text": "Oben könnt Ihr [b]speichern[/b] und [b]laden[/b]. Unter ⚙ findet Ihr Lautstärke, Vollbild (F11) und diese Einführung, falls Ihr sie erneut hören möchtet. Ich erkläre es Euch jederzeit gern noch einmal. Und noch einmal."},
 		{"speaker": "albedo", "variant": "love", "target": t.get("throne"), "title": "Nazarick erwartet Euch",

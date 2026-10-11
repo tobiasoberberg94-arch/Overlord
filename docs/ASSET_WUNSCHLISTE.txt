@@ -99,6 +99,7 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     floor_royal.jpg         Ebene 9: Königliche Gemächer (Maids, Sebas)
     floor_library.jpg       Ebene 10: Bibliothek von Ashurbanipal
     treasury.jpg            Schatzkammer (Gold-Berge, Pandora's Actor)
+    forge.jpg               Golemschmiede (Golems an Ambossen, Funkenflug)
 
 2c) Story-Szenenbilder (große Bilder für Schlüsselmomente)  [B]
     Ordner: assets/backgrounds/  –  Querformat 16:9
@@ -132,8 +133,42 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     faction_nazarick.png    Gildenwappen von Ainz Ooal Gown
 
 3c) Artefakte / Beute (für die neue Schatzkammer)  [A]
-    item_<id>.png – je Artefakt ein Icon. Liste der IDs siehe data/progression.json,
-    z. B. item_orichalcum_blade.png, item_shadow_cloak.png, item_world_tree.png …
+    item_<id>.png – je Artefakt ein Icon:
+    item_iron_blade.png         Untotenstahl-Klinge (Gewöhnlich)
+    item_bone_mail.png          Knochenpanzer (Gewöhnlich)
+    item_silver_ring.png        Silberring der Wachsamkeit (Gewöhnlich)
+    item_ink_quill.png          Feder des Schreibers (Gewöhnlich)
+    item_velvet_gloves.png      Samthandschuhe (Gewöhnlich)
+    item_hook_dagger.png        Hakendolch (Gewöhnlich)
+    item_grey_cloak.png         Grauer Reisemantel (Gewöhnlich)
+    item_seal_ring.png          Siegelring von E-Rantel (Gewöhnlich)
+    item_mithril_saber.png      Mithril-Säbel (Selten)
+    item_shadow_cloak.png       Mantel der Schatten (Selten)
+    item_crown_eloquence.png    Krone der Eloquenz (Selten)
+    item_rune_amulet.png        Runenamulett der Zwerge (Selten)
+    item_blood_chalice.png      Blutkelch (Selten)
+    item_scale_vest.png         Echsenschuppenweste (Selten)
+    item_spy_eye.png            Auge des Spähers (Selten)
+    item_whip_pain.png          Peitsche der Pein (Selten)
+    item_tea_set.png            Teeservice der Pleiaden (Selten)
+    item_orichalcum_blade.png   Orichalcum-Klinge (Episch)
+    item_demon_contract.png     Dämonischer Vertrag (Episch)
+    item_frost_halberd.png      Frosthellebarde (Episch)
+    item_world_tree_staff.png   Ast des Weltenbaums (Episch)
+    item_beast_whistle.png      Pfeife des Bestienmeisters (Episch)
+    item_butler_gloves.png      Handschuhe des Butlers (Episch)
+    item_mask_thousand.png      Maske der Tausend Gesichter (Episch)
+    item_rune_shield.png        Runenschild der Zwerge (Episch)
+    item_plate_hermes.png       Hermes-Trismegistus-Platte (Episch)
+    item_spuit_lance.png        Spuhletit-Lanze (Legendär)
+    item_ginnungagap.png        Ginnungagap (Legendär)
+    item_frost_heart.png        Herz des Frostdrachen (Legendär)
+    item_ring_wishes.png        Ring der Sternschnuppe (Legendär)
+    item_crown_wisdom.png       Krone der Weisheit (Legendär)
+    item_platinum_shard.png     Platinsplitter (Legendär)
+    item_world_tree.png         Fragment des Weltenbaums (Weltklasse)
+    item_downfall_castle.png    Untergang von Burg und Land (Weltklasse)
+    item_longinus.png           Longinus (Weltklasse)
     Zusätzlich Seltenheitsrahmen (transparent in der Mitte):
     frame_common.png  frame_rare.png  frame_epic.png  frame_legendary.png  frame_world.png
 

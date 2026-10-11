@@ -12,6 +12,10 @@ Du bist **Momonga / Ainz Ooal Gown**: Herrscher und Verwalter des Großen Grabes
 | ![Bericht](docs/screenshots/07_report.png) | ![Epilog](docs/screenshots/19_ending.png) |
 | **Auftragstafel mit Teams** | **Einführung** |
 | ![Auftragstafel](docs/screenshots/04_mission_board.png) | ![Tutorial](docs/screenshots/tutorial.png) |
+| **Schatzkammer & Artefakte** | **Albedos Wochenziele** |
+| ![Schatzkammer](docs/screenshots/treasury.png) | ![Wochenziele](docs/screenshots/weekly.png) |
+| **Ausbau der Ebenen** | **Legendärer Fund** |
+| ![Ausbau](docs/screenshots/floors.png) | ![Fund](docs/screenshots/celebration.png) |
 
 Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehlt ein Bild, zeichnet das Spiel automatisch einen stilisierten Platzhalter.
 
@@ -19,7 +23,7 @@ Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehl
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-1.2.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-1.3.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +32,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-1.2.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-1.3.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -57,7 +61,8 @@ Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikk
 | Weltkarte, Legionen | Fußleiste → **Weltkarte** | `K` |
 | Diplomatie | Fußleiste → **Diplomatie** | `P` |
 | Finanzen & Erlasse | Fußleiste → **Verwaltung** | `V` |
-| Untertanen ansehen, Audienz gewähren | Wächterkarte anklicken / **Untertanen** | `U` |
+| Untertanen ansehen, Audienz gewähren, ausrüsten | Wächterkarte anklicken / **Untertanen** | `U` |
+| Nazarick: Ausbau, Schatzkammer, Wochenziele, Errungenschaften | Fußleiste → **Nazarick** | `N` |
 | Chronik (Event-Log) | Kopfleiste → **Chronik** | `C` |
 | Nächste Depesche öffnen | Depeschen-Panel | `D` |
 | Zeit vergehen lassen: 1 Tag / 1 Woche / 1 Monat | Fußleiste rechts | `1` / `2` / `3` |
@@ -90,6 +95,14 @@ Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikk
 - **Vier Schwierigkeitsgrade** – von *Gnädiger Herrscher* bis *Albtraum von Nazarick* (Startgold, Einkünfte, Unterhalt, Bedrohungen, Feindstärke).
 - **Kapitelziele** verlangen neben Story-Entscheidungen auch Einfluss, Ressourcen und Zeit – das Reich muss wirklich wachsen.
 
+**Das Große Grab wächst mit – „nur noch eine Woche …“**
+
+- **Wächter-Ränge I–X** – jeder Auftrag, jede Schlacht und jede Audienz bringt Erfahrung. Ein Rangaufstieg (vom *Getreuen* bis zur *Legende von Nazarick*) erhöht alle Werte und stärkt die Legion, die der Wächter führt. Fanfare inklusive.
+- **Artefakte & Schatzkammer** – 35 Artefakte in fünf Seltenheiten (*Gewöhnlich, Selten, Episch, Legendär, Weltklasse*): Triumphe, Schlachten, gebannte Bedrohungen, Errungenschaften und Albedos Truhe bringen Beute. Jeder Wächter hat Waffe, Rüstung und Kleinod; Lieblingsstücke (Spuhletit-Lanze für Shalltear, Frosthellebarde für Cocytus …) wirken stärker. Überzählige Funde lassen sich einschmelzen.
+- **Ausbau der Ebenen** – 10 Bauwerke × 3 Stufen (Grabkammern, Gletscher, Amphitheater, Lavahölle, Königliche Gemächer, Bibliothek von Ashurbanipal, Schatzkammer, Golemschmiede …): billigere Legionen, stärkere Heere, mehr Erfahrung, Gold, Wissen, Audienzen, Beute. Immer nur ein Bauprojekt zugleich – jede Entscheidung zählt.
+- **Albedos Wochenziele** – jede Woche drei neue Ziele mit Belohnung; wer alle erfüllt, öffnet **Albedos Truhe** (Gold + garantiert seltenes Artefakt). Aufeinanderfolgende Wochen bauen eine **Serie** auf, die die Truhe immer wertvoller macht.
+- **37 Errungenschaften** in Bronze, Silber, Gold und Platin – mit Belohnungen bis hin zu einem Weltgegenstand.
+
 **Story**: 11 Kapitel – *Die Ankunft · Das Dorf Carne · Der Dunkle Held · Blutiger Wahnsinn (der Shalltear-Zwischenfall) · Frost über dem Sumpf · Gehenna · Das Zauberkönigreich · Die Hallen von Feo Jera · Das Heilige Königreich · Der Wald der Elfen · Der Platin-Drachenlord* – mit einem **Epilog**, der sich aus deinen Entscheidungen zusammensetzt (Weltordnung, Ruf, Vasallen, Albedo & Shalltear, das Schicksal jedes Wächters). Danach geht die Herrschaft endlos weiter. Dazu 42 Aufträge (10 Haupt-, 15 Neben-, 17 Vorschlagsaufträge), 33 Ereignisse und 23 Eigeninitiativen, mit Verzweigungen (Carne retten oder ignorieren, Name „Ainz Ooal Gown“ annehmen oder Momonga bleiben, Shalltear selbst stellen oder Albedo schicken …).
 
 Spielstände liegen in `user://saves/` (Windows: `%APPDATA%\Godot\app_userdata\Overlord – Herrscher von Nazarick\saves`).
@@ -107,6 +120,8 @@ scripts/
   autoload/
     content.gd             lädt data/*.json
     game.gd                Spielzustand & Spiellogik (Aufträge, Zeit, Emotionen, Depeschen)
+    world.gd, military.gd, diplomacy.gd   Regionen/Wirtschaft, Legionen/Schlachten, Fraktionen
+    progress.gd            Ränge, Artefakte, Ausbau, Wochenziele, Errungenschaften
     save_system.gd         JSON-Speichern/Laden (3 Slots)
   scenes/                  Skripte der Szenen
   ui/
@@ -128,6 +143,8 @@ data/
   missions.json            Aufträge (Haupt, Neben, Vorschläge)
   events.json              Story-, Zufalls- und Rivalitätsereignisse + Eigeninitiativen
   story.json               Kapitel und Befehlsarten
+  regions.json, factions.json, systems.json   Strategie-Ebene
+  progression.json         Ränge, Artefakte, Ebenen, Wochenziele, Errungenschaften
 assets/
   ui/                      Theme, Schriften (Cinzel, Cormorant Garamond, DejaVu – alle frei lizenziert)
   shaders/                 Hintergrund-Shader
@@ -152,6 +169,10 @@ Eigene Bilder ersetzen oder ergänzen – kein Code nötig:
 | `assets/backgrounds/<ort>.jpg` | Ortsbilder in Berichten – Zuordnung per Stichwort in `Content.LOCATION_IMAGES` oder per `"image"` im Ereignis |
 | `assets/ui/frames/frame_gold.webp`, `frame_skull.webp` | Ornamentrahmen der Fenster (9-Slice) |
 | `assets/ui/icons/icon_*.webp` | Icons für Ressourcen und Aktionsknöpfe |
+| `assets/ui/icons/item_<id>.webp`, `frame_<seltenheit>.webp` | Artefakt-Icons (IDs in `data/progression.json`) und Seltenheitsrahmen |
+| `assets/backgrounds/floor_*.jpg`, `treasury.jpg`, `forge.jpg` | Bilder der Ebenen im Ausbau-Bildschirm |
+
+Eine vollständige Liste gewünschter Grafiken steht in `docs/ASSET_WUNSCHLISTE.txt`.
 
 Bitte nur Bilder verwenden, an denen du die Rechte hast.
 

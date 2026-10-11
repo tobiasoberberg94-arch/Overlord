@@ -1,0 +1,1389 @@
+{
+ "ranks": {
+  "xp": [
+   0,
+   100,
+   250,
+   450,
+   750,
+   1150,
+   1700,
+   2400,
+   3300,
+   4500
+  ],
+  "titles": [
+   "Getreuer",
+   "Vollstrecker",
+   "Kommandant",
+   "Hüter",
+   "Großhüter",
+   "Schreckensfürst",
+   "Herold des Untergangs",
+   "Weltenbrecher",
+   "Halbgott",
+   "Legende von Nazarick"
+  ],
+  "stat_per_rank": 1.0,
+  "xp_mission": {
+   "triumph": 60,
+   "success": 40,
+   "partial": 22,
+   "failure": 12
+  }
+ },
+ "rarities": [
+  {
+   "id": "common",
+   "name": "Gewöhnlich",
+   "color": "#c9c2d8",
+   "weight": 52,
+   "sell": 40
+  },
+  {
+   "id": "rare",
+   "name": "Selten",
+   "color": "#6fb3ff",
+   "weight": 30,
+   "sell": 110
+  },
+  {
+   "id": "epic",
+   "name": "Episch",
+   "color": "#c37bff",
+   "weight": 13,
+   "sell": 260
+  },
+  {
+   "id": "legendary",
+   "name": "Legendär",
+   "color": "#ffb347",
+   "weight": 4.5,
+   "sell": 600
+  },
+  {
+   "id": "world",
+   "name": "Weltklasse",
+   "color": "#ff4a6a",
+   "weight": 0.5,
+   "sell": 1500
+  }
+ ],
+ "items": [
+  {
+   "id": "iron_blade",
+   "name": "Untotenstahl-Klinge",
+   "slot": "waffe",
+   "rarity": "common",
+   "icon": "⚔",
+   "stats": {
+    "kampf": 3
+   },
+   "desc": "Geschmiedet von Skelettschmieden der 1. Ebene."
+  },
+  {
+   "id": "bone_mail",
+   "name": "Knochenpanzer",
+   "slot": "ruestung",
+   "rarity": "common",
+   "icon": "⛨",
+   "stats": {
+    "kampf": 2,
+    "diskretion": 1
+   },
+   "desc": "Leicht, hart, unheimlich."
+  },
+  {
+   "id": "silver_ring",
+   "name": "Silberring der Wachsamkeit",
+   "slot": "schmuck",
+   "rarity": "common",
+   "icon": "◎",
+   "stats": {
+    "initiative": 3
+   },
+   "desc": "Ein schlichter Ring mit einem Hauch Magie."
+  },
+  {
+   "id": "ink_quill",
+   "name": "Feder des Schreibers",
+   "slot": "schmuck",
+   "rarity": "common",
+   "icon": "✎",
+   "stats": {
+    "intellekt": 3
+   },
+   "desc": "Schreibt von selbst mit, was gesagt wird."
+  },
+  {
+   "id": "velvet_gloves",
+   "name": "Samthandschuhe",
+   "slot": "ruestung",
+   "rarity": "common",
+   "icon": "✋",
+   "stats": {
+    "diplomatie": 3
+   },
+   "desc": "Wer Samthandschuhe trägt, droht leiser."
+  },
+  {
+   "id": "hook_dagger",
+   "name": "Hakendolch",
+   "slot": "waffe",
+   "rarity": "common",
+   "icon": "†",
+   "stats": {
+    "grausamkeit": 2,
+    "kampf": 1
+   },
+   "desc": "Für Verhöre, die schnell gehen sollen."
+  },
+  {
+   "id": "grey_cloak",
+   "name": "Grauer Reisemantel",
+   "slot": "ruestung",
+   "rarity": "common",
+   "icon": "☂",
+   "stats": {
+    "diskretion": 3
+   },
+   "desc": "Unauffällig – genau das ist der Punkt."
+  },
+  {
+   "id": "seal_ring",
+   "name": "Siegelring von E-Rantel",
+   "slot": "schmuck",
+   "rarity": "common",
+   "icon": "✧",
+   "stats": {
+    "diplomatie": 2,
+    "intellekt": 1
+   },
+   "desc": "Öffnet Türen in Kanzleien."
+  },
+  {
+   "id": "mithril_saber",
+   "name": "Mithril-Säbel",
+   "slot": "waffe",
+   "rarity": "rare",
+   "icon": "⚔",
+   "stats": {
+    "kampf": 5,
+    "initiative": 2
+   },
+   "desc": "Leicht wie eine Feder, scharf wie ein Urteil."
+  },
+  {
+   "id": "shadow_cloak",
+   "name": "Mantel der Schatten",
+   "slot": "ruestung",
+   "rarity": "rare",
+   "icon": "☾",
+   "stats": {
+    "diskretion": 6
+   },
+   "desc": "Verschluckt Licht und Schritte."
+  },
+  {
+   "id": "crown_eloquence",
+   "name": "Krone der Eloquenz",
+   "slot": "schmuck",
+   "rarity": "rare",
+   "icon": "♛",
+   "stats": {
+    "diplomatie": 6,
+    "intellekt": 1
+   },
+   "desc": "Jedes Wort klingt wie ein Gesetz."
+  },
+  {
+   "id": "rune_amulet",
+   "name": "Runenamulett der Zwerge",
+   "slot": "schmuck",
+   "rarity": "rare",
+   "icon": "ᚱ",
+   "stats": {
+    "intellekt": 4,
+    "diskretion": 2
+   },
+   "desc": "Eine Rune, die es in Yggdrasil nie gab.",
+   "requires": {
+    "chapter_min": 5
+   }
+  },
+  {
+   "id": "blood_chalice",
+   "name": "Blutkelch",
+   "slot": "schmuck",
+   "rarity": "rare",
+   "icon": "♆",
+   "stats": {
+    "grausamkeit": 5,
+    "kampf": 1
+   },
+   "desc": "Füllt sich von selbst. Niemand fragt, womit.",
+   "fav": "shalltear"
+  },
+  {
+   "id": "scale_vest",
+   "name": "Echsenschuppenweste",
+   "slot": "ruestung",
+   "rarity": "rare",
+   "icon": "⛨",
+   "stats": {
+    "kampf": 3,
+    "diskretion": 3
+   },
+   "desc": "Ein Geschenk der Echsenmenschen.",
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "id": "spy_eye",
+   "name": "Auge des Spähers",
+   "slot": "schmuck",
+   "rarity": "rare",
+   "icon": "◉",
+   "stats": {
+    "initiative": 3,
+    "diskretion": 3
+   },
+   "desc": "Ein gläsernes Auge, das in die Ferne sieht.",
+   "effects": {
+    "loot": 0.03
+   }
+  },
+  {
+   "id": "whip_pain",
+   "name": "Peitsche der Pein",
+   "slot": "waffe",
+   "rarity": "rare",
+   "icon": "≀",
+   "stats": {
+    "grausamkeit": 6
+   },
+   "desc": "Neuronist hat sie persönlich signiert."
+  },
+  {
+   "id": "tea_set",
+   "name": "Teeservice der Pleiaden",
+   "slot": "schmuck",
+   "rarity": "rare",
+   "icon": "☕",
+   "stats": {
+    "diplomatie": 4
+   },
+   "desc": "Yuri Alpha besteht auf korrekter Teezubereitung.",
+   "effects": {
+    "score": 1
+   }
+  },
+  {
+   "id": "orichalcum_blade",
+   "name": "Orichalcum-Klinge",
+   "slot": "waffe",
+   "rarity": "epic",
+   "icon": "⚔",
+   "stats": {
+    "kampf": 8,
+    "initiative": 2
+   },
+   "desc": "Durchschneidet Adamantit wie Pergament.",
+   "effects": {
+    "army": 0.04
+   }
+  },
+  {
+   "id": "demon_contract",
+   "name": "Dämonischer Vertrag",
+   "slot": "schmuck",
+   "rarity": "epic",
+   "icon": "✠",
+   "stats": {
+    "intellekt": 5,
+    "grausamkeit": 4
+   },
+   "desc": "Jeder Unterzeichner verliert. Immer.",
+   "fav": "demiurge"
+  },
+  {
+   "id": "frost_halberd",
+   "name": "Frosthellebarde",
+   "slot": "waffe",
+   "rarity": "epic",
+   "icon": "❄",
+   "stats": {
+    "kampf": 7,
+    "grausamkeit": 2
+   },
+   "desc": "Gefriert das Blut im Moment des Treffers.",
+   "fav": "cocytus"
+  },
+  {
+   "id": "world_tree_staff",
+   "name": "Ast des Weltenbaums",
+   "slot": "waffe",
+   "rarity": "epic",
+   "icon": "❦",
+   "stats": {
+    "kampf": 5,
+    "intellekt": 5
+   },
+   "desc": "Ein lebender Stab. Er wächst mit seinem Träger.",
+   "fav": "mare"
+  },
+  {
+   "id": "beast_whistle",
+   "name": "Pfeife des Bestienmeisters",
+   "slot": "schmuck",
+   "rarity": "epic",
+   "icon": "♪",
+   "stats": {
+    "initiative": 5,
+    "kampf": 3
+   },
+   "desc": "Jede Bestie im Tob-Wald hört auf sie.",
+   "fav": "aura",
+   "effects": {
+    "army": 0.03
+   }
+  },
+  {
+   "id": "butler_gloves",
+   "name": "Handschuhe des Butlers",
+   "slot": "ruestung",
+   "rarity": "epic",
+   "icon": "✋",
+   "stats": {
+    "kampf": 5,
+    "diplomatie": 4
+   },
+   "desc": "Weiß, makellos – und tödlich.",
+   "fav": "sebas"
+  },
+  {
+   "id": "mask_thousand",
+   "name": "Maske der Tausend Gesichter",
+   "slot": "ruestung",
+   "rarity": "epic",
+   "icon": "☻",
+   "stats": {
+    "diskretion": 6,
+    "diplomatie": 3
+   },
+   "desc": "Wer sie trägt, ist jeder – und niemand.",
+   "fav": "pandora"
+  },
+  {
+   "id": "rune_shield",
+   "name": "Runenschild der Zwerge",
+   "slot": "ruestung",
+   "rarity": "epic",
+   "icon": "ᚱ",
+   "stats": {
+    "kampf": 4,
+    "diskretion": 2
+   },
+   "desc": "Runengeschmiedet in Feo Jera.",
+   "requires": {
+    "chapter_min": 6
+   },
+   "effects": {
+    "defense": 0.06
+   }
+  },
+  {
+   "id": "plate_hermes",
+   "name": "Hermes-Trismegistus-Platte",
+   "slot": "ruestung",
+   "rarity": "epic",
+   "icon": "⛨",
+   "stats": {
+    "kampf": 6,
+    "diplomatie": 2
+   },
+   "desc": "Schwarze Vollrüstung, eines Oberwächters würdig.",
+   "fav": "albedo",
+   "effects": {
+    "defense": 0.05
+   }
+  },
+  {
+   "id": "spuit_lance",
+   "name": "Spuhletit-Lanze",
+   "slot": "waffe",
+   "rarity": "legendary",
+   "icon": "➶",
+   "stats": {
+    "kampf": 10,
+    "grausamkeit": 4
+   },
+   "desc": "Heilt die Trägerin mit jedem Treffer.",
+   "fav": "shalltear",
+   "effects": {
+    "army": 0.06
+   }
+  },
+  {
+   "id": "ginnungagap",
+   "name": "Ginnungagap",
+   "slot": "waffe",
+   "rarity": "legendary",
+   "icon": "☄",
+   "stats": {
+    "kampf": 7,
+    "intellekt": 7
+   },
+   "desc": "Ein Stab, der von der Leere vor der Schöpfung singt.",
+   "effects": {
+    "xp": 0.15
+   }
+  },
+  {
+   "id": "frost_heart",
+   "name": "Herz des Frostdrachen",
+   "slot": "schmuck",
+   "rarity": "legendary",
+   "icon": "❄",
+   "stats": {
+    "kampf": 6,
+    "initiative": 6
+   },
+   "desc": "Es schlägt noch – langsam und kalt.",
+   "requires": {
+    "chapter_min": 7
+   },
+   "effects": {
+    "army": 0.05
+   }
+  },
+  {
+   "id": "ring_wishes",
+   "name": "Ring der Sternschnuppe",
+   "slot": "schmuck",
+   "rarity": "legendary",
+   "icon": "✶",
+   "stats": {
+    "intellekt": 6,
+    "diplomatie": 6
+   },
+   "desc": "Drei Wünsche. Zwei sind noch übrig.",
+   "effects": {
+    "loot": 0.06
+   }
+  },
+  {
+   "id": "crown_wisdom",
+   "name": "Krone der Weisheit",
+   "slot": "schmuck",
+   "rarity": "legendary",
+   "icon": "♚",
+   "stats": {
+    "intellekt": 10,
+    "diplomatie": 3
+   },
+   "desc": "Lässt selbst Ainz' Improvisationen wie Pläne wirken.",
+   "effects": {
+    "score": 2
+   }
+  },
+  {
+   "id": "platinum_shard",
+   "name": "Platinsplitter",
+   "slot": "ruestung",
+   "rarity": "legendary",
+   "icon": "❖",
+   "stats": {
+    "kampf": 6,
+    "diskretion": 6
+   },
+   "desc": "Ein Splitter der Platinrüstung. Er will heim.",
+   "requires": {
+    "chapter_min": 9
+   },
+   "effects": {
+    "defense": 0.08
+   }
+  },
+  {
+   "id": "world_tree",
+   "name": "Fragment des Weltenbaums",
+   "slot": "schmuck",
+   "rarity": "world",
+   "icon": "✺",
+   "stats": {
+    "kampf": 8,
+    "intellekt": 8,
+    "diplomatie": 8,
+    "diskretion": 8,
+    "grausamkeit": 8,
+    "initiative": 8
+   },
+   "desc": "Ein Weltgegenstand. Die Welt selbst beugt sich seinem Träger.",
+   "effects": {
+    "xp": 0.25,
+    "score": 3
+   }
+  },
+  {
+   "id": "downfall_castle",
+   "name": "Untergang von Burg und Land",
+   "slot": "waffe",
+   "rarity": "world",
+   "icon": "♜",
+   "stats": {
+    "kampf": 15,
+    "grausamkeit": 8
+   },
+   "desc": "Ein Weltgegenstand der Zerstörung. Ganze Reiche zittern.",
+   "effects": {
+    "army": 0.12
+   }
+  },
+  {
+   "id": "longinus",
+   "name": "Longinus",
+   "slot": "waffe",
+   "rarity": "world",
+   "icon": "✝",
+   "stats": {
+    "kampf": 12,
+    "initiative": 10
+   },
+   "desc": "Löscht das Dasein dessen, den sie trifft – und ihres Trägers.",
+   "effects": {
+    "army": 0.1,
+    "score": 2
+   }
+  }
+ ],
+ "floors": [
+  {
+   "id": "tombs",
+   "name": "Grabkammern",
+   "floor": "Ebene 1–3",
+   "keeper": "shalltear",
+   "image": "floor_tombs",
+   "icon": "☠",
+   "desc": "Vampirbräute, Skelettgarden und endlose Särge. Mehr Kammern, billigere Untotenheere.",
+   "effect": "upkeep",
+   "per_level": 0.1,
+   "label": "Legionsunterhalt −%d %%",
+   "costs": [
+    300,
+    700,
+    1400
+   ],
+   "days": [
+    4,
+    7,
+    11
+   ]
+  },
+  {
+   "id": "lake",
+   "name": "Unterirdischer See",
+   "floor": "Ebene 4",
+   "keeper": "",
+   "image": "floor_lake",
+   "icon": "≈",
+   "desc": "Gargantua ruht in der Tiefe. Erweitert, schützt er alle Regionen unter Eurem Banner.",
+   "effect": "defense",
+   "per_level": 0.06,
+   "label": "Verteidigungsschlachten +%d %%",
+   "costs": [
+    350,
+    800,
+    1600
+   ],
+   "days": [
+    5,
+    8,
+    12
+   ]
+  },
+  {
+   "id": "glacier",
+   "name": "Eisgletscher",
+   "floor": "Ebene 5",
+   "keeper": "cocytus",
+   "image": "floor_glacier",
+   "icon": "❄",
+   "desc": "Cocytus' Übungsfelder. Härteres Training, stärkere Legionen.",
+   "effect": "army",
+   "per_level": 0.06,
+   "label": "Stärke aller Legionen +%d %%",
+   "costs": [
+    400,
+    900,
+    1800
+   ],
+   "days": [
+    5,
+    8,
+    12
+   ],
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "id": "jungle",
+   "name": "Dschungel & Amphitheater",
+   "floor": "Ebene 6",
+   "keeper": "aura",
+   "image": "floor_jungle",
+   "icon": "❦",
+   "desc": "Arena und Wildnis der Dunklen Elfen. Hier wachsen Wächter über sich hinaus.",
+   "effect": "xp",
+   "per_level": 0.15,
+   "label": "Erfahrung der Wächter +%d %%",
+   "costs": [
+    250,
+    600,
+    1300
+   ],
+   "days": [
+    4,
+    7,
+    10
+   ]
+  },
+  {
+   "id": "lava",
+   "name": "Lavahölle",
+   "floor": "Ebene 7",
+   "keeper": "demiurge",
+   "image": "floor_lava",
+   "icon": "♨",
+   "desc": "Demiurges Palast der Flammen. Seine Teufel schwärmen als Spione aus.",
+   "effect": "info",
+   "per_level": 0.6,
+   "label": "+%.1f Wissen pro Tag",
+   "costs": [
+    300,
+    750,
+    1500
+   ],
+   "days": [
+    5,
+    8,
+    12
+   ],
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "id": "wilds",
+   "name": "Die Wildnis",
+   "floor": "Ebene 8",
+   "keeper": "",
+   "image": "floor_wilds",
+   "icon": "✺",
+   "desc": "Die verbotene Ebene. Ihre Präsenz verwischt Spuren – die Welt vergisst Nazarick schneller.",
+   "effect": "attention",
+   "per_level": 1,
+   "label": "Aufmerksamkeit −%d alle 4 Tage",
+   "costs": [
+    500,
+    1100,
+    2200
+   ],
+   "days": [
+    6,
+    9,
+    14
+   ],
+   "requires": {
+    "chapter_min": 4
+   }
+  },
+  {
+   "id": "royal",
+   "name": "Königliche Gemächer",
+   "floor": "Ebene 9",
+   "keeper": "sebas",
+   "image": "floor_royal",
+   "icon": "♔",
+   "desc": "Prunkräume, Bäder, die Bar. Zufriedene Wächter, mehr Zeit für Audienzen.",
+   "effect": "audience",
+   "per_level": 1,
+   "label": "+%d Audienz(en) täglich, Stimmung +",
+   "costs": [
+    400,
+    1000,
+    2000
+   ],
+   "days": [
+    5,
+    8,
+    12
+   ]
+  },
+  {
+   "id": "library",
+   "name": "Bibliothek von Ashurbanipal",
+   "floor": "Ebene 10",
+   "keeper": "",
+   "image": "floor_library",
+   "icon": "✎",
+   "desc": "Alles Wissen Yggdrasils. Bessere Planung, bessere Erfolgsaussichten.",
+   "effect": "score",
+   "per_level": 2,
+   "label": "Erfolgswert aller Aufträge +%d",
+   "costs": [
+    450,
+    1000,
+    2100
+   ],
+   "days": [
+    6,
+    9,
+    13
+   ]
+  },
+  {
+   "id": "treasury",
+   "name": "Schatzkammer",
+   "floor": "Verborgen",
+   "keeper": "pandora",
+   "image": "treasury",
+   "icon": "◈",
+   "desc": "Pandora's Actor katalogisiert jeden Fund. Mehr Beute, bessere Beute.",
+   "effect": "loot",
+   "per_level": 0.04,
+   "label": "Beutechance +%d %%",
+   "costs": [
+    350,
+    850,
+    1700
+   ],
+   "days": [
+    5,
+    8,
+    12
+   ]
+  },
+  {
+   "id": "forge",
+   "name": "Golemschmiede",
+   "floor": "Ebene 9",
+   "keeper": "",
+   "image": "forge",
+   "icon": "⚒",
+   "desc": "Unermüdliche Golems schmieden und handeln. Ein stetiger Goldstrom.",
+   "effect": "gold",
+   "per_level": 6,
+   "label": "+%d Gold pro Tag",
+   "costs": [
+    300,
+    700,
+    1400
+   ],
+   "days": [
+    4,
+    7,
+    10
+   ]
+  }
+ ],
+ "weekly": [
+  {
+   "id": "missions",
+   "stat": "missions_done",
+   "text": "Schließt %d Aufträge erfolgreich ab",
+   "min": 2,
+   "max": 4,
+   "reward": {
+    "gold": 80
+   }
+  },
+  {
+   "id": "triumph",
+   "stat": "triumphs",
+   "text": "Erringt %d Triumph(e)",
+   "min": 1,
+   "max": 2,
+   "reward": {
+    "gold": 120
+   }
+  },
+  {
+   "id": "gold",
+   "stat": "gold_earned",
+   "text": "Mehrt die Schatzkammer um %d Gold",
+   "min": 250,
+   "max": 600,
+   "step": 50,
+   "reward": {
+    "reputation": 2
+   }
+  },
+  {
+   "id": "influence",
+   "stat": "influence_gained",
+   "text": "Gewinnt %d Einfluss in den Regionen",
+   "min": 15,
+   "max": 35,
+   "step": 5,
+   "reward": {
+    "gold": 100
+   },
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "id": "audience",
+   "stat": "audiences",
+   "text": "Gewährt %d Audienzen",
+   "min": 3,
+   "max": 6,
+   "reward": {
+    "morale": 3
+   }
+  },
+  {
+   "id": "praise",
+   "stat": "praises",
+   "text": "Lobt oder belohnt %d Untertanen",
+   "min": 2,
+   "max": 3,
+   "reward": {
+    "morale": 3
+   }
+  },
+  {
+   "id": "battle",
+   "stat": "battles_won",
+   "text": "Gewinnt %d Schlacht(en)",
+   "min": 1,
+   "max": 2,
+   "reward": {
+    "power": 3,
+    "gold": 80
+   },
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "id": "threat",
+   "stat": "threats_resolved",
+   "text": "Bannt %d Bedrohung(en)",
+   "min": 1,
+   "max": 1,
+   "reward": {
+    "gold": 120
+   },
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "id": "envoy",
+   "stat": "envoys",
+   "text": "Entsendet %d erfolgreiche Gesandtschaft(en)",
+   "min": 1,
+   "max": 2,
+   "reward": {
+    "reputation": 3
+   },
+   "requires": {
+    "chapter_min": 4
+   }
+  },
+  {
+   "id": "loot",
+   "stat": "items_found",
+   "text": "Bringt %d Artefakt(e) in die Schatzkammer",
+   "min": 1,
+   "max": 2,
+   "reward": {
+    "gold": 90
+   }
+  },
+  {
+   "id": "xp",
+   "stat": "xp_earned",
+   "text": "Eure Wächter sammeln %d Erfahrung",
+   "min": 120,
+   "max": 260,
+   "step": 20,
+   "reward": {
+    "gold": 70
+   }
+  }
+ ],
+ "achievements": [
+  {
+   "id": "first_mission",
+   "name": "Der erste Befehl",
+   "desc": "Schließt den ersten Auftrag erfolgreich ab.",
+   "icon": "✦",
+   "tier": "bronze",
+   "reward": {
+    "gold": 50
+   },
+   "stat": "missions_done",
+   "target": 1
+  },
+  {
+   "id": "missions_10",
+   "name": "Verwalter des Grabes",
+   "desc": "10 Aufträge erfolgreich abgeschlossen.",
+   "icon": "✦",
+   "tier": "silver",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "missions_done",
+   "target": 10
+  },
+  {
+   "id": "missions_40",
+   "name": "Unermüdlicher Herrscher",
+   "desc": "40 Aufträge erfolgreich abgeschlossen.",
+   "icon": "✦",
+   "tier": "gold",
+   "reward": {
+    "gold": 400,
+    "item": "epic"
+   },
+   "stat": "missions_done",
+   "target": 40
+  },
+  {
+   "id": "missions_100",
+   "name": "Ainz Ooal Gown ist Legende",
+   "desc": "100 Aufträge erfolgreich abgeschlossen.",
+   "icon": "✦",
+   "tier": "platinum",
+   "reward": {
+    "item": "legendary"
+   },
+   "stat": "missions_done",
+   "target": 100
+  },
+  {
+   "id": "triumph_1",
+   "name": "Wie geplant",
+   "desc": "Erringt einen Triumph.",
+   "icon": "★",
+   "tier": "bronze",
+   "reward": {
+    "gold": 60
+   },
+   "stat": "triumphs",
+   "target": 1
+  },
+  {
+   "id": "triumph_15",
+   "name": "Alles nach Plan … natürlich",
+   "desc": "15 Triumphe.",
+   "icon": "★",
+   "tier": "gold",
+   "reward": {
+    "gold": 300,
+    "item": "rare"
+   },
+   "stat": "triumphs",
+   "target": 15
+  },
+  {
+   "id": "fail_5",
+   "name": "Aus Fehlern lernen",
+   "desc": "5 Aufträge sind gescheitert. Auch das gehört zum Herrschen.",
+   "icon": "✗",
+   "tier": "bronze",
+   "reward": {
+    "gold": 80
+   },
+   "stat": "failures",
+   "target": 5
+  },
+  {
+   "id": "gold_2000",
+   "name": "Gefüllte Schatzkammer",
+   "desc": "Verdient insgesamt 2.000 Gold.",
+   "icon": "◈",
+   "tier": "bronze",
+   "reward": {
+    "reputation": 3
+   },
+   "stat": "gold_earned",
+   "target": 2000
+  },
+  {
+   "id": "gold_10000",
+   "name": "Der Reichtum der 41",
+   "desc": "Verdient insgesamt 10.000 Gold.",
+   "icon": "◈",
+   "tier": "gold",
+   "reward": {
+    "item": "epic"
+   },
+   "stat": "gold_earned",
+   "target": 10000
+  },
+  {
+   "id": "audience_10",
+   "name": "Ein offenes Ohr",
+   "desc": "Gewährt 10 Audienzen.",
+   "icon": "♥",
+   "tier": "bronze",
+   "reward": {
+    "gold": 80
+   },
+   "stat": "audiences",
+   "target": 10
+  },
+  {
+   "id": "audience_50",
+   "name": "Geliebter Herrscher",
+   "desc": "Gewährt 50 Audienzen.",
+   "icon": "♥",
+   "tier": "silver",
+   "reward": {
+    "item": "rare"
+   },
+   "stat": "audiences",
+   "target": 50
+  },
+  {
+   "id": "gift_5",
+   "name": "Großzügiger Gebieter",
+   "desc": "Überreicht 5 Geschenke.",
+   "icon": "❀",
+   "tier": "bronze",
+   "reward": {
+    "morale": 5
+   },
+   "stat": "gifts",
+   "target": 5
+  },
+  {
+   "id": "praise_20",
+   "name": "Worte wie Gold",
+   "desc": "Lobt oder belohnt 20-mal.",
+   "icon": "☀",
+   "tier": "silver",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "praises",
+   "target": 20
+  },
+  {
+   "id": "rebuke_10",
+   "name": "Eiserne Hand",
+   "desc": "Tadelt 10-mal.",
+   "icon": "☇",
+   "tier": "bronze",
+   "reward": {
+    "power": 4
+   },
+   "stat": "rebukes",
+   "target": 10
+  },
+  {
+   "id": "battle_1",
+   "name": "Feuertaufe",
+   "desc": "Gewinnt die erste Schlacht.",
+   "icon": "⚔",
+   "tier": "bronze",
+   "reward": {
+    "gold": 100
+   },
+   "stat": "battles_won",
+   "target": 1
+  },
+  {
+   "id": "battle_10",
+   "name": "Kriegsherr",
+   "desc": "Gewinnt 10 Schlachten.",
+   "icon": "⚔",
+   "tier": "gold",
+   "reward": {
+    "item": "epic"
+   },
+   "stat": "battles_won",
+   "target": 10
+  },
+  {
+   "id": "conquest_1",
+   "name": "Das erste Banner",
+   "desc": "Erobert eine Region.",
+   "icon": "⚑",
+   "tier": "silver",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "conquests",
+   "target": 1
+  },
+  {
+   "id": "conquest_5",
+   "name": "Zauberkönigreich",
+   "desc": "Erobert 5 Regionen.",
+   "icon": "⚑",
+   "tier": "platinum",
+   "reward": {
+    "item": "legendary"
+   },
+   "stat": "conquests",
+   "target": 5
+  },
+  {
+   "id": "threat_5",
+   "name": "Schild Nazaricks",
+   "desc": "Bannt 5 Bedrohungen.",
+   "icon": "⛨",
+   "tier": "silver",
+   "reward": {
+    "gold": 200
+   },
+   "stat": "threats_resolved",
+   "target": 5
+  },
+  {
+   "id": "envoy_5",
+   "name": "Stimme des Overlords",
+   "desc": "5 erfolgreiche Gesandtschaften.",
+   "icon": "✉",
+   "tier": "silver",
+   "reward": {
+    "reputation": 5
+   },
+   "stat": "envoys",
+   "target": 5
+  },
+  {
+   "id": "loot_1",
+   "name": "Erster Fund",
+   "desc": "Bringt ein Artefakt in die Schatzkammer.",
+   "icon": "◆",
+   "tier": "bronze",
+   "reward": {
+    "gold": 40
+   },
+   "stat": "items_found",
+   "target": 1
+  },
+  {
+   "id": "loot_20",
+   "name": "Sammler von Yggdrasil",
+   "desc": "20 Artefakte gefunden.",
+   "icon": "◆",
+   "tier": "gold",
+   "reward": {
+    "item": "epic"
+   },
+   "stat": "items_found",
+   "target": 20
+  },
+  {
+   "id": "legendary_1",
+   "name": "Legendärer Fund",
+   "desc": "Findet ein legendäres Artefakt.",
+   "icon": "✶",
+   "tier": "gold",
+   "reward": {
+    "gold": 300
+   },
+   "stat": "legendary_found",
+   "target": 1
+  },
+  {
+   "id": "world_1",
+   "name": "Weltgegenstand!",
+   "desc": "Findet einen Weltgegenstand.",
+   "icon": "✺",
+   "tier": "platinum",
+   "reward": {
+    "gold": 1000
+   },
+   "stat": "world_found",
+   "target": 1
+  },
+  {
+   "id": "equip_full",
+   "name": "Gerüstet für den Krieg",
+   "desc": "Rüstet einen Wächter in allen drei Plätzen aus.",
+   "icon": "⛨",
+   "tier": "bronze",
+   "reward": {
+    "gold": 100
+   },
+   "stat": "full_equip",
+   "target": 1
+  },
+  {
+   "id": "rank_5",
+   "name": "Großhüter",
+   "desc": "Ein Wächter erreicht Rang V.",
+   "icon": "♜",
+   "tier": "silver",
+   "reward": {
+    "gold": 200
+   },
+   "stat": "max_rank",
+   "target": 5
+  },
+  {
+   "id": "rank_10",
+   "name": "Legende von Nazarick",
+   "desc": "Ein Wächter erreicht Rang X.",
+   "icon": "♛",
+   "tier": "platinum",
+   "reward": {
+    "item": "legendary"
+   },
+   "stat": "max_rank",
+   "target": 10
+  },
+  {
+   "id": "build_1",
+   "name": "Baumeister",
+   "desc": "Schließt den ersten Ausbau ab.",
+   "icon": "⚒",
+   "tier": "bronze",
+   "reward": {
+    "gold": 100
+   },
+   "stat": "builds_done",
+   "target": 1
+  },
+  {
+   "id": "build_15",
+   "name": "Das Große Grab erstrahlt",
+   "desc": "15 Ausbaustufen abgeschlossen.",
+   "icon": "⚒",
+   "tier": "gold",
+   "reward": {
+    "item": "legendary"
+   },
+   "stat": "builds_done",
+   "target": 15
+  },
+  {
+   "id": "build_max",
+   "name": "Vollendung",
+   "desc": "Bringt eine Ebene auf die höchste Stufe.",
+   "icon": "⚜",
+   "tier": "silver",
+   "reward": {
+    "gold": 250
+   },
+   "stat": "floor_max",
+   "target": 1
+  },
+  {
+   "id": "weekly_5",
+   "name": "Albedos Liebling",
+   "desc": "Erfüllt 5 Wochen alle Ziele Albedos.",
+   "icon": "❤",
+   "tier": "gold",
+   "reward": {
+    "item": "epic"
+   },
+   "stat": "weeks_done",
+   "target": 5
+  },
+  {
+   "id": "streak_3",
+   "name": "Unaufhaltsam",
+   "desc": "3 Wochen in Folge alle Wochenziele.",
+   "icon": "❤",
+   "tier": "silver",
+   "reward": {
+    "gold": 250
+   },
+   "stat": "best_streak",
+   "target": 3
+  },
+  {
+   "id": "chapter_6",
+   "name": "Der Zauberkönig",
+   "desc": "Erreicht Kapitel 6.",
+   "icon": "♚",
+   "tier": "silver",
+   "reward": {
+    "gold": 300
+   },
+   "cond": {
+    "chapter_min": 6
+   }
+  },
+  {
+   "id": "chapter_12",
+   "name": "Herrscher der Welt",
+   "desc": "Vollendet die Geschichte.",
+   "icon": "♚",
+   "tier": "platinum",
+   "reward": {
+    "item": "world"
+   },
+   "cond": {
+    "flags": [
+     "game_completed"
+    ]
+   }
+  },
+  {
+   "id": "harmony",
+   "name": "Frieden im Harem",
+   "desc": "Senkt die Rivalität zwischen Albedo und Shalltear unter 10.",
+   "icon": "☯",
+   "tier": "gold",
+   "reward": {
+    "morale": 8
+   },
+   "cond": {
+    "rivalry_max": 9
+   }
+  },
+  {
+   "id": "day_100",
+   "name": "Hundert Tage",
+   "desc": "Herrscht 100 Tage über Nazarick.",
+   "icon": "◷",
+   "tier": "silver",
+   "reward": {
+    "gold": 200
+   },
+   "cond": {
+    "day_min": 100
+   }
+  },
+  {
+   "id": "day_365",
+   "name": "Ein Jahr der Herrschaft",
+   "desc": "Herrscht 365 Tage über Nazarick.",
+   "icon": "◷",
+   "tier": "gold",
+   "reward": {
+    "item": "legendary"
+   },
+   "cond": {
+    "day_min": 365
+   }
+  }
+ ],
+ "loot_chance": {
+  "triumph": 0.28,
+  "success": 0.14,
+  "partial": 0.03,
+  "failure": 0.0,
+  "battle": 0.3,
+  "threat": 0.3
+ },
+ "weekly_chest": {
+  "gold": 200,
+  "min_rarity": "rare",
+  "streak_bonus": 0.15,
+  "streak_max": 5
+ }
+}

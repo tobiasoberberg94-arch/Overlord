@@ -5,3 +5,4 @@
 # Testausgaben
 tools/screenshots/
 build/
+__pycache__/

@@ -123,6 +123,23 @@ func _init(d: Dictionary) -> void:
 		lbl.theme_type_variation = "SubHeaderLabel"
 		extra_box.add_child(lbl)
 		extra_box.add_child(effect_chips(summary))
+	# Beute aus dem Auftrag
+	var loot: String = ctx.get("loot", "")
+	if loot != "" and not Progress.item_def(loot).is_empty():
+		var it := Progress.item_def(loot)
+		var lrow := HBoxContainer.new()
+		lrow.add_theme_constant_override("separation", 10)
+		lrow.add_child(ItemIcon.new(loot, 46))
+		var ll := RichTextLabel.new()
+		ll.bbcode_enabled = true
+		ll.fit_content = true
+		ll.scroll_active = false
+		ll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		ll.add_theme_font_size_override("normal_font_size", 17)
+		ll.text = "[color=#8f86a3]Mitgebracht für die Schatzkammer:[/color]\n[color=%s][b]%s[/b][/color] [color=#8f86a3](%s)[/color]" % [
+			Progress.rarity(it.rarity).color, it.name, Progress.rarity(it.rarity).name]
+		lrow.add_child(ll)
+		extra_box.add_child(lrow)
 
 	options_box.add_theme_constant_override("separation", 8)
 	right.add_child(options_box)

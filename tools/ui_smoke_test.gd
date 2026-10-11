@@ -10,6 +10,7 @@ var shots_dir := "res://tools/screenshots/"
 
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(shots_dir))
+	Settings.tutorial_done = false   # Einführung soll im Test immer starten
 	var title: Node = load("res://scenes/title_screen.tscn").instantiate()
 	get_tree().root.add_child.call_deferred(title)
 	await _wait(2.6)
@@ -145,6 +146,34 @@ func _ready() -> void:
 	_shot("15_administration")
 	throne.overlay_layer.get_child(0).close()
 	await _wait(0.5)
+	# Fortschritt: Artefakte, Ränge, Ausbau, Wochenziele, Errungenschaften
+	for iid in ["orichalcum_blade", "plate_hermes", "crown_wisdom", "shadow_cloak", "world_tree", "iron_blade", "tea_set"]:
+		Progress.grant_item(iid, "Rauchtest")
+	Progress.auto_equip("albedo")
+	Progress.add_xp("albedo", 800)
+	Progress.start_build("jungle")
+	Progress.ps().floors["lava"] = 2
+	Progress.ps().floors["forge"] = 3
+	Game.state.dispatches.clear()
+	Game.state_changed.emit()
+	await _wait(3.0)
+	_shot("20_celebration")
+	while throne.celebrations._showing:
+		await _wait(0.5)
+	_shot("20b_throne_weekly")
+	for tab in 4:
+		throne._open_nazarick(tab)
+		await _wait(1.0)
+		_shot("21_nazarick_%d" % tab)
+		throne.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+	throne._open_characters("albedo")
+	await _wait(0.9)
+	_shot("22_character_equipment")
+	throne.overlay_layer.get_child(0).close()
+	await _wait(0.5)
+	assert(Progress.rank("albedo") >= 5, "Albedo sollte aufgestiegen sein")
+	assert(Progress.equipped_items("albedo").size() >= 2)
 	throne._open_missions("tob_wald")
 	await _wait(0.9)
 	_shot("16_mission_board_region")

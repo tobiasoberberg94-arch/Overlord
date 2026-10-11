@@ -339,11 +339,67 @@ def sfx_rebuke():
     return reverb(x, 0.25, 1.5)
 
 
+def sfx_levelup():
+    """Aufsteigende Fanfare: Harfen-Arpeggio + Glocken + Chor-Akkord."""
+    x = np.zeros(int(4 * SR))
+    for k, n in enumerate([62, 66, 69, 74, 78, 81]):
+        place(x, harp(n, 2.0, 0.7), k * 0.07)
+    place(x, timpani(38, 2.5, 0.7), 0.0)
+    place(x, choir([62, 69, 74, 78], 2.4, 0.9) * env_adsr(int(2.4 * SR), 0.05, 0.4, 0.6, 1.2) * 1.4, 0.4)
+    for k, n in enumerate([86, 90, 93]):
+        place(x, bell(n, 2.5, 0.7), 0.42 + k * 0.05)
+    return reverb(x, 0.4, 2.5)
+
+
+def sfx_loot():
+    """Funkelnder Fund: schnelle Glockenkaskade."""
+    x = np.zeros(int(3 * SR))
+    for k, n in enumerate([84, 88, 91, 96]):
+        place(x, bell(n, 2.0, 0.6), k * 0.05)
+    t = t_axis(0.6)
+    sparkle = bandpass(rng.uniform(-1, 1, len(t)), 6000, 12000) * np.exp(-t / 0.15) * 0.15
+    place(x, sparkle, 0.0)
+    return reverb(x, 0.4, 2.0)
+
+
+def sfx_loot_legendary():
+    """Legendärer Fund: tiefer Gong, Chor und hohe Glocken."""
+    x = np.zeros(int(5 * SR))
+    place(x, timpani(33, 3, 1.0), 0)
+    place(x, choir([57, 64, 69, 73, 76], 3.5, 1.0) * env_adsr(int(3.5 * SR), 0.3, 0.5, 0.7, 1.5) * 1.6, 0.1)
+    for k, n in enumerate([81, 85, 88, 93, 97]):
+        place(x, bell(n, 3.0, 0.7), 0.25 + k * 0.08)
+    return reverb(x, 0.45, 3.0)
+
+
+def sfx_achievement():
+    x = np.zeros(int(3.5 * SR))
+    place(x, strings([62, 69, 74, 78], 1.6, 2200) * env_adsr(int(1.6 * SR), 0.03, 0.3, 0.7, 0.8), 0)
+    for k, n in enumerate([86, 81, 86, 90]):
+        place(x, bell(n, 2.2, 0.7), 0.05 + k * 0.11)
+    place(x, timpani(38, 2, 0.6), 0)
+    return reverb(x, 0.35, 2.2)
+
+
+def sfx_build():
+    """Hammerschläge auf Stein, dann ein feierlicher Akkord."""
+    x = np.zeros(int(3.5 * SR))
+    for k in range(3):
+        t = t_axis(0.3)
+        hit = lowpass(rng.uniform(-1, 1, len(t)), 1800) * np.exp(-t / 0.03) + np.sin(2 * np.pi * 180 * t) * np.exp(-t / 0.06)
+        place(x, hit * 0.8, k * 0.18)
+    place(x, strings([50, 57, 62, 66], 1.8, 1600) * env_adsr(int(1.8 * SR), 0.05, 0.3, 0.7, 0.9), 0.6)
+    place(x, bell(86, 2.0, 0.6), 0.62)
+    return reverb(x, 0.35, 2.0)
+
+
 if __name__ == "__main__":
     music = os.path.join(ROOT, "music")
     sfx = os.path.join(ROOT, "sfx")
     for name, fn in [("click", sfx_click), ("hover", sfx_hover), ("page", sfx_page), ("dispatch", sfx_dispatch),
-                     ("gong", sfx_gong), ("order", sfx_order), ("love", sfx_love), ("rebuke", sfx_rebuke)]:
+                     ("gong", sfx_gong), ("order", sfx_order), ("love", sfx_love), ("rebuke", sfx_rebuke),
+                     ("levelup", sfx_levelup), ("loot", sfx_loot), ("loot_legendary", sfx_loot_legendary),
+                     ("achievement", sfx_achievement), ("build_done", sfx_build)]:
         write_ogg(fn(), os.path.join(sfx, name + ".ogg"), peak=0.8, quality=4)
     write_ogg(title_theme(), os.path.join(music, "title.ogg"))
     write_ogg(throne_theme(), os.path.join(music, "throne.ogg"))

@@ -69,6 +69,15 @@ func _ready() -> void:
 					if Game.is_available(cid) and Game.audiences_left() > 0:
 						Game.audience(cid, ["talk", "gift", "rebuke"][Game.rng.randi() % 3])
 						break
+			# Fortschritt: Ausbau, Ausrüstung, Albedos Truhe
+			if Progress.ps().build.is_empty() and Game.state.resources.gold > 900:
+				var fl: Array = Progress.floors.filter(func(f): return Progress.can_build(f.id)[0])
+				if not fl.is_empty():
+					Progress.start_build(fl[Game.rng.randi() % fl.size()].id)
+			for cid in Game.unlocked_chars():
+				Progress.auto_equip(cid)
+			if Progress.can_claim_chest():
+				Progress.claim_chest()
 			Game.advance(7)
 		reached.append(Game.state.chapter)
 		var infl := {}
@@ -84,6 +93,15 @@ func _ready() -> void:
 			print("   offen: ", open_obj)
 		print("Lauf %d [%s]: Kapitel %d an Tag %d | Gold %d | Schlachten %d | Fraktionen %s" % [
 			r, Game.state.difficulty, Game.state.chapter, Game.state.day, Game.state.resources.gold, kinds.get("battle", 0), dip])
+		var ranks := {}
+		for cid in Game.unlocked_chars():
+			ranks[cid.substr(0, 3)] = Progress.rank(cid)
+		var floors_lv := 0
+		for f in Progress.floors:
+			floors_lv += Progress.floor_level(f.id)
+		print("   Ränge %s | Artefakte %d | Ausbau %d | Errungenschaften %d/%d | Wochen %d (Serie max %d)" % [
+			ranks, Progress.inventory().size(), floors_lv, Progress.ps().achievements.size(), Progress.achievements.size(),
+			Progress.stat("weeks_done"), Progress.stat("best_streak")])
 		# Speichern/Laden-Rundlauf
 		SaveSystem.save_game(3)
 		var day: int = Game.state.day

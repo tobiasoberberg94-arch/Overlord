@@ -14,6 +14,8 @@ var favor_bar := ProgressBar.new()
 var mood_bar := ProgressBar.new()
 var emotion_label := RichTextLabel.new()
 var level_badge := Label.new()
+var xp_bar := ProgressBar.new()
+var _last_rank := 0
 var _normal_style: StyleBoxFlat
 var _hover_style: StyleBoxFlat
 var _pulse: Tween
@@ -37,10 +39,12 @@ func _init(char_id: String) -> void:
 	portrait.char_id = cid
 	portrait.custom_minimum_size = Vector2(144, 150)
 	vb.add_child(portrait)
-	level_badge.text = "Lv.100"
-	level_badge.add_theme_font_size_override("font_size", 12)
+	# Rang-Abzeichen (I–X) unten rechts im Portrait
+	level_badge.add_theme_font_override("font", NazarickTheme.display_font(800))
+	level_badge.add_theme_font_size_override("font_size", 14)
 	level_badge.add_theme_color_override("font_color", Palette.GOLD_BRIGHT)
-	level_badge.position = Vector2(100, 128)
+	level_badge.add_theme_stylebox_override("normal", NazarickTheme.box(Color(Palette.VOID, 0.85), Palette.GOLD, 1, 9, Color.TRANSPARENT, 0, 3))
+	level_badge.position = Vector2(96, 122)
 	portrait.add_child(level_badge)
 
 	name_label.text = Content.char_data(cid).get("name", cid).split(" ")[0]
@@ -70,6 +74,11 @@ func _init(char_id: String) -> void:
 		b.tooltip_text = pair[2]
 		b.mouse_filter = Control.MOUSE_FILTER_PASS
 		vb.add_child(b)
+	xp_bar.show_percentage = false
+	xp_bar.custom_minimum_size = Vector2(0, 4)
+	xp_bar.add_theme_stylebox_override("fill", NazarickTheme.box(Palette.GOLD_BRIGHT, Color.TRANSPARENT, 0, 2, Color(Palette.GOLD, 0.6), 3, 0))
+	xp_bar.mouse_filter = Control.MOUSE_FILTER_PASS
+	vb.add_child(xp_bar)
 
 	emotion_label.bbcode_enabled = true
 	emotion_label.fit_content = true
@@ -110,8 +119,17 @@ func refresh() -> void:
 	portrait.dimmed = st in [Game.STATUS_MISSION, Game.STATUS_RECOVER, "feldzug"]
 	favor_bar.value = c.favor
 	mood_bar.value = c.mood
-	tooltip_text = "%s\nGunst %d · Stimmung %d · Erschöpfung %d\nKlicken für Details" % [
-		Content.char_data(cid).name, c.favor, c.mood, c.fatigue]
+	var rk := Progress.rank(cid)
+	var rp: Array = Progress.rank_progress(cid)
+	level_badge.text = " %s " % Progress.ROMAN[rk - 1]
+	xp_bar.max_value = maxi(1, rp[1])
+	xp_bar.value = rp[0] if rp[1] > 0 else 1
+	xp_bar.tooltip_text = "%s · %d / %d EP" % [Progress.rank_title(cid), rp[0], rp[1]] if rp[1] > 0 else Progress.rank_title(cid)
+	if _last_rank != 0 and rk > _last_rank:
+		UIFx.flash(self, Color(1.6, 1.4, 0.9))
+	_last_rank = rk
+	tooltip_text = "%s · %s\nGunst %d · Stimmung %d · Erschöpfung %d\nKlicken für Details" % [
+		Content.char_data(cid).name, Progress.rank_title(cid), c.favor, c.mood, c.fatigue]
 
 	# Emotionale Hinweise – nur bei den Rivalinnen
 	if Content.char_data(cid).has("emotion"):

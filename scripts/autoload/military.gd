@@ -134,9 +134,12 @@ func base_strength(a: Dictionary) -> int:
 
 
 func commander_bonus(cid: String) -> float:
+	var b := Progress.floor_value("army")
 	if cid == "":
-		return 0.0
-	return float(Content.systems.commanders.get(cid, {}).get("bonus", 0.1))
+		return b
+	# Rang des Feldherrn und Artefakte stärken die Legion
+	b += (Progress.rank(cid) - 1) * 0.015 + Progress.item_effect(cid, "army")
+	return b + float(Content.systems.commanders.get(cid, {}).get("bonus", 0.1))
 
 
 ## Marschfortschritt auf dem aktuellen Wegstück (0…1), plus Bruchteil für Animationen.
@@ -474,6 +477,8 @@ func resolve_battle(uid: String, tactic_id: String) -> Array:
 		mult += (float(Content.char_data(cid).stats.intellekt) - 50.0) / 160.0
 	if b.kind == "defense" and World.rs(b.region).influence >= 30:
 		mult += float(Content.systems.military.defense_bonus)
+	if b.kind == "defense":
+		mult += Progress.floor_value("defense") + (Progress.item_effect(cid, "defense") if cid != "" else 0.0)
 	var ours := base_strength(a) * mult * Game.rng.randf_range(0.85, 1.15)
 	var foe_mult := 1.0 - float(cmd.get("enemy_morale", 0)) - float(tactic.get("enemy_morale", 0))
 	var foe_base := float(b.enemy_strength) * (Game.diff("enemy") if b.kind == "conquest" else 1.0)
@@ -491,6 +496,12 @@ func resolve_battle(uid: String, tactic_id: String) -> Array:
 	var lines := PackedStringArray()
 	if won:
 		Game.state["battles_won"] = int(Game.state.get("battles_won", 0)) + 1
+		Progress.bump("battles_won")
+		if b.kind == "conquest":
+			Progress.bump("conquests")
+		if cid != "":
+			Progress.add_xp(cid, 70 if b.kind == "conquest" else 55)
+		Progress.roll_loot("battle", "Schlachtfeld von " + rname, cid)
 		summary += Game.apply_effects({"res": {"power": 3, "morale": 4}})
 		if b.kind == "conquest":
 			var mil: Dictionary = Content.systems.military

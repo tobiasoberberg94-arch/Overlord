@@ -110,6 +110,8 @@ func apply_region_effects(eff: Dictionary) -> Array:
 			r.influence = clampi(old + int(e.influence), 0, 100)
 			if r.influence != old:
 				summary.append(["Einfluss " + name, r.influence - old])
+				if r.influence > old:
+					Progress.bump("influence_gained", r.influence - old)
 		if e.has("unrest"):
 			var old: int = r.unrest
 			r.unrest = clampi(old + int(e.unrest), 0, 100)
@@ -252,7 +254,7 @@ func daily_income() -> Dictionary:
 		g += float(r.income.get("gold", 0)) * factor
 		inf += float(r.income.get("info", 0)) * factor
 	var mult := _income_mult() * Game.diff("income")
-	return {"gold": g * mult, "info": inf * mult}
+	return {"gold": g * mult + Progress.daily_gold(), "info": inf * mult}
 
 
 func daily_upkeep() -> int:
@@ -260,7 +262,8 @@ func daily_upkeep() -> int:
 	var agents := 0
 	for am in Game.state.active:
 		agents += 2 if am.get("partner", "") != "" else 1
-	var base := int(eco.upkeep_base) + agents * int(eco.upkeep_per_agent) + _decree_upkeep() + Military.total_upkeep()
+	var army_upkeep := roundi(Military.total_upkeep() * (1.0 - Progress.floor_value("upkeep")))
+	var base := int(eco.upkeep_base) + agents * int(eco.upkeep_per_agent) + _decree_upkeep() + army_upkeep
 	return roundi(base * Game.diff("upkeep"))
 
 
@@ -551,6 +554,8 @@ func resolve_threat_mission(mid: String, success: bool) -> Array:
 		if eff.has("unrest"):
 			summary += apply_region_effects({t.region: {"unrest": int(eff.unrest)}})
 		Game.log_msg("Bedrohung abgewehrt: %s" % th.title.replace("{region}", region(t.region).short), "mission")
+		Progress.bump("threats_resolved")
+		Progress.roll_loot("threat", th.title.replace("{region}", region(t.region).short))
 		return summary
 	return _threat_failed(t, false)
 

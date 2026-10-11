@@ -94,6 +94,7 @@ func new_game(difficulty: String = "normal") -> void:
 	World.init_state(state)
 	Military.init_state(state)
 	Diplomacy.init_state(state)
+	Progress.init_state(state)
 	log_msg("Das Große Grab von Nazarick erwacht in einer fremden Welt.", "story")
 	_enter_chapter(1)
 	state_changed.emit()
@@ -146,6 +147,7 @@ func _normalize() -> void:
 	World.normalize(state)
 	Military.normalize(state)
 	Diplomacy.normalize(state)
+	Progress.normalize(state)
 	if not state.has("difficulty"):
 		state["difficulty"] = "normal"
 	for k in state.fired:
@@ -254,8 +256,12 @@ func efficiency() -> int:
 
 func audiences_left() -> int:
 	if state.audiences_day != state.day:
-		return AUDIENCES_PER_DAY
-	return maxi(0, AUDIENCES_PER_DAY - state.audiences_used)
+		return audiences_per_day()
+	return maxi(0, audiences_per_day() - state.audiences_used)
+
+
+func audiences_per_day() -> int:
+	return AUDIENCES_PER_DAY + roundi(Progress.floor_value("audience"))
 
 
 # =====================================================================
@@ -338,6 +344,8 @@ func apply_effects(eff: Variant) -> Array:
 		var nv := old + delta
 		nv = clampi(nv, 0, 100) if k in BOUNDED else maxi(0, nv)
 		state.resources[k] = nv
+		if k == "gold" and nv > old:
+			Progress.bump("gold_earned", nv - old)
 		if nv != old:
 			summary.append([RESOURCE_LABELS.get(k, k), nv - old])
 	for cid in eff.get("chars", {}):
@@ -531,6 +539,10 @@ func respond(uid: String, key: String) -> Dictionary:
 	state.dispatches.erase(d)
 	var summary := apply_effects(opt.get("effects"))
 	if d.kind == "report" and d.char_id != "":
+		if key in ["praise", "reward"]:
+			Progress.bump("praises")
+		elif key == "rebuke":
+			Progress.bump("rebukes")
 		var verbs := {"praise": "lobt", "reward": "belohnt", "rebuke": "tadelt", "silence": "nickt schweigend zu:"}
 		if verbs.has(key):
 			log_msg("%s %s %s." % [state.lord_name, verbs[key], char_name(d.char_id)], "emotion")
@@ -660,7 +672,7 @@ func _score(m: Dictionary, cid: String, directive: String, roll: bool = true, pa
 	var score := 0.0
 	for k in weights:
 		total += float(weights[k])
-		score += float(cd.stats[k]) * float(weights[k])
+		score += (float(cd.stats[k]) + Progress.stat_bonus(cid, k)) * float(weights[k])
 	score /= maxf(total, 1.0)
 	score += (c.mood - 60) / 5.0 - c.fatigue / 6.0
 	score += float(dmod.get("score", 0))
@@ -672,6 +684,8 @@ func _score(m: Dictionary, cid: String, directive: String, roll: bool = true, pa
 	var diff_pen := diff("mission") * (0.5 if m.get("main", false) else 1.0)
 	var learned := minf(15.0, int(state.get("failed", {}).get(m.get("id", ""), 0)) * 5.0)
 	score += World.partner_bonus(m, cid, partner) + extra - diff_pen + learned
+	# Ausbau (Bibliothek) und Artefakte mit Planungsbonus
+	score += Progress.floor_value("score") + Progress.item_effect(cid, "score")
 	if roll:
 		var v := float(dmod.get("variance", 15)) + float(World.synergy(cid, partner).get("variance", 0))
 		score += rng.randf_range(-v, v)
@@ -788,6 +802,21 @@ func _resolve_mission(am: Dictionary) -> void:
 	if partner != "":
 		_add_deed(partner, "Unterstützung: %s – %s" % [m.title, TIER_LABELS[tier]])
 
+	# Erfahrung, Beute und Zähler für Wochenziele/Errungenschaften
+	var gained_xp := Progress.mission_xp(tier, m)
+	Progress.add_xp(cid, gained_xp)
+	summary.append(["Erfahrung " + cd.name.split(" ")[0], gained_xp])
+	if partner != "":
+		Progress.add_xp(partner, gained_xp / 2)
+	if tier == "failure":
+		Progress.bump("failures")
+	else:
+		Progress.bump("missions_done")
+		if tier == "triumph":
+			Progress.bump("triumphs")
+	var loot_uid := Progress.roll_loot(tier, m.title, cid)
+	var loot_id: String = Progress.inv_entry(loot_uid).get("id", "") if loot_uid != "" else ""
+
 	_add_deed(cid, "%s – %s" % [m.title, TIER_LABELS[tier]])
 	log_msg("%s kehrt zurück: »%s« – %s." % [cd.name, m.title, TIER_LABELS[tier]], "warning" if tier == "failure" else "mission")
 	if m.has("diplomacy"):
@@ -817,7 +846,7 @@ func _resolve_mission(am: Dictionary) -> void:
 			"tier": tier, "mission": m.id, "summary": summary,
 			"directive": Content.directives[am.directive].name, "effective": effective_name,
 			"deviated": directive != am.directive, "location": m.get("location", ""),
-			"partner": partner,
+			"partner": partner, "loot": loot_id,
 		},
 	})
 	if tier != "failure" and m.has("followup_event"):
@@ -1062,6 +1091,11 @@ func audience(cid: String, kind: String) -> Dictionary:
 	if has_rival and kind != "rebuke":
 		text += "\n\n[color=#8f86a3]" + pick(Content.char_data(rival).emotion.get("watching")) + "[/color]"
 	var summary := apply_effects(eff)
+	Progress.bump("audiences")
+	if kind == "gift":
+		Progress.bump("gifts")
+	if kind != "rebuke":
+		Progress.add_xp(cid, 5)
 	var labels := {"talk": "gewährt %s eine Audienz.", "gift": "überreicht %s ein Geschenk.", "rebuke": "weist %s zurecht."}
 	log_msg(state.lord_name + " " + (labels[kind] % cd.name), "emotion")
 	state_changed.emit()
@@ -1100,6 +1134,7 @@ func _tick_day() -> void:
 	World.tick_day()
 	Military.tick_day()
 	Diplomacy.tick_day()
+	Progress.tick_day()
 	var story_fired := _fire_story_events()
 	_check_chapter_progress()
 	if not story_fired:

@@ -272,6 +272,8 @@ func resolve_envoy(m: Dictionary, tier: String, envoy: String) -> Array:
 	# Albedo und Demiurge sind geborene Diplomaten – Shalltear und Narberal eher nicht
 	if tier == "failure" and envoy in ["shalltear", "narberal"]:
 		summary += apply_faction_effects({fid: {"relation": -10, "fear": 10}})
+	if ok:
+		Progress.bump("envoys")
 	return summary
 
 

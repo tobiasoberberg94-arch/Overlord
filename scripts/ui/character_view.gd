@@ -145,11 +145,49 @@ func _show(cid: String) -> void:
 		ch.queue_free()
 	for ch in feelings_box.get_children():
 		ch.queue_free()
+	# Rang & Erfahrung
+	var rp: Array = Progress.rank_progress(cid)
+	var rank_l := Label.new()
+	rank_l.text = "♜ " + Progress.rank_title(cid)
+	rank_l.theme_type_variation = "GoldLabel"
+	stats_box.add_child(rank_l)
+	var xb := StatBar.new("Erfahrung", Palette.GOLD_BRIGHT, "✦", 108)
+	if rp[1] > 0:
+		xb.set_value(rp[0], rp[1], "%d / %d" % [rp[0], rp[1]])
+	else:
+		xb.set_value(1, 1, "Höchstrang")
+	stats_box.add_child(xb)
 	stats_box.add_child(_section("Fähigkeiten"))
 	for k in Game.STAT_LABELS:
 		var sb := StatBar.new(Game.STAT_LABELS[k], col, "", 108)
-		sb.set_value(float(cd.stats[k]))
+		var bonus := roundi(Progress.stat_bonus(cid, k))
+		sb.set_value(minf(100.0, float(cd.stats[k]) + bonus), 100.0, "%d%s" % [int(cd.stats[k]), " +%d" % bonus if bonus > 0 else ""])
 		stats_box.add_child(sb)
+	# Ausrüstung
+	stats_box.add_child(_section("Ausrüstung"))
+	var eq_row := HBoxContainer.new()
+	eq_row.add_theme_constant_override("separation", 8)
+	for slot in Progress.SLOTS:
+		var uid: String = Progress.ps().equip.get(cid, {}).get(slot, "")
+		var iid: String = Progress.inv_entry(uid).get("id", "") if uid != "" else ""
+		var b := Button.new()
+		b.custom_minimum_size = Vector2(64, 64)
+		b.tooltip_text = "%s: %s" % [Progress.SLOT_LABELS[slot], Progress.item_def(iid).get("name", "frei")]
+		b.theme_type_variation = "ButtonGhost"
+		if iid != "":
+			var ic := ItemIcon.new(iid, 54)
+			ic.position = Vector2(5, 5)
+			b.add_child(ic)
+		else:
+			b.text = {"waffe": "⚔", "ruestung": "⛨", "schmuck": "◎"}[slot]
+		b.pressed.connect(func(): _open_treasury())
+		eq_row.add_child(b)
+	var auto := Button.new()
+	auto.text = "Bestes anlegen"
+	auto.tooltip_text = "Legt die besten freien Artefakte der Schatzkammer an"
+	auto.pressed.connect(func(): Progress.auto_equip(cid); Audio.sfx("order", 0.6); _show(cid))
+	eq_row.add_child(auto)
+	stats_box.add_child(eq_row)
 	feelings_box.add_child(_section("Gefühle"))
 	var feelings := [["favor", "Gunst", Palette.GOLD, "♛"], ["mood", "Stimmung", Palette.VIOLET_GLOW, "☾"],
 		["fatigue", "Erschöpfung", Palette.MUTED, "◷"]]
@@ -186,6 +224,14 @@ func _show(cid: String) -> void:
 	_update_audience()
 
 
+func _open_treasury() -> void:
+	var parent := get_parent()
+	close()
+	await get_tree().create_timer(0.25).timeout
+	if is_instance_valid(parent):
+		parent.add_child(NazarickView.new(1))
+
+
 func _section(t: String) -> Label:
 	var l := Label.new()
 	l.text = t.to_upper()
@@ -197,7 +243,7 @@ func _section(t: String) -> Label:
 func _update_audience() -> void:
 	var left := Game.audiences_left()
 	var avail := Game.is_available(_cid)
-	audience_info.text = "Audienzen heute: %d / %d%s" % [left, Game.AUDIENCES_PER_DAY, "" if avail else "  ·  nicht im Thronsaal"]
+	audience_info.text = "Audienzen heute: %d / %d%s" % [left, Game.audiences_per_day(), "" if avail else "  ·  nicht im Thronsaal"]
 	for k in buttons:
 		buttons[k].disabled = left <= 0 or not avail
 	if Game.state.resources.gold < 60:
