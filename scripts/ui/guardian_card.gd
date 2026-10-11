@@ -116,7 +116,10 @@ func refresh() -> void:
 				text = "◷ noch %d T." % maxi(0, am.end_day - Game.state.day)
 	status_label.text = "● " + text
 	status_label.add_theme_color_override("font_color", status_col)
-	portrait.dimmed = st in [Game.STATUS_MISSION, Game.STATUS_RECOVER, "feldzug"]
+	portrait.dimmed = st in [Game.STATUS_MISSION, Game.STATUS_RECOVER]
+	var mood := "battle" if st == "feldzug" else ("angry" if c.jealousy >= 60 else "")
+	if portrait.variant != mood:
+		portrait.variant = mood
 	favor_bar.value = c.favor
 	mood_bar.value = c.mood
 	var rk := Progress.rank(cid)

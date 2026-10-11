@@ -1192,5 +1192,26 @@
     "color": "#c9a0ff",
     "accent": "#40206a",
     "npc": true
+  },
+  "gazef": {
+    "name": "Gazef Stronoff",
+    "title": "Kriegerhauptmann von Re-Estize",
+    "color": "#6f8fd8",
+    "accent": "#2a3a6e",
+    "npc": true
+  },
+  "jircniv": {
+    "name": "Jircniv Rune Farlord El-Nix",
+    "title": "Kaiser von Baharuth",
+    "color": "#d8743a",
+    "accent": "#6e3a1a",
+    "npc": true
+  },
+  "neia": {
+    "name": "Neia Baraja",
+    "title": "Knappin aus Roble",
+    "color": "#b8c0a0",
+    "accent": "#4a5030",
+    "npc": true
   }
 }

@@ -20,6 +20,11 @@ Fehlt eine Datei, zeichnet das Spiel weiterhin einen Platzhalter.
 * Hintergründe: Querformat 16:9, mind. 1920 × 1080 px.
 * Icons: quadratisch, 256 × 256 px, transparent.
 
+STAND (Paket 2): 15 neue Bilder eingebaut – markiert mit [✔ ERHALTEN].
+Die übrigen 44 Bilder des Pakets waren identisch mit Paket 1 (bereits im Spiel).
+Weiterhin gilt: bitte als PNG/WEBP mit ECHTER Transparenz liefern – auch Paket 2
+hatte wieder ein eingebranntes Schachbrett (konnte freigestellt werden).
+
 Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] = Kür
 
 ===============================================================================
@@ -32,14 +37,14 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     Varianten: _love (verliebt/glücklich), _angry (wütend), _sad (traurig),
                _battle (kampfbereit, Waffe gezogen)
 
-    albedo_angry.png        Albedo, eifersüchtig, kaltes Lächeln, dunkle Aura
-    albedo_sad.png          Albedo, Tränen, vernachlässigt
-    albedo_battle.png       Albedo in schwarzer Vollrüstung (Hermes Trismegistus), Hellebarde
-    shalltear_angry.png     Shalltear, fauchend, rote Augen glühen
-    shalltear_sad.png       Shalltear, blutige Tränen (nach dem Zwischenfall)
-    shalltear_battle.png    Shalltear in roter Vollrüstung mit Spuhletit Lance
+    [✔ ERHALTEN] albedo_angry.png        Albedo, eifersüchtig, kaltes Lächeln, dunkle Aura
+    [✔ ERHALTEN] albedo_sad.png          Albedo, Tränen, vernachlässigt
+    [✔ ERHALTEN] albedo_battle.png       Albedo in schwarzer Vollrüstung (Hermes Trismegistus), Hellebarde
+    [✔ ERHALTEN] shalltear_angry.png     Shalltear, fauchend, rote Augen glühen
+    [✔ ERHALTEN] shalltear_sad.png       Shalltear, blutige Tränen (nach dem Zwischenfall)
+    [✔ ERHALTEN] shalltear_battle.png    Shalltear in roter Vollrüstung mit Spuhletit Lance
     demiurge_love.png       Demiurge, ehrfürchtig/verzückt lächelnd
-    demiurge_battle.png     Demiurge in Dämonengestalt (Flügel, Flammen)
+    [✔ ERHALTEN] demiurge_battle.png     Demiurge in Dämonengestalt (Flügel, Flammen)
     cocytus_battle.png      Cocytus mit allen vier Waffen
     aura_love.png           Aura strahlend, mit Fenrir
     aura_angry.png          Aura wütend (Elfenkönig-Kapitel)
@@ -48,13 +53,13 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     sebas_battle.png        Sebas in Kampfhaltung (Fäuste)
     pandora_love.png        Pandora's Actor mit theatralischer Pose/Salut
     ainz_battle.png         Ainz beim Zaubern (rote Kugel, Magiekreise)
-    ainz_momon.png          Momon – schwarze Vollrüstung, zwei Großschwerter  [A]
+    [✔ ERHALTEN] ainz_momon.png          Momon – schwarze Vollrüstung, zwei Großschwerter  [A]
 
 1b) Story-Figuren (NPCs)  [A/B]
     Werden als Sprecher in Ereignissen angezeigt.
-    gazef.png               Gazef Stronoff, Kriegerhauptmann                  [A]
-    jircniv.png             Kaiser Jircniv Rune Farlord El-Nix                 [A]
-    neia.png                Neia Baraja, Knappin mit „bösen“ scharfen Augen    [A]
+    [✔ ERHALTEN] gazef.png               Gazef Stronoff, Kriegerhauptmann                  [A]
+    [✔ ERHALTEN] jircniv.png             Kaiser Jircniv Rune Farlord El-Nix                 [A]
+    [✔ ERHALTEN] neia.png                Neia Baraja, Knappin mit „bösen“ scharfen Augen    [A]
     platinum_dragon.png     Platinrüstung des Drachenlords (leere Rüstung)      [A]
     nigun.png               Nigun Grid Luin, Sonnenlicht-Schrift                [B]
     clementine.png          Clementine, irres Grinsen                           [B]
@@ -78,7 +83,7 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
 ===============================================================================
 
 2a) Orte (werden in Berichten als Banner und auf der Karte genutzt)  [A]
-    e_rantel.jpg            Festungsstadt E-Rantel, dreifache Mauer
+    [✔ ERHALTEN] e_rantel.jpg            Festungsstadt E-Rantel, dreifache Mauer
     arwintar.jpg            Kaiserpalast von Arwintar (Baharuth)
     feo_jera.jpg            Zwergenstadt im Berg, Runen, Schmiedefeuer
     roble_wall.jpg          Die große Mauer des Heiligen Königreichs
@@ -87,7 +92,7 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     katze_night.jpg         Katze-Ebene im Nebel, Nacht, Untote
     theocracy.jpg           Weiße Kathedralen der Slane-Theokratie
     argland.jpg             Drachenlande, Berggipfel, Drachenhorte
-    title.jpg               Titelbild (Ainz auf dem Thron, alle Wächter knien)  [A]
+    [✔ ERHALTEN] title.jpg               Titelbild (Ainz auf dem Thron, alle Wächter knien)  [A]
 
 2b) Die Ebenen von Nazarick (für den neuen Ausbau-Bildschirm)  [A]
     floor_tombs.jpg         Ebenen 1–3: Grabkammern, Särge, Vampirbräute
@@ -96,9 +101,9 @@ Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] =
     floor_jungle.jpg        Ebene 6: Dschungel und Amphitheater (Aura & Mare)
     floor_lava.jpg          Ebene 7: Lavahölle (Demiurge)
     floor_wilds.jpg         Ebene 8: Die Wildnis (Victim)
-    floor_royal.jpg         Ebene 9: Königliche Gemächer (Maids, Sebas)
+    [✔ ERHALTEN] floor_royal.jpg         Ebene 9: Königliche Gemächer (Maids, Sebas)
     floor_library.jpg       Ebene 10: Bibliothek von Ashurbanipal
-    treasury.jpg            Schatzkammer (Gold-Berge, Pandora's Actor)
+    [✔ ERHALTEN] treasury.jpg            Schatzkammer (Gold-Berge, Pandora's Actor)
     forge.jpg               Golemschmiede (Golems an Ambossen, Funkenflug)
 
 2c) Story-Szenenbilder (große Bilder für Schlüsselmomente)  [B]

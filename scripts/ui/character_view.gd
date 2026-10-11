@@ -131,7 +131,16 @@ func _show(cid: String) -> void:
 	var c := Game.cs(cid)
 	var col := Content.char_color(cid)
 	portrait.char_id = cid
-	portrait.variant = "love" if (cd.has("emotion") and c.favor >= 75) else ""
+	var mood := ""
+	if c.status == "feldzug":
+		mood = "battle"
+	elif c.jealousy >= 60:
+		mood = "angry"
+	elif c.favor < 30:
+		mood = "sad"
+	elif c.favor >= 75:
+		mood = "love"
+	portrait.variant = mood
 	name_label.text = cd.name
 	name_label.add_theme_color_override("font_color", col.lerp(Palette.GOLD_BRIGHT, 0.35))
 	title_label.text = "%s\n%s · %s" % [cd.title, cd.get("race", ""), cd.get("floor", "")]

@@ -78,6 +78,8 @@ func _side_box(cid: String, title: String, ours: bool) -> Control:
 	var p := Portrait.new()
 	p.custom_minimum_size = Vector2(80, 96)
 	p.char_id = cid if cid != "" else ("cocytus" if ours else "")
+	if ours:
+		p.variant = "battle"
 	p.show_symbol = false
 	var vb := VBoxContainer.new()
 	var t := Label.new()

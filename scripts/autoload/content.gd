@@ -151,7 +151,7 @@ func find_image(dir: String, name: String) -> Texture2D:
 
 ## Ordnet einem Ortsnamen ein passendes Hintergrundbild zu (Stichwortsuche).
 const LOCATION_IMAGES := [
-	["Thronsaal", "throne_room"], ["Carne", "carne_village"], ["Arwintar", "baharuth"], ["Kaiser", "baharuth"],
+	["Thronsaal", "throne_room"], ["E-Rantel", "e_rantel"], ["Schatzkammer", "treasury"], ["Carne", "carne_village"], ["Arwintar", "baharuth"], ["Kaiser", "baharuth"],
 	["E-Rantel", "re_estize"], ["Hauptstadt", "re_estize"], ["Re-Estize", "re_estize"], ["Adelsh", "re_estize"],
 	["Theokratie", "holy_kingdom"], ["Wald", "forest"], ["Tob", "forest"], ["Waldrand", "forest"],
 	["Katze", "battlefield"], ["Sumpf", "battlefield"], ["Echsen", "battlefield"], ["Amphitheater", "battlefield"],

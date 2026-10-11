@@ -50,9 +50,7 @@ func _init(d: Dictionary) -> void:
 	kind.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	left.add_child(kind)
 	portrait.char_id = cid if cid != "" else "ainz"
-	# Verliebte Variante, wenn Albedo/Shalltear triumphieren oder sehr in Gunst stehen
-	if cid in ["albedo", "shalltear"] and (d.get("context", {}).get("tier", "") == "triumph" or Game.cs(cid).favor >= 80):
-		portrait.variant = "love"
+	portrait.variant = _mood_variant(d, cid)
 	portrait.custom_minimum_size = Vector2(300, 420)
 	left.add_child(portrait)
 	var nm := Label.new()
@@ -186,6 +184,29 @@ func _on_text_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and _typing and _typing.is_running():
 		_typing.kill()
 		text.visible_ratio = 1.0
+
+
+## Gefühlsvariante des Portraits (Dateien <id>_<variante>.webp; fehlt sie, bleibt das Grundbild).
+func _mood_variant(d: Dictionary, cid: String) -> String:
+	if cid == "":
+		# Ainz in der Rüstung des Abenteurers Momon (nicht bei „Momonga“)
+		var re := RegEx.create_from_string("Momon(?!ga)")
+		return "momon" if re.search(str(d.get("title", "")) + " " + str(d.get("body", ""))) else ""
+	if not Game.state.chars.has(cid):
+		return ""
+	var c := Game.cs(cid)
+	var tier: String = d.get("context", {}).get("tier", "")
+	if d.kind == "battle":
+		return "battle"
+	if tier == "failure":
+		return "sad"
+	if c.jealousy >= 60:
+		return "angry"
+	if tier == "triumph" or c.favor >= 80:
+		return "love"
+	if c.favor < 30:
+		return "sad"
+	return ""
 
 
 func _build_options() -> void:

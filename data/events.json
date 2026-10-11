@@ -218,6 +218,7 @@
     {
       "id": "ev_nigun",
       "type": "chain",
+      "char": "gazef",
       "title": "Die Sonnenlicht-Schrift",
       "subtitle": "Dorf Carne · Abenddämmerung",
       "body": "Kriegerhauptmann Gazef Stronoff kam, um das Dorf zu schützen – und lief in eine Falle. Die Sonnenlicht-Schrift der Slane-Theokratie umzingelt Carne. Ihr Anführer Nigun Grid Luin beschwört einen Engel der Herrschaft.\n\n»Dies ist die höchste Beschwörung der Menschheit! Ergib dich!«\n\nDu blickst zu dem Engel hinauf. Stufe 40, vielleicht. Und zum ersten Mal in dieser Welt … lachst du.",
@@ -2430,6 +2431,7 @@
     {
       "id": "ev_neia",
       "type": "chain",
+      "char": "neia",
       "title": "Das Mädchen mit den bösen Augen",
       "subtitle": "Heiliges Königreich · Ruinen von Kalinsha",
       "body": "Unter den Flüchtlingen steht ein junges Mädchen in einer zerbeulten Knappenrüstung: Neia Baraja. Ihre Augen sind so scharf, dass Fremde sie für böse halten. Sie hat gesehen, wie der Zauberkönig – ein Untoter! – Kinder vor Halbmenschen rettete, während die Paladine ihres eigenen Ordens zögerten.\n\n»Warum?«, fragt sie Euch. »Warum rettet ein Untoter die Schwachen?«",
