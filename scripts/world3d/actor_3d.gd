@@ -14,6 +14,8 @@ var line := ""            ## Text für einfache NPCs
 var radius := 2.6
 var color := Palette.GOLD
 var _sprite: Sprite3D
+var rig: CharacterRig
+var mood := ""
 var _name: Label3D
 var _ring: MeshInstance3D
 var _t := randf() * 10.0
@@ -62,30 +64,17 @@ func _ready() -> void:
 	add_child(_name)
 
 
-func _make_standee(cid: String, variant: String, height: float) -> void:
-	# Echtes 3D-Modell (assets/models/characters/<id>.glb) hat Vorrang vor dem Aufsteller
-	if ModelLib.has("characters", cid):
-		var rig := CharacterRig.create(cid, Callable())
-		rig.position.y = 0.13
-		add_child(rig)
-		if variant == "battle":
-			rig.play("block")
-		return
-	var tex: Texture2D = null
-	if variant != "":
-		tex = Portrait.find_texture(cid + "_" + variant)
-	if tex == null:
-		tex = Portrait.find_texture(cid)
-	_sprite = Sprite3D.new()
-	_sprite.billboard = BaseMaterial3D.BILLBOARD_FIXED_Y
-	_sprite.alpha_cut = SpriteBase3D.ALPHA_CUT_DISCARD
-	_sprite.shaded = false
-	_sprite.double_sided = true
-	if tex:
-		_sprite.texture = tex
-		_sprite.pixel_size = height / float(tex.get_height())
-		_sprite.position = Vector3(0, 0.25 + height / 2.0, 0)
-	add_child(_sprite)
+func _make_standee(cid: String, variant: String, _height: float) -> void:
+	# 3D-Figur: echtes Modell (assets/models/characters/<id>.glb) oder prozedurale Gestalt
+	rig = CharacterRig.create(cid, func(r): ProcModel.figure(r, cid))
+	rig.position.y = 0.13
+	add_child(rig)
+	mood = variant
+	# Stimmung als farbiges Licht (verliebt, wütend, traurig)
+	var mc: Variant = {"love": Color(1, 0.4, 0.7), "angry": Color(1, 0.15, 0.1), "sad": Color(0.3, 0.5, 1.0)}.get(variant)
+	if mc != null:
+		var l := B3.light(self, Vector3(0, 2.2, 0.6), mc, 1.2, 3.0)
+		l.shadow_enabled = false
 
 
 func set_highlight(on: bool) -> void:
@@ -96,5 +85,15 @@ func set_highlight(on: bool) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
-	if _sprite:
-		_sprite.position.y = 0.25 + _sprite.pixel_size * (_sprite.texture.get_height() if _sprite.texture else 0) / 2.0 + sin(_t * 1.3) * 0.04
+	# Namen aus nächster Nähe ausblenden (steht dann ohnehin im Interaktionshinweis)
+	var cam := get_viewport().get_camera_3d()
+	if cam and _name:
+		var d := cam.global_position.distance_to(_name.global_position)
+		var a := clampf((d - 3.0) / 2.5, 0.0, 1.0)
+		_name.modulate.a = a
+		_name.outline_modulate.a = 0.85 * a
+	if rig and not rig.has_model:
+		var st := Fighter.S.BLOCK if mood == "battle" else (Fighter.S.STAGGER if mood == "sad" else Fighter.S.IDLE)
+		rig.pose(st, "", 0.6 if st == Fighter.S.STAGGER else 0.0, 0.0)
+	elif rig:
+		rig.play("block" if mood == "battle" else "idle")

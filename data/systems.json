@@ -1078,6 +1078,26 @@
       "unrest": 20,
       "attention": 6,
       "desc": "Untote Schrecken brechen den Kampfgeist des Feindes – die Region vergisst es nicht."
+    },
+    {
+      "id": "personal",
+      "name": "Ainz führt persönlich",
+      "icon": "♛",
+      "str": 2.5,
+      "loss": 0.3,
+      "enemy_morale": 0.2,
+      "attention": 3,
+      "hidden": true,
+      "desc": "Der Overlord selbst hat das feindliche Heer zerschlagen."
+    },
+    {
+      "id": "overlord_fallen",
+      "name": "Rückzug des Overlords",
+      "icon": "✗",
+      "str": -0.4,
+      "loss": 1.2,
+      "hidden": true,
+      "desc": "Ainz musste sich zurückziehen – die Truppen kämpfen allein weiter."
     }
   ],
   "invasions": [

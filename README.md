@@ -1,29 +1,25 @@
 # Overlord – Herrscher von Nazarick
 
-Ein 2D-Strategie-, Verwaltungs- und Story-Spiel in **Godot 4** (GDScript), inspiriert von *Overlord*, optisch angelehnt an *Lord of Nazarick*, spielerisch an Aufbau- und Strategiespiele wie *Anno* oder *Civilization*.
-Du bist **Momonga / Ainz Ooal Gown**: Herrscher und Verwalter des Großen Grabes. Du erteilst Befehle, verwaltest Finanzen und Erlasse, dehnst Nazaricks Einfluss über die Neue Welt aus, führst Legionen in die Schlacht – und deine Wächter führen alles auf **ihre eigene Weise** aus.
+Ein **3D-Third-Person-Action-RPG mit Herrscher- und Strategie-Ebene** in **Godot 4** (GDScript), inspiriert von *Overlord* – spielerisch angelehnt an *The Witcher 3* (Kampf), *Mass Effect/Dragon Age* (Gefährten, Entscheidungen) und *Anno/Civilization* (Verwaltung, Einfluss, Feldzüge).
+Du bist **Momonga / Ainz Ooal Gown**: Du gehst selbst durch das Große Grab und die Neue Welt, gewährst deinen Wächtern Audienzen, erteilst Befehle am Kriegstisch, führst Schlachten persönlich – und deine Wächter führen alles auf **ihre eigene Weise** aus.
 
-![Thronsaal](docs/screenshots/03_throne_room.png)
+![Titel](docs/screenshots/title_3d.png)
 
-| Weltkarte & Legionen | Reichsverwaltung & Erlasse |
+| Thronsaal (begehbar) | Kampf auf der Katze-Ebene |
 |---|---|
-| ![Weltkarte](docs/screenshots/14_world_map_legion.png) | ![Verwaltung](docs/screenshots/15_administration.png) |
-| **Bericht im Charakterstil** | **Schlacht** |
-| ![Bericht](docs/screenshots/07_report.png) | ![Epilog](docs/screenshots/19_ending.png) |
-| **Auftragstafel mit Teams** | **Einführung** |
-| ![Auftragstafel](docs/screenshots/04_mission_board.png) | ![Tutorial](docs/screenshots/tutorial.png) |
-| **Schatzkammer & Artefakte** | **Albedos Wochenziele** |
-| ![Schatzkammer](docs/screenshots/treasury.png) | ![Wochenziele](docs/screenshots/weekly.png) |
-| **Ausbau der Ebenen** | **Legendärer Fund** |
-| ![Ausbau](docs/screenshots/floors.png) | ![Fund](docs/screenshots/celebration.png) |
+| ![Thronsaal](docs/screenshots/3d_throne.png) | ![Kampf](docs/screenshots/3d_combat.png) |
+| **Die Weltkarte als 3D-Kriegstisch** | **Audienz – Portraits sind 3D-Renders** |
+| ![Kriegstisch](docs/screenshots/3d_map_table.png) | ![Audienz](docs/screenshots/3d_audience.png) |
+| **Schlacht persönlich anführen** | **Die Figuren von Nazarick** |
+| ![Schlacht](docs/screenshots/3d_battle.png) | ![Figuren](docs/screenshots/3d_figures.png) |
 
-Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehlt ein Bild, zeichnet das Spiel automatisch einen stilisierten Platzhalter.
+Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäude sind prozedural gebaut und werden automatisch durch echte `.glb`-Modelle ersetzt, sobald sie vorliegen (siehe *3D-Modelle*). Menüs (Aufträge, Verwaltung, Diplomatie …) erscheinen als Fenster über der 3D-Welt.
 
 ---
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-1.5.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.0.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -32,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-1.5.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.0.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -55,26 +51,26 @@ Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikk
 
 ## Third-Person: Nazarick begehen
 
-Seit Version 1.4 betrittst du Nazarick und die Neue Welt **selbst** – als Ainz Ooal Gown in der dritten Person.
-
-![Thronsaal 3D](docs/screenshots/3d_throne.png)
+Du betrittst Nazarick und die Neue Welt **selbst** – als Ainz Ooal Gown in der dritten Person. Neue Spieler werden von Albedo, Demiurge, Cocytus und Shalltear durch eine kurze Einführung geführt (erneut abrufbar im Menü).
 
 | Steuerung | |
 |---|---|
-| Gehen / Rennen / Schweben | `WASD` / `Shift` / `Leertaste` |
+| Gehen / Rennen | `WASD` / `Shift` |
 | Kamera / Zoom | Maus (Klick fängt den Zeiger) / Mausrad |
 | Sprechen, benutzen | `E` |
 | Gate (Reisen), Zeit, Aufträge, Karte | `G`, `T`, `J`, `M` |
 | Diplomatie, Verwaltung, Nazarick, Wächter | `P`, `V`, `N`, `U` |
-| Klassische Thronsaal-Übersicht ↔ 3D | `Tab` |
+| Chronik, Speichern, Menü | `C`, `F5`, `Esc` |
 
 - **20 begehbare Orte**: Thronsaal, Grabkammern, Eisgletscher, Dschungel & Amphitheater, Lavahölle, Königliche Gemächer, Bibliothek von Ashurbanipal, Schatzkammer – sowie Carne, E-Rantel, die Königshauptstadt, Arwintar, das Heilige Königreich, die Theokratie, der Wald von Tob, der Elfenwald, die Sümpfe, die Katze-Ebene, das Azerlisia-Gebirge und die Drachenlande. Reisen per **Gate**; Regionen der Welt müssen erst erkundet sein.
-- **Die Wächter sind dort, wo sie wirklich sind**: im Thronsaal, auf ihrer Ebene, am Einsatzort ihres Auftrags oder als Feldherr bei ihrer Legion – Stimmung, Eifersucht und Kampf sieht man ihren Portraits an. Ansprechen öffnet die Audienz.
+- **Die Wächter sind dort, wo sie wirklich sind**: im Thronsaal, auf ihrer Ebene, am Einsatzort ihres Auftrags oder als Feldherr bei ihrer Legion – als 3D-Figuren (Albedo mit Hörnern und schwarzen Flügeln, Shalltear im Ballkleid mit Lanze, Demiurge mit Brille und Schwanz, der vierarmige Cocytus …). Stimmung zeigt sich in Haltung und Licht. Ansprechen öffnet die Audienz.
+- **Weltkarte als 3D-Kriegstisch**: Reliefgelände, Burgen der Fraktionen, Nazarick als Pyramide, Wege, eigene Legionen und feindliche Heere als Spielfiguren, die über das Gelände ziehen. Rechte Maustaste dreht, Mausrad zoomt.
+- **Schlachten persönlich anführen**: Trifft eine Legion auf den Feind, kann Ainz per Gate aufs Schlachtfeld und die feindliche Armee in 3D besiegen – oder dem Feldherrn mit einer Taktik das Kommando lassen.
 - **Thron** (Zeit), **Kriegsrat** (Aufträge, Karte, Diplomatie), **Albedos Pult** (Verwaltung, Ausbau, Schatzkammer, Wochenziele) und **Lagetafeln** in jeder Region verbinden die Welt mit allen Management-Systemen.
 - Die **Zeit läuft in Echtzeit** (ein Tag je 45 Sekunden, am Thron anhaltbar); Berichte, Ereignisse und Schlachten erscheinen als Depeschen.
 - Story-Figuren begegnen dir je nach Kapitel: Gazef, Nigun, Clementine, Hamsuke, Jircniv, Neia, die Platinrüstung …
 
-Alle Umgebungen werden prozedural aus Primitiven aufgebaut (keine externen 3D-Modelle nötig); Himmel und Figuren nutzen die Artworks aus `assets/`.
+Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Modelle ersetzen sie automatisch.
 
 ## Kampfsystem (Third-Person, im Stil von The Witcher 3)
 
@@ -102,7 +98,7 @@ Alle Umgebungen werden prozedural aus Primitiven aufgebaut (keine externen 3D-Mo
 
 ## 3D-Modelle (.glb) einbinden
 
-Das Spiel nutzt **echte 3D-Modelle**, sobald sie vorhanden sind – sonst automatisch die bisherigen Ersatzfiguren (Portrait-Aufsteller bzw. prozedurale Modelle aus Grundformen). Die 2D-Portraits bleiben für Dialoge, Berichte und Menüs erhalten.
+Das Spiel nutzt **echte 3D-Modelle**, sobald sie vorhanden sind – sonst automatisch die prozeduralen Ersatzfiguren und -gebäude. Auch die Portraits in Dialogen und Menüs werden aus dem jeweiligen Modell gerendert.
 
 **Ablage** (Dateiname = ID, `.glb` empfohlen, auch `.gltf`/`.tscn`):
 
@@ -136,20 +132,18 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 
 ## Spielanleitung
 
-| Aktion | Wo | Taste |
+| Aktion | In der Welt | Taste |
 |---|---|---|
-| Aufträge erteilen | Fußleiste → **Aufträge** | `A` |
-| Weltkarte, Legionen | Fußleiste → **Weltkarte** | `K` |
-| Diplomatie | Fußleiste → **Diplomatie** | `P` |
-| Finanzen & Erlasse | Fußleiste → **Verwaltung** | `V` |
-| Untertanen ansehen, Audienz gewähren, ausrüsten | Wächterkarte anklicken / **Untertanen** | `U` |
-| Nazarick: Ausbau, Schatzkammer, Wochenziele, Errungenschaften | Fußleiste → **Nazarick** | `N` |
-| Chronik (Event-Log) | Kopfleiste → **Chronik** | `C` |
-| Nächste Depesche öffnen | Depeschen-Panel | `D` |
-| Zeit vergehen lassen: 1 Tag / 1 Woche / 1 Monat | Fußleiste rechts | `1` / `2` / `3` |
-| Speichern | Kopfleiste | `F5` |
-| Vollbild | – | `F11` |
-| Optionen (Audio, Grafik, Spiel, Steuerung) | Kopfleiste ⚙ / Titelbildschirm | – |
+| Aufträge erteilen | Kriegsrat im Thronsaal / Lagetafel jeder Region | `J` |
+| Weltkarte (3D-Kriegstisch), Legionen | Kriegsrat | `M` |
+| Diplomatie | Kriegsrat | `P` |
+| Finanzen & Erlasse | Albedos Pult | `V` |
+| Wächter ansehen, Audienz gewähren, ausrüsten | Wächter ansprechen (`E`) | `U` |
+| Nazarick: Ausbau, Schatzkammer, Wochenziele, Errungenschaften | Albedos Pult | `N` |
+| Zeit vergehen lassen (1 Tag / Woche / Monat, Zeitfluss anhalten) | Thron | `T` |
+| Reisen | Gate | `G` |
+| Depesche öffnen | – | `Enter` |
+| Chronik · Speichern · Menü · Vollbild | – | `C` · `F5` · `Esc` · `F11` |
 
 **Der Kreislauf**
 
@@ -166,10 +160,10 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 
 **Die Strategie-Ebene**
 
-- **Weltkarte [K]** – 11 Regionen mit Einfluss, Unruhe und täglichen Einkünften. Regionen müssen erst erkundet werden; Einfluss wächst durch Aufträge (mit abnehmendem Ertrag), Grausamkeit erzeugt Unruhe und Aufstände.
+- **Weltkarte [M]** – 13 Regionen mit Einfluss, Unruhe und täglichen Einkünften. Regionen müssen erst erkundet werden; Einfluss wächst durch Aufträge (mit abnehmendem Ertrag), Grausamkeit erzeugt Unruhe und Aufstände.
 - **Reichsverwaltung [V]** – Finanzübersicht (Einkünfte je Region, Unterhalt für Grab, Einsätze, Erlasse und Legionen) und **Erlasse**: zehn Regierungsentscheidungen mit laufenden Kosten und Wirkungen, begrenzte Plätze, und jeder Wächter hat eine Meinung dazu.
 - **Diplomatie [P]** – 8 Fraktionen (Königreich Re-Estize, Baharuth-Kaiserreich, Slane-Theokratie, Argland-Rat, Zwerge, Heiliges Königreich Roble, Elfenkönigreich) mit Beziehung, Furcht und Verträgen: Geschenke, Handelsabkommen, Nichtangriffspakt, Machtdemonstration, Tribut, Vasallentum, Frieden, Krieg. Gesandtschaften führt ein Wächter aus – Albedo verhandelt brillant, Shalltear … eher nicht. Fraktionen reagieren auf Ruf und Aufmerksamkeit, schicken eigene Gesandte und erklären bei Hass den Krieg.
-- **Legionen & Schlachten** – Skelette, Todesritter, Liche, Seelenfresser, Todesreiter … im Grab ausheben, einen Wächter zum Feldherrn ernennen (er fehlt dann für Aufträge), über das Wegenetz marschieren lassen (die Heere ziehen sichtbar über die Karte, mit eigener Zeitsteuerung), Regionen erobern oder feindliche Heere abfangen. Schlachten laufen in einer eigenen, animierten Schlachtansicht mit Taktikwahl und Schlachtmusik.
+- **Legionen & Schlachten** – Skelette, Todesritter, Liche, Seelenfresser, Todesreiter … im Grab ausheben, einen Wächter zum Feldherrn ernennen (er fehlt dann für Aufträge), über das Wegenetz marschieren lassen (die Heere ziehen sichtbar über die Karte, mit eigener Zeitsteuerung), Regionen erobern oder feindliche Heere abfangen. Jede Schlacht kann Ainz **persönlich in 3D** schlagen – oder per Taktik dem Feldherrn überlassen.
 - **Bedrohungen mit Frist** – Inquisition, Spione, Aufstände, Abenteurer-Expeditionen, der Platin-Drache: Wer nicht rechtzeitig reagiert, verliert Gebiete, Gold und Ansehen.
 - **Lageberichte** – Mitten im Auftrag melden sich die Untertanen mit Komplikationen: Zeugen, starke Gegner, Doppelagenten … du entscheidest über Risiko, Dauer und Methode – oder lässt dem Wächter freie Hand.
 - **Teams** – zwei Untertanen gemeinsam entsenden; Synergien (Aura + Mare, Albedo + Demiurge) und Konflikte (Albedo + Shalltear, Demiurge + Sebas).
@@ -195,8 +189,8 @@ Spielstände liegen in `user://saves/` (Windows: `%APPDATA%\Godot\app_userdata\O
 ```
 project.godot              Projekt (Autoloads, Theme, Compatibility-Renderer)
 scenes/
-  title_screen.tscn        Titelbildschirm
-  throne_room.tscn         Thronsaal – zentrale Hub-Szene
+  title_screen.tscn        Titelbildschirm (3D-Kamerafahrt durch den Thronsaal)
+  world_3d.tscn            die begehbare Welt (Hauptszene des Spiels)
 scripts/
   autoload/
     content.gd             lädt data/*.json
@@ -253,26 +247,16 @@ tools/                     Theme-Builder, Simulations- und UI-Tests
 
 ---
 
-## Art-Assets
+## Grafik
 
-Enthalten: 10 Charakterportraits (+ verliebte Varianten von Albedo und Shalltear, die bei hoher Gunst oder Lob erscheinen), 7 NPC-Portraits (Pleiaden, Victim, Neuronist), 9 Hintergründe (Thronsaal, Nazarick, Carne, Re-Estize, Baharuth, Heiliges Königreich, Wald, Schlachtfeld, Weltkarte), Ornamentrahmen und Icons. Die ursprünglich eingebrannten Schachbrett-„Transparenzen“ wurden freigestellt (WebP mit Alphakanal).
+Das Spiel kommt ohne 2D-Artworks aus:
 
-Eigene Bilder ersetzen oder ergänzen – kein Code nötig:
+- **Figuren** werden prozedural aus `data/figures.json` gebaut (Hautfarbe, Frisur, Kleidung, Hörner, Flügel, Schwanz, Waffe, Sonderformen wie Cocytus, Pandora's Actor oder Hamsuke) und durch `assets/models/characters/<id>.glb` ersetzt, sobald vorhanden.
+- **Portraits** in Dialogen, Berichten und Menüs sind **3D-Renders** dieser Figuren (`PortraitStudio`, einmal je Figur erzeugt; Stimmung färbt das Kantenlicht).
+- **Orte, Himmel und Weltkarte** sind prozedural; Gebäude/Requisiten lassen sich durch `assets/models/props/*.glb` ersetzen, ganze Orte durch `assets/models/locations/*.glb`.
+- **UI**: Schriften, Ornamentrahmen (`assets/ui/frames/`) und Icons (`assets/ui/icons/`, inkl. `item_<id>` und `frame_<seltenheit>` für Artefakte).
 
-| Datei | Wirkung |
-|---|---|
-| `assets/characters/<id>.webp` (.png/.jpg) | Portrait (`albedo`, `shalltear`, `demiurge`, …, `ainz`). Hochformat; wird oben ausgerichtet beschnitten. `<id>_love.webp` = verliebte Variante. |
-| `assets/backgrounds/throne_room.jpg` | Thronsaal (Hintergrund + Thronansicht) |
-| `assets/backgrounds/title.jpg` | Titelbildschirm (sonst `nazarick_exterior`) |
-| `assets/backgrounds/<ort>.jpg` | Ortsbilder in Berichten – Zuordnung per Stichwort in `Content.LOCATION_IMAGES` oder per `"image"` im Ereignis |
-| `assets/ui/frames/frame_gold.webp`, `frame_skull.webp` | Ornamentrahmen der Fenster (9-Slice) |
-| `assets/ui/icons/icon_*.webp` | Icons für Ressourcen und Aktionsknöpfe |
-| `assets/ui/icons/item_<id>.webp`, `frame_<seltenheit>.webp` | Artefakt-Icons (IDs in `data/progression.json`) und Seltenheitsrahmen |
-| `assets/backgrounds/floor_*.jpg`, `treasury.jpg`, `forge.jpg` | Bilder der Ebenen im Ausbau-Bildschirm |
-
-Eine vollständige Liste gewünschter Grafiken steht in `docs/ASSET_WUNSCHLISTE.txt`.
-
-Bitte nur Bilder verwenden, an denen du die Rechte hast.
+Eine Liste gewünschter Modelle und Icons steht in `docs/ASSET_WUNSCHLISTE.txt`.
 
 ---
 
@@ -322,9 +306,8 @@ godot --headless --path . --script res://tools/build_theme.gd
 ```bash
 # Spielt 6 Partien mit zufälligen Entscheidungen bis zum Ende, prüft Speichern/Laden
 godot --headless --path . res://tools/sim_test.tscn
-# Öffnet alle Fenster der UI und speichert Screenshots nach tools/screenshots/
-godot --path . res://tools/ui_smoke_test.tscn
-godot --path . res://tools/world3d_test.tscn     # besucht alle 3D-Orte (LOC=<id> für einen, LOC=combat für den Kampf)
+# 3D-Rauchtest: Titel, alle Orte, Kampf, Audienz, Kriegstisch, persönliche Schlacht; Screenshots nach tools/screenshots3d/
+godot --path . res://tools/world3d_test.tscn     # LOC=<ort> | combat | title | gallery (alle Figuren + Portraits)
 godot --headless --path . res://tools/combat_test.tscn   # Kampfsystem + .glb-Laden
 ```
 

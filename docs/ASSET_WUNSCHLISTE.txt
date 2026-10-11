@@ -2,6 +2,10 @@
   OVERLORD – HERRSCHER VON NAZARICK · ASSET-WUNSCHLISTE
 ===============================================================================
 
+HINWEIS (Version 2.0): Das Spiel ist jetzt vollständig 3D. 2D-Portraits und
+gemalte Hintergründe werden nicht mehr verwendet – wichtig sind die 3D-MODELLE
+in Abschnitt 6 und die Icons/Rahmen der Benutzeroberfläche.
+
 So einfach geht's: Datei mit genau dem angegebenen Namen in den genannten
 Ordner legen – das Spiel benutzt sie automatisch (kein Code nötig).
 Fehlt eine Datei, zeichnet das Spiel weiterhin einen Platzhalter.

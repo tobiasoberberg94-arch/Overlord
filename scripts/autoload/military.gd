@@ -440,6 +440,8 @@ func _create_battle(a: Dictionary, foe: Dictionary, kind: String) -> void:
 	var cid: String = a.commander
 	var options: Array = []
 	for t in Content.systems.tactics:
+		if t.get("hidden", false):
+			continue
 		options.append({"key": "t_" + t.id, "label": "%s %s" % [t.icon, t.name], "variant": "danger" if t.id == "terror" else ("primary" if t.id == "assault" else "default"),
 			"effects": {"battle": {"uid": uid, "tactic": t.id}}, "reaction": ""})
 	var intro: String = {

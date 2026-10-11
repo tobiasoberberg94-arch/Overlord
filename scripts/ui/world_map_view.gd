@@ -6,7 +6,7 @@ extends Overlay
 
 signal open_missions(region_id: String)
 
-var canvas := MapCanvas.new()
+var canvas := MapTable3D.new()
 var tabs := TabContainer.new()
 var region_box := VBoxContainer.new()
 var army_box := VBoxContainer.new()

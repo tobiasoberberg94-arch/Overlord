@@ -9,6 +9,21 @@ var shots_dir := "res://tools/screenshots3d/"
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(shots_dir))
 	Settings.tutorial_done = true
+	var only_env := OS.get_environment("LOC")
+	if only_env == "gallery":
+		await _gallery()
+		get_tree().quit()
+		return
+	if only_env == "" or only_env == "title":
+		var title: Node = load("res://scenes/title_screen.tscn").instantiate()
+		get_tree().root.add_child.call_deferred(title)
+		await _wait(3.0)
+		_shot("title_3d")
+		title.queue_free()
+		await _wait(0.3)
+		if only_env == "title":
+			get_tree().quit()
+			return
 	Game.rng.seed = 11
 	Game.new_game()
 	# Fortgeschrittener Spielstand: alle Regionen entdeckt, einige Wächter im Einsatz
@@ -77,7 +92,41 @@ func _ready() -> void:
 		w._interact(w._focus)
 		await _wait(1.2)
 		_shot("throne_audience")
+		await _wait(2.5)
+		_shot("throne_audience_3d_portrait")
 		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		w._open_map()
+		await _wait(2.0)
+		_shot("map_table_3d")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		# Schlacht persönlich anführen
+		var army := Military.create_army()
+		for u in ["death_knight", "skeleton"]:
+			Military.recruit(army.uid, u)
+		army.location = "katze"
+		Game.state.dispatches.clear()
+		Military._create_battle(army, {"name": "Adelsheer des Königreichs", "strength": 160, "uid": ""}, "defense")
+		var buid: String = Game.state.battles.keys()[0]
+		w._open_next_dispatch(true)
+		await _wait(1.0)
+		_shot("battle_dispatch")
+		var dd = w.overlay_layer.get_child(0)
+		dd._choose("lead")
+		await _wait(0.4)
+		if is_instance_valid(dd):
+			dd.close()
+		await _wait(2.5)
+		assert(w._battle.get("uid", "") == buid, "Persönliche Schlacht sollte laufen")
+		_shot("battle_personal")
+		for e in w._battle.enemies:
+			if is_instance_valid(e):
+				e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
+		await _wait(1.0)
+		assert(not Game.state.battles.has(buid), "Schlacht sollte entschieden sein")
+		print("Persönliche Schlacht OK: ", Military.last_result.get("won", false))
+		await w.load_location("throne")
 		await _wait(0.5)
 		w._war_table()
 		await _wait(0.8)
@@ -107,3 +156,39 @@ func _shot(n: String) -> void:
 	if DisplayServer.get_name() == "headless":
 		return
 	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(shots_dir + n + ".png"))
+
+
+## Alle Figuren nebeneinander + ihre Portraits aus dem Portrait-Studio.
+func _gallery() -> void:
+	var ids := ["ainz", "ainz_momon", "albedo", "shalltear", "demiurge", "cocytus", "aura", "mare", "sebas", "narberal", "pandora",
+		"solution", "yuri", "lupusregina", "entoma", "cz", "victim", "neuronist", "gazef", "jircniv", "neia", "hamsuke", "nigun", "clementine", "platinum_dragon"]
+	var root := Node3D.new()
+	get_tree().root.add_child.call_deferred(root)
+	await _wait(0.2)
+	LocationBuilder.environment(root, {}, LocationBuilder.preset("royal"))
+	B3.ground(root, 30, B3.mat(Color(0.2, 0.18, 0.22)))
+	var cam := Camera3D.new()
+	root.add_child(cam)
+	cam.look_at_from_position(Vector3(0, 2.6, 13), Vector3(0, 1.1, 0))
+	cam.current = true
+	cam.fov = 60
+	for i in ids.size():
+		var r := CharacterRig.create(ids[i], func(rr): ProcModel.figure(rr, ids[i]))
+		r.position = Vector3((i % 13 - 6) * 1.55, 0, -(i / 13) * 3.2)
+		root.add_child(r)
+		r.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+	B3.light(root, Vector3(0, 6, 6), Color(1, 0.95, 0.9), 3.0, 30.0)
+	await _wait(1.0)
+	_shot("gallery_figures")
+	root.queue_free()
+	var grid := GridContainer.new()
+	grid.columns = 9
+	get_tree().root.add_child.call_deferred(grid)
+	await _wait(0.1)
+	for id in ids:
+		var p := Portrait.new()
+		p.char_id = id
+		p.custom_minimum_size = Vector2(170, 210)
+		grid.add_child(p)
+	await _wait(6.0)
+	_shot("gallery_portraits")

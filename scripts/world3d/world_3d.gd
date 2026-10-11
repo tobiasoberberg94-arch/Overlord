@@ -6,9 +6,8 @@ extends Node3D
 ## • Interaktion [E]: Gespräch/Audienz, Thron (Zeit), Kriegstisch (Aufträge, Karte, Diplomatie),
 ##   Albedos Pult (Verwaltung, Nazarick), Gate (Reisen), Lagetafel (regionale Aufträge)
 ## • Die Zeit läuft in Echtzeit weiter (ein Tag je DAY_SECONDS), Depeschen öffnen sich als Fenster
-## Alle Systeme (Game, World, Military, Diplomacy, Progress) sind dieselben wie im klassischen Thronsaal.
+## Alle Systeme (Game, World, Military, Diplomacy, Progress) laufen direkt in dieser 3D-Welt.
 
-const CLASSIC_SCENE := "res://scenes/throne_room.tscn"
 const TITLE_SCENE := "res://scenes/title_screen.tscn"
 const DAY_SECONDS := 45.0
 
@@ -30,6 +29,7 @@ var hud_prompt := Label.new()
 var hud_ticker := RichTextLabel.new()
 var hud_weekly := RichTextLabel.new()
 var hud_help := RichTextLabel.new()
+var rivalry := RivalryMeter.new()
 var day_bar := ProgressBar.new()
 
 var hud_bars: Dictionary = {}           ## hp/stamina/mana → [ProgressBar, Label]
@@ -66,6 +66,10 @@ func _ready() -> void:
 	_refresh_hud()
 	await get_tree().create_timer(0.8).timeout
 	_open_next_dispatch()
+	if not Settings.tutorial_done:
+		while overlay_layer.get_child_count() > 0:
+			await get_tree().create_timer(0.5).timeout
+		start_tutorial()
 
 
 # =====================================================================
@@ -264,7 +268,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_G: _gate_menu()
 		KEY_T: _time_menu()
 		KEY_H: hud_help.visible = not hud_help.visible
-		KEY_TAB: _to_classic()
 		KEY_ENTER, KEY_KP_ENTER: _open_next_dispatch(true)
 		KEY_F5:
 			SaveSystem.save_game(1)
@@ -315,7 +318,7 @@ func _time_menu() -> void:
 		{"text": "◷  Einen Monat vergehen lassen", "action": func(): _advance(30), "disabled": pend},
 		{"text": ("⏸  Zeitfluss anhalten" if _time_running else "▶  Zeitfluss fortsetzen"), "sub": "Ohne Eingriff vergeht alle %d Sekunden ein Tag." % int(DAY_SECONDS),
 			"action": func(): _time_running = not _time_running; toast("Die Zeit %s." % ("fließt wieder" if _time_running else "steht still"))},
-		{"text": "♛  Klassische Thronsaal-Übersicht", "sub": "Alle Systeme auf einen Blick (Tab)", "action": _to_classic},
+		{"text": "❤  Wochenziele & Nazarick", "sub": "Albedos Truhe, Ausbau, Schatzkammer [N]", "action": func(): _open(NazarickView.new(2))},
 	], 700, "ainz"))
 
 
@@ -370,10 +373,16 @@ func _pause_menu() -> void:
 		{"text": "▶  Weiter", "action": func(): pass, "style": "ButtonPrimary"},
 		{"text": "✎  Speichern", "action": func(): _open(SaveLoadDialog.new(true))},
 		{"text": "☰  Laden", "action": _load_menu},
-		{"text": "⚙  Einstellungen", "action": func(): _open(SettingsDialog.new(true))},
-		{"text": "♛  Klassische Thronsaal-Übersicht", "action": _to_classic},
+		{"text": "⚙  Einstellungen", "action": _settings},
+		{"text": "?  Einführung erneut zeigen", "action": start_tutorial},
 		{"text": "✕  Zum Titelbildschirm", "action": func(): get_tree().change_scene_to_file(TITLE_SCENE)},
 	], 620))
+
+
+func _settings() -> void:
+	var dlg := SettingsDialog.new(true)
+	dlg.tutorial_requested.connect(func(): await get_tree().create_timer(0.3).timeout; start_tutorial())
+	_open(dlg)
 
 
 func _load_menu() -> void:
@@ -385,11 +394,6 @@ func _load_menu() -> void:
 func _travel(id: String) -> void:
 	Audio.sfx("gong", 0.6)
 	await load_location(id, true)
-
-
-func _to_classic() -> void:
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_tree().change_scene_to_file(CLASSIC_SCENE)
 
 
 # =====================================================================
@@ -429,9 +433,16 @@ func _open_next_dispatch(force: bool = false) -> void:
 		toast("Eine Depesche ist eingetroffen – [Enter] zum Öffnen.", Palette.GOLD_BRIGHT)
 		return
 	var d: Dictionary = pending[0]
-	var dlg: Overlay = BattleView.new(d) if d.kind == "battle" and Game.state.battles.has(d.get("context", {}).get("battle", "")) else DispatchDialog.new(d)
+	var battle_uid: String = d.get("context", {}).get("battle", "") if d.kind == "battle" else ""
+	if battle_uid != "" and Game.state.battles.has(battle_uid) and not _has_option(d, "lead"):
+		# Ainz kann jede Schlacht persönlich anführen – sie wird dann in 3D ausgetragen
+		d.options.push_front({"key": "lead", "label": "⚔ Persönlich in die Schlacht ziehen (3D-Kampf)", "variant": "primary", "effects": {}, "reaction": "Ihr erhebt Euch vom Thron. Das Gate öffnet sich zum Schlachtfeld …"})
+	var dlg: Overlay = DispatchDialog.new(d)
 	dlg.closed.connect(func():
 		await get_tree().create_timer(0.15).timeout
+		if battle_uid != "" and Game.state.battles.has(battle_uid):
+			_lead_battle(battle_uid)
+			return
 		_open_next_dispatch(true)
 		_refresh_hud())
 	_open(dlg)
@@ -489,7 +500,7 @@ func _build_ui() -> void:
 	hb.add_child(hud_res)
 	# Wochenziele & Hinweise rechts
 	var right := PanelContainer.new()
-	right.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.VOID, 0.6), Color(Palette.VIOLET, 0.5), 1, 10, Color.TRANSPARENT, 0, 10))
+	right.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.VOID, 0.88), Color(Palette.VIOLET, 0.5), 1, 10, Color.TRANSPARENT, 0, 10))
 	right.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 	right.offset_left = -400
 	right.offset_right = -14
@@ -500,7 +511,13 @@ func _build_ui() -> void:
 	hud_weekly.scroll_active = false
 	hud_weekly.add_theme_font_size_override("normal_font_size", 14)
 	hud_weekly.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	right.add_child(hud_weekly)
+	var rv := VBoxContainer.new()
+	rv.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	right.add_child(rv)
+	rv.add_child(hud_weekly)
+	rv.add_child(HSeparator.new())
+	rivalry.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rv.add_child(rivalry)
 	ui_root.add_child(right)
 	# Ticker unten links
 	hud_ticker.bbcode_enabled = true
@@ -544,7 +561,7 @@ func _build_ui() -> void:
 		"[color=#ff9a8a]LMB[/color] leichte · [color=#ff9a8a]RMB[/color] schwere Attacke\n[b]Leertaste[/b] Rolle · [b]F[/b] Block/Parade · [b]Q[/b] Lock-on\n" + \
 		"[b]1–4, R[/b] Zauber · [b]X[/b] Ainz ↔ Momon\n" + \
 		"[b]E[/b] sprechen / benutzen · [b]G[/b] Gate · [b]T[/b] Zeit\n[b]J[/b] Aufträge · [b]M[/b] Karte · [b]P[/b] Diplomatie\n" + \
-		"[b]V[/b] Verwaltung · [b]N[/b] Nazarick · [b]U[/b] Wächter\n[b]Tab[/b] klassische Übersicht · [b]Esc[/b] Menü"
+		"[b]V[/b] Verwaltung · [b]N[/b] Nazarick · [b]U[/b] Wächter\n[b]Esc[/b] Menü"
 	ui_root.add_child(hud_help)
 	overlay_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -580,6 +597,7 @@ func _refresh_hud() -> void:
 	for t in s.get("threats", []):
 		lines.append("[color=#ff4a5a]⚠ %s – %d T.[/color]" % [Game.mission(t.mission_id).get("title", "Bedrohung"), World.threat_days_left(t)])
 	hud_weekly.text = "\n".join(lines)
+	rivalry.refresh()
 	_refresh_ticker()
 
 
@@ -606,8 +624,14 @@ func toast(text: String, color: Color = Palette.GOLD_BRIGHT) -> void:
 	tw.tween_callback(p.queue_free)
 
 
+var _banner: Control
+
+
 func _show_banner(title: String, sub: String) -> void:
+	if is_instance_valid(_banner):
+		_banner.queue_free()
 	var vb := VBoxContainer.new()
+	_banner = vb
 	vb.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 	vb.offset_top = -180
 	vb.grow_horizontal = Control.GROW_DIRECTION_BOTH
@@ -708,6 +732,7 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 		get_tree().create_timer(6.0).timeout.connect(func():
 			if is_instance_valid(level) and loc.get("encounters", []).size() > 0:
 				spawn_enemy(id, home))
+	_check_battle_end.call_deferred()
 	if enemies.is_empty() and not e.data.get("respawn", false):
 		toast("Die Gegend ist gesäubert.", Palette.SUCCESS)
 	_refresh_hud()
@@ -715,6 +740,9 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 
 func _on_player_died() -> void:
 	_busy = true
+	if not _battle.is_empty():
+		Military.resolve_battle(_battle.uid, "overlord_fallen")
+		_battle = {}
 	await get_tree().create_timer(1.8).timeout
 	_show_banner("Ainz zieht sich zurück", "Ein Overlord stirbt nicht – doch die Niederlage schmerzt Nazarick.")
 	Game.apply_effects({"res": {"morale": -4}})
@@ -866,3 +894,99 @@ func in_combat() -> bool:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(player.global_position) < e.aggro * 1.3:
 			return true
 	return false
+
+
+func _has_option(d: Dictionary, key: String) -> bool:
+	for o in d.get("options", []):
+		if o.get("key", "") == key:
+			return true
+	return false
+
+
+# =====================================================================
+#  Schlachten persönlich anführen
+# =====================================================================
+
+var _battle: Dictionary = {}
+
+
+## Teleportiert Ainz zum Schlachtfeld der Region und lässt die feindliche Armee als Welle antreten.
+func _lead_battle(uid: String) -> void:
+	var b: Dictionary = Game.state.battles[uid]
+	var target := "katze"
+	for l in Content.locations:
+		if l.get("region", "") == b.region:
+			target = l.id
+	_battle = {"uid": uid, "enemies": [], "left": 0}
+	await load_location(target, true)
+	for e in enemies.duplicate():
+		e.queue_free()
+	enemies.clear()
+	var strength := int(b.enemy_strength)
+	var n := clampi(strength / 40, 3, 9)
+	var kinds := _battle_roster(b)
+	var center: Vector3 = anchors.spawn + Vector3(0, 0, -16)
+	for i in n:
+		var kind: String = kinds[mini(i, kinds.size() - 1)] if i < 2 else kinds[i % kinds.size()]
+		var e := spawn_enemy(kind, center + Vector3((i % 3 - 1) * 3.0, 0, -(i / 3) * 3.0))
+		e.aggro = 60.0
+		_battle.enemies.append(e)
+	_battle.left = n
+	_show_banner("Schlacht um " + World.region(b.region).get("short", ""), "%s – %d Gegner. Besiegt sie alle!" % [b.enemy_name, n])
+	Audio.play_music("battle")
+
+
+func _battle_roster(b: Dictionary) -> Array:
+	var name := String(b.enemy_name).to_lower()
+	if "engel" in name or "theokratie" in name or "schrift" in name:
+		return ["angel", "soldier", "soldier"]
+	if "elf" in name:
+		return ["elf"]
+	if "untot" in name or "katze" in name:
+		return ["death_knight", "skeleton", "skeleton"]
+	if "quagoa" in name or "frost" in name:
+		return ["quagoa"]
+	return ["soldier", "soldier", "death_knight"]
+
+
+func _check_battle_end() -> void:
+	if _battle.is_empty():
+		return
+	var alive := 0
+	for e in _battle.enemies:
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD:
+			alive += 1
+	if alive > 0:
+		return
+	var uid: String = _battle.uid
+	_battle = {}
+	var summary := Military.resolve_battle(uid, "personal")
+	Game.state_changed.emit()
+	_show_banner("Sieg!", Military.last_result.get("text", "Der Feind ist vernichtet.").substr(0, 160))
+	toast("Schlacht gewonnen – %d Auswirkungen." % summary.size(), Palette.SUCCESS)
+	Audio.play_music(loc.get("music", "throne"))
+
+
+# =====================================================================
+#  Einführung (3D)
+# =====================================================================
+
+func start_tutorial() -> void:
+	var steps := [
+		["albedo", "Willkommen in Eurem Thronsaal, {lord}. Ihr bewegt Euch mit [b]WASD[/b], die Maus lenkt den Blick. Tretet an uns Wächter heran und drückt [b]E[/b], um eine Audienz zu gewähren."],
+		["demiurge", "Am [b]Kriegsrat[/b] (links) liegen die Auftragstafel, die Karte des Kriegstisches und die Diplomatie. Befehle an uns Wächter erteilt Ihr dort – oder jederzeit mit [b]J[/b]."],
+		["albedo", "Mein [b]Pult[/b] (rechts) birgt Verwaltung, Ausbau, Schatzkammer und meine Wochenziele für Euch. Der [b]Thron[/b] lässt die Zeit verstreichen – sie fließt aber auch von selbst."],
+		["cocytus", "Das [b]Gate[/b] am Ende der Halle führt in jede erkundete Region. Dort lauern Feinde: [b]linke Maustaste[/b] leichter Schlag, [b]rechte[/b] schwerer, [b]Leertaste[/b] ausweichen, [b]F[/b] blocken – im rechten Moment pariert. [b]Q[/b] fixiert ein Ziel."],
+		["shalltear", "Und Zauber, ~arinsu! [b]1–4[/b] und [b]R[/b] wirken Eure Magie, mit [b]X[/b] werdet Ihr zu Momon mit zwei Großschwertern. Und wenn Ihr mich lobt statt diese gehörnte Kuh – umso besser!"],
+	]
+	_tutorial_step(steps, 0)
+
+
+func _tutorial_step(steps: Array, i: int) -> void:
+	if i >= steps.size():
+		Settings.set_value("tutorial_done", true)
+		toast("Die Einführung ist beendet. Ihr findet sie im Menü (Esc).")
+		return
+	var dlg := TalkDialog.new(steps[i][0], steps[i][1])
+	dlg.closed.connect(func(): await get_tree().create_timer(0.2).timeout; _tutorial_step(steps, i + 1))
+	_open(dlg)

@@ -79,13 +79,19 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 #  Umgebung (Himmel, Nebel, Licht)
 # =====================================================================
 
-static func environment(root: Node3D, loc: Dictionary, preset: Dictionary) -> void:
+static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> void:
 	var env := Environment.new()
-	var tex: Texture2D = Content.find_image("backgrounds", loc.get("sky", ""))
-	if preset.get("sky", true) and tex:
+	if preset.get("sky", true):
+		# Prozeduraler Himmel (keine gemalten Bilder): Farben je Ort
 		var sky := Sky.new()
-		var pm := PanoramaSkyMaterial.new()
-		pm.panorama = tex
+		var pm := ProceduralSkyMaterial.new()
+		var top: Color = preset.get("sky_top", Color(0.18, 0.2, 0.35))
+		var hor: Color = preset.get("fog", Color(0.4, 0.4, 0.5)).lerp(Color(0.6, 0.6, 0.65), 0.3)
+		pm.sky_top_color = top
+		pm.sky_horizon_color = hor
+		pm.ground_horizon_color = hor.darkened(0.3)
+		pm.ground_bottom_color = hor.darkened(0.7)
+		pm.sun_angle_max = 25.0
 		pm.energy_multiplier = float(preset.get("sky_energy", 0.8))
 		sky.sky_material = pm
 		env.background_mode = Environment.BG_SKY
@@ -123,19 +129,19 @@ static func preset(kind: String) -> Dictionary:
 	match kind:
 		"throne": return {"sky": false, "bg": Color(0.015, 0.0, 0.03), "ambient": Color(0.5, 0.4, 0.65), "ambient_energy": 0.9, "fog": Color(0.1, 0.03, 0.16), "fog_density": 0.012, "sun_energy": 0.25}
 		"tombs": return {"sky": false, "bg": Color(0.01, 0.02, 0.02), "ambient": Color(0.25, 0.35, 0.3), "ambient_energy": 0.45, "fog": Color(0.03, 0.06, 0.05), "fog_density": 0.035, "sun_energy": 0.1}
-		"glacier": return {"sky_energy": 0.7, "ambient": Color(0.4, 0.5, 0.75), "ambient_energy": 0.45, "exposure": 0.8, "fog": Color(0.35, 0.5, 0.75), "fog_density": 0.02, "sun": Color(0.7, 0.85, 1.0), "sun_energy": 0.8}
-		"jungle": return {"sky_energy": 0.7, "ambient": Color(0.35, 0.5, 0.35), "ambient_energy": 0.7, "fog": Color(0.08, 0.14, 0.08), "fog_density": 0.022, "sun": Color(0.8, 0.9, 0.7), "sun_energy": 0.9}
-		"lava": return {"sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
+		"glacier": return {"sky_top": Color(0.05, 0.12, 0.3), "sky_energy": 0.7, "ambient": Color(0.4, 0.5, 0.75), "ambient_energy": 0.45, "exposure": 0.8, "fog": Color(0.35, 0.5, 0.75), "fog_density": 0.02, "sun": Color(0.7, 0.85, 1.0), "sun_energy": 0.8}
+		"jungle": return {"sky_top": Color(0.15, 0.35, 0.6), "sky_energy": 0.7, "ambient": Color(0.35, 0.5, 0.35), "ambient_energy": 0.7, "fog": Color(0.08, 0.14, 0.08), "fog_density": 0.022, "sun": Color(0.8, 0.9, 0.7), "sun_energy": 0.9}
+		"lava": return {"sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
 		"royal": return {"sky": false, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.6, 0.5, 0.45), "ambient_energy": 0.7, "fog": Color(0.08, 0.05, 0.06), "fog_density": 0.01, "sun_energy": 0.2}
 		"library": return {"sky": false, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.55, 0.45, 0.35), "ambient_energy": 0.6, "fog": Color(0.07, 0.05, 0.03), "fog_density": 0.018, "sun_energy": 0.15}
 		"treasury": return {"sky": false, "bg": Color(0.03, 0.02, 0.0), "ambient": Color(0.7, 0.55, 0.3), "ambient_energy": 0.7, "fog": Color(0.12, 0.08, 0.02), "fog_density": 0.012, "sun_energy": 0.3}
-		"village": return {"sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.55), "ambient_energy": 0.8, "fog": Color(0.55, 0.6, 0.65), "fog_density": 0.008, "sun": Color(1.0, 0.92, 0.8), "sun_energy": 1.2, "sun_rot": Vector3(-40, 50, 0)}
-		"city", "palace", "cathedral": return {"sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.65), "ambient_energy": 0.75, "fog": Color(0.5, 0.55, 0.6), "fog_density": 0.007, "sun": Color(1.0, 0.95, 0.85), "sun_energy": 1.1, "sun_rot": Vector3(-45, 30, 0)}
-		"wall": return {"sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}
-		"forest": return {"sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.35), "ambient_energy": 0.6, "fog": Color(0.1, 0.12, 0.1), "fog_density": 0.03, "sun": Color(0.8, 0.85, 0.7), "sun_energy": 0.7}
-		"swamp": return {"sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.38), "ambient_energy": 0.6, "fog": Color(0.3, 0.35, 0.33), "fog_density": 0.045, "sun_energy": 0.5}
-		"battlefield": return {"sky_energy": 0.6, "ambient": Color(0.35, 0.3, 0.4), "ambient_energy": 0.55, "fog": Color(0.25, 0.22, 0.3), "fog_density": 0.04, "sun": Color(0.7, 0.6, 0.8), "sun_energy": 0.5}
-		"mountain", "peaks": return {"sky_energy": 0.8, "ambient": Color(0.5, 0.55, 0.65), "ambient_energy": 0.5, "exposure": 0.85, "fog": Color(0.6, 0.65, 0.75), "fog_density": 0.012, "sun": Color(0.9, 0.95, 1.0), "sun_energy": 1.0}
+		"village": return {"sky_top": Color(0.2, 0.42, 0.75), "sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.55), "ambient_energy": 0.8, "fog": Color(0.55, 0.6, 0.65), "fog_density": 0.008, "sun": Color(1.0, 0.92, 0.8), "sun_energy": 1.2, "sun_rot": Vector3(-40, 50, 0)}
+		"city", "palace", "cathedral": return {"sky_top": Color(0.22, 0.4, 0.7), "sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.65), "ambient_energy": 0.75, "fog": Color(0.5, 0.55, 0.6), "fog_density": 0.007, "sun": Color(1.0, 0.95, 0.85), "sun_energy": 1.1, "sun_rot": Vector3(-45, 30, 0)}
+		"wall": return {"sky_top": Color(0.25, 0.35, 0.55), "sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}
+		"forest": return {"sky_top": Color(0.08, 0.15, 0.2), "sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.35), "ambient_energy": 0.6, "fog": Color(0.1, 0.12, 0.1), "fog_density": 0.03, "sun": Color(0.8, 0.85, 0.7), "sun_energy": 0.7}
+		"swamp": return {"sky_top": Color(0.12, 0.16, 0.16), "sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.38), "ambient_energy": 0.6, "fog": Color(0.3, 0.35, 0.33), "fog_density": 0.045, "sun_energy": 0.5}
+		"battlefield": return {"sky_top": Color(0.08, 0.04, 0.14), "sky_energy": 0.6, "ambient": Color(0.35, 0.3, 0.4), "ambient_energy": 0.55, "fog": Color(0.25, 0.22, 0.3), "fog_density": 0.04, "sun": Color(0.7, 0.6, 0.8), "sun_energy": 0.5}
+		"mountain", "peaks": return {"sky_top": Color(0.15, 0.3, 0.6), "sky_energy": 0.8, "ambient": Color(0.5, 0.55, 0.65), "ambient_energy": 0.5, "exposure": 0.85, "fog": Color(0.6, 0.65, 0.75), "fog_density": 0.012, "sun": Color(0.9, 0.95, 1.0), "sun_energy": 1.0}
 	return {}
 
 
@@ -238,11 +244,14 @@ static func _throne(root: Node3D) -> Dictionary:
 	# Kriegstisch mit der Weltkarte
 	var table := Vector3(-8.0, 0, 6.0)
 	B3.box(root, Vector3(3.6, 1.0, 2.4), table + Vector3(0, 0.5, 0), B3.mat(Color(0.12, 0.07, 0.05), 0.6))
-	var q := QuadMesh.new()
-	q.size = Vector2(3.4, 2.2)
-	var map_tex: Texture2D = Content.find_image("backgrounds", "world_map")
-	if map_tex:
-		B3.mesh(root, q, table + Vector3(0, 1.02, 0), B3.tex_mat(map_tex), Vector3(-90, 0, 0))
+	# Reliefkarte auf dem Tisch (kleines 3D-Gelände mit Burgmarken)
+	B3.box(root, Vector3(3.3, 0.04, 2.1), table + Vector3(0, 1.02, 0), B3.noise_mat(Color(0.25, 0.32, 0.18), Color(0.45, 0.42, 0.3), 0.5), false)
+	for i in 6:
+		var p := table + Vector3(_rng.randf_range(-1.4, 1.4), 1.05, _rng.randf_range(-0.85, 0.85))
+		B3.cone(root, 0.18, _rng.randf_range(0.15, 0.35), p, B3.mat(Color(0.5, 0.48, 0.45), 0.8))
+	for i in 4:
+		var p := table + Vector3(_rng.randf_range(-1.3, 1.3), 1.04, _rng.randf_range(-0.8, 0.8))
+		B3.cyl(root, 0.05, 0.06, 0.18, p + Vector3(0, 0.09, 0), B3.mat([Color(0.55, 0.25, 0.95), Color(0.85, 0.1, 0.15)][i % 2], 0.4, 0.5), false, 8)
 	B3.light(root, table + Vector3(0, 3, 0), Color(1, 0.85, 0.6), 1.5, 6)
 	# Albedos Pult (Verwaltung & Wochenziele)
 	var desk := Vector3(8.0, 0, 6.0)

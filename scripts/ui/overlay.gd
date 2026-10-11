@@ -31,7 +31,7 @@ func _init(panel_size: Vector2 = Vector2(1100, 720), variation: String = "PanelO
 	center.add_child(panel)
 	# Ornamentaler Goldrahmen + dunkles Muster aus assets/ui (falls vorhanden)
 	frame_texture = Palette.frame("frame_gold")
-	var pattern: Texture2D = Content.find_image("backgrounds", "pattern_dark")
+	var pattern: Texture2D = Content.find_image("ui/frames", "pattern_dark")
 	if frame_texture and pattern and variation == "PanelOrnate":
 		var sb := StyleBoxTexture.new()
 		sb.texture = pattern

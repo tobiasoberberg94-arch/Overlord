@@ -13,20 +13,14 @@ const EXTENSIONS := ["png", "webp", "jpg", "jpeg"]
 @export var char_id: String = "":
 	set(v):
 		char_id = v
-		_texture = find_texture(v)
-		queue_redraw()
+		_refresh_texture()
 @export var framed: bool = true
 @export var show_symbol: bool = true
 ## Emotionale Variante, z. B. "love" → sucht zuerst <id>_love.webp
 @export var variant: String = "":
 	set(v):
 		variant = v
-		_texture = null
-		if v != "":
-			_texture = find_texture(char_id + "_" + v)
-		if _texture == null:
-			_texture = find_texture(char_id)
-		queue_redraw()
+		_refresh_texture()
 ## Vertikaler Bildausschnitt bei Hochformat-Bildern: 0 = oben (Gesicht), 1 = unten
 @export var focus_y: float = 0.08
 @export var dimmed: bool = false:
@@ -38,17 +32,27 @@ var _texture: Texture2D
 
 
 func _init() -> void:
+	PortraitStudio.baked.connect(_on_baked)
 	clip_contents = true
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	resized.connect(queue_redraw)
 
 
-static func find_texture(cid: String) -> Texture2D:
-	for ext in EXTENSIONS:
-		var p := "%s%s.%s" % [ASSET_DIR, cid, ext]
-		if ResourceLoader.exists(p):
-			return load(p)
-	return null
+## 3D-Render der Figur aus dem Portrait-Studio (keine 2D-Zeichnungen mehr).
+static func find_texture(cid: String, v: String = "") -> Texture2D:
+	return PortraitStudio.get_texture(cid, v)
+
+
+func _refresh_texture() -> void:
+	_texture = find_texture(char_id, variant)
+	if _texture == null and variant != "":
+		_texture = find_texture(char_id)
+	queue_redraw()
+
+
+func _on_baked(key: String) -> void:
+	if key.begins_with(char_id + "|") and (_texture == null or key == char_id + "|" + variant):
+		_refresh_texture()
 
 
 func _draw() -> void:
@@ -66,6 +70,11 @@ func _draw() -> void:
 
 
 func _draw_texture_cover(r: Rect2) -> void:
+	# Studio-Hintergrund hinter dem freigestellten 3D-Render
+	var col := Content.char_color(char_id)
+	draw_rect(r, Palette.ABYSS)
+	draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.55, Color(col, 0.18))
+	draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.32, Color(col, 0.12))
 	var ts := _texture.get_size()
 	var target_aspect := r.size.x / r.size.y
 	var src := Rect2(Vector2.ZERO, ts)
