@@ -1213,5 +1213,40 @@
     "color": "#b8c0a0",
     "accent": "#4a5030",
     "npc": true
+  },
+  "hamsuke": {
+    "name": "Hamsuke",
+    "title": "Der Weise König des Waldes",
+    "color": "#d8a860",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "nigun": {
+    "name": "Nigun Grid Luin",
+    "title": "Anführer der Sonnenlicht-Schrift",
+    "color": "#e8e2c0",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "clementine": {
+    "name": "Clementine",
+    "title": "Ehemals Schwarze Schrift",
+    "color": "#d84a4a",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "platinum_dragon": {
+    "name": "Platinrüstung",
+    "title": "Avatar des Drachenlords",
+    "color": "#b8d8e8",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "death_knight": {
+    "name": "Todesritter",
+    "title": "Diener Nazaricks",
+    "color": "#7a4ab8",
+    "accent": "#2a1a3a",
+    "npc": true
   }
 }

@@ -1,0 +1,320 @@
+{
+ "locations": [
+  {
+   "id": "throne",
+   "name": "Thronsaal · 10. Ebene",
+   "kind": "throne",
+   "group": "nazarick",
+   "sky": "throne_room",
+   "music": "throne",
+   "desc": "Das Herz des Großen Grabes. Hier empfangt Ihr Eure Wächter, plant Feldzüge und lasst die Zeit verstreichen."
+  },
+  {
+   "id": "tombs",
+   "name": "Grabkammern · 1.–3. Ebene",
+   "kind": "tombs",
+   "group": "nazarick",
+   "sky": "nazarick_exterior",
+   "keeper": "shalltear",
+   "floor": "tombs",
+   "music": "tension",
+   "desc": "Endlose Gruften, Särge und die Vampirbräute Shalltears."
+  },
+  {
+   "id": "glacier",
+   "name": "Eisgletscher · 5. Ebene",
+   "kind": "glacier",
+   "group": "nazarick",
+   "sky": "floor_glacier",
+   "keeper": "cocytus",
+   "floor": "glacier",
+   "music": "tension",
+   "desc": "Ewiges Eis. Cocytus' Reich und Übungsfeld seiner Krieger."
+  },
+  {
+   "id": "jungle",
+   "name": "Dschungel & Amphitheater · 6. Ebene",
+   "kind": "jungle",
+   "group": "nazarick",
+   "sky": "floor_jungle",
+   "keeper": "aura",
+   "floor": "jungle",
+   "music": "throne",
+   "desc": "Ein künstlicher Himmel über endlosem Dschungel – und die Arena der Dunklen Elfen.",
+   "npcs": [
+    {
+     "id": "hamsuke",
+     "line": "Der Weise König des Waldes steht zu Diensten, de gozaru!"
+    }
+   ]
+  },
+  {
+   "id": "lava",
+   "name": "Lavahölle · 7. Ebene",
+   "kind": "lava",
+   "group": "nazarick",
+   "sky": "floor_lava",
+   "keeper": "demiurge",
+   "floor": "lava",
+   "music": "tension",
+   "desc": "Ströme aus Magma, Teufelspaläste und Demiurges Arbeitszimmer."
+  },
+  {
+   "id": "royal",
+   "name": "Königliche Gemächer · 9. Ebene",
+   "kind": "royal",
+   "group": "nazarick",
+   "sky": "floor_royal",
+   "keeper": "sebas",
+   "floor": "royal",
+   "music": "throne",
+   "desc": "Prunkräume, Bäder und die Bar. Die Maids halten alles makellos.",
+   "npcs": [
+    {
+     "id": "yuri",
+     "line": "Euer Tee steht bereit, Ainz-sama."
+    },
+    {
+     "id": "lupusregina",
+     "line": "Hehe~ Langweilig hier, oder? Schickt mich doch nach Carne!"
+    }
+   ]
+  },
+  {
+   "id": "library",
+   "name": "Bibliothek von Ashurbanipal · 10. Ebene",
+   "kind": "library",
+   "group": "nazarick",
+   "sky": "pattern_dark",
+   "keeper": "",
+   "floor": "library",
+   "music": "throne",
+   "desc": "Das gesammelte Wissen Yggdrasils, bewacht von Golems und Untoten Bibliothekaren."
+  },
+  {
+   "id": "treasury",
+   "name": "Schatzkammer",
+   "kind": "treasury",
+   "group": "nazarick",
+   "sky": "treasury",
+   "keeper": "pandora",
+   "floor": "treasury",
+   "music": "throne",
+   "desc": "Berge aus Gold, Weltgegenstände – und Pandora's Actor, der jeden Fund katalogisiert."
+  },
+  {
+   "id": "carne",
+   "name": "Dorf Carne",
+   "kind": "village",
+   "group": "world",
+   "sky": "carne_village",
+   "region": "carne",
+   "music": "title",
+   "desc": "Ein kleines Grenzdorf am Rand des Waldes von Tob – Nazaricks erster Kontakt mit der Neuen Welt.",
+   "npcs": [
+    {
+     "id": "gazef",
+     "line": "Ich verdanke Euch das Leben dieses Dorfes. Wer seid Ihr wirklich?",
+     "requires": {
+      "chapter_max": 6
+     }
+    },
+    {
+     "id": "nigun",
+     "line": "Ein Engel der Herrschaft! Höchste Beschwörung der Menschheit!",
+     "requires": {
+      "chapter": 2
+     }
+    }
+   ]
+  },
+  {
+   "id": "e_rantel",
+   "name": "Festungsstadt E-Rantel",
+   "kind": "city",
+   "group": "world",
+   "sky": "e_rantel",
+   "region": "e_rantel",
+   "style": "human",
+   "music": "title",
+   "desc": "Dreifache Mauern, Händler, Abenteurergilde – und bald die Hauptstadt des Zauberkönigreichs.",
+   "npcs": [
+    {
+     "id": "clementine",
+     "line": "Ooh, ein Abenteurer in schwarzer Rüstung? Spielst du mit mir~?",
+     "requires": {
+      "chapter_max": 3
+     }
+    },
+    {
+     "id": "gazef",
+     "line": "E-Rantel ist das Tor zum Königreich. Es fallen zu sehen, wäre … bitter.",
+     "requires": {
+      "chapter_min": 4,
+      "chapter_max": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "re_capital",
+   "name": "Königshauptstadt Re-Estize",
+   "kind": "city",
+   "group": "world",
+   "sky": "re_estize",
+   "region": "re_capital",
+   "style": "human",
+   "music": "title",
+   "desc": "Die alte Hauptstadt – prunkvoll, korrupt und unterwandert von Acht Fingern.",
+   "npcs": [
+    {
+     "id": "gazef",
+     "line": "Der König ist müde, und die Adligen sind gierig. Das Reich zerfällt.",
+     "requires": {
+      "chapter_max": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "baharuth",
+   "name": "Arwintar, Hauptstadt von Baharuth",
+   "kind": "palace",
+   "group": "world",
+   "sky": "baharuth",
+   "region": "baharuth",
+   "music": "title",
+   "desc": "Eine glänzende Kaiserstadt mit Magierakademie und Berufsarmee.",
+   "npcs": [
+    {
+     "id": "jircniv",
+     "line": "Der Zauberkönig persönlich … Seid willkommen. (Mein Magen …)",
+     "requires": {
+      "chapter_min": 4
+     }
+    }
+   ]
+  },
+  {
+   "id": "roble",
+   "name": "Heiliges Königreich Roble",
+   "kind": "wall",
+   "group": "world",
+   "sky": "holy_kingdom",
+   "region": "roble",
+   "music": "tension",
+   "desc": "Hinter der großen Mauer betet ein frommes Volk – und fürchtet die Halbmenschen der Abelion-Hügel.",
+   "npcs": [
+    {
+     "id": "neia",
+     "line": "Der Zauberkönig ist Gerechtigkeit! Ich habe es mit eigenen Augen gesehen!",
+     "requires": {
+      "chapter_min": 9
+     }
+    }
+   ]
+  },
+  {
+   "id": "theokratie",
+   "name": "Slane-Theokratie",
+   "kind": "cathedral",
+   "group": "world",
+   "sky": "holy_kingdom",
+   "region": "theokratie",
+   "music": "tension",
+   "desc": "Weiße Kathedralen, Fanatiker und die Schwarze Schrift. Untote sind hier nicht willkommen.",
+   "npcs": [
+    {
+     "id": "nigun",
+     "line": "Die sechs Götter werden Euch vernichten, Untoter!"
+    }
+   ]
+  },
+  {
+   "id": "tob_wald",
+   "name": "Großer Wald von Tob",
+   "kind": "forest",
+   "group": "world",
+   "sky": "forest",
+   "region": "tob_wald",
+   "music": "title",
+   "desc": "Ein uralter Wald voller Bestien – und das Revier des Weisen Königs des Waldes.",
+   "npcs": [
+    {
+     "id": "hamsuke",
+     "line": "Wer betritt mein Revier? … Ah! Herr! Verzeiht, de gozaru!",
+     "requires": {
+      "chapter_max": 3
+     }
+    }
+   ]
+  },
+  {
+   "id": "elfen",
+   "name": "Ewiger Wald der Elfen",
+   "kind": "forest",
+   "group": "world",
+   "sky": "forest",
+   "region": "elfen",
+   "style": "elf",
+   "music": "tension",
+   "desc": "Baumpaläste, uralte Magie und ein König, der nur Stärke achtet."
+  },
+  {
+   "id": "sumpf",
+   "name": "Sümpfe der Echsenmenschen",
+   "kind": "swamp",
+   "group": "world",
+   "sky": "battlefield",
+   "region": "sumpf",
+   "music": "tension",
+   "desc": "Nebel, Schilf und die Dörfer der fünf Echsenstämme."
+  },
+  {
+   "id": "katze",
+   "name": "Katze-Ebene",
+   "kind": "battlefield",
+   "group": "world",
+   "sky": "battlefield",
+   "region": "katze",
+   "music": "battle",
+   "desc": "Eine verfluchte Ebene im ewigen Nebel. Untote streifen umher – und hier werden Kriege entschieden.",
+   "npcs": [
+    {
+     "id": "death_knight",
+     "line": "…",
+     "solid": true
+    }
+   ]
+  },
+  {
+   "id": "azerlisia",
+   "name": "Azerlisia-Gebirge · Feo Jera",
+   "kind": "mountain",
+   "group": "world",
+   "sky": "world_map",
+   "region": "azerlisia",
+   "music": "tension",
+   "desc": "Schneebedeckte Gipfel, Zwergenhallen voller Runen – und irgendwo ein Frostdrache."
+  },
+  {
+   "id": "drachen",
+   "name": "Argland & die Drachenlande",
+   "kind": "peaks",
+   "group": "world",
+   "sky": "world_map",
+   "region": "drachen",
+   "music": "tension",
+   "desc": "Die Heimat der Drachenlords. Eine leere Platinrüstung wacht über die Welt.",
+   "npcs": [
+    {
+     "id": "platinum_dragon",
+     "line": "Spieler … Ich habe auf Euch gewartet. Seit sechshundert Jahren.",
+     "requires": {
+      "chapter_min": 10
+     }
+    }
+   ]
+  }
+ ]
+}

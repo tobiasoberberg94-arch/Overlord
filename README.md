@@ -23,7 +23,7 @@ Die Artworks (Portraits, Hintergründe, Rahmen, Icons) liegen in `assets/`. Fehl
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-1.3.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-1.4.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -32,7 +32,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-1.3.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-1.4.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -50,6 +50,31 @@ godot --path /pfad/zu/Overlord
 ```
 
 Renderer: *Compatibility* (OpenGL 3.3) – läuft also auch auf älteren Grafikkarten und Laptops. Fenstergröße 1600×900, frei skalierbar.
+
+---
+
+## Third-Person: Nazarick begehen
+
+Seit Version 1.4 betrittst du Nazarick und die Neue Welt **selbst** – als Ainz Ooal Gown in der dritten Person.
+
+![Thronsaal 3D](docs/screenshots/3d_throne.png)
+
+| Steuerung | |
+|---|---|
+| Gehen / Rennen / Schweben | `WASD` / `Shift` / `Leertaste` |
+| Kamera / Zoom | Maus (Klick fängt den Zeiger) / Mausrad |
+| Sprechen, benutzen | `E` |
+| Gate (Reisen), Zeit, Aufträge, Karte | `G`, `T`, `J`, `M` |
+| Diplomatie, Verwaltung, Nazarick, Wächter | `P`, `V`, `N`, `U` |
+| Klassische Thronsaal-Übersicht ↔ 3D | `Tab` |
+
+- **20 begehbare Orte**: Thronsaal, Grabkammern, Eisgletscher, Dschungel & Amphitheater, Lavahölle, Königliche Gemächer, Bibliothek von Ashurbanipal, Schatzkammer – sowie Carne, E-Rantel, die Königshauptstadt, Arwintar, das Heilige Königreich, die Theokratie, der Wald von Tob, der Elfenwald, die Sümpfe, die Katze-Ebene, das Azerlisia-Gebirge und die Drachenlande. Reisen per **Gate**; Regionen der Welt müssen erst erkundet sein.
+- **Die Wächter sind dort, wo sie wirklich sind**: im Thronsaal, auf ihrer Ebene, am Einsatzort ihres Auftrags oder als Feldherr bei ihrer Legion – Stimmung, Eifersucht und Kampf sieht man ihren Portraits an. Ansprechen öffnet die Audienz.
+- **Thron** (Zeit), **Kriegsrat** (Aufträge, Karte, Diplomatie), **Albedos Pult** (Verwaltung, Ausbau, Schatzkammer, Wochenziele) und **Lagetafeln** in jeder Region verbinden die Welt mit allen Management-Systemen.
+- Die **Zeit läuft in Echtzeit** (ein Tag je 45 Sekunden, am Thron anhaltbar); Berichte, Ereignisse und Schlachten erscheinen als Depeschen.
+- Story-Figuren begegnen dir je nach Kapitel: Gazef, Nigun, Clementine, Hamsuke, Jircniv, Neia, die Platinrüstung …
+
+Alle Umgebungen werden prozedural aus Primitiven aufgebaut (keine externen 3D-Modelle nötig); Himmel und Figuren nutzen die Artworks aus `assets/`.
 
 ---
 
@@ -122,6 +147,12 @@ scripts/
     game.gd                Spielzustand & Spiellogik (Aufträge, Zeit, Emotionen, Depeschen)
     world.gd, military.gd, diplomacy.gd   Regionen/Wirtschaft, Legionen/Schlachten, Fraktionen
     progress.gd            Ränge, Artefakte, Ausbau, Wochenziele, Errungenschaften
+  world3d/
+    world_3d.gd            Third-Person-Welt: Orte laden, HUD, Interaktion, Echtzeit, Depeschen
+    player_3d.gd           Ainz (prozedurales Modell) + Third-Person-Kamera
+    actor_3d.gd            Figuren als Portrait-Aufsteller, Interaktionsobjekte
+    location_builder.gd    Rezepte der 20 Orte (Thronsaal, Gletscher, Stadt, Wald …)
+    b3.gd                  3D-Baukasten (Materialien, Primitive mit Kollision, Licht, Partikel)
     save_system.gd         JSON-Speichern/Laden (3 Slots)
   scenes/                  Skripte der Szenen
   ui/
@@ -145,6 +176,7 @@ data/
   story.json               Kapitel und Befehlsarten
   regions.json, factions.json, systems.json   Strategie-Ebene
   progression.json         Ränge, Artefakte, Ebenen, Wochenziele, Errungenschaften
+  locations.json           begehbare 3D-Orte, Story-Figuren und ihre Sätze
 assets/
   ui/                      Theme, Schriften (Cinzel, Cormorant Garamond, DejaVu – alle frei lizenziert)
   shaders/                 Hintergrund-Shader
@@ -226,6 +258,7 @@ godot --headless --path . --script res://tools/build_theme.gd
 godot --headless --path . res://tools/sim_test.tscn
 # Öffnet alle Fenster der UI und speichert Screenshots nach tools/screenshots/
 godot --path . res://tools/ui_smoke_test.tscn
+godot --path . res://tools/world3d_test.tscn     # besucht alle 3D-Orte (LOC=<id> für einen)
 ```
 
 ---

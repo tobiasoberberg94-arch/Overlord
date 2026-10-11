@@ -6,7 +6,7 @@ Unicode true
 !define APPNAME "Overlord - Herrscher von Nazarick"
 !define APPDIR "Overlord Nazarick"
 !define EXE "OverlordNazarick.exe"
-!define VERSION "1.3.0"
+!define VERSION "1.4.0"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\OverlordNazarick"
 
 Name "${APPNAME}"

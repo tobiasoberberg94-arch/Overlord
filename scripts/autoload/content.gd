@@ -18,6 +18,8 @@ var regions: Array = []                   ## Regionen der Weltkarte
 var region_by_id: Dictionary = {}
 var region_links: Array = []              ## Wegenetz [a, b, Tage]
 var systems: Dictionary = {}              ## Wirtschaft, Bedrohungen, Komplikationen, Synergien, Erlasse
+var locations: Array = []                 ## begehbare 3D-Orte (data/locations.json)
+var location_by_id: Dictionary = {}
 
 
 func _ready() -> void:
@@ -52,6 +54,9 @@ func reload() -> void:
 	directives = story.get("directives", {})
 
 	systems = _load_json("systems.json")
+	locations = _load_json("locations.json").get("locations", [])
+	for l in locations:
+		location_by_id[l.id] = l
 	var reg: Dictionary = _load_json("regions.json")
 	regions = reg.get("regions", [])
 	region_links = reg.get("links", [])

@@ -77,6 +77,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_V: _open_overlay(AdministrationView.new())
 		KEY_U: _open_characters("albedo")
 		KEY_N: _open_nazarick()
+		KEY_TAB: _to_world()
 		KEY_C: _open_overlay(ChronicleView.new())
 		KEY_D: _open_next_dispatch()
 		KEY_1: _advance(1)
@@ -155,7 +156,7 @@ func _build_top_bar() -> Control:
 	lord.add_child(efficiency_label)
 	hb.add_child(lord)
 	hb.add_child(VSeparator.new())
-	for spec in [["Chronik", func(): _open_overlay(ChronicleView.new())], ["Speichern", func(): _open_overlay(SaveLoadDialog.new(true))],
+	for spec in [["⚔ Nazarick betreten", _to_world], ["Chronik", func(): _open_overlay(ChronicleView.new())], ["Speichern", func(): _open_overlay(SaveLoadDialog.new(true))],
 			["Laden", _open_load], ["⚙", _open_settings], ["Titel", _to_title]]:
 		var b := Button.new()
 		b.text = spec[0]
@@ -633,6 +634,11 @@ func _open_load() -> void:
 	var dlg := SaveLoadDialog.new(false)
 	dlg.loaded.connect(func(): refresh(); toast("Die Chronik wurde geöffnet."))
 	_open_overlay(dlg)
+
+
+## Zur begehbaren 3D-Welt (Third-Person).
+func _to_world() -> void:
+	get_tree().change_scene_to_file("res://scenes/world_3d.tscn")
 
 
 func _to_title() -> void:

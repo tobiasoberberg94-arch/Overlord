@@ -2,6 +2,7 @@ extends Control
 ## Titelbildschirm: „AINZ OOAL GOWN“ in Gold, animierter Hintergrund, Hauptmenü.
 
 const THRONE_SCENE := "res://scenes/throne_room.tscn"
+const WORLD_SCENE := "res://scenes/world_3d.tscn"
 
 var _title := Label.new()
 var _menu := VBoxContainer.new()
@@ -131,4 +132,4 @@ func _go() -> void:
 	var tw := create_tween()
 	tw.tween_property(fade, "color:a", 1.0, 0.6)
 	await tw.finished
-	get_tree().change_scene_to_file(THRONE_SCENE)
+	get_tree().change_scene_to_file(WORLD_SCENE)
