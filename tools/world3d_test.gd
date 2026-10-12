@@ -1,0 +1,194 @@
+extends Node
+## 3D-Rauchtest: besucht jeden begehbaren Ort, läuft ein Stück, spricht Figuren an,
+## öffnet die Menüs und speichert Screenshots (mit Fenster). Aufruf:
+##   godot --path . res://tools/world3d_test.tscn
+
+var shots_dir := "res://tools/screenshots3d/"
+
+
+func _ready() -> void:
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(shots_dir))
+	Settings.tutorial_done = true
+	var only_env := OS.get_environment("LOC")
+	if only_env == "gallery":
+		await _gallery()
+		get_tree().quit()
+		return
+	if only_env == "" or only_env == "title":
+		var title: Node = load("res://scenes/title_screen.tscn").instantiate()
+		get_tree().root.add_child.call_deferred(title)
+		await _wait(3.0)
+		_shot("title_3d")
+		title.queue_free()
+		await _wait(0.3)
+		if only_env == "title":
+			get_tree().quit()
+			return
+	Game.rng.seed = 11
+	Game.new_game()
+	# Fortgeschrittener Spielstand: alle Regionen entdeckt, einige Wächter im Einsatz
+	Game.state.chapter = 10
+	for r in Content.regions:
+		World.apply_region_effects({r.id: {"discover": true, "influence": 30}})
+	for cid in ["shalltear", "cocytus", "aura", "mare", "sebas", "narberal", "pandora"]:
+		Game.apply_effects({"unlock_chars": [cid]})
+	Game.state.dispatches.clear()
+	var w: Node = load("res://scenes/world_3d.tscn").instantiate()
+	get_tree().root.add_child.call_deferred(w)
+	await _wait(2.5)
+	for c in w.overlay_layer.get_children():
+		c.queue_free()
+	var only := OS.get_environment("LOC")
+	for l in Content.locations:
+		if only != "" and l.id != only:
+			continue
+		await w.load_location(l.id)
+		await _wait(0.6)
+		# ein paar Schritte vorwärts
+		w.player.velocity = Vector3.ZERO
+		Input.action_press("move_forward")
+		await _wait(0.8)
+		Input.action_release("move_forward")
+		await _wait(0.5)
+		_shot("loc_%s" % l.id)
+		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)))
+	if only == "" or only == "combat":
+		# Kampf auf der Katze-Ebene
+		await w.load_location("katze")
+		await _wait(0.5)
+		assert(w.enemies.size() >= 5, "Gegner sollten erscheinen")
+		var e: Enemy3D = w.enemies[0]
+		w.player.global_position = e.global_position + Vector3(0, 0.2, 6)
+		w.player.face(0.0)
+		await _wait(1.5)
+		w.player.toggle_lock()
+		w.player.cast("fireball")
+		await _wait(0.5)
+		_shot("combat_fireball")
+		w.player.request("light")
+		await _wait(0.25)
+		_shot("combat_attack")
+		await _wait(1.5)
+		_shot("combat_enemies")
+		w.player.set_style("momon")
+		await _wait(0.4)
+		w.player.request("heavy")
+		await _wait(0.45)
+		_shot("combat_momon")
+		await _wait(1.5)
+		w.player.set_style("ainz")
+		print("Kampf OK – Gegner übrig: ", w.enemies.size(), " Leben Ainz: ", int(w.player.hp))
+	if only == "":
+		await w.load_location("throne")
+		await _wait(0.5)
+		# zu Albedo laufen (Teleport in die Nähe) und ansprechen
+		for a in w.actors:
+			if a.id == "albedo":
+				w.player.global_position = a.global_position + Vector3(0, 0.2, 2.0)
+				w.player.cam_yaw = 0.0
+		await _wait(0.6)
+		_shot("throne_near_albedo")
+		assert(w._focus != null, "Eine Figur sollte im Fokus sein")
+		w._interact(w._focus)
+		await _wait(1.2)
+		_shot("throne_audience")
+		await _wait(2.5)
+		_shot("throne_audience_3d_portrait")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		w._open_map()
+		await _wait(2.0)
+		_shot("map_table_3d")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		# Schlacht persönlich anführen
+		var army := Military.create_army()
+		for u in ["death_knight", "skeleton"]:
+			Military.recruit(army.uid, u)
+		army.location = "katze"
+		Game.state.dispatches.clear()
+		Military._create_battle(army, {"name": "Adelsheer des Königreichs", "strength": 160, "uid": ""}, "defense")
+		var buid: String = Game.state.battles.keys()[0]
+		w._open_next_dispatch(true)
+		await _wait(1.0)
+		_shot("battle_dispatch")
+		var dd = w.overlay_layer.get_child(0)
+		dd._choose("lead")
+		await _wait(0.4)
+		if is_instance_valid(dd):
+			dd.close()
+		await _wait(2.5)
+		assert(w._battle.get("uid", "") == buid, "Persönliche Schlacht sollte laufen")
+		_shot("battle_personal")
+		for e in w._battle.enemies:
+			if is_instance_valid(e):
+				e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
+		await _wait(1.0)
+		assert(not Game.state.battles.has(buid), "Schlacht sollte entschieden sein")
+		print("Persönliche Schlacht OK: ", Military.last_result.get("won", false))
+		await w.load_location("throne")
+		await _wait(0.5)
+		w._war_table()
+		await _wait(0.8)
+		_shot("menu_war_table")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		w._gate_menu()
+		await _wait(0.8)
+		_shot("menu_gate")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
+		w._advance(3)
+		await _wait(2.5)
+		_shot("after_time")
+		SaveSystem.save_game(3)
+		assert(SaveSystem.load_game(3))
+		assert(Game.state.world3d.loc == "throne")
+	print("3D-RAUCHTEST OK")
+	get_tree().quit()
+
+
+func _wait(t: float) -> void:
+	await get_tree().create_timer(t).timeout
+
+
+func _shot(n: String) -> void:
+	if DisplayServer.get_name() == "headless":
+		return
+	get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(shots_dir + n + ".png"))
+
+
+## Alle Figuren nebeneinander + ihre Portraits aus dem Portrait-Studio.
+func _gallery() -> void:
+	var ids := ["ainz", "ainz_momon", "albedo", "shalltear", "demiurge", "cocytus", "aura", "mare", "sebas", "narberal", "pandora",
+		"solution", "yuri", "lupusregina", "entoma", "cz", "victim", "neuronist", "gazef", "jircniv", "neia", "hamsuke", "nigun", "clementine", "platinum_dragon"]
+	var root := Node3D.new()
+	get_tree().root.add_child.call_deferred(root)
+	await _wait(0.2)
+	LocationBuilder.environment(root, {}, LocationBuilder.preset("royal"))
+	B3.ground(root, 30, B3.mat(Color(0.2, 0.18, 0.22)))
+	var cam := Camera3D.new()
+	root.add_child(cam)
+	cam.look_at_from_position(Vector3(0, 2.6, 13), Vector3(0, 1.1, 0))
+	cam.current = true
+	cam.fov = 60
+	for i in ids.size():
+		var r := CharacterRig.create(ids[i], func(rr): ProcModel.figure(rr, ids[i]))
+		r.position = Vector3((i % 13 - 6) * 1.55, 0, -(i / 13) * 3.2)
+		root.add_child(r)
+		r.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+	B3.light(root, Vector3(0, 6, 6), Color(1, 0.95, 0.9), 3.0, 30.0)
+	await _wait(1.0)
+	_shot("gallery_figures")
+	root.queue_free()
+	var grid := GridContainer.new()
+	grid.columns = 9
+	get_tree().root.add_child.call_deferred(grid)
+	await _wait(0.1)
+	for id in ids:
+		var p := Portrait.new()
+		p.char_id = id
+		p.custom_minimum_size = Vector2(170, 210)
+		grid.add_child(p)
+	await _wait(6.0)
+	_shot("gallery_portraits")

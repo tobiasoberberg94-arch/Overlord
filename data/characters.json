@@ -1,0 +1,1252 @@
+{
+  "_lord": {
+    "start_resources": {
+      "power": 35,
+      "info": 4,
+      "reputation": 8,
+      "morale": 82,
+      "gold": 2400,
+      "attention": 0
+    },
+    "inner_monologue": {
+      "generic": [
+        "Ruhig bleiben. Ein Overlord zeigt keine Unsicherheit … zum Glück unterdrückt dieser Körper Emotionen.",
+        "Habe ich das wirklich so befohlen? … Egal. Einfach würdevoll nicken.",
+        "Wenn sie wüssten, dass ich nur ein Angestellter aus einem Büro bin …",
+        "Ich sollte mir Notizen machen. Viele Notizen."
+      ],
+      "demiurge_good": [
+        "»Wie Ihr es vorhergesehen habt«? Ich habe gar nichts vorhergesehen! … Gut. Nicken. Majestätisch nicken.",
+        "Wovon redet er? Zehntausend Züge im Voraus? Ich wusste nicht einmal, dass es ein Spielbrett gibt.",
+        "Ich muss diesen Bericht später heimlich dreimal lesen, um ihn zu verstehen."
+      ],
+      "demiurge_bad": [
+        "Selbst Demiurge kann scheitern? … Das beruhigt mich auf eine seltsame Weise."
+      ],
+      "albedo_good": [
+        "Perfekte Arbeit. Wenn nur dieser Blick nicht wäre … Habe ich ihr damals wirklich diese Einstellung gegeben?",
+        "Sie hat schon wieder ›Gemahl‹ gesagt. Ich ignoriere das. Souverän."
+      ],
+      "shalltear_good": [
+        "Sie hat Erfolg gehabt … und ihre Augen leuchten blutrot vor Stolz. Peroroncino, was hast du dir nur bei ihr gedacht?",
+        "Gut gemacht. Bitte frag nicht nach einer ›Belohnung im Schlafgemach‹. Bitte nicht."
+      ],
+      "shalltear_bad": [
+        "Impulsiv wie immer. Ich hätte ihr genauere Befehle geben sollen … oder gar keine."
+      ],
+      "cocytus_good": [
+        "Cocytus wirkt wirklich glücklich. Man erkennt es am Dampf, der aus seinen Mandibeln aufsteigt."
+      ],
+      "sebas_good": [
+        "Sebas hat schon wieder Menschen geholfen. Touch Me wäre stolz auf ihn … Demiurge eher nicht."
+      ],
+      "pandora_good": [
+        "Er salutiert. Auf Deutsch. Mit Pose. Ich will im Boden versinken. – Emotion unterdrückt. Danke, Untotenkörper."
+      ]
+    }
+  },
+  "albedo": {
+    "name": "Albedo",
+    "title": "Wächterin-Oberaufseherin",
+    "floor": "Alle Ebenen · Thronsaal",
+    "race": "Succubus",
+    "color": "#f1e6ff",
+    "accent": "#8a4dff",
+    "symbol": "❦",
+    "female": true,
+    "rival": "shalltear",
+    "unlocked": true,
+    "initial": {
+      "favor": 68,
+      "mood": 88,
+      "jealousy": 22
+    },
+    "quote": "Ich gehöre Euch – mit jeder Feder, jedem Atemzug, jeder Faser meiner Seele.",
+    "bio": "Die Oberaufseherin aller Wächter und Verwalterin des Großen Grabes. Unvergleichlich brillant, kalt gegenüber allen Niederen – und seit jener letzten Nacht in Yggdrasil von einer allesverzehrenden Liebe zu ihrem Herrn erfüllt. Sie sieht in Shalltear nicht nur eine Rivalin, sondern eine Bedrohung ihres rechtmäßigen Platzes an seiner Seite.",
+    "stats": {
+      "kampf": 82,
+      "intellekt": 95,
+      "diskretion": 74,
+      "diplomatie": 78,
+      "grausamkeit": 72,
+      "initiative": 84
+    },
+    "style": {
+      "name": "Vollkommene Verwaltung",
+      "score": 6,
+      "res": {
+        "morale": 3,
+        "info": 2
+      },
+      "text": [
+        "Ich habe den Auftrag so ausgeführt, wie es einer zukünftigen … verzeiht, einer treuen Dienerin geziemt: lückenlos.",
+        "Ich habe jeden Schritt so gewählt, dass er Euch, {lord}, den größten Nutzen bringt – und niemandem sonst Ruhm."
+      ]
+    },
+    "deviations": {
+      "gnadenlos": {
+        "chance": 0.12,
+        "to": "diskret",
+        "text": [
+          "Ich habe Eure Härte in leise Effizienz verwandelt. Leichen erzeugen Fragen – und Fragen stören unsere Pläne. Verzeiht meine Anmaßung."
+        ]
+      },
+      "diplomatisch": {
+        "chance": 0.18,
+        "to": "gnadenlos",
+        "text": [
+          "Einer ihrer Gesandten wagte es, Euren Namen ohne Ehrfurcht auszusprechen. Ich habe … die Verhandlungen daraufhin beendet. Endgültig."
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Mein geliebter {lord} … Eure Albedo kehrt zurück. Jede Stunde fern von Euch war eine Ewigkeit in Finsternis.",
+        "{lord}. Verzeiht, dass ich Euch mit Berichten behellige, wo ich Euch doch lieber mit … anderem behelligen würde.",
+        "Ich knie vor Euch, {lord}. Der Auftrag ist erledigt – wie alles, was Ihr mir je befehlt.",
+        "Eure Oberaufseherin meldet sich, {lord}. Die Akten sind geordnet, die Feinde gezählt, mein Herz gehört weiterhin ausschließlich Euch."
+      ],
+      "tier": {
+        "triumph": [
+          "Es war vollkommen. So vollkommen, wie unsere gemeinsame Zukunft sein wird.",
+          "Niemand sonst in Nazarick hätte es so makellos vollbracht. Niemand. Schon gar keine gewisse Vampirin."
+        ],
+        "success": [
+          "Das Ziel ist erreicht. Ich bitte um nichts als Euren Blick – vielleicht auch eine Berührung, sofern es Euch beliebt.",
+          "Alles verlief nach Plan. Nach Eurem Plan, versteht sich."
+        ],
+        "partial": [
+          "Nicht alles verlief nach meinen Vorstellungen. Ich werde die Verantwortlichen … zur Rechenschaft ziehen. Mich eingeschlossen.",
+          "Ein Teil des Ziels ist erreicht. Der Rest wird folgen – ich verspreche es Euch bei meinen Flügeln."
+        ],
+        "failure": [
+          "Ich habe versagt. Ich … ich verdiene Eure Strafe. Jede Strafe. Bitte straft mich persönlich.",
+          "Unverzeihlich. Ich, die Oberaufseherin, habe Euch enttäuscht. Bitte wendet Euch nicht von mir ab."
+        ]
+      }
+    },
+    "emotion": {
+      "love": [
+        "Wann darf ich Euch heute Abend Bericht im Privatgemach erstatten? Ausführlich. Sehr ausführlich.",
+        "Ich habe die Gästeliste für unsere Hochzeit erneut überarbeitet. Nur zur Sicherheit.",
+        "Euer Thron ist so groß, {lord}. Fast groß genug für zwei.",
+        "Kufufu … verzeiht. Ich musste nur gerade an Euch denken."
+      ],
+      "jealous": [
+        "Ich hörte, Shalltear habe sich wieder in Eure Nähe gedrängt. Diese Leiche mit ihren gepolsterten … Verzeiht. Ich bin ganz ruhig.",
+        "Wenn diese Lampreye noch einmal behauptet, sie sei Eure Erste, so lasse ich ihr den Mund zunähen. Liebevoll natürlich.",
+        "Ich frage nur aus Verwaltungsgründen: Wie oft habt Ihr Shalltear diese Woche gelobt? Ich führe eine Liste."
+      ],
+      "neglected": [
+        "Ihr habt mich lange nicht angesehen, {lord}. Habe ich etwas falsch gemacht? Sagt es mir, und ich tilge es – oder mich.",
+        "Ich warte. Ich warte immer. Ich werde ewig warten. Aber bitte … lasst mich nicht ewig warten."
+      ],
+      "watching": [
+        "Hinter Euch knirscht etwas. Es sind Albedos Zähne. Ihr Lächeln bleibt dabei vollkommen.",
+        "Albedos schwarze Schwingen spreizen sich kaum merklich. Die Temperatur im Thronsaal sinkt.",
+        "»Wie schön für dich, Shalltear«, flüstert Albedo. Der Satz klingt wie eine Kriegserklärung."
+      ]
+    },
+    "reactions": {
+      "praise": [
+        "Ah … ahh! {lord} lobt mich! Mein Herz – nein, meine Flügel – ich – kufufufu! Ich werde diesen Moment für alle Ewigkeit bewahren!",
+        "Euer Lob ist süßer als jede Belohnung. Außer vielleicht einer. Ihr wisst, welche."
+      ],
+      "reward": [
+        "Ein Geschenk … von Euch … für mich? Ich werde es tragen, bis meine Haut zu Staub zerfällt. Und dann noch länger.",
+        "Ist das … ein Verlobungsgeschenk? Nein, sagt nichts. Lasst mir diesen Traum."
+      ],
+      "rebuke": [
+        "J-ja, {lord}. Ich verstehe. Ich … werde mich bessern. Bitte hasst mich nicht.",
+        "Euer Tadel brennt wie heiliges Feuer. Ich nehme ihn an. Ich nehme alles von Euch an."
+      ],
+      "silence": [
+        "Albedo verneigt sich tief. Für einen Herzschlag glaubt Ihr, ein Zittern in ihrer Stimme zu hören, als sie sich verabschiedet.",
+        "»Euer Schweigen ist Antwort genug.« Ihr Lächeln wirkt eine Spur zu angestrengt."
+      ],
+      "approve": [
+        "Ihr vertraut mir! Ich werde Euch nicht enttäuschen, mein Geliebter.",
+        "Natürlich. Ich wusste, dass wir uns verstehen – wie Mann und Frau. Wie Herr und Dienerin, meine ich."
+      ],
+      "deny": [
+        "Wie Ihr wünscht. Ich werde den Plan … verbrennen. Und mich danach eine Stunde lang schämen.",
+        "Ich verstehe. Ihr seht weiter als ich. Natürlich tut Ihr das."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Albedo kniet vor dem Thron, die goldenen Augen glänzend. »Ihr ruft mich ohne Grund? Nur um mich zu sehen?« Ihre Flügel beben vor Glück. »Dann sehe auch ich Euch an, {lord}. So lange Ihr es erlaubt.«",
+        "»Die Verwaltung von Nazarick läuft reibungslos«, berichtet Albedo, kommt dabei aber Stufe für Stufe näher. »Und Ihr? Fühlt Ihr Euch einsam auf diesem großen Thron?«",
+        "Albedo erzählt von der Organisation der Pleiaden, den Vorräten, den Fallen. Ihr hört zu. Am Ende flüstert sie: »Das war die schönste Stunde meines Daseins.«"
+      ],
+      "jealous": [
+        "Albedo lächelt. Zu breit. »Ich habe gehört, Shalltear war gestern in Euren Gemächern … um ›Euch die Haare zu kämmen‹. Ihr habt keine Haare, {lord}.« Sie atmet tief durch. »Verzeiht. Ich bin ganz ruhig.«",
+        "»Bin ich Euch nicht genug, {lord}?« Albedos Stimme bricht kaum hörbar. »Sagt mir, was diese Vampirin hat, was ich nicht habe – und ich werde es mir aneignen.«"
+      ],
+      "gift": [
+        "Ihr überreicht Albedo einen Ring aus der Schatzkammer. Sie erstarrt. Dann streift sie ihn – natürlich – an den Ringfinger. »Ich nehme an«, haucht sie. »Ich nehme an!«",
+        "Albedo hält das Geschenk an ihre Brust gepresst. »Ich werde einen eigenen Raum dafür einrichten. Mit Altar.«"
+      ],
+      "rebuke": [
+        "Albedo senkt den Kopf so tief, dass ihre Hörner den Boden berühren. »Ich habe Euch missfallen. Ich werde mich … selbst bestrafen.« Etwas in ihrem Blick wird dunkler."
+      ]
+    },
+    "proposals": [
+      "p_albedo_succession",
+      "p_albedo_spy_network",
+      "p_albedo_purge"
+    ]
+  },
+  "shalltear": {
+    "name": "Shalltear Bloodfallen",
+    "title": "Wächterin der Ebenen 1–3",
+    "floor": "Ebenen 1–3 · Die Grabkammern",
+    "race": "Wahrer Vampir",
+    "color": "#ff2a4f",
+    "accent": "#8b0016",
+    "symbol": "✠",
+    "female": true,
+    "rival": "albedo",
+    "unlocked": true,
+    "initial": {
+      "favor": 62,
+      "mood": 84,
+      "jealousy": 30
+    },
+    "quote": "Ich bin die Stärkste aller Wächter – und eines Tages die erste Gemahlin, nicht wahr, Eure Herrlichkeit, ~arinsu?",
+    "bio": "Die Herrin der oberen Grabkammern und mächtigste Einzelkämpferin unter den Wächtern. Schön, grausam, verspielt und gefährlich impulsiv. Sie liebt ihren Herrn mit hungriger Hingabe und hält es für ihr natürliches Recht, Albedos Platz einzunehmen. Ihr Blutrausch kann ihr Urteilsvermögen verschlingen.",
+    "stats": {
+      "kampf": 98,
+      "intellekt": 48,
+      "diskretion": 30,
+      "diplomatie": 35,
+      "grausamkeit": 92,
+      "initiative": 78
+    },
+    "style": {
+      "name": "Blutiger Glanz",
+      "score": 4,
+      "res": {
+        "power": 5,
+        "attention": 6,
+        "reputation": -3
+      },
+      "text": [
+        "Ich habe es auf meine Weise getan, ~arinsu! Elegant, prachtvoll – und ziemlich rot.",
+        "Freie Hand bedeutet bei mir: alle Hände. Und alle Klauen. Und mein Spuhletit Lance."
+      ]
+    },
+    "deviations": {
+      "diskret": {
+        "chance": 0.42,
+        "to": "gnadenlos",
+        "text": [
+          "Ich war ganz, ganz leise, Eure Herrlichkeit! Bis einer schrie. Dann schrie noch einer. Und dann … nun ja. Es gibt keine Zeugen mehr, also war es doch diskret, ~arinsu?",
+          "Mein Blutrausch hat mich ein klitzekleines bisschen übermannt. Aber nur ein bisschen! Die Hälfte des Dorfes steht noch."
+        ]
+      },
+      "diplomatisch": {
+        "chance": 0.48,
+        "to": "gnadenlos",
+        "text": [
+          "Ich habe es mit Worten versucht! Wirklich! Aber der Anführer hat mich ›kleines Mädchen‹ genannt. Danach habe ich … mit anderen Mitteln verhandelt.",
+          "Diplomatie ist so langweilig. Ich habe stattdessen einen Kopf als Verhandlungsbasis mitgebracht."
+        ]
+      },
+      "schnell": {
+        "chance": 0.2,
+        "to": "gnadenlos",
+        "text": [
+          "Ihr wolltet es schnell? Nichts ist schneller als ein Massaker, ~arinsu!"
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Eure Herrlichkeit! Eure Shalltear ist zurück! Habt Ihr mich vermisst? Sagt ja, sagt ja, sagt ja!",
+        "Ich knie vor Euch, mein Gebieter – und wie Ihr seht, ist mein Kleid kaum befleckt. Kaum.",
+        "{lord}! Ich bringe Kunde, ~arinsu! Und vielleicht ein paar Souvenirs.",
+        "Die Nacht war herrlich, Eure Herrlichkeit. Fast so herrlich wie Ihr."
+      ],
+      "tier": {
+        "triumph": [
+          "Habt Ihr das gesehen? Natürlich habt Ihr! Ich bin die Stärkste! Viel stärker als ein gewisses gehörntes Weib!",
+          "Ein vollkommener Sieg, ~arinsu! Ich verlange als Belohnung nur eine winzige Kleinigkeit … eine Nacht? Ein Abend? Ein Blick?"
+        ],
+        "success": [
+          "Erledigt! Ich war brav, ich war stark, ich war wunderschön dabei.",
+          "Alles erledigt, Eure Herrlichkeit. Und ich habe nur die Hälfte meiner Lust aufs Töten ausgelebt!"
+        ],
+        "partial": [
+          "Es … lief nicht ganz so, wie ich es mir vorgestellt habe. Aber ich habe gekämpft! Sehr hübsch sogar.",
+          "Ein paar sind entkommen. Ich werde sie jagen. Persönlich. Langsam."
+        ],
+        "failure": [
+          "Ich … ich habe versagt, {lord}. Bestraft mich! Am besten persönlich … in Euren Gemächern … nein, ich meine es ernst, ich schäme mich so!",
+          "Uuuh … Verzeiht mir! Ich war zu ungestüm. Albedo wird mich auslachen. Bitte lasst sie nicht lachen!"
+        ]
+      }
+    },
+    "emotion": {
+      "love": [
+        "Ich habe für Euch ein neues Kleid anfertigen lassen. Es ist sehr … luftig. Wollt Ihr es heute Nacht sehen?",
+        "Wenn Ihr mich lobt, kribbelt mein ganzer Körper, ~arinsu. Mein nicht schlagendes Herz schlägt fast!",
+        "Eines Tages werde ich Eure erste Gemahlin sein. Ich übe schon den Knicks."
+      ],
+      "jealous": [
+        "Albedo hat schon wieder gesagt, sie sei Eure ›Rechte Hand‹. Ich bin Eure linke! Und die linke ist näher am Herzen, ~arinsu!",
+        "Diese gehörnte Kuh mit ihrem Riesen-… Verzeiht, Eure Herrlichkeit. Aber sie hat mich wieder ›Lampreye‹ genannt!",
+        "Wenn Ihr Albedo noch einmal so anlächelt, werde ich … weinen. Blutige Tränen. Auf Euren Umhang."
+      ],
+      "neglected": [
+        "Ihr habt mich so lange nicht gelobt … Bin ich nicht mehr hübsch genug? Nicht stark genug? Sagt mir, wen ich töten soll, damit Ihr mich wieder anseht!",
+        "Ich warte jede Nacht vor Euren Gemächern. Ihr kommt nie. Ist es wegen Albedo? Es ist wegen Albedo, nicht wahr?"
+      ],
+      "watching": [
+        "Aus dem Schatten einer Säule ertönt ein empörtes Fauchen. Shalltears Augen glühen blutrot.",
+        "Shalltear stampft mit dem Fuß auf. Ein Riss zieht sich durch den Marmor. »Ich hätte das besser gemacht, ~arinsu!«",
+        "»Schleimerin«, zischt Shalltear in Albedos Richtung – gerade laut genug, dass es alle hören."
+      ]
+    },
+    "reactions": {
+      "praise": [
+        "Eure Herrlichkeit lobt mich!! Hast du das gehört, Albedo? Hast du? Ich werde vor Glück zu Staub zerfallen, ~arinsu!",
+        "Ahh~ Noch einmal! Bitte sagt es noch einmal, langsam, damit ich es mir einprägen kann!"
+      ],
+      "reward": [
+        "Ein Geschenk!! Ich werde es in meinem Sarg aufbewahren. Direkt neben Eurem Porträt. Und Eurer Locke … ich meine, Eurem Knochensplitter. Den ich nicht habe. Ahem.",
+        "Ist das eine Liebeserklärung, ~arinsu? Ich sage ja! Ich sage tausendmal ja!"
+      ],
+      "rebuke": [
+        "U-uwaah … Ich bin ein schlechtes Mädchen. Ich weiß. Bestraft mich, aber hasst mich nicht!",
+        "Ich … verstehe, Eure Herrlichkeit. Ich werde mich bessern. Mein Blutdurst wird mich nie wieder … meistens nicht wieder übermannen."
+      ],
+      "silence": [
+        "Shalltear wartet mit großen Augen auf ein Wort. Es kommt keines. Ihre Unterlippe zittert, als sie sich zurückzieht.",
+        "»Kein Lob?«, flüstert Shalltear kaum hörbar. Dann reißt sie sich zusammen und knickst. »Dann beim nächsten Mal, ~arinsu.«"
+      ],
+      "approve": [
+        "Juhuu! Ich darf! Ich darf! Ihr werdet es nicht bereuen – zumindest nicht viel!",
+        "Eure Herrlichkeit vertraut mir! Nimm das, Albedo!"
+      ],
+      "deny": [
+        "Aber … aber es wäre so lustig gewesen. Nun gut. Wie Ihr befehlt, ~arinsu.",
+        "Schmoll. Ich schmolle. Ich schmolle nur ein wenig. Ich gehorche natürlich."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Shalltear hüpft die Stufen zum Thron hinauf und setzt sich wie selbstverständlich zu Euren Füßen. »Erzählt mir, was Ihr heute gedacht habt, Eure Herrlichkeit. Alles. Jede Kleinigkeit.«",
+        "Shalltear zeigt Euch stolz ihre neue Kampfhaltung. Dann ihre neue Knickshaltung. Dann ihre neue ›Ehefrauenhaltung‹. Ihr wechselt rasch das Thema.",
+        "»Wisst Ihr, was Peroroncino-sama mir einst sagte? Dass ich perfekt bin.« Sie lächelt verträumt. »Glaubt Ihr das auch, {lord}?«"
+      ],
+      "jealous": [
+        "»Warum ruft Ihr immer zuerst Albedo?«, schmollt Shalltear. »Ihre Flügel sind doch nur Federn. Ich habe Fledermäuse! Viele Fledermäuse!«",
+        "Shalltear umklammert Euren Ärmel. »Versprecht mir, dass ich wichtiger bin als diese Gorilla-Succubus. Nur ein bisschen wichtiger. Bitte.«"
+      ],
+      "gift": [
+        "Shalltear quietscht. Dann schämt sie sich für das Quietschen. Dann quietscht sie erneut. »Ich werde es jede Nacht tragen, ~arinsu!«",
+        "Mit glänzenden Augen presst Shalltear das Geschenk an ihre … üppig ausgepolsterte Brust. Ein Polster fällt heraus. Ihr tut beide so, als hättet Ihr nichts gesehen."
+      ],
+      "rebuke": [
+        "Shalltears Augen füllen sich mit Tränen. »Ich … ich gehe in meinen Sarg und denke nach, ~arinsu.« Auf dem Weg hinaus zerschlägt sie eine Säule."
+      ]
+    },
+    "proposals": [
+      "p_shalltear_city",
+      "p_shalltear_brides",
+      "p_shalltear_tournament"
+    ]
+  },
+  "demiurge": {
+    "name": "Demiurge",
+    "title": "Wächter der 7. Ebene",
+    "floor": "Ebene 7 · Die Lavahölle",
+    "race": "Erzteufel",
+    "color": "#ff8c1a",
+    "accent": "#b33a00",
+    "symbol": "♆",
+    "female": false,
+    "unlocked": true,
+    "initial": {
+      "favor": 60,
+      "mood": 82
+    },
+    "quote": "Alles verläuft exakt so, wie Ainz-sama es vorhergesehen hat – zehntausend Züge im Voraus.",
+    "bio": "Der Stratege von Nazarick. Ein höflicher, eleganter Erzteufel mit funkelnden Edelstein-Augen hinter runden Brillengläsern. Er sieht in jedem Befehl seines Herrn einen genialen Mehrstufenplan – und entwickelt daraus eigene, oft grausame Intrigen. Menschen betrachtet er als Ressource.",
+    "stats": {
+      "kampf": 70,
+      "intellekt": 99,
+      "diskretion": 88,
+      "diplomatie": 85,
+      "grausamkeit": 95,
+      "initiative": 92
+    },
+    "style": {
+      "name": "Der Große Plan",
+      "score": 9,
+      "res": {
+        "info": 6,
+        "power": 3,
+        "attention": 2,
+        "reputation": -1
+      },
+      "text": [
+        "Ihr habt mir freie Hand gegeben – ein Akt des Vertrauens, den ich mit einem Plan von sieben Ebenen vergolten habe. Die sechs verborgenen erkläre ich Euch, wenn Ihr es wünscht … obwohl Ihr sie selbstverständlich längst kennt.",
+        "Ich habe die Gelegenheit genutzt, drei weitere Fäden in unser Netz zu weben. Die Fäden ahnen nichts davon. Das ist das Schöne an Fäden."
+      ]
+    },
+    "deviations": {
+      "diplomatisch": {
+        "chance": 0.35,
+        "to": "freie_hand",
+        "text": [
+          "Ich habe verhandelt, wie befohlen. Ich habe dabei lediglich dafür gesorgt, dass die Gegenseite nicht ahnt, dass sie bereits verloren hat. Eine kleine Ergänzung.",
+          "Die Verhandlung war ein Vorwand – so hattet Ihr es doch gemeint, nicht wahr? Ich habe Eure eigentliche Absicht erkannt und umgesetzt."
+        ]
+      },
+      "schnell": {
+        "chance": 0.25,
+        "to": "freie_hand",
+        "text": [
+          "Eile ist der Feind der Eleganz. Ich habe mir erlaubt, zwei zusätzliche Tage zu investieren – sie haben sich zehnfach ausgezahlt."
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "{lord}. Wie Ihr zweifellos vorhergesehen habt, ist alles exakt nach Eurem Plan verlaufen.",
+        "Ah, {lord}. Es ist mir eine Ehre, Euch zu berichten – auch wenn Ihr den Ausgang zweifellos kanntet, ehe Ihr den Befehl erteiltet.",
+        "Verzeiht die Störung, {lord}. Ich bringe Kunde, die Eure Weitsicht erneut bestätigt.",
+        "Eure Brillanz verblüfft mich jedes Mal aufs Neue, {lord}. Erlaubt mir, die Einzelheiten darzulegen."
+      ],
+      "tier": {
+        "triumph": [
+          "Perfekt. Und dennoch: Ich bin sicher, Ihr hattet noch eine zehnte Ebene im Sinn, die mir verborgen bleibt. Ich werde weiter studieren.",
+          "Die Menschen werden sich in Jahrhunderten noch fragen, wie es geschah. Sie werden es nie erfahren. Herrlich."
+        ],
+        "success": [
+          "Der Plan ist aufgegangen. Ein angenehmer Abend für einen Teufel.",
+          "Alles befindet sich dort, wo es sein soll. Die Figuren, die Fäden – und die Leichen."
+        ],
+        "partial": [
+          "Ein Teil der Figuren hat sich unvorhergesehen bewegt. Unvorhergesehen für mich, versteht sich – nicht für Euch.",
+          "Nicht mein elegantestes Werk. Ich bitte um Nachsicht und werde die Variable … entfernen."
+        ],
+        "failure": [
+          "Ich habe versagt. Ich habe Euren Plan falsch gelesen. Eine Schande, die ich nur mit doppeltem Fleiß tilgen kann.",
+          "Es scheint, als hätte ich die Tiefe Eurer Absichten unterschätzt. Wieder einmal. Ich bitte um Bestrafung."
+        ]
+      }
+    },
+    "personal": [
+      "Übrigens: Die Abelion-Schafe gedeihen prächtig. Die Schriftrollen-Produktion steigt. Ich erspare Euch die Einzelheiten der Haltung.",
+      "Ich habe Sebas wieder dabei beobachtet, wie er Menschen half. Sentimentalität … Nun, es ist nicht an mir, über die Schöpfung eines Höchsten Wesens zu urteilen.",
+      "Albedo und ich hatten eine anregende Diskussion über die Thronfolge Nazaricks. Sie wurde dabei etwas … feurig."
+    ],
+    "reactions": {
+      "praise": [
+        "Euer Lob ist der Lohn, nach dem jeder Teufel strebt. Ich danke Euch, {lord}.",
+        "Zu gütig. Doch die eigentliche Genialität lag in Eurem Befehl – ich habe sie bloß entschlüsselt."
+      ],
+      "reward": [
+        "Eine Belohnung? Ich … bin überwältigt. Ich werde sie neben dem Juwel aufbewahren, das Ulbert-sama mir schenkte.",
+        "Ihr ehrt mich über alle Maßen. Ich werde Euch dafür einen Kontinent schenken. Spätestens nächstes Jahr."
+      ],
+      "rebuke": [
+        "Ich verstehe. Hinter Eurem Tadel liegt eine Lektion, die ich noch nicht vollständig begreife. Ich werde darüber meditieren.",
+        "Natürlich. Ein Teufel, der Fehler macht, ist ein Teufel, der lernen muss. Danke, {lord}."
+      ],
+      "silence": [
+        "Demiurge rückt seine Brille zurecht und lächelt wissend. »Natürlich. Euer Schweigen bedeutet, dass ich die nächste Stufe bereits einleiten soll. Ich verstehe.«",
+        "»Ah … Ihr sagt nichts, weil die Antwort offensichtlich ist.« Demiurge verneigt sich tief. »Wie immer zeigt Ihr mir den Weg.«"
+      ],
+      "approve": [
+        "Ich wusste, dass Ihr den Wert dieses Plans erkennt – Ihr habt ihn vermutlich selbst ersonnen und mich nur zu ihm geführt.",
+        "Mit Eurem Segen wird dieser Plan unaufhaltsam sein."
+      ],
+      "deny": [
+        "Selbstverständlich. Ihr verfolgt einen größeren Plan, in dem dieser Zug keinen Platz hat. Ich verstehe … glaube ich.",
+        "Ein Plan zu früh ist ein schlechter Plan. Ich werde warten, bis Ihr das Zeichen gebt."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Demiurge breitet eine Karte der Neuen Welt vor Euch aus und erläutert die Machtverhältnisse. Ihr versteht ungefähr ein Drittel. Er erklärt Euch das restliche Drittel »zur Bestätigung Eurer Gedanken«. Ihr nickt weise.",
+        "»Darf ich eine Frage stellen, {lord}? Wie viele Jahrhunderte habt Ihr im Voraus geplant?« Ihr schweigt geheimnisvoll. Demiurge erschauert vor Ehrfurcht.",
+        "Demiurge berichtet von seinen Experimenten mit Wesen der Neuen Welt. Ihr unterbrecht ihn höflich, bevor er die Details erreicht."
+      ],
+      "gift": [
+        "Demiurge betrachtet das Geschenk durch seine Brille, als wäre es ein Artefakt der Götter. »Ich werde es studieren. Sicher verbirgt sich darin eine Botschaft.«"
+      ],
+      "rebuke": [
+        "Demiurge senkt den Kopf. Sein Schwanz zuckt unruhig. »Ich habe zu weit gedacht – oder nicht weit genug. Ich bitte um Verzeihung.«"
+      ]
+    },
+    "proposals": [
+      "p_demiurge_sheep",
+      "p_demiurge_cult",
+      "p_demiurge_theocracy"
+    ]
+  },
+  "cocytus": {
+    "name": "Cocytus",
+    "title": "Wächter der 5. Ebene",
+    "floor": "Ebene 5 · Der Gletscher",
+    "race": "Vermin Lord",
+    "color": "#8ee6ff",
+    "accent": "#2a7fa8",
+    "symbol": "❄",
+    "female": false,
+    "unlocked": true,
+    "initial": {
+      "favor": 55,
+      "mood": 78
+    },
+    "quote": "MEIN. SCHWERT. GEHÖRT. AINZ-SAMA.",
+    "bio": "Der vierarmige Insektenkrieger aus dem ewigen Eis. Ein Mann der Ehre, des offenen Kampfes und der Disziplin. Er respektiert starke Gegner, verachtet feige Taktiken und träumt heimlich davon, eines Tages die Erben seines Herrn als treuer ›Jii‹ zu unterweisen.",
+    "stats": {
+      "kampf": 94,
+      "intellekt": 58,
+      "diskretion": 40,
+      "diplomatie": 50,
+      "grausamkeit": 45,
+      "initiative": 55
+    },
+    "style": {
+      "name": "Kriegerehre",
+      "score": 5,
+      "res": {
+        "power": 3,
+        "reputation": 3,
+        "morale": 3
+      },
+      "text": [
+        "ICH. HABE. MICH. OFFEN. GESTELLT. Ein Krieger versteckt sich nicht.",
+        "Ich habe den Feinden einen ehrenhaften Tod gewährt. Die Würdigsten unter ihnen habe ich verschont – für später."
+      ]
+    },
+    "deviations": {
+      "diskret": {
+        "chance": 0.28,
+        "to": "gnadenlos",
+        "text": [
+          "Verzeiht. Sich. Zu. Verstecken. Widerstrebt. Meiner. Natur. Ich. Habe. Sie. Zum. Duell. Gefordert.",
+          "Ein Hinterhalt ist unehrenhaft. Ich habe den Feind stattdessen offen und mit allen vier Klingen begrüßt."
+        ]
+      },
+      "gnadenlos": {
+        "chance": 0.22,
+        "to": "diplomatisch",
+        "text": [
+          "Der Anführer kämpfte tapfer. Ich. Konnte. Ihn. Nicht. Töten. Er hat das Knie gebeugt. Verzeiht meinen Ungehorsam."
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Ainz-sama. Cocytus. Meldet. Sich. Zurück.",
+        "Ich. Knie. Vor. Euch. Der. Auftrag. Ist. Ausgeführt.",
+        "{lord}. Hört. Meinen. Bericht."
+      ],
+      "tier": {
+        "triumph": [
+          "Ein. Glorreicher. Sieg. Zur. Ehre. Nazaricks.",
+          "Kein. Feind. Steht. Mehr. Mein. Schwert. Singt. Euer. Lob."
+        ],
+        "success": [
+          "Der. Auftrag. Ist. Erfüllt. Die. Feinde. Kämpften. Wacker.",
+          "Es. War. Ein. Guter. Kampf."
+        ],
+        "partial": [
+          "Der. Sieg. Ist. Unvollständig. Ich. Schäme. Mich.",
+          "Der. Feind. War. Stärker. Als. Erwartet. Ich. Werde. Trainieren."
+        ],
+        "failure": [
+          "Ich. Habe. Versagt. Nehmt. Meinen. Kopf. Wenn. Ihr. Es. Wünscht.",
+          "Eine. Schande. Für. Einen. Krieger. Bestraft. Mich."
+        ]
+      }
+    },
+    "personal": [
+      "Gestern. Träumte. Ich. Von. Eurem. Erben. Ich. Lehrte. Ihn. Das. Schwert. Er. Nannte. Mich. ›Jii‹. … Verzeiht. Diese. Anmaßung.",
+      "Die. Wachen. Der. Fünften. Ebene. Trainieren. Täglich. Sie. Sind. Bereit.",
+      "Shalltear. Und. Albedo. Streiten. Wieder. Es. Ist. Unwürdig. Aber. Ich. Verstehe. Ihre. Hingabe."
+    ],
+    "reactions": {
+      "praise": [
+        "Euer. Lob. Erwärmt. Selbst. Das. Ewige. Eis. Kshhh.",
+        "Ich. Bin. Unwürdig. Doch. Ich. Danke. Euch. Aus. Tiefstem. Herzen."
+      ],
+      "reward": [
+        "Eine. Waffe? Von. Euch? … Ich. Werde. Sie. Ehren. Bis. Zum. Ende. Aller. Tage.",
+        "Kshhhhhh. Dampf steigt aus Cocytus' Mandibeln auf – das deutlichste Zeichen von Rührung, das Ihr je gesehen habt."
+      ],
+      "rebuke": [
+        "Euer. Tadel. Ist. Gerecht. Ich. Werde. Hundert. Tage. Meditieren.",
+        "Ich. Verstehe. Ein. Krieger. Muss. Demut. Lernen."
+      ],
+      "silence": [
+        "Cocytus verneigt sich, ohne eine Regung zu zeigen. Ein Krieger braucht keine Worte.",
+        "Cocytus nickt. Er scheint Euer Schweigen als Aufforderung zu verstehen, noch härter zu trainieren."
+      ],
+      "approve": [
+        "Ich. Danke. Euch. Für. Euer. Vertrauen."
+      ],
+      "deny": [
+        "Verstanden. Ich. Ziehe. Meine. Bitte. Zurück."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Cocytus erklärt Euch die Feinheiten der vierarmigen Schwertkunst. Ihr hört höflich zu. Am Ende sagt er: »Ihr. Seid. Ein. Hervorragender. Schüler. Ainz-sama.« Ihr habt nichts getan.",
+        "Ihr sprecht mit Cocytus über Ehre. Er wirkt tief bewegt. Eiskristalle bilden sich auf den Stufen des Throns.",
+        "»Ainz-sama … darf. Ich. Eine. Frage. Stellen? Gedenkt. Ihr. Einen. Erben. Zu. Zeugen?« Albedo, irgendwo im Saal, lässt hörbar ein Tablett fallen."
+      ],
+      "gift": [
+        "Cocytus hält Euer Geschenk in allen vier Händen. »Ich. Werde. Es. Mit. Meinem. Leben. Schützen.«"
+      ],
+      "rebuke": [
+        "Cocytus beugt das Haupt. »Ich. Habe. Verstanden.« Für drei Tage trainiert er ohne Pause."
+      ]
+    },
+    "proposals": [
+      "p_cocytus_lizard_rule",
+      "p_cocytus_arena"
+    ]
+  },
+  "aura": {
+    "name": "Aura Bella Fiora",
+    "title": "Wächterin der 6. Ebene",
+    "floor": "Ebene 6 · Das Amphitheater & der Dschungel",
+    "race": "Dunkelelfe",
+    "color": "#ffb52e",
+    "accent": "#a65e00",
+    "symbol": "✦",
+    "female": true,
+    "unlocked": true,
+    "initial": {
+      "favor": 60,
+      "mood": 90
+    },
+    "quote": "Ainz-sama! Ich hab' alles erkundet! Und einen riesigen Hamster gefunden!",
+    "bio": "Die lebhafte Dunkelelfen-Bestienbändigerin. Fröhlich, frech und unendlich stolz auf ihre Tiere. Sie liebt ihren Herrn wie ein Kind einen strahlenden Helden, ärgert gerne Shalltear und passt auf ihren schüchternen Zwillingsbruder Mare auf.",
+    "stats": {
+      "kampf": 78,
+      "intellekt": 70,
+      "diskretion": 72,
+      "diplomatie": 64,
+      "grausamkeit": 40,
+      "initiative": 76
+    },
+    "style": {
+      "name": "Wilde Jagd",
+      "score": 5,
+      "res": {
+        "info": 4,
+        "power": 2
+      },
+      "text": [
+        "Ich hab's einfach gemacht, wie ich wollte! Mit Fenrir und den Hanzos und so. War super!",
+        "Freie Hand? Juhu! Ich hab gleich noch drei neue Tiere gezähmt, die wir unbedingt behalten müssen!"
+      ]
+    },
+    "deviations": {
+      "diskret": {
+        "chance": 0.18,
+        "to": "freie_hand",
+        "text": [
+          "Äh … ich wollte leise sein, wirklich! Aber dann war da dieser riesige Basilisk, und den musste ich einfach zähmen!"
+        ]
+      },
+      "gnadenlos": {
+        "chance": 0.15,
+        "to": "diskret",
+        "text": [
+          "Ich hab sie nicht alle umgebracht. Die waren eigentlich ganz nützlich. Sie sammeln jetzt Kräuter für uns!"
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Ainz-sama! Ainz-sama! Ich bin zurück! Darf ich erzählen? Ich erzähl einfach!",
+        "Auftrag erledigt, {lord}! Fenrir hat auch geholfen. Er will gestreichelt werden.",
+        "Ich melde mich zurück! Und ich war schneller als Shalltear es je gewesen wäre!"
+      ],
+      "tier": {
+        "triumph": [
+          "Das war der beste Auftrag überhaupt! Bin ich nicht toll? Sagt, dass ich toll bin!"
+        ],
+        "success": [
+          "Alles erledigt! Ganz ohne Probleme. Na ja, fast ohne."
+        ],
+        "partial": [
+          "Hmm, ein paar Sachen sind schiefgelaufen … aber nicht meine Schuld! Na gut, ein bisschen meine."
+        ],
+        "failure": [
+          "Es … es tut mir leid, Ainz-sama. Ich hab's vermasselt. Bitte schimpft nicht zu doll."
+        ]
+      }
+    },
+    "personal": [
+      "Mare hat wieder Angst vor Shalltear. Ich hab ihr gesagt, sie soll ihn in Ruhe lassen, sonst gibt's Ärger!",
+      "Im großen Wald gibt's einen Hamster, der sich ›Weiser König des Waldes‹ nennt. Darf ich ihn behalten?",
+      "Shalltear hat mich ›Zwerg‹ genannt. Ich hab sie ›Polsterbrust‹ genannt. Wir sind quitt."
+    ],
+    "reactions": {
+      "praise": [
+        "Hehehe! Ainz-sama hat mich gelobt! Warte, bis Mare das hört!",
+        "Ich bin die Beste! Das hat Ainz-sama gesagt! Offiziell!"
+      ],
+      "reward": [
+        "Echt jetzt?! Für mich? Danke, danke, danke! Ich zeig's gleich allen Tieren!"
+      ],
+      "rebuke": [
+        "Uuh … okay. Ich mach's nächstes Mal besser. Versprochen. Großes Dunkelelfen-Ehrenwort."
+      ],
+      "silence": [
+        "Aura wartet, hüpft unruhig von einem Bein aufs andere und läuft dann pfeifend davon."
+      ],
+      "approve": [
+        "Jaaa! Ich fang sofort an!"
+      ],
+      "deny": [
+        "Menno. Na gut."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Aura erzählt atemlos von ihren Tieren, dem Wetter, Mare, Shalltears Polstern und ihrem Lieblingsbaum. Ihr fühlt Euch seltsam wie ein Vater.",
+        "Aura zeigt Euch einen Trick mit ihrer Peitsche. Er funktioniert beim dritten Versuch. Ihr klatscht. Sie strahlt."
+      ],
+      "gift": [
+        "Aura reißt die Augen auf. »Für mich?« Sie umarmt Euer Bein, lässt dann erschrocken los und salutiert. »Danke, Ainz-sama!«"
+      ],
+      "rebuke": [
+        "Aura lässt die Ohren hängen. »Verstanden …« Sie trottet davon, Fenrir tröstend an ihrer Seite."
+      ]
+    },
+    "proposals": [
+      "p_aura_zoo",
+      "p_aura_forest_dominion"
+    ]
+  },
+  "mare": {
+    "name": "Mare Bello Fiore",
+    "title": "Wächter der 6. Ebene",
+    "floor": "Ebene 6 · Das Amphitheater & der Dschungel",
+    "race": "Dunkelelf",
+    "color": "#7ed957",
+    "accent": "#2f7a1f",
+    "symbol": "❀",
+    "female": false,
+    "unlocked": true,
+    "initial": {
+      "favor": 55,
+      "mood": 75
+    },
+    "quote": "E-entschuldigt bitte … soll ich die Stadt wirklich nur ein kleines bisschen im Erdboden versinken lassen?",
+    "bio": "Aura's schüchterner Zwillingsbruder – ein Druide von verheerender Macht. Er stottert, trägt ein Kleid (Bukubukuchagamas Wille) und entschuldigt sich ständig. Doch wenn sein Herr befiehlt, lässt er ohne Zögern ganze Landstriche erbeben.",
+    "stats": {
+      "kampf": 92,
+      "intellekt": 66,
+      "diskretion": 84,
+      "diplomatie": 40,
+      "grausamkeit": 55,
+      "initiative": 30
+    },
+    "style": {
+      "name": "Stille der Natur",
+      "score": 3,
+      "res": {
+        "attention": -4,
+        "power": 2
+      },
+      "text": [
+        "I-ich hab versucht, so zu handeln, wie Ihr es wollen würdet … ganz leise … wie ein Baum, der wächst."
+      ]
+    },
+    "deviations": {},
+    "voice": {
+      "opening": [
+        "Ä-ähm … Ainz-sama … i-ich bin zurück …",
+        "E-entschuldigt die Störung … ich wollte nur berichten … wenn es recht ist …",
+        "M-Mare meldet sich, {lord} … bitte seid nicht böse, falls etwas falsch ist …"
+      ],
+      "tier": {
+        "triumph": [
+          "E-es hat super geklappt! … Ich meine … es lief sehr gut, {lord}."
+        ],
+        "success": [
+          "Ich habe alles erledigt … glaube ich … hoffentlich richtig."
+        ],
+        "partial": [
+          "E-es tut mir so leid … nicht alles hat funktioniert …"
+        ],
+        "failure": [
+          "I-ich habe versagt … bitte … bitte bestraft mich, aber werft mich nicht weg …"
+        ]
+      }
+    },
+    "personal": [
+      "Schwester sagt, ich soll selbstbewusster sein … a-aber Ihr seid so beeindruckend, {lord} …",
+      "Ich habe die Erdwälle um Nazarick noch einmal verstärkt … für alle Fälle …"
+    ],
+    "reactions": {
+      "praise": [
+        "W-wirklich? … Danke … danke vielmals, {lord}!",
+        "Mare wird knallrot und versteckt das Gesicht hinter seinem Stab."
+      ],
+      "reward": [
+        "F-für mich? Ich … ich werde es ganz vorsichtig aufbewahren!"
+      ],
+      "rebuke": [
+        "J-ja … es tut mir leid … es tut mir so leid …"
+      ],
+      "silence": [
+        "Mare verbeugt sich mehrmals hintereinander und huscht davon."
+      ],
+      "approve": [
+        "I-ich gebe mein Bestes!"
+      ],
+      "deny": [
+        "J-ja, natürlich … verzeiht …"
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Mare sitzt verlegen auf der untersten Stufe. Nach einer Weile erzählt er leise von den Pflanzen der Sechsten Ebene. Seine Stimme wird mit jedem Satz fester.",
+        "»Ä-ähm … darf ich … darf ich einmal Euren Stab halten?« Ihr erlaubt es. Mare hält den Staff of Ainz Ooal Gown, als wäre er aus Glas."
+      ],
+      "gift": [
+        "Mare hält das Geschenk mit beiden Händen und beginnt beinahe zu weinen. »D-danke … danke …«"
+      ],
+      "rebuke": [
+        "Mare zittert. »E-es tut mir leid …« Draußen bebt kurz die Erde."
+      ]
+    },
+    "proposals": [
+      "p_mare_farmland"
+    ]
+  },
+  "sebas": {
+    "name": "Sebas Tian",
+    "title": "Butler von Nazarick",
+    "floor": "Ebene 9 · Die königlichen Gemächer",
+    "race": "Drachenmensch",
+    "color": "#dcdcdc",
+    "accent": "#6e6e6e",
+    "symbol": "♜",
+    "female": false,
+    "unlocked": true,
+    "initial": {
+      "favor": 58,
+      "mood": 76
+    },
+    "quote": "Wer in Not ist, dem zu helfen, ist selbstverständlich.",
+    "bio": "Der Chef-Butler und Anführer der Pleiaden. Ein vollendeter Gentleman, makellos in Haltung und Kampfkunst – und, wie sein Schöpfer Touch Me, von einem tiefen Gerechtigkeitssinn erfüllt. Seine Güte gegenüber Menschen bringt ihn immer wieder in Konflikt mit Demiurge.",
+    "stats": {
+      "kampf": 90,
+      "intellekt": 80,
+      "diskretion": 78,
+      "diplomatie": 88,
+      "grausamkeit": 10,
+      "initiative": 60
+    },
+    "style": {
+      "name": "Gerechtigkeit",
+      "score": 5,
+      "res": {
+        "reputation": 5,
+        "info": 2,
+        "attention": 1
+      },
+      "text": [
+        "Ich habe nach bestem Gewissen gehandelt – zu Eurem Ruhm und zum Wohle derer, die Schutz brauchten."
+      ]
+    },
+    "deviations": {
+      "gnadenlos": {
+        "chance": 0.55,
+        "to": "diplomatisch",
+        "text": [
+          "Verzeiht, {lord}. Unter ihnen waren Kinder. Ich habe mir erlaubt, Gnade walten zu lassen. Ich nehme jede Strafe dafür hin.",
+          "Ich habe die Schuldigen bestraft – und nur die Schuldigen. Der Rest der Bevölkerung erinnert sich nun an Euren Namen mit Dankbarkeit statt mit Furcht."
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "{lord}. Ich bitte untertänigst um Gehör.",
+        "Ich melde mich zurück, {lord}. Erlaubt mir, Euch einen vollständigen Bericht vorzutragen.",
+        "Mit Verlaub, {lord}. Der Auftrag ist ausgeführt."
+      ],
+      "tier": {
+        "triumph": [
+          "Es war mir eine Ehre, Euch auf diese Weise zu dienen."
+        ],
+        "success": [
+          "Der Auftrag wurde zufriedenstellend erledigt."
+        ],
+        "partial": [
+          "Ich bedaure, dass nicht alle Ziele erreicht wurden. Die Verantwortung liegt allein bei mir."
+        ],
+        "failure": [
+          "Ich habe versagt, {lord}. Es gibt keine Entschuldigung."
+        ]
+      }
+    },
+    "personal": [
+      "Demiurge-sama und ich hatten erneut eine … Meinungsverschiedenheit. Ich versichere Euch, sie wird unsere Pflichten nicht beeinträchtigen.",
+      "Die Pleiaden arbeiten tadellos. Lupusregina bedarf allerdings gelegentlich einer … Ermahnung."
+    ],
+    "reactions": {
+      "praise": [
+        "Ihr seid zu gütig, {lord}.",
+        "Ich danke Euch. Euer Lob ist mir Verpflichtung."
+      ],
+      "reward": [
+        "Ich bin dessen nicht würdig … doch ich nehme es dankbar an."
+      ],
+      "rebuke": [
+        "Ich verstehe. Ich werde mich bessern."
+      ],
+      "silence": [
+        "Sebas verneigt sich in exakt dem richtigen Winkel und zieht sich lautlos zurück."
+      ],
+      "approve": [
+        "Ich danke Euch für Eure Großherzigkeit, {lord}."
+      ],
+      "deny": [
+        "Wie Ihr befehlt."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Sebas serviert Euch Tee, den Ihr nicht trinken könnt. Ihr sprecht über Touch Me. Für einen Moment fühlt sich der Thronsaal an wie früher.",
+        "Sebas berichtet über die Gemütslage der Dienerschaft. »Die Maids wünschen sich, Euch persönlich dienen zu dürfen, {lord}. Täglich.«"
+      ],
+      "gift": [
+        "Sebas nimmt das Geschenk mit einer tiefen Verbeugung entgegen. »Ich werde mich dessen würdig erweisen.«"
+      ],
+      "rebuke": [
+        "Sebas verneigt sich. Sein Gesicht bleibt unbewegt, doch seine Fäuste ballen sich kurz."
+      ]
+    },
+    "proposals": [
+      "p_sebas_orphanage",
+      "p_sebas_trade"
+    ]
+  },
+  "narberal": {
+    "name": "Narberal Gamma",
+    "title": "Pleiade · Partnerin ›Nabe‹",
+    "floor": "Ebene 9 · Die Pleiaden",
+    "race": "Doppelgängerin",
+    "color": "#6fb3ff",
+    "accent": "#1f4f99",
+    "symbol": "ϟ",
+    "female": true,
+    "unlocked": true,
+    "initial": {
+      "favor": 52,
+      "mood": 74
+    },
+    "quote": "Diese niederen Kreaturen … Verzeiht, Momon-sa… -san.",
+    "bio": "Eine der Pleiaden und Zauberin des Blitzes. Als ›Nabe‹ begleitet sie den Abenteurer Momon. Bedingungslos loyal, eiskalt gegenüber Menschen, die sie als Insekten bezeichnet – und hoffnungslos schlecht darin, ihre Verachtung zu verbergen.",
+    "stats": {
+      "kampf": 72,
+      "intellekt": 62,
+      "diskretion": 45,
+      "diplomatie": 20,
+      "grausamkeit": 70,
+      "initiative": 40
+    },
+    "style": {
+      "name": "Kalte Effizienz",
+      "score": 2,
+      "res": {
+        "power": 2,
+        "reputation": -2
+      },
+      "text": [
+        "Ich habe die Kakerlaken so effizient behandelt, wie es ihnen gebührt."
+      ]
+    },
+    "deviations": {
+      "diplomatisch": {
+        "chance": 0.45,
+        "to": "gnadenlos",
+        "text": [
+          "Diese Kakerlake wagte es, mich ›Schätzchen‹ zu nennen. Ich habe ihr daraufhin die Zunge … verbrannt. Diplomatisch, versteht sich."
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Narberal Gamma meldet sich zurück, {lord}.",
+        "Ich bin zurück, {lord}. Die Menschen waren so lästig wie immer.",
+        "{lord}. Mein Bericht."
+      ],
+      "tier": {
+        "triumph": [
+          "Perfekt ausgeführt. Die Fliegen haben nichts bemerkt."
+        ],
+        "success": [
+          "Erledigt."
+        ],
+        "partial": [
+          "Die Kakerlaken waren zäher als erwartet. Verzeiht."
+        ],
+        "failure": [
+          "Ich habe versagt. Ich bin es nicht wert, Euch zu dienen."
+        ]
+      }
+    },
+    "personal": [
+      "Ein Mensch namens Ninya bat mich, mit ihm essen zu gehen. Ich habe ihm erklärt, dass Mücken nicht essen gehen.",
+      "Ich übe weiterhin, Euch ›Momon-san‹ zu nennen. Es ist … die schwerste Prüfung meines Daseins."
+    ],
+    "reactions": {
+      "praise": [
+        "… Danke, {lord}. Ich bin zutiefst geehrt."
+      ],
+      "reward": [
+        "Ich … weiß nicht, was ich sagen soll. Ich werde es ehren."
+      ],
+      "rebuke": [
+        "Verstanden. Es wird nicht wieder vorkommen."
+      ],
+      "silence": [
+        "Narberal verneigt sich wortlos."
+      ],
+      "approve": [
+        "Zu Befehl."
+      ],
+      "deny": [
+        "Zu Befehl."
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Narberal steht steif vor Euch. Nach einer Weile sagt sie: »Die Menschen sind Kakerlaken.« Dann, nach einer Pause: »… Aber Momon-san ist kein Mensch. Das beruhigt mich.«"
+      ],
+      "gift": [
+        "Narberals Gesicht bleibt unbewegt. Doch ihre Ohren werden rot."
+      ],
+      "rebuke": [
+        "»Ich verstehe.« Narberal senkt den Blick. Es knistert leise um ihre Finger."
+      ]
+    },
+    "proposals": []
+  },
+  "pandora": {
+    "name": "Pandora's Actor",
+    "title": "Hüter der Schatzkammer",
+    "floor": "Die Schatzkammer",
+    "race": "Doppelgänger",
+    "color": "#ffd23f",
+    "accent": "#7a5c00",
+    "symbol": "✪",
+    "female": false,
+    "unlocked": false,
+    "initial": {
+      "favor": 50,
+      "mood": 95
+    },
+    "quote": "Wenn es mein Gott wünscht! – Wenn es mein Gott wünscht!!",
+    "bio": "Die einzige Schöpfung von Momonga selbst: ein Doppelgänger in einer Uniform, die verdächtig nach Militärparade aussieht. Theatralisch, genial, dramatisch – und für seinen Schöpfer eine wandelnde Erinnerung an seine peinlichste Phase.",
+    "stats": {
+      "kampf": 80,
+      "intellekt": 96,
+      "diskretion": 70,
+      "diplomatie": 82,
+      "grausamkeit": 50,
+      "initiative": 85
+    },
+    "style": {
+      "name": "Theatralische Perfektion",
+      "score": 7,
+      "res": {
+        "info": 4,
+        "reputation": 3,
+        "morale": 2
+      },
+      "text": [
+        "Ich habe die Bühne der Welt betreten, mein Schöpfer! Mit Pathos! Mit Pose! Mit Prunk!"
+      ]
+    },
+    "deviations": {
+      "diskret": {
+        "chance": 0.3,
+        "to": "freie_hand",
+        "text": [
+          "Diskretion? Gewiss! Doch kein Vorhang fällt ohne einen letzten, glorreichen Auftritt! Verzeiht mir, mein Schöpfer!"
+        ]
+      }
+    },
+    "voice": {
+      "opening": [
+        "Mein Schöpfer! Mein Gott! Euer Pandora's Actor kehrt zurück!",
+        "Wenn es mein Gott wünscht – so berichte ich! Er salutiert mit einer Drehung.",
+        "Ahhh, {lord}! Erlaubt mir, Euch in die Bühne meines Berichts zu entführen!"
+      ],
+      "tier": {
+        "triumph": [
+          "Ein Triumph, würdig der Bühnen von Walhall! Bravo! Bravissimo!"
+        ],
+        "success": [
+          "Der Vorhang fällt – Applaus! Der Auftrag ist erfüllt!"
+        ],
+        "partial": [
+          "Ein Akt ging daneben, mein Schöpfer. Doch das Stück ist noch nicht zu Ende!"
+        ],
+        "failure": [
+          "Tragödie! Die Bühne brennt! Ich habe versagt, mein Schöpfer!"
+        ]
+      }
+    },
+    "personal": [
+      "Ich habe Eure Gestalt für zukünftige Einsätze studiert, mein Schöpfer. Eure Art zu nicken ist … göttlich."
+    ],
+    "reactions": {
+      "praise": [
+        "Mein Schöpfer lobt mich! Wenn es mein Gott wünscht, verneige ich mich tausendfach!"
+      ],
+      "reward": [
+        "Ein Geschenk! Ich werde es in der Schatzkammer neben den Weltgegenständen ausstellen!"
+      ],
+      "rebuke": [
+        "Ahh! Der Tadel meines Schöpfers! Ich nehme ihn an wie ein Schauspieler die Kritik!"
+      ],
+      "silence": [
+        "Pandora's Actor salutiert mit einer Pirouette. Ihr wünscht, Ihr hättet ein Herz, damit es Euch vor Scham stehen bleiben könnte."
+      ],
+      "approve": [
+        "Wenn es mein Gott wünscht!"
+      ],
+      "deny": [
+        "Wenn es mein Gott … nicht wünscht! Verstanden!"
+      ]
+    },
+    "audience": {
+      "talk": [
+        "Pandora's Actor führt Euch einen Monolog vor. Auf Deutsch. Mit Gesten. Eure Emotionsunterdrückung leuchtet dreimal grün auf."
+      ],
+      "gift": [
+        "»Für mich, mein Schöpfer?!« Pandora's Actor fällt theatralisch auf ein Knie. »Wenn es mein Gott wünscht!!«"
+      ],
+      "rebuke": [
+        "Pandora's Actor verbeugt sich so tief, dass sein Hut zu Boden fällt. »Ich werde an meiner Darbietung feilen!«"
+      ]
+    },
+    "proposals": [
+      "p_pandora_momon_double"
+    ]
+  },
+  "solution": {
+    "name": "Solution Epsilon",
+    "title": "Pleiade · Schleim",
+    "color": "#f2d36b",
+    "accent": "#7a5c00",
+    "npc": true
+  },
+  "yuri": {
+    "name": "Yuri Alpha",
+    "title": "Pleiade · Anführerin",
+    "color": "#b9a7ff",
+    "accent": "#3d2c7a",
+    "npc": true
+  },
+  "lupusregina": {
+    "name": "Lupusregina Beta",
+    "title": "Pleiade · Werwölfin",
+    "color": "#ff7a4a",
+    "accent": "#7a2a10",
+    "npc": true
+  },
+  "entoma": {
+    "name": "Entoma Vasilissa Zeta",
+    "title": "Pleiade · Arachnoid",
+    "color": "#c58bff",
+    "accent": "#3b1a5c",
+    "npc": true
+  },
+  "cz": {
+    "name": "CZ2128 Delta",
+    "title": "Pleiade · Automaton",
+    "color": "#b8c4d0",
+    "accent": "#3a4652",
+    "npc": true
+  },
+  "victim": {
+    "name": "Victim",
+    "title": "Wächter der 8. Ebene",
+    "color": "#e8e2f0",
+    "accent": "#5b4a6e",
+    "npc": true
+  },
+  "neuronist": {
+    "name": "Neuronist Painkill",
+    "title": "Oberste Folterknechtin",
+    "color": "#c9a0ff",
+    "accent": "#40206a",
+    "npc": true
+  },
+  "gazef": {
+    "name": "Gazef Stronoff",
+    "title": "Kriegerhauptmann von Re-Estize",
+    "color": "#6f8fd8",
+    "accent": "#2a3a6e",
+    "npc": true
+  },
+  "jircniv": {
+    "name": "Jircniv Rune Farlord El-Nix",
+    "title": "Kaiser von Baharuth",
+    "color": "#d8743a",
+    "accent": "#6e3a1a",
+    "npc": true
+  },
+  "neia": {
+    "name": "Neia Baraja",
+    "title": "Knappin aus Roble",
+    "color": "#b8c0a0",
+    "accent": "#4a5030",
+    "npc": true
+  },
+  "hamsuke": {
+    "name": "Hamsuke",
+    "title": "Der Weise König des Waldes",
+    "color": "#d8a860",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "nigun": {
+    "name": "Nigun Grid Luin",
+    "title": "Anführer der Sonnenlicht-Schrift",
+    "color": "#e8e2c0",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "clementine": {
+    "name": "Clementine",
+    "title": "Ehemals Schwarze Schrift",
+    "color": "#d84a4a",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "platinum_dragon": {
+    "name": "Platinrüstung",
+    "title": "Avatar des Drachenlords",
+    "color": "#b8d8e8",
+    "accent": "#2a1a3a",
+    "npc": true
+  },
+  "death_knight": {
+    "name": "Todesritter",
+    "title": "Diener Nazaricks",
+    "color": "#7a4ab8",
+    "accent": "#2a1a3a",
+    "npc": true
+  }
+}

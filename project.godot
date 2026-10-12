@@ -1,0 +1,44 @@
+; Engine configuration file.
+; Overlord – Herrscher von Nazarick (Godot 4.3+)
+
+config_version=5
+
+[application]
+
+config/name="Overlord – Herrscher von Nazarick"
+config/description="Management- & Story-Spiel im Großen Grab von Nazarick."
+run/main_scene="res://scenes/title_screen.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Settings="*res://scripts/autoload/settings.gd"
+Content="*res://scripts/autoload/content.gd"
+World="*res://scripts/autoload/world.gd"
+Military="*res://scripts/autoload/military.gd"
+Diplomacy="*res://scripts/autoload/diplomacy.gd"
+Progress="*res://scripts/autoload/progress.gd"
+PortraitStudio="*res://scripts/autoload/portrait_studio.gd"
+Game="*res://scripts/autoload/game.gd"
+SaveSystem="*res://scripts/autoload/save_system.gd"
+Audio="*res://scripts/autoload/audio.gd"
+
+[display]
+
+window/size/viewport_width=1600
+window/size/viewport_height=900
+window/size/window_width_override=1600
+window/size/window_height_override=900
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+
+[gui]
+
+theme/custom="res://assets/ui/nazarick_theme.tres"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.03, 0.02, 0.05, 1)

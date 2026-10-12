@@ -1,0 +1,9 @@
+# Godot
+.godot/
+*.translation
+/android/
+# Testausgaben
+tools/screenshots/
+build/
+__pycache__/
+tools/screenshots3d/

@@ -1,0 +1,248 @@
+===============================================================================
+  OVERLORD – HERRSCHER VON NAZARICK · ASSET-WUNSCHLISTE
+===============================================================================
+
+HINWEIS (Version 2.0): Das Spiel ist jetzt vollständig 3D. 2D-Portraits und
+gemalte Hintergründe werden nicht mehr verwendet – wichtig sind die 3D-MODELLE
+in Abschnitt 6 und die Icons/Rahmen der Benutzeroberfläche.
+
+So einfach geht's: Datei mit genau dem angegebenen Namen in den genannten
+Ordner legen – das Spiel benutzt sie automatisch (kein Code nötig).
+Fehlt eine Datei, zeichnet das Spiel weiterhin einen Platzhalter.
+
+-------------------------------------------------------------------------------
+  WICHTIGE TECHNISCHE HINWEISE
+-------------------------------------------------------------------------------
+* ECHTE TRANSPARENZ: Portraits, Icons und Rahmen bitte als PNG oder WEBP mit
+  echtem Alphakanal. NICHT mit eingebranntem grau-weißem Schachbrettmuster
+  (das war beim ersten Paket so – ich konnte es freistellen, aber an weißen
+  Haaren bleiben Ränder).
+* Formate: .png oder .webp (mit Transparenz), Hintergründe auch .jpg.
+* Stil: wie das bisherige Paket – Anime-Portraits, dunkel, Gold/Violett.
+* Portraits: Hochformat 3:4, mind. 768 × 1024 px, Figur von Kopf bis
+  Brust/Hüfte, Gesicht im oberen Drittel (wird oben ausgerichtet beschnitten).
+* Hintergründe: Querformat 16:9, mind. 1920 × 1080 px.
+* Icons: quadratisch, 256 × 256 px, transparent.
+
+STAND (Paket 2): 15 neue Bilder eingebaut – markiert mit [✔ ERHALTEN].
+Die übrigen 44 Bilder des Pakets waren identisch mit Paket 1 (bereits im Spiel).
+Weiterhin gilt: bitte als PNG/WEBP mit ECHTER Transparenz liefern – auch Paket 2
+hatte wieder ein eingebranntes Schachbrett (konnte freigestellt werden).
+
+Prioritäten:  [A] = macht den größten Unterschied   [B] = sehr schön   [C] = Kür
+
+===============================================================================
+  1. CHARAKTER-PORTRAITS            Ordner: assets/characters/
+===============================================================================
+
+1a) Gefühlsvarianten der Wächter  [A]
+    Das Spiel zeigt bereits <id>_love für Albedo/Shalltear. Es unterstützt
+    jede Variante nach dem Muster <id>_<variante>.webp
+    Varianten: _love (verliebt/glücklich), _angry (wütend), _sad (traurig),
+               _battle (kampfbereit, Waffe gezogen)
+
+    [✔ ERHALTEN] albedo_angry.png        Albedo, eifersüchtig, kaltes Lächeln, dunkle Aura
+    [✔ ERHALTEN] albedo_sad.png          Albedo, Tränen, vernachlässigt
+    [✔ ERHALTEN] albedo_battle.png       Albedo in schwarzer Vollrüstung (Hermes Trismegistus), Hellebarde
+    [✔ ERHALTEN] shalltear_angry.png     Shalltear, fauchend, rote Augen glühen
+    [✔ ERHALTEN] shalltear_sad.png       Shalltear, blutige Tränen (nach dem Zwischenfall)
+    [✔ ERHALTEN] shalltear_battle.png    Shalltear in roter Vollrüstung mit Spuhletit Lance
+    demiurge_love.png       Demiurge, ehrfürchtig/verzückt lächelnd
+    [✔ ERHALTEN] demiurge_battle.png     Demiurge in Dämonengestalt (Flügel, Flammen)
+    cocytus_battle.png      Cocytus mit allen vier Waffen
+    aura_love.png           Aura strahlend, mit Fenrir
+    aura_angry.png          Aura wütend (Elfenkönig-Kapitel)
+    mare_love.png           Mare verlegen errötet
+    mare_battle.png         Mare mit Stab, Erde bricht auf
+    sebas_battle.png        Sebas in Kampfhaltung (Fäuste)
+    pandora_love.png        Pandora's Actor mit theatralischer Pose/Salut
+    ainz_battle.png         Ainz beim Zaubern (rote Kugel, Magiekreise)
+    [✔ ERHALTEN] ainz_momon.png          Momon – schwarze Vollrüstung, zwei Großschwerter  [A]
+
+1b) Story-Figuren (NPCs)  [A/B]
+    Werden als Sprecher in Ereignissen angezeigt.
+    [✔ ERHALTEN] gazef.png               Gazef Stronoff, Kriegerhauptmann                  [A]
+    [✔ ERHALTEN] jircniv.png             Kaiser Jircniv Rune Farlord El-Nix                 [A]
+    [✔ ERHALTEN] neia.png                Neia Baraja, Knappin mit „bösen“ scharfen Augen    [A]
+    platinum_dragon.png     Platinrüstung des Drachenlords (leere Rüstung)      [A]
+    nigun.png               Nigun Grid Luin, Sonnenlicht-Schrift                [B]
+    clementine.png          Clementine, irres Grinsen                           [B]
+    brain.png               Brain Unglaus, Schwertkämpfer                       [B]
+    zaryusu.png             Zaryusu Shasha, Echsenmensch-Krieger                [B]
+    crusch.png              Crusch Lulu, weiße Echsenmensch-Priesterin          [B]
+    hamsuke.png             Hamsuke, riesiger Hamster („de gozaru“)             [B]
+    tuare.png               Tuare, von Sebas gerettete Frau                     [B]
+    fluder.png              Fluder Paradyne, greiser Erzmagier                  [B]
+    gondo.png               Gondo Firebeard, Zwergen-Runenschmied               [B]
+    frost_dragon.png        Olasird'arc, weißer Frostdrache                     [B]
+    elf_king.png            Elfenkönig Decem Hougan                             [B]
+    calca.png               Calca Bessarez, Heilige Königin von Roble           [C]
+    ramposa.png             König Ramposa III. von Re-Estize                    [C]
+    enri.png                Enri Emmot aus Carne (mit Goblin-Horn)              [C]
+    nfirea.png              Nfirea Bareare, Apotheker                           [C]
+    lupusregina_love.png etc. – weitere Pleiaden-Varianten                       [C]
+
+===============================================================================
+  2. HINTERGRÜNDE                    Ordner: assets/backgrounds/
+===============================================================================
+
+2a) Orte (werden in Berichten als Banner und auf der Karte genutzt)  [A]
+    [✔ ERHALTEN] e_rantel.jpg            Festungsstadt E-Rantel, dreifache Mauer
+    arwintar.jpg            Kaiserpalast von Arwintar (Baharuth)
+    feo_jera.jpg            Zwergenstadt im Berg, Runen, Schmiedefeuer
+    roble_wall.jpg          Die große Mauer des Heiligen Königreichs
+    elf_forest.jpg          Ewiger Wald der Elfen, Baumpaläste
+    lizard_swamp.jpg        Nebelsümpfe der Echsenmenschen
+    katze_night.jpg         Katze-Ebene im Nebel, Nacht, Untote
+    theocracy.jpg           Weiße Kathedralen der Slane-Theokratie
+    argland.jpg             Drachenlande, Berggipfel, Drachenhorte
+    [✔ ERHALTEN] title.jpg               Titelbild (Ainz auf dem Thron, alle Wächter knien)  [A]
+
+2b) Die Ebenen von Nazarick (für den neuen Ausbau-Bildschirm)  [A]
+    floor_tombs.jpg         Ebenen 1–3: Grabkammern, Särge, Vampirbräute
+    floor_lake.jpg          Ebene 4: Unterirdischer See (Gargantua)
+    floor_glacier.jpg       Ebene 5: Eisgletscher (Cocytus)
+    floor_jungle.jpg        Ebene 6: Dschungel und Amphitheater (Aura & Mare)
+    floor_lava.jpg          Ebene 7: Lavahölle (Demiurge)
+    floor_wilds.jpg         Ebene 8: Die Wildnis (Victim)
+    [✔ ERHALTEN] floor_royal.jpg         Ebene 9: Königliche Gemächer (Maids, Sebas)
+    floor_library.jpg       Ebene 10: Bibliothek von Ashurbanipal
+    [✔ ERHALTEN] treasury.jpg            Schatzkammer (Gold-Berge, Pandora's Actor)
+    forge.jpg               Golemschmiede (Golems an Ambossen, Funkenflug)
+
+2c) Story-Szenenbilder (große Bilder für Schlüsselmomente)  [B]
+    Ordner: assets/backgrounds/  –  Querformat 16:9
+    cg_loyalty.jpg          Die Wächter knien vor Momonga im Amphitheater
+    cg_carne.jpg            Ainz und Albedo retten Carne
+    cg_shalltear_duel.jpg   Ainz gegen Shalltear, Mitternacht
+    cg_gehenna.jpg          Flammenwall über der Hauptstadt, Jaldabaoth
+    cg_katze.jpg            „Fallen Down“ – die Dunklen Jungen auf der Katze-Ebene
+    cg_coronation.jpg       Krönung des Zauberkönigs in E-Rantel
+    cg_elf_king.jpg         Aura & Mare gegen den Elfenkönig
+    cg_platinum.jpg         Ainz trifft die Platinrüstung im Nebel
+    cg_ending.jpg           Epilog – Nazarick über der Welt
+
+===============================================================================
+  3. SPIEL-ICONS                     Ordner: assets/ui/icons/   (256×256, transparent)
+===============================================================================
+
+3a) Einheiten der Legionen  [A]
+    unit_skeleton.png  unit_death_knight.png  unit_elder_lich.png
+    unit_soul_eater.png  unit_death_cavalry.png  unit_beasts.png
+    unit_lizard.png  unit_frost_dragon.png  unit_rune_guard.png
+
+3b) Fraktionswappen  [A]
+    faction_kingdom.png     Re-Estize (Löwe/Krone, Blau-Gold)
+    faction_empire.png      Baharuth (Adler, Rot-Schwarz)
+    faction_theocracy.png   Slane (Sonne, Weiß-Gold)
+    faction_argland.png     Argland (Drache, Platin)
+    faction_dwarves.png     Zwerge (Hammer & Rune, Stahlgrau)
+    faction_roble.png       Roble (Heiliges Kreuz, Weiß-Blau)
+    faction_elves.png       Elfen (Baum/Blatt, Grün)
+    faction_nazarick.png    Gildenwappen von Ainz Ooal Gown
+
+3c) Artefakte / Beute (für die neue Schatzkammer)  [A]
+    item_<id>.png – je Artefakt ein Icon:
+    item_iron_blade.png         Untotenstahl-Klinge (Gewöhnlich)
+    item_bone_mail.png          Knochenpanzer (Gewöhnlich)
+    item_silver_ring.png        Silberring der Wachsamkeit (Gewöhnlich)
+    item_ink_quill.png          Feder des Schreibers (Gewöhnlich)
+    item_velvet_gloves.png      Samthandschuhe (Gewöhnlich)
+    item_hook_dagger.png        Hakendolch (Gewöhnlich)
+    item_grey_cloak.png         Grauer Reisemantel (Gewöhnlich)
+    item_seal_ring.png          Siegelring von E-Rantel (Gewöhnlich)
+    item_mithril_saber.png      Mithril-Säbel (Selten)
+    item_shadow_cloak.png       Mantel der Schatten (Selten)
+    item_crown_eloquence.png    Krone der Eloquenz (Selten)
+    item_rune_amulet.png        Runenamulett der Zwerge (Selten)
+    item_blood_chalice.png      Blutkelch (Selten)
+    item_scale_vest.png         Echsenschuppenweste (Selten)
+    item_spy_eye.png            Auge des Spähers (Selten)
+    item_whip_pain.png          Peitsche der Pein (Selten)
+    item_tea_set.png            Teeservice der Pleiaden (Selten)
+    item_orichalcum_blade.png   Orichalcum-Klinge (Episch)
+    item_demon_contract.png     Dämonischer Vertrag (Episch)
+    item_frost_halberd.png      Frosthellebarde (Episch)
+    item_world_tree_staff.png   Ast des Weltenbaums (Episch)
+    item_beast_whistle.png      Pfeife des Bestienmeisters (Episch)
+    item_butler_gloves.png      Handschuhe des Butlers (Episch)
+    item_mask_thousand.png      Maske der Tausend Gesichter (Episch)
+    item_rune_shield.png        Runenschild der Zwerge (Episch)
+    item_plate_hermes.png       Hermes-Trismegistus-Platte (Episch)
+    item_spuit_lance.png        Spuhletit-Lanze (Legendär)
+    item_ginnungagap.png        Ginnungagap (Legendär)
+    item_frost_heart.png        Herz des Frostdrachen (Legendär)
+    item_ring_wishes.png        Ring der Sternschnuppe (Legendär)
+    item_crown_wisdom.png       Krone der Weisheit (Legendär)
+    item_platinum_shard.png     Platinsplitter (Legendär)
+    item_world_tree.png         Fragment des Weltenbaums (Weltklasse)
+    item_downfall_castle.png    Untergang von Burg und Land (Weltklasse)
+    item_longinus.png           Longinus (Weltklasse)
+    Zusätzlich Seltenheitsrahmen (transparent in der Mitte):
+    frame_common.png  frame_rare.png  frame_epic.png  frame_legendary.png  frame_world.png
+
+3d) Errungenschaften  [B]
+    achievement_badge.png       Leeres Abzeichen (Gold, Medaillon-Form)
+    achievement_locked.png      Gesperrtes Abzeichen (grau, mit Schloss)
+
+3e) Diverses  [C]
+    icon_attention.png      Auge (für „Aufmerksamkeit“)
+    icon_rivalry.png        Gebrochenes Herz / zwei Klingen (Herzenskrieg)
+    icon_weekly.png         Albedos Wochenziele (Pergament mit Siegel)
+    icon_build.png          Bauprojekt (Hammer + Nazarick)
+
+===============================================================================
+  4. UI-GRAFIKEN                     Ordner: assets/ui/frames/
+===============================================================================
+    [B] button_normal.png / button_hover.png / button_pressed.png
+        Knopf-Grafik, 400×80, 9-Slice-tauglich (Ränder ≥ 24 px ohne Muster)
+    [B] card_frame.png          Rahmen für Wächterkarten (Hochformat, transparent innen)
+    [B] tab_frame.png           Reiter-Rahmen
+    [C] bar_frame.png           Rahmen für Statusbalken (lang & schmal)
+
+===============================================================================
+  5. AUDIO (optional – das Spiel hat bereits eigene, generierte Musik)
+===============================================================================
+    Ordner: assets/audio/music/   (OGG, nahtlos loopbar)
+    [B] title.ogg   throne.ogg   tension.ogg   battle.ogg   (ersetzen die vorhandenen)
+    [C] map.ogg     (Weltkarte)   diplomacy.ogg   ending.ogg   build.ogg
+    Ordner: assets/audio/sfx/     (OGG, kurz)
+    [C] click, hover, page, dispatch, gong, order, love, rebuke, levelup,
+        loot_rare, loot_legendary, achievement, build_done
+
+    Bitte nur Musik/Sounds verwenden, an denen du die Rechte hast
+    (selbst erstellt, lizenzfrei mit erlaubter Nutzung, oder KI-generiert mit
+    entsprechender Lizenz). Keine Original-Anime-Musik.
+
+===============================================================================
+  6. 3D-MODELLE (.glb)  – für den Third-Person-Modus
+===============================================================================
+    Format: .glb (glTF binär), 1 Einheit = 1 m, Blick nach +Z, Ursprung an den Füßen.
+    Figuren mit Skelett + Animationen: idle, walk, run, attack_light, attack_heavy,
+    dodge/roll, block, hit, death, cast (Namen frei – Teilwort genügt).
+    Mixamo-Animationen funktionieren gut.
+
+    Ordner assets/models/characters/   [A] = zuerst
+      [A] ainz.glb  ainz_momon.glb  albedo.glb  shalltear.glb
+      [A] skeleton.glb  death_knight.glb  soldier.glb
+      [B] demiurge.glb  cocytus.glb  aura.glb  mare.glb  sebas.glb  narberal.glb
+      [B] pandora.glb  wolf.glb  angel.glb  golem.glb
+      [C] gazef.glb  jircniv.glb  neia.glb  hamsuke.glb  clementine.glb  nigun.glb
+      [C] platinum_dragon.glb  solution.glb  yuri.glb  lupusregina.glb  entoma.glb  cz.glb
+
+    Ordner assets/models/props/  (ersetzen die Grundformen überall)
+      [A] throne.glb  pillar.glb  brazier.glb  house.glb  tree.glb  gate_portal.glb
+      [B] tower.glb  rock.glb  crystal.glb  banner.glb  tree_conifer.glb  coffin.glb
+      [C] bookshelf.glb  tent.glb  stilt_hut.glb  gold_pile.glb  chest.glb  statue.glb
+
+    Ordner assets/models/locations/  (optional: ganzer Ort als ein Modell)
+      throne.glb (Thronsaal), carne.glb, e_rantel.glb … – mit Leer-Objekten
+      „Spawn“, „Gate“, „Throne“, „Slot1…“ als Ankerpunkte.
+
+===============================================================================
+  7. RECHTLICHER HINWEIS
+===============================================================================
+    Für ein privates Fan-Projekt ist das unkritisch. Falls das Spiel jemals
+    öffentlich verteilt wird: keine offiziellen Anime-/Light-Novel-Bilder
+    verwenden, nur selbst erstellte oder lizenzierte Grafiken.
+===============================================================================

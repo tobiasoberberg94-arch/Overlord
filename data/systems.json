@@ -1,0 +1,1269 @@
+{
+  "economy": {
+    "upkeep_base": 6,
+    "upkeep_per_agent": 2,
+    "influence_main": 18,
+    "influence_proposal": 12,
+    "influence_side": 9,
+    "unrest_decay": 1,
+    "threat_check_chance": 0.06,
+    "invasion_chance": 0.035
+  },
+  "threats": [
+    {
+      "id": "inquisition",
+      "title": "Inquisition in {region}",
+      "text": "Die Slane-Theokratie hat ein Inquisitionsteam der Sonnenlicht-Schrift nach {region} entsandt. Sie suchen nach ›dem Untoten, der Engel zerschmettert‹. Werden sie fündig, ist unser Einfluss dort dahin.",
+      "trigger": {
+        "chapter_min": 3,
+        "res_min": {
+          "attention": 35
+        }
+      },
+      "region_min_influence": 20,
+      "exclude_regions": [
+        "theokratie",
+        "nazarick"
+      ],
+      "deadline": 10,
+      "difficulty": 52,
+      "weights": {
+        "kampf": 1,
+        "diskretion": 2
+      },
+      "fail": {
+        "influence": -35,
+        "res": {
+          "attention": 10,
+          "morale": -6
+        }
+      },
+      "success": {
+        "res": {
+          "info": 5
+        },
+        "unrest": -10
+      },
+      "weight": 3
+    },
+    {
+      "id": "adventurers",
+      "title": "Expedition gegen das Grab",
+      "text": "Eine Allianz aus Mithril- und Orichalcum-Abenteurern hat Gerüchte über ein ›verborgenes Grab voller Schätze‹ gehört. Sie rüsten sich, um in Nazarick einzudringen. Ein Teil von ihnen kennt den Weg bereits.",
+      "trigger": {
+        "chapter_min": 2,
+        "res_min": {
+          "attention": 25
+        }
+      },
+      "region": "nazarick",
+      "deadline": 8,
+      "difficulty": 42,
+      "weights": {
+        "kampf": 2,
+        "grausamkeit": 1
+      },
+      "fail": {
+        "res": {
+          "gold": -180,
+          "morale": -8,
+          "attention": 8
+        }
+      },
+      "success": {
+        "res": {
+          "power": 3,
+          "gold": 60
+        }
+      },
+      "weight": 3
+    },
+    {
+      "id": "imperial_spies",
+      "title": "Kaiserliche Spione in {region}",
+      "text": "Jircnivs Geheimdienst hat Agenten nach {region} eingeschleust. Sie kartieren unsere Kontakte, bestechen unsere Informanten und berichten direkt an den Blutigen Kaiser.",
+      "trigger": {
+        "chapter_min": 4,
+        "res_min": {
+          "attention": 30
+        }
+      },
+      "region_min_influence": 25,
+      "exclude_regions": [
+        "baharuth",
+        "nazarick"
+      ],
+      "deadline": 12,
+      "difficulty": 55,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2
+      },
+      "fail": {
+        "influence": -20,
+        "res": {
+          "info": -8,
+          "attention": 6
+        }
+      },
+      "success": {
+        "res": {
+          "info": 8
+        }
+      },
+      "weight": 2
+    },
+    {
+      "id": "uprising",
+      "title": "Aufstand in {region}",
+      "text": "Die Unruhe in {region} ist übergekocht. Bauern bewaffnen sich, Priester predigen gegen ›das Übel im Westen‹, und unsere Vertrauten werden auf offener Straße bedroht. Wird der Aufstand nicht niedergeschlagen – oder befriedet –, verlieren wir die Region.",
+      "trigger": {
+        "chapter_min": 2
+      },
+      "region_min_unrest": 60,
+      "exclude_regions": [
+        "nazarick"
+      ],
+      "deadline": 9,
+      "difficulty": 46,
+      "weights": {
+        "diplomatie": 2,
+        "kampf": 1
+      },
+      "fail": {
+        "influence": -45,
+        "unrest_set": 30,
+        "res": {
+          "reputation": -6,
+          "morale": -4
+        }
+      },
+      "success": {
+        "unrest": -35,
+        "res": {
+          "reputation": 2
+        }
+      },
+      "weight": 6
+    },
+    {
+      "id": "eight_fingers",
+      "title": "Die Acht Finger schlagen zurück",
+      "text": "Die Unterweltorganisation der Hauptstadt hat bemerkt, dass jemand ihr Revier übernimmt. Assassinen der ›Sechs Arme‹ jagen unsere Kontaktleute in {region}.",
+      "trigger": {
+        "chapter_min": 3,
+        "flags_none": [
+          "eight_fingers_owned"
+        ]
+      },
+      "region": "re_capital",
+      "region_min_influence": 15,
+      "deadline": 10,
+      "difficulty": 54,
+      "weights": {
+        "kampf": 2,
+        "diskretion": 1
+      },
+      "fail": {
+        "influence": -30,
+        "res": {
+          "gold": -80
+        }
+      },
+      "success": {
+        "res": {
+          "gold": 90,
+          "info": 3
+        }
+      },
+      "weight": 2
+    },
+    {
+      "id": "dragon",
+      "title": "Der Platin-Drache regt sich",
+      "text": "Eine leere, platinfarbene Rüstung wurde in {region} gesehen. Der Platin-Drachenlord sondiert die Lage. Wenn er eine Bedrohung erkennt, wird er sie beseitigen – mit uralter Magie.",
+      "trigger": {
+        "chapter_min": 5,
+        "res_min": {
+          "attention": 65
+        }
+      },
+      "region_min_influence": 30,
+      "exclude_regions": [
+        "nazarick",
+        "drachen"
+      ],
+      "deadline": 12,
+      "difficulty": 78,
+      "weights": {
+        "intellekt": 2,
+        "diskretion": 2,
+        "kampf": 1
+      },
+      "fail": {
+        "influence": -30,
+        "res": {
+          "power": -10,
+          "morale": -10,
+          "attention": 10
+        }
+      },
+      "success": {
+        "res": {
+          "info": 12,
+          "attention": -15
+        }
+      },
+      "weight": 2
+    },
+    {
+      "id": "worker_raid",
+      "title": "Kaiserliche ›Arbeiter‹ dringen ein",
+      "text": "Söldner-›Arbeiter‹ aus dem Kaiserreich wurden von einem Adligen angeheuert, das Grab zu plündern. Ein Test des Kaisers? Eine Gelegenheit, ihm eine Botschaft zu senden?",
+      "trigger": {
+        "chapter_min": 6
+      },
+      "region": "nazarick",
+      "deadline": 7,
+      "difficulty": 45,
+      "weights": {
+        "kampf": 2,
+        "grausamkeit": 1
+      },
+      "fail": {
+        "res": {
+          "gold": -120,
+          "morale": -6,
+          "attention": 6
+        }
+      },
+      "success": {
+        "res": {
+          "power": 4,
+          "info": 4
+        }
+      },
+      "weight": 2
+    }
+  ],
+  "complications": [
+    {
+      "id": "witness",
+      "categories": [
+        "Erkundung",
+        "Tarnung",
+        "Spionage",
+        "Geheimoperation"
+      ],
+      "title": "Ein Zeuge",
+      "text": "{char} meldet sich mitten im Auftrag: Ein Mensch hat etwas gesehen, das er nicht hätte sehen dürfen. Er flieht in Richtung der nächsten Siedlung.",
+      "options": [
+        {
+          "label": "Zeugen beseitigen",
+          "variant": "danger",
+          "mod": {
+            "score": 4,
+            "attention": 3,
+            "unrest": 12
+          },
+          "reaction": "Der Zeuge erreicht die Siedlung nie. Niemand wird je erfahren, warum."
+        },
+        {
+          "label": "Gedächtnis manipulieren lassen",
+          "variant": "primary",
+          "mod": {
+            "score": 2,
+            "days": 1
+          },
+          "reaction": "Ein Zauber, ein verwirrter Blick – der Zeuge erinnert sich nur an einen merkwürdigen Traum. Es kostet einen Tag."
+        },
+        {
+          "label": "Ignorieren – er ist bedeutungslos",
+          "variant": "default",
+          "mod": {
+            "attention": 8
+          },
+          "reaction": "Der Zeuge erzählt jedem, der zuhört, von einem Ungeheuer. Einige hören zu."
+        }
+      ]
+    },
+    {
+      "id": "strong_foe",
+      "categories": [
+        "Militär",
+        "Verteidigung",
+        "Training",
+        "Rekrutierung"
+      ],
+      "title": "Ein unerwartet starker Gegner",
+      "text": "{char} trifft auf einen Gegner, der eine Kampfkunst beherrscht, die in Yggdrasil unbekannt war. Er ist nicht gefährlich – aber interessant.",
+      "options": [
+        {
+          "label": "Lebend fangen – für Forschungszwecke",
+          "variant": "primary",
+          "mod": {
+            "score": -4,
+            "info": 6,
+            "days": 1
+          },
+          "reaction": "Der Krieger wird nach Nazarick gebracht. Neuronist bereitet ihm ein ›Gästezimmer‹."
+        },
+        {
+          "label": "Vernichten, keine Risiken",
+          "variant": "danger",
+          "mod": {
+            "score": 5,
+            "unrest": 5
+          },
+          "reaction": "Der Gegner fällt. Seine Technik stirbt mit ihm."
+        },
+        {
+          "label": "Ihn rekrutieren",
+          "variant": "success",
+          "mod": {
+            "score": -2,
+            "power": 4,
+            "reputation": 2
+          },
+          "reaction": "Nach kurzem, sehr einseitigem Kampf beugt der Krieger das Knie. Nazarick hat einen neuen Diener."
+        }
+      ]
+    },
+    {
+      "id": "demands",
+      "categories": [
+        "Diplomatie",
+        "Verwaltung",
+        "Wirtschaft"
+      ],
+      "title": "Forderungen der Gegenseite",
+      "text": "{char} berichtet: Die Gegenseite stellt Forderungen. Gold, Garantien – und eine Geste des Respekts gegenüber ihrem Anführer.",
+      "options": [
+        {
+          "label": "Zahlen (−60 Gold)",
+          "variant": "warning",
+          "mod": {
+            "score": 7,
+            "gold": -60,
+            "influence_mult": 1.3
+          },
+          "reaction": "Gold öffnet Türen. Und Herzen. Und Archive."
+        },
+        {
+          "label": "Mit Einschüchterung antworten",
+          "variant": "danger",
+          "mod": {
+            "score": 3,
+            "unrest": 10,
+            "reputation": -3,
+            "influence_mult": 1.2
+          },
+          "reaction": "Ein kurzer Blick in die Augen eines Höchsten Dieners genügt. Die Forderungen sind vergessen."
+        },
+        {
+          "label": "Geduldig weiterverhandeln",
+          "variant": "primary",
+          "mod": {
+            "days": 2,
+            "score": 4,
+            "reputation": 2
+          },
+          "reaction": "Es dauert, aber die Gegenseite fühlt sich respektiert – und wird sich daran erinnern."
+        }
+      ]
+    },
+    {
+      "id": "double_agent",
+      "categories": [
+        "Intrige",
+        "Spionage",
+        "Geheimoperation"
+      ],
+      "title": "Ein Doppelagent",
+      "text": "{char} hat einen Informanten enttarnt, der gleichzeitig für die Gegenseite arbeitet. Er weiß nicht, dass er entdeckt wurde.",
+      "options": [
+        {
+          "label": "Falsche Informationen füttern",
+          "variant": "primary",
+          "mod": {
+            "score": 3,
+            "attention": -6,
+            "info": 3
+          },
+          "reaction": "Der Agent berichtet seinen Herren nun genau das, was Nazarick will."
+        },
+        {
+          "label": "Ihn umdrehen",
+          "variant": "success",
+          "mod": {
+            "score": -3,
+            "info": 8,
+            "days": 1
+          },
+          "reaction": "Mit der richtigen Mischung aus Gold und Grauen wird er zum dreifachen Agenten. Für uns."
+        },
+        {
+          "label": "Exempel statuieren",
+          "variant": "danger",
+          "mod": {
+            "score": 2,
+            "unrest": 8,
+            "attention": 4
+          },
+          "reaction": "Seine Leiche hängt am Stadttor. Das Netzwerk der Gegenseite ist gewarnt – und verängstigt."
+        }
+      ]
+    },
+    {
+      "id": "supply",
+      "categories": [
+        "Wirtschaft",
+        "Verwaltung",
+        "Tarnung"
+      ],
+      "title": "Engpass",
+      "text": "{char} meldet, dass Material und Arbeitskräfte knapp werden. Der Auftrag droht ins Stocken zu geraten.",
+      "options": [
+        {
+          "label": "Mittel aus der Schatzkammer (−50 Gold)",
+          "variant": "warning",
+          "mod": {
+            "score": 6,
+            "gold": -50
+          },
+          "reaction": "Die Schatzkammer gibt. Pandora's Actor salutiert, als das Gold abgeholt wird."
+        },
+        {
+          "label": "Untote Arbeiter beschwören",
+          "variant": "danger",
+          "mod": {
+            "score": 5,
+            "attention": 6,
+            "unrest": 6
+          },
+          "reaction": "Zwanzig Todesritter schuften Tag und Nacht. Bauern haben sie gesehen."
+        },
+        {
+          "label": "Durchhalten, länger arbeiten",
+          "variant": "default",
+          "mod": {
+            "days": 2,
+            "score": 2
+          },
+          "reaction": "Es dauert länger. Aber es wird."
+        }
+      ]
+    },
+    {
+      "id": "civilians",
+      "categories": [
+        "Militär",
+        "Intrige",
+        "Verteidigung",
+        "Erkundung"
+      ],
+      "title": "Unschuldige im Weg",
+      "text": "{char} berichtet: Zwischen uns und dem Ziel liegt eine Siedlung. Frauen, Kinder, Alte. Sie sind im Weg.",
+      "options": [
+        {
+          "label": "Ein Umweg (+2 Tage)",
+          "variant": "primary",
+          "mod": {
+            "days": 2,
+            "reputation": 3,
+            "unrest": -5
+          },
+          "reaction": "Die Siedlung bleibt unberührt. Einige Bewohner haben Euren Boten gesehen – und gesegnet."
+        },
+        {
+          "label": "Evakuieren lassen",
+          "variant": "success",
+          "mod": {
+            "score": -2,
+            "reputation": 5,
+            "attention": 3
+          },
+          "reaction": "Die Menschen werden in Sicherheit gebracht. Ein Dorf erzählt nun von gütigen Fremden."
+        },
+        {
+          "label": "Weitermachen. Sie sind Insekten.",
+          "variant": "danger",
+          "mod": {
+            "score": 5,
+            "reputation": -6,
+            "unrest": 18,
+            "attention": 6
+          },
+          "reaction": "Der Weg ist frei. Die Siedlung existiert nicht mehr."
+        }
+      ]
+    },
+    {
+      "id": "player_rumor",
+      "categories": [
+        "Erkundung",
+        "Spionage",
+        "Diplomatie",
+        "Intrige"
+      ],
+      "title": "Gerüchte über einen anderen ›Spieler‹",
+      "text": "{char} stößt auf Gerüchte: Ein Fremder mit ›göttlicher Ausrüstung‹ sei vor Jahrzehnten aufgetaucht. Ein anderer Spieler? Vielleicht … ein Gildenmitglied?",
+      "rare": true,
+      "options": [
+        {
+          "label": "Der Spur sofort folgen (+3 Tage)",
+          "variant": "primary",
+          "mod": {
+            "days": 3,
+            "info": 12,
+            "score": -3
+          },
+          "reaction": "Die Spur führt zu einem Grab. Darin: Ausrüstung aus Yggdrasil – und ein Name, den Ihr nicht kennt. Diese Welt hat Euch erwartet."
+        },
+        {
+          "label": "Notieren und beim Auftrag bleiben",
+          "variant": "default",
+          "mod": {
+            "info": 3
+          },
+          "reaction": "Die Gerüchte werden in der Bibliothek von Ashurbanipal archiviert. Eines Tages."
+        }
+      ]
+    }
+  ],
+  "free_hand_styles": {
+    "albedo": {
+      "mod": {
+        "score": 7,
+        "influence_mult": 1.15
+      },
+      "text": "Überlasst es mir, {lord}. Ich werde die Lage so ordnen, dass niemand je bemerkt, dass es eine Lage gab."
+    },
+    "shalltear": {
+      "mod": {
+        "score": 6,
+        "attention": 10,
+        "unrest": 15,
+        "power": 3
+      },
+      "text": "Freie Hand? Hihi. Dann wird es jetzt ein klitzekleines bisschen blutig, ~arinsu."
+    },
+    "demiurge": {
+      "mod": {
+        "score": 8,
+        "info": 5,
+        "unrest": 4,
+        "influence_mult": 1.25
+      },
+      "text": "Eine Komplikation ist nur ein Plan, der noch nicht weiß, dass er Teil eines größeren Plans ist."
+    },
+    "cocytus": {
+      "mod": {
+        "score": 5,
+        "reputation": 3
+      },
+      "text": "Ich. Werde. Mich. Dem. Problem. Offen. Stellen."
+    },
+    "aura": {
+      "mod": {
+        "score": 4,
+        "info": 4
+      },
+      "text": "Keine Sorge! Ich hab da eine Idee – und Fenrir hat Hunger!"
+    },
+    "mare": {
+      "mod": {
+        "score": 4,
+        "attention": -5
+      },
+      "text": "I-ich … lasse einfach die Erde das Problem verschlucken … ganz leise …"
+    },
+    "sebas": {
+      "mod": {
+        "score": 3,
+        "unrest": -15,
+        "reputation": 4
+      },
+      "text": "Ich werde eine Lösung finden, die Euch Ehre macht, {lord}."
+    },
+    "narberal": {
+      "mod": {
+        "score": 2,
+        "reputation": -3,
+        "power": 2
+      },
+      "text": "Ich werde die Kakerlaken entsprechend … behandeln."
+    },
+    "pandora": {
+      "mod": {
+        "score": 6,
+        "reputation": 3,
+        "info": 2
+      },
+      "text": "Ein Plot-Twist! Wie herrlich! Überlasst die Bühne mir, mein Schöpfer!"
+    }
+  },
+  "synergies": [
+    {
+      "pair": [
+        "aura",
+        "mare"
+      ],
+      "bonus": 9,
+      "text": "Zwillinge: Aura und Mare ergänzen sich blind."
+    },
+    {
+      "pair": [
+        "albedo",
+        "demiurge"
+      ],
+      "bonus": 7,
+      "text": "Die beiden klügsten Köpfe Nazaricks planen gemeinsam."
+    },
+    {
+      "pair": [
+        "albedo",
+        "shalltear"
+      ],
+      "bonus": -4,
+      "variance": 12,
+      "rivalry": 6,
+      "text": "Rivalinnen: Sie streiten unentwegt – und übertrumpfen sich gegenseitig. Unberechenbar."
+    },
+    {
+      "pair": [
+        "demiurge",
+        "sebas"
+      ],
+      "bonus": -6,
+      "text": "Teufel und Butler: unvereinbare Ansichten über den Wert von Menschenleben."
+    },
+    {
+      "pair": [
+        "cocytus",
+        "shalltear"
+      ],
+      "bonus": 4,
+      "text": "Krieger unter sich: Cocytus zügelt Shalltears Blutrausch."
+    },
+    {
+      "pair": [
+        "sebas",
+        "narberal"
+      ],
+      "bonus": 5,
+      "text": "Butler und Pleiade: eingespielte Zusammenarbeit."
+    },
+    {
+      "pair": [
+        "demiurge",
+        "pandora"
+      ],
+      "bonus": 6,
+      "text": "Zwei Genies – das eine teuflisch, das andere theatralisch."
+    },
+    {
+      "pair": [
+        "albedo",
+        "narberal"
+      ],
+      "bonus": -3,
+      "text": "Albedo misstraut der Frau, die mit ›Momon‹ reist."
+    },
+    {
+      "pair": [
+        "aura",
+        "shalltear"
+      ],
+      "bonus": -3,
+      "text": "Aura und Shalltear necken sich bei jeder Gelegenheit."
+    },
+    {
+      "pair": [
+        "cocytus",
+        "demiurge"
+      ],
+      "bonus": 4,
+      "text": "Alte Freunde: Klinge und Verstand."
+    }
+  ],
+  "decree_slots": {
+    "1": 2,
+    "3": 3,
+    "5": 4,
+    "7": 5
+  },
+  "decrees": [
+    {
+      "id": "secrecy",
+      "name": "Strenge Geheimhaltung",
+      "icon": "◐",
+      "desc": "Alle Operationen nur noch im Verborgenen. Die Welt vergisst uns schneller – doch Handel und Kontakte leiden.",
+      "daily": {
+        "attention": -0.5
+      },
+      "income_mult": 0.8,
+      "cost": 0,
+      "opinions": {
+        "albedo": 2,
+        "demiurge": 3,
+        "shalltear": -4
+      }
+    },
+    {
+      "id": "undead_labor",
+      "name": "Untote Arbeitskräfte",
+      "icon": "☠",
+      "desc": "Todesritter und Schädelarbeiter schuften in Minen und auf Feldern. Viel Gold – aber Untote fallen auf.",
+      "daily": {
+        "gold": 9,
+        "attention": 0.25
+      },
+      "cost": 0,
+      "requires": {
+        "chapter_min": 2
+      },
+      "opinions": {
+        "sebas": -3,
+        "demiurge": 2
+      }
+    },
+    {
+      "id": "war_prep",
+      "name": "Kriegsvorbereitung",
+      "icon": "⚔",
+      "desc": "Cocytus drillt die Garnison, die Schmieden laufen Tag und Nacht. Macht wächst – auf Kosten der Schatzkammer.",
+      "daily": {
+        "power": 0.2
+      },
+      "upkeep": 10,
+      "cost": 0,
+      "opinions": {
+        "cocytus": 5,
+        "shalltear": 3,
+        "sebas": -1
+      }
+    },
+    {
+      "id": "scroll_factory",
+      "name": "Schriftrollen-Manufaktur",
+      "icon": "✒",
+      "desc": "Demiurges ›Schafe‹ liefern Rohstoff für Zauberschriftrollen. Ihr fragt nicht nach. Es bringt Wissen und Gold.",
+      "daily": {
+        "gold": 5,
+        "info": 0.12
+      },
+      "cost": 0,
+      "requires": {
+        "flags_any": [
+          "world_conquest",
+          "scouted"
+        ],
+        "chapter_min": 3
+      },
+      "opinions": {
+        "demiurge": 5,
+        "sebas": -5
+      }
+    },
+    {
+      "id": "merchant_pleiades",
+      "name": "Pleiaden als Händlerinnen",
+      "icon": "◈",
+      "desc": "Yuri, Solution und Lupusregina betreiben Handel in den Städten. Gold und Gerüchte fließen – das Grab hat weniger Dienerinnen.",
+      "daily": {
+        "gold": 6,
+        "info": 0.08,
+        "morale": -0.1
+      },
+      "cost": 0,
+      "requires": {
+        "chapter_min": 3
+      },
+      "opinions": {
+        "sebas": 2,
+        "narberal": -1
+      }
+    },
+    {
+      "id": "protection",
+      "name": "Schutz der Untertanen",
+      "icon": "♛",
+      "desc": "Wer sich Nazarick unterwirft, wird beschützt. Untote Patrouillen sichern unsere Regionen. Teuer, aber die Unruhe sinkt.",
+      "daily": {
+        "reputation": 0.1
+      },
+      "unrest_decay": 1,
+      "upkeep": 12,
+      "cost": 0,
+      "requires": {
+        "chapter_min": 2
+      },
+      "opinions": {
+        "sebas": 5,
+        "cocytus": 2,
+        "shalltear": -2,
+        "demiurge": -2
+      }
+    },
+    {
+      "id": "iron_order",
+      "name": "Gnadenlose Ordnung",
+      "icon": "☗",
+      "desc": "Jeder Widerstand wird öffentlich gebrochen. Unruhe erstickt in Furcht – der Ruf ebenso.",
+      "daily": {
+        "reputation": -0.15,
+        "attention": 0.15
+      },
+      "unrest_decay": 2,
+      "cost": 0,
+      "requires": {
+        "chapter_min": 3
+      },
+      "opinions": {
+        "shalltear": 4,
+        "demiurge": 3,
+        "sebas": -6,
+        "aura": -1
+      }
+    },
+    {
+      "id": "rest_days",
+      "name": "Ruhetage der Wächter",
+      "icon": "☾",
+      "desc": "Die Wächter erhalten Zeit zur Erholung. Erschöpfung sinkt schneller, die Stimmung steigt. Die Wächter halten das für eine Prüfung ihrer Loyalität.",
+      "daily": {
+        "morale": 0.1
+      },
+      "fatigue_bonus": 3,
+      "cost": 0,
+      "opinions": {
+        "aura": 3,
+        "mare": 3,
+        "albedo": -2,
+        "demiurge": -1
+      }
+    },
+    {
+      "id": "cult",
+      "name": "Kult des Todesgottes",
+      "icon": "✠",
+      "desc": "In den Armenvierteln verehrt ein wachsender Kult einen namenlosen Gott des Todes. Er streut Einfluss in alle bekannten Regionen.",
+      "daily": {
+        "attention": 0.1
+      },
+      "region_influence": 0.15,
+      "upkeep": 6,
+      "cost": 0,
+      "requires": {
+        "chapter_min": 4
+      },
+      "opinions": {
+        "demiurge": 4,
+        "pandora": 3,
+        "sebas": -2
+      }
+    },
+    {
+      "id": "great_library",
+      "name": "Expedition der Bibliothek",
+      "icon": "✦",
+      "desc": "Die Bibliothek von Ashurbanipal kauft und kopiert systematisch alles Wissen der Neuen Welt.",
+      "daily": {
+        "info": 0.2
+      },
+      "upkeep": 8,
+      "cost": 0,
+      "opinions": {
+        "demiurge": 2,
+        "albedo": 1
+      }
+    }
+  ],
+  "military": {
+    "max_armies": 3,
+    "defense_bonus": 0.15,
+    "conquest_attention": 12,
+    "conquest_influence": 45,
+    "conquest_unrest": 35
+  },
+  "units": [
+    {
+      "id": "skeleton",
+      "name": "Skelett-Legion",
+      "icon": "☠",
+      "strength": 18,
+      "cost": 60,
+      "upkeep": 1,
+      "desc": "Hunderte Skelettkrieger. Billig, endlos ersetzbar, furchtlos."
+    },
+    {
+      "id": "beasts",
+      "name": "Auras Bestienrudel",
+      "icon": "✦",
+      "strength": 38,
+      "cost": 120,
+      "upkeep": 2,
+      "requires": {
+        "chapter_min": 2
+      },
+      "desc": "Höllenhunde, Basilisken und ein empörter Hamster."
+    },
+    {
+      "id": "death_knight",
+      "name": "Todesritter-Schwadron",
+      "icon": "⚔",
+      "strength": 48,
+      "cost": 180,
+      "upkeep": 3,
+      "requires": {
+        "chapter_min": 2
+      },
+      "desc": "Untote Ritter der Stufe 35 – jeder einzelne würde eine Stadtwache vernichten."
+    },
+    {
+      "id": "lizard",
+      "name": "Echsenkrieger",
+      "icon": "♆",
+      "strength": 30,
+      "cost": 70,
+      "upkeep": 1,
+      "requires": {
+        "region_min": {
+          "sumpf": 60
+        }
+      },
+      "desc": "Die vereinten Stämme kämpfen nun unter Nazaricks Banner. Treu und tapfer."
+    },
+    {
+      "id": "elder_lich",
+      "name": "Älteste Liche",
+      "icon": "✧",
+      "strength": 60,
+      "cost": 240,
+      "upkeep": 4,
+      "requires": {
+        "chapter_min": 3
+      },
+      "desc": "Untote Magier mit Zaubern der vierten Stufe. In dieser Welt eine Katastrophe."
+    },
+    {
+      "id": "soul_eater",
+      "name": "Seelenfresser",
+      "icon": "❖",
+      "strength": 85,
+      "cost": 380,
+      "upkeep": 6,
+      "requires": {
+        "chapter_min": 4
+      },
+      "desc": "Legendäre Schreckgestalten, die einst ein ganzes Land verwüsteten."
+    },
+    {
+      "id": "death_cavalry",
+      "name": "Todesreiter",
+      "icon": "♞",
+      "strength": 140,
+      "cost": 650,
+      "upkeep": 9,
+      "requires": {
+        "chapter_min": 7
+      },
+      "desc": "Die Reiter, die auf der Katze-Ebene Geschichte schrieben."
+    },
+    {
+      "id": "frost_dragon",
+      "name": "Frostdrachen",
+      "icon": "❄",
+      "strength": 170,
+      "cost": 520,
+      "upkeep": 8,
+      "requires": {
+        "flags_all": [
+          "frost_dragons"
+        ]
+      },
+      "desc": "Olasird'arc und seine Brut dienen nun Nazarick. Ihr Atem verwandelt Armeen in Eisstatuen."
+    },
+    {
+      "id": "rune_guard",
+      "name": "Runengarde der Zwerge",
+      "icon": "⚒",
+      "strength": 55,
+      "cost": 160,
+      "upkeep": 2,
+      "requires": {
+        "flags_all": [
+          "rune_smiths"
+        ]
+      },
+      "desc": "Zwergenkrieger in runenverstärkten Rüstungen – loyal bis in den Tod."
+    }
+  ],
+  "commanders": {
+    "cocytus": {
+      "bonus": 0.32,
+      "text": "Feldherr der Fünften Ebene: geordnete Schlachtreihen, keine Panik."
+    },
+    "shalltear": {
+      "bonus": 0.38,
+      "unrest": 15,
+      "text": "Blutrausch: verheerend – und hinterher kein Stein auf dem anderen."
+    },
+    "demiurge": {
+      "bonus": 0.26,
+      "enemy_morale": 0.12,
+      "text": "Teuflische Strategie: Der Feind ist geschlagen, bevor er es bemerkt."
+    },
+    "albedo": {
+      "bonus": 0.2,
+      "loss_mult": 0.6,
+      "text": "Unverwüstliche Verteidigerin: Ihre Truppen erleiden kaum Verluste."
+    },
+    "aura": {
+      "bonus": 0.22,
+      "text": "Bestienmeisterin: Ihre Tiere jagen den Feind durch jedes Gelände."
+    },
+    "mare": {
+      "bonus": 0.27,
+      "text": "Erdbeben auf Befehl: Gräben öffnen sich unter feindlichen Linien."
+    },
+    "sebas": {
+      "bonus": 0.16,
+      "unrest": -15,
+      "text": "Ehrenhafte Kriegsführung: Die Bevölkerung verzeiht."
+    },
+    "narberal": {
+      "bonus": 0.12,
+      "text": "Kettenblitze über der Front."
+    },
+    "pandora": {
+      "bonus": 0.24,
+      "text": "Verwandelt sich in die Höchsten Wesen – der Feind weiß nicht, wem er gegenübersteht."
+    }
+  },
+  "tactics": [
+    {
+      "id": "assault",
+      "name": "Frontalangriff",
+      "icon": "⚔",
+      "str": 0.2,
+      "loss": 1.3,
+      "desc": "Volle Wucht. Höhere Stärke, aber mehr eigene Verluste."
+    },
+    {
+      "id": "flank",
+      "name": "Flankenmanöver",
+      "icon": "↻",
+      "str": 0.0,
+      "loss": 0.9,
+      "int_bonus": true,
+      "desc": "Bonus abhängig vom Intellekt des Feldherrn."
+    },
+    {
+      "id": "defensive",
+      "name": "Verteidigungsstellung",
+      "icon": "◐",
+      "str": -0.1,
+      "loss": 0.5,
+      "desc": "Weniger Stärke, halbierte Verluste."
+    },
+    {
+      "id": "terror",
+      "name": "Terror verbreiten",
+      "icon": "☠",
+      "str": 0.12,
+      "loss": 1.0,
+      "enemy_morale": 0.1,
+      "unrest": 20,
+      "attention": 6,
+      "desc": "Untote Schrecken brechen den Kampfgeist des Feindes – die Region vergisst es nicht."
+    },
+    {
+      "id": "personal",
+      "name": "Ainz führt persönlich",
+      "icon": "♛",
+      "str": 2.5,
+      "loss": 0.3,
+      "enemy_morale": 0.2,
+      "attention": 3,
+      "hidden": true,
+      "desc": "Der Overlord selbst hat das feindliche Heer zerschlagen."
+    },
+    {
+      "id": "overlord_fallen",
+      "name": "Rückzug des Overlords",
+      "icon": "✗",
+      "str": -0.4,
+      "loss": 1.2,
+      "hidden": true,
+      "desc": "Ainz musste sich zurückziehen – die Truppen kämpfen allein weiter."
+    }
+  ],
+  "invasions": [
+    {
+      "id": "forest_monsters",
+      "faction": "Trolle & Ogers des Waldes",
+      "origin": "tob_wald",
+      "strength": [
+        30,
+        60
+      ],
+      "trigger": {
+        "chapter_min": 2
+      },
+      "origin_max_influence": 50,
+      "weight": 2
+    },
+    {
+      "id": "kingdom_host",
+      "faction": "Adelsheer des Königreichs",
+      "origin": "re_capital",
+      "strength": [
+        110,
+        200
+      ],
+      "trigger": {
+        "chapter_min": 3,
+        "res_min": {
+          "attention": 30
+        }
+      },
+      "origin_max_influence": 60,
+      "weight": 2,
+      "faction_id": "kingdom"
+    },
+    {
+      "id": "empire_legion",
+      "faction": "Kaiserliche Legion",
+      "origin": "baharuth",
+      "strength": [
+        150,
+        260
+      ],
+      "trigger": {
+        "chapter_min": 5,
+        "flags_none": [
+          "empire_pact"
+        ]
+      },
+      "origin_max_influence": 50,
+      "weight": 2,
+      "faction_id": "empire"
+    },
+    {
+      "id": "quagoa",
+      "faction": "Quagoa-Horde",
+      "origin": "azerlisia",
+      "strength": [
+        80,
+        150
+      ],
+      "trigger": {
+        "chapter_min": 5
+      },
+      "origin_max_influence": 50,
+      "weight": 1
+    },
+    {
+      "id": "theocracy_army",
+      "faction": "Heilige Armee der Theokratie",
+      "origin": "theokratie",
+      "strength": [
+        200,
+        360
+      ],
+      "trigger": {
+        "chapter_min": 4,
+        "res_min": {
+          "attention": 45
+        }
+      },
+      "origin_max_influence": 40,
+      "weight": 3,
+      "faction_id": "theocracy"
+    },
+    {
+      "id": "argland_wrath",
+      "faction": "Drachenheer von Argland",
+      "faction_id": "argland",
+      "origin": "drachen",
+      "strength": [
+        400,
+        650
+      ],
+      "trigger": {
+        "chapter_min": 7
+      },
+      "origin_max_influence": 40,
+      "weight": 1,
+      "war_only": true
+    },
+    {
+      "id": "roble_crusade",
+      "faction": "Kreuzzug von Roble",
+      "faction_id": "roble",
+      "origin": "roble",
+      "strength": [
+        160,
+        260
+      ],
+      "trigger": {
+        "chapter_min": 8
+      },
+      "origin_max_influence": 40,
+      "weight": 1,
+      "war_only": true
+    }
+  ],
+  "difficulties": [
+    {
+      "id": "easy",
+      "name": "Gnädiger Herrscher",
+      "desc": "Für Geschichte und Charaktere: reichere Schatzkammer, seltene Bedrohungen, schwächere Feinde.",
+      "gold": 3500,
+      "income": 1.3,
+      "upkeep": 0.7,
+      "mission": -8,
+      "threat": 0.5,
+      "enemy": 0.7,
+      "influence": 1.2
+    },
+    {
+      "id": "normal",
+      "name": "Oberherr",
+      "desc": "Die vorgesehene Erfahrung: Verwaltung, Abwägungen und gelegentliche Krisen.",
+      "gold": 2400,
+      "income": 1.0,
+      "upkeep": 1.0,
+      "mission": 0,
+      "threat": 1.0,
+      "enemy": 1.0,
+      "influence": 1.0
+    },
+    {
+      "id": "hard",
+      "name": "Höchstes Wesen",
+      "desc": "Knappe Mittel, wachsame Feinde. Jede Entscheidung zählt.",
+      "gold": 1600,
+      "income": 0.85,
+      "upkeep": 1.25,
+      "mission": 6,
+      "threat": 1.5,
+      "enemy": 1.3,
+      "influence": 0.85
+    },
+    {
+      "id": "nightmare",
+      "name": "Albtraum von Nazarick",
+      "desc": "Die ganze Welt hat sich gegen Euch verschworen. Nur für wahre Overlords.",
+      "gold": 1000,
+      "income": 0.7,
+      "upkeep": 1.5,
+      "mission": 12,
+      "threat": 2.0,
+      "enemy": 1.7,
+      "influence": 0.7
+    }
+  ]
+}
