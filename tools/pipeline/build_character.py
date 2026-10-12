@@ -37,6 +37,15 @@ for path in sorted(glob.glob(os.path.join(mix, "*.fbx"))):
     for o in new:
         bpy.data.objects.remove(o)
 
+# Einheiten pruefen: Mixamo liest OBJ-Uploads als Zentimeter -> Figur ist 100x zu klein.
+# Die Armatur (samt Animationen und Skin) wird dann als Ganzes hochskaliert.
+_dg = bpy.context.evaluated_depsgraph_get()
+_zs = [(o.evaluated_get(_dg).matrix_world @ v.co).z for o in meshes for v in o.evaluated_get(_dg).to_mesh().vertices]
+_h = max(_zs) - min(_zs)
+if _h < 0.2:
+    arm.scale = arm.scale * 100.0
+    bpy.context.view_layer.update()
+    print("OVERLORD einheiten korrigiert: Hoehe", round(_h, 4), "-> x100")
 arm.animation_data.action = None
 for pb in arm.pose.bones:   # Ruhepose (der Import laesst den ersten Frame stehen)
     pb.location = (0, 0, 0)
@@ -51,15 +60,40 @@ for name, act in actions.items():
     tr.mute = True
 print("OVERLORD animationen", sorted(actions))
 
-# Materialien: beleuchtetes PBR mit Basistextur; Haare/Augen mit Alpha-Clip
+# Materialien: beleuchtetes PBR. Zwei Faelle:
+# - PBR-Satz im Texturordner (*_basecolor/_normal/_roughness/_metallic, von prep_mixamo_pbr.py)
+# - sonst: badan/mata (Albedo-Paket) bzw. die eingebettete Textur, Alpha-Clip fuer Haare/Augen
+pbr = {k: next((os.path.join(texdir, f) for f in os.listdir(texdir) if f.lower().split(".")[0].endswith("_" + k)), None)
+       for k in ("basecolor", "normal", "roughness", "metallic")}
 for o in meshes:
     for slot in o.material_slots:
         m = slot.material
         if not m:
             continue
-        key = "mata" if "mata" in m.name.lower() or "2" in m.name else "badan"
         nt = m.node_tree
         bsdf = next(n for n in nt.nodes if n.type == "BSDF_PRINCIPLED")
+        if pbr["basecolor"]:
+            for n in [n for n in nt.nodes if n.type in ("TEX_IMAGE", "NORMAL_MAP")]:
+                nt.nodes.remove(n)
+            for key, socket in (("basecolor", "Base Color"), ("roughness", "Roughness"), ("metallic", "Metallic"), ("normal", None)):
+                if not pbr[key]:
+                    continue
+                t = nt.nodes.new("ShaderNodeTexImage")
+                t.image = bpy.data.images.load(pbr[key])
+                if key != "basecolor":
+                    t.image.colorspace_settings.name = "Non-Color"
+                if socket:
+                    nt.links.new(t.outputs["Color"], bsdf.inputs[socket])
+                else:
+                    nmap = nt.nodes.new("ShaderNodeNormalMap")
+                    nt.links.new(t.outputs["Color"], nmap.inputs["Color"])
+                    nt.links.new(nmap.outputs["Normal"], bsdf.inputs["Normal"])
+            for l in list(bsdf.inputs["Alpha"].links):
+                nt.links.remove(l)
+            bsdf.inputs["Alpha"].default_value = 1.0
+            print("OVERLORD material", m.name, "-> PBR")
+            continue
+        key = "mata" if "mata" in m.name.lower() or "2" in m.name else "badan"
         tex = next((n for n in nt.nodes if n.type == "TEX_IMAGE" and n.image and n.image.has_data), None)
         if tex is None:
             tex = nt.nodes.new("ShaderNodeTexImage")

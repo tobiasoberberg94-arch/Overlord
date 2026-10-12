@@ -78,6 +78,12 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "demiurge": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
   }
  },
  "props": {},
