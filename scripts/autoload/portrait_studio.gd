@@ -102,6 +102,14 @@ func _figure_height(rig: CharacterRig) -> float:
 	var head: Node3D = rig.parts.get("head")
 	if head:
 		return head.global_position.y + 0.22
+	# Modell mit Skelett: Kopfknochen nehmen – die AABB von Skin-Meshes liegt im
+	# Skelettraum (z. B. Mixamo mit Maßstab 0.01) und taugt nicht als Höhe.
+	for s in rig.find_children("*", "Skeleton3D", true, false):
+		var sk := s as Skeleton3D
+		for b in sk.get_bone_count():
+			var bn := sk.get_bone_name(b).to_lower()
+			if bn.ends_with("head") and not "top" in bn:
+				return clampf((sk.global_transform * sk.get_bone_global_pose(b)).origin.y + 0.2, 0.8, 3.2)
 	var top := 1.8
 	var found := false
 	for mi in rig.find_children("*", "MeshInstance3D", true, false):

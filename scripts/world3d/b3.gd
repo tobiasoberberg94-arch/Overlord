@@ -192,6 +192,16 @@ static func light(parent: Node, pos: Vector3, color: Color, energy: float = 1.5,
 	return l
 
 
+## Bewegte Objekte (Figuren, Projektile) aus der globalen Beleuchtung (SDFGI,
+## nur Forward+) nehmen: ihre Meshes würden sonst als statische Geometrie samt
+## Leuchtfarben in den Raum eingerechnet, ihre Lichter würden mitgestreut.
+static func exclude_from_gi(root: Node) -> void:
+	for n in root.find_children("*", "GeometryInstance3D", true, false):
+		(n as GeometryInstance3D).gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	for n in root.find_children("*", "Light3D", true, false):
+		(n as Light3D).light_bake_mode = Light3D.BAKE_DISABLED
+
+
 ## Feuerschale mit flackerndem Licht und Funken.
 static func brazier(parent: Node, pos: Vector3, color: Color = Color(1.0, 0.55, 0.2), solid: bool = true) -> void:
 	if ModelLib.place_prop(parent, "brazier", pos, 0.0, 1.0, solid):

@@ -39,6 +39,10 @@ func _ready() -> void:
 	for c in w.overlay_layer.get_children():
 		c.queue_free()
 	var only := OS.get_environment("LOC")
+	if only == "compare":
+		await _compare(w)
+		get_tree().quit()
+		return
 	for l in Content.locations:
 		if only != "" and l.id != only:
 			continue
@@ -146,6 +150,30 @@ func _ready() -> void:
 		assert(Game.state.world3d.loc == "throne")
 	print("3D-RAUCHTEST OK")
 	get_tree().quit()
+
+
+## Renderer-Vergleich: feste Ansichten ohne Oberfläche, Dateiname mit Renderer
+## (compat_… / forward_plus_…). Aufruf: LOC=compare godot --path . res://tools/world3d_test.tscn
+func _compare(w: Node) -> void:
+	var tag := String(ProjectSettings.get_setting("rendering/renderer/rendering_method"))
+	for c in w.find_children("*", "CanvasLayer", true, false):
+		(c as CanvasLayer).visible = false
+	await w.load_location("tombs")
+	await _wait(4.0)
+	_shot("cmp_%s_tombs" % tag)
+	w.player.cam_yaw += PI * 0.75
+	await _wait(1.0)
+	_shot("cmp_%s_tombs_b" % tag)
+	await w.load_location("throne")
+	await _wait(4.0)
+	_shot("cmp_%s_throne" % tag)
+	for a in w.actors:
+		if a.id == "albedo":
+			w.player.global_position = a.global_position + Vector3(1.4, 0.2, 3.0)
+			w.player.cam_yaw = 0.0
+	await _wait(1.5)
+	_shot("cmp_%s_albedo" % tag)
+	print("Vergleich OK: ", tag)
 
 
 func _wait(t: float) -> void:

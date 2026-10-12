@@ -33,6 +33,7 @@ static func create(id: String, fallback: Callable) -> CharacterRig:
 		r._find_animations(m)
 	elif fallback.is_valid():
 		fallback.call(r)
+	B3.exclude_from_gi(r)
 	r._overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	r._overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	r._overlay.blend_mode = BaseMaterial3D.BLEND_MODE_ADD

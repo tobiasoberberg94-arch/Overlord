@@ -18,9 +18,11 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	_rng.seed = hash(loc.id)
 	# Ein komplettes Ortsmodell (assets/models/locations/<id>.glb) ersetzt das Rezept
 	var scene := ModelLib.instance("locations", loc.id)
-	if scene:
-		return _from_model(loc, root, scene)
 	var a: Dictionary
+	if scene:
+		a = _from_model(loc, root, scene)
+		_gate(root, a.gate)
+		return a
 	match loc.kind:
 		"throne": a = _throne(root)
 		"tombs": a = _tombs(root)
@@ -51,6 +53,17 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
 	root.add_child(scene)
 	ModelLib.add_collision(scene)
+	# Lichter aus dem Modell (z. B. Lampen eines Unreal-Exports) haben fremde Einheiten:
+	# auf spieltaugliche Werte bringen, Schatten nur bei hoher Grafikstufe.
+	for l in scene.find_children("*", "OmniLight3D", true, false):
+		var omni := l as OmniLight3D
+		omni.light_energy = 0.05 if is_forward_plus() else 0.45   # Forward+: SDFGI verteilt das Licht zusätzlich
+		omni.omni_range = clampf(omni.omni_range, 3.0, 6.0)
+		omni.omni_attenuation = 1.5
+		omni.shadow_enabled = false
+	for l in scene.find_children("*", "SpotLight3D", true, false):
+		(l as SpotLight3D).light_energy = 1.5
+		(l as SpotLight3D).shadow_enabled = false
 	var named := {}
 	for n in scene.find_children("*", "Node3D", true, false):
 		named[String(n.name).to_lower()] = n
@@ -112,6 +125,8 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	env.glow_intensity = 0.9
 	env.glow_bloom = 0.15
 	env.glow_hdr_threshold = 0.9
+	if is_forward_plus():
+		_forward_plus_env(env, preset)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	root.add_child(we)
@@ -124,11 +139,44 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	root.add_child(sun)
 
 
+static func is_forward_plus() -> bool:
+	# Godot 4.3 kennt get_current_rendering_method() noch nicht: Einstellung prüfen und ob
+	# wirklich ein RenderingDevice läuft (nicht bei Compatibility-Fallback/headless).
+	return ProjectSettings.get_setting("rendering/renderer/rendering_method") == "forward_plus" \
+		and RenderingServer.get_rendering_device() != null
+
+
+## Effekte, die nur der Forward+-Renderer kann: globale Beleuchtung (SDFGI),
+## Umgebungsverdeckung (SSAO/SSIL), Bildschirmreflexionen und Volumennebel.
+## Der Volumennebel übernimmt die Stimmung, der einfache Tiefennebel wird schwächer.
+static func _forward_plus_env(env: Environment, preset: Dictionary) -> void:
+	env.sdfgi_enabled = true
+	env.sdfgi_use_occlusion = true
+	env.sdfgi_cascades = 4
+	env.sdfgi_min_cell_size = 0.15
+	env.sdfgi_energy = float(preset.get("gi", 0.9))
+	env.ssao_enabled = true
+	env.ssao_radius = 1.2
+	env.ssao_intensity = 1.6
+	env.ssil_enabled = true
+	env.ssr_enabled = true
+	env.ssr_max_steps = 48
+	env.volumetric_fog_enabled = true
+	env.volumetric_fog_density = float(preset.get("fog_density", 0.02)) * float(preset.get("vol_fog", 0.9))
+	env.volumetric_fog_albedo = preset.get("fog", Color(0.08, 0.04, 0.12)).lightened(0.4)
+	env.volumetric_fog_emission = preset.get("fog", Color(0.08, 0.04, 0.12)) * 0.15
+	env.volumetric_fog_gi_inject = 0.8
+	env.volumetric_fog_length = 48.0
+	env.fog_density *= 0.35
+	# Umgebungslicht kommt jetzt teils aus SDFGI – Grundhelligkeit etwas zurücknehmen
+	env.ambient_light_energy *= 0.7
+
+
 ## Licht-/Nebelvorgaben je Ortstyp.
 static func preset(kind: String) -> Dictionary:
 	match kind:
 		"throne": return {"sky": false, "bg": Color(0.015, 0.0, 0.03), "ambient": Color(0.5, 0.4, 0.65), "ambient_energy": 0.9, "fog": Color(0.1, 0.03, 0.16), "fog_density": 0.012, "sun_energy": 0.25}
-		"tombs": return {"sky": false, "bg": Color(0.01, 0.02, 0.02), "ambient": Color(0.25, 0.35, 0.3), "ambient_energy": 0.45, "fog": Color(0.03, 0.06, 0.05), "fog_density": 0.035, "sun_energy": 0.1}
+		"tombs": return {"sky": false, "gi": 0.3, "vol_fog": 0.25, "bg": Color(0.01, 0.02, 0.02), "ambient": Color(0.25, 0.35, 0.3), "ambient_energy": 0.45, "fog": Color(0.03, 0.06, 0.05), "fog_density": 0.035, "sun_energy": 0.1}
 		"glacier": return {"sky_top": Color(0.05, 0.12, 0.3), "sky_energy": 0.7, "ambient": Color(0.4, 0.5, 0.75), "ambient_energy": 0.45, "exposure": 0.8, "fog": Color(0.35, 0.5, 0.75), "fog_density": 0.02, "sun": Color(0.7, 0.85, 1.0), "sun_energy": 0.8}
 		"jungle": return {"sky_top": Color(0.15, 0.35, 0.6), "sky_energy": 0.7, "ambient": Color(0.35, 0.5, 0.35), "ambient_energy": 0.7, "fog": Color(0.08, 0.14, 0.08), "fog_density": 0.022, "sun": Color(0.8, 0.9, 0.7), "sun_energy": 0.9}
 		"lava": return {"sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
@@ -149,10 +197,15 @@ static func preset(kind: String) -> Dictionary:
 #  Gemeinsame Elemente
 # =====================================================================
 
+## Gate-Licht: unter Forward+ verteilt SDFGI es im ganzen Raum – deutlich schwächer.
+static func _gate_energy() -> float:
+	return 0.6 if is_forward_plus() else 2.0
+
+
 ## Gate: magisches Portal (Teleport zwischen den Orten).
 static func _gate(root: Node3D, pos: Vector3) -> void:
 	if ModelLib.place_prop(root, "gate_portal", pos):
-		B3.light(root, pos + Vector3(0, 2, 1), VIOLET, 2.0, 7.0)
+		B3.light(root, pos + Vector3(0, 2, 1), VIOLET, _gate_energy(), 7.0)
 		return
 	var g := Node3D.new()
 	g.name = "GatePortal"
@@ -170,8 +223,12 @@ static func _gate(root: Node3D, pos: Vector3) -> void:
 	disc.height = 0.02
 	B3.mesh(g, disc, Vector3(0, 2.0, 0), B3.mat(Color(0.05, 0.0, 0.1, 0.85), 0.0, 0.0, Color(0.25, 0.05, 0.45), 1.5), Vector3(90, 0, 0))
 	B3.cyl(g, 1.6, 1.8, 0.2, Vector3(0, 0.1, 0), B3.mat(Color(0.08, 0.06, 0.1), 0.6, 0.3), true, 20)
-	B3.light(g, Vector3(0, 2, 1), VIOLET, 2.0, 7.0)
+	B3.light(g, Vector3(0, 2, 1), VIOLET, _gate_energy(), 5.0 if is_forward_plus() else 7.0)
 	B3.motes(g, Vector3(0, 2, 0), Vector3(1.2, 1.2, 0.2), Color(0.7, 0.4, 1.0), 30)
+	# Leuchtender Ring/Scheibe nicht in die globale Beleuchtung (SDFGI) einspeisen,
+	# sonst färbt das Portal ganze Räume violett.
+	for mi in g.find_children("*", "GeometryInstance3D", true, false):
+		(mi as GeometryInstance3D).gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 
 
 ## Verteilt n Plätze im Halbkreis (für Figuren).

@@ -72,6 +72,12 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "albedo": {
+   "scale": 1.05,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
   }
  },
  "props": {},

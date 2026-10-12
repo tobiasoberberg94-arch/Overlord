@@ -22,10 +22,10 @@
    "encounters": [
     {
      "enemy": "skeleton",
-     "count": 3,
+     "count": 2,
      "at": [
-      -12,
-      -8
+      4.4,
+      0.8
      ]
     }
    ]
