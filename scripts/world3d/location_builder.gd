@@ -84,6 +84,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 		a["yaw"] = (named["spawn"] as Node3D).global_rotation.y
 	if loc.group == "nazarick" and not a.has("keeper"):
 		a["keeper"] = a.spawn + Vector3(0, 0, -10)
+	_model_dressing(loc, root, named, a)
 	B3.bounds(root, 120)
 	return a
 
@@ -298,24 +299,11 @@ static func _throne(root: Node3D) -> Dictionary:
 	B3.light(root, Vector3(0, 9, dais_z), Color(0.8, 0.5, 1.0), 2.5, 16)
 	# Riesiges Fenster aus Licht hinter dem Thron
 	B3.box(root, Vector3(8, 10, 0.2), Vector3(0, 9, -l + 0.6), B3.mat(Color(0.3, 0.1, 0.5), 0.2, 0.0, Color(0.45, 0.15, 0.8), 1.6), false)
-	# Kriegstisch mit der Weltkarte
+	# Kriegstisch mit der Weltkarte, Albedos Pult (Verwaltung & Wochenziele)
 	var table := Vector3(-8.0, 0, 6.0)
-	B3.box(root, Vector3(3.6, 1.0, 2.4), table + Vector3(0, 0.5, 0), B3.mat(Color(0.12, 0.07, 0.05), 0.6))
-	# Reliefkarte auf dem Tisch (kleines 3D-Gelände mit Burgmarken)
-	B3.box(root, Vector3(3.3, 0.04, 2.1), table + Vector3(0, 1.02, 0), B3.noise_mat(Color(0.25, 0.32, 0.18), Color(0.45, 0.42, 0.3), 0.5), false)
-	for i in 6:
-		var p := table + Vector3(_rng.randf_range(-1.4, 1.4), 1.05, _rng.randf_range(-0.85, 0.85))
-		B3.cone(root, 0.18, _rng.randf_range(0.15, 0.35), p, B3.mat(Color(0.5, 0.48, 0.45), 0.8))
-	for i in 4:
-		var p := table + Vector3(_rng.randf_range(-1.3, 1.3), 1.04, _rng.randf_range(-0.8, 0.8))
-		B3.cyl(root, 0.05, 0.06, 0.18, p + Vector3(0, 0.09, 0), B3.mat([Color(0.55, 0.25, 0.95), Color(0.85, 0.1, 0.15)][i % 2], 0.4, 0.5), false, 8)
-	B3.light(root, table + Vector3(0, 3, 0), Color(1, 0.85, 0.6), 1.5, 6)
-	# Albedos Pult (Verwaltung & Wochenziele)
 	var desk := Vector3(8.0, 0, 6.0)
-	B3.box(root, Vector3(2.4, 1.1, 1.2), desk + Vector3(0, 0.55, 0), B3.mat(Color(0.08, 0.04, 0.1), 0.5))
-	B3.box(root, Vector3(2.5, 0.06, 1.3), desk + Vector3(0, 1.12, 0), gold, false)
-	B3.sphere(root, 0.18, desk + Vector3(0.7, 1.3, 0), B3.mat(VIOLET, 0.1, 0.0, VIOLET, 3.0))
-	B3.light(root, desk + Vector3(0, 2.5, 0), Color(0.9, 0.7, 1.0), 1.2, 5)
+	_war_table(root, table)
+	_desk(root, desk)
 	B3.motes(root, Vector3(0, 6, 0), Vector3(10, 5, 25), Color(0.7, 0.5, 1.0), 80)
 	B3.bounds(root, 40)
 	var slots: Array = []
@@ -324,6 +312,61 @@ static func _throne(root: Node3D) -> Dictionary:
 		slots.append(Vector3(3.5, 0, -16.0 + i * 3.2))
 	return {"spawn": Vector3(0, 0.2, 14), "yaw": 0.0, "gate": Vector3(0, 0, 25), "slots": slots,
 		"throne": Vector3(0, 1.2, dais_z + 1.5), "table": table, "desk": desk, "keeper": Vector3(-2.5, 1.2, dais_z + 0.5)}
+
+
+## Kriegstisch mit Reliefkarte und Spielfiguren.
+static func _war_table(root: Node3D, table: Vector3) -> void:
+	B3.box(root, Vector3(3.6, 1.0, 2.4), table + Vector3(0, 0.5, 0), B3.mat(Color(0.12, 0.07, 0.05), 0.6))
+	B3.box(root, Vector3(3.3, 0.04, 2.1), table + Vector3(0, 1.02, 0), B3.noise_mat(Color(0.25, 0.32, 0.18), Color(0.45, 0.42, 0.3), 0.5), false)
+	for i in 6:
+		var p := table + Vector3(_rng.randf_range(-1.4, 1.4), 1.05, _rng.randf_range(-0.85, 0.85))
+		B3.cone(root, 0.18, _rng.randf_range(0.15, 0.35), p, B3.mat(Color(0.5, 0.48, 0.45), 0.8))
+	for i in 4:
+		var p := table + Vector3(_rng.randf_range(-1.3, 1.3), 1.04, _rng.randf_range(-0.8, 0.8))
+		B3.cyl(root, 0.05, 0.06, 0.18, p + Vector3(0, 0.09, 0), B3.mat([Color(0.55, 0.25, 0.95), Color(0.85, 0.1, 0.15)][i % 2], 0.4, 0.5), false, 8)
+	B3.light(root, table + Vector3(0, 3, 0), Color(1, 0.85, 0.6), 1.5, 6)
+
+
+## Albedos Pult.
+static func _desk(root: Node3D, desk: Vector3) -> void:
+	B3.box(root, Vector3(2.4, 1.1, 1.2), desk + Vector3(0, 0.55, 0), B3.mat(Color(0.08, 0.04, 0.1), 0.5))
+	B3.box(root, Vector3(2.5, 0.06, 1.3), desk + Vector3(0, 1.12, 0), B3.mat(GOLD, 0.3, 0.9), false)
+	B3.sphere(root, 0.18, desk + Vector3(0.7, 1.3, 0), B3.mat(VIOLET, 0.1, 0.0, VIOLET, 3.0))
+	B3.light(root, desk + Vector3(0, 2.5, 0), Color(0.9, 0.7, 1.0), 1.2, 5)
+
+
+## Ausstattung eines Ortsmodells über benannte Anker:
+##   Banner_n (Gildenbanner), Fire_n (Feuer), Lamp_n (warmes Licht), Violet_n (violettes Licht)
+## Im Thronsaal zusätzlich roter Teppich zum Thron, Kriegstisch (Table) und Pult (Desk).
+static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a: Dictionary) -> void:
+	var crest: Texture2D = Palette.icon("faction_nazarick")
+	for key in named:
+		var n := named[key] as Node3D
+		var p := n.global_position
+		if key.begins_with("banner_"):
+			B3.banner(root, p, Color(0.2, 0.04, 0.3), crest, 5.5, -90.0 * signf(p.x))
+		elif key.begins_with("fire_"):
+			B3.light(root, p + Vector3(0, 0.4, 0), Color(1.0, 0.55, 0.22), 2.2, 9.0).set_meta("flicker", true)
+			B3.motes(root, p + Vector3(0, 0.8, 0), Vector3(0.4, 0.6, 0.4), Color(1.0, 0.6, 0.2), 16)
+		elif key.begins_with("lamp_"):
+			B3.light(root, p, Color(1.0, 0.78, 0.5), 2.6, 14.0)
+		elif key.begins_with("violet_"):
+			B3.light(root, p, VIOLET, 3.0, 14.0)
+	if loc.kind == "throne":
+		if a.has("throne"):
+			var start: Vector3 = a.gate
+			var end: Vector3 = a.throne
+			var mid := (start + end) / 2.0
+			var length := end.distance_to(start) + 2.0
+			var carpet := B3.box(root, Vector3(3.6, 0.04, length), Vector3(mid.x, 0.03, mid.z), B3.mat(Color(0.45, 0.02, 0.06), 0.9), false)
+			carpet.rotation.y = atan2(end.x - start.x, end.z - start.z)
+			var trim := B3.box(root, Vector3(4.0, 0.03, length), Vector3(mid.x, 0.02, mid.z), B3.mat(GOLD, 0.3, 0.9), false)
+			trim.rotation.y = carpet.rotation.y
+		if a.has("table"):
+			_war_table(root, a.table)
+		if a.has("desk"):
+			_desk(root, a.desk)
+		B3.motes(root, a.spawn + Vector3(0, 5, -20), Vector3(8, 4, 22), Color(0.7, 0.5, 1.0), 70)
 
 
 ## Gemeinsames Gerüst für die Ebenen: Boden, Begrenzung, Wächter-Platz.

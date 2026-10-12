@@ -173,7 +173,8 @@ func _compare(w: Node) -> void:
 			w.player.cam_yaw = 0.0
 	await _wait(1.5)
 	_shot("cmp_%s_albedo" % tag)
-	print("Vergleich OK: ", tag)
+	await _wait(2.0)
+	print("Vergleich OK: ", tag, " – FPS im Thronsaal: ", Engine.get_frames_per_second())
 
 
 func _wait(t: float) -> void:
