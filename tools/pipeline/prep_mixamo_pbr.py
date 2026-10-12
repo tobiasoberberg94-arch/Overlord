@@ -1,5 +1,5 @@
 # Blender: KI-/Scan-Modell (ein Mesh, PBR-Texturen) fuer Mixamo vorbereiten
-#   blender -b -P prep_mixamo_pbr.py -- <modell.fbx> <texturordner> <ziel.fbx> [hoehe_m] [dreiecke]
+#   blender -b -P prep_mixamo_pbr.py -- <modell.fbx> <texturordner> <ziel.fbx> [hoehe_m] [dreiecke] [drehung_z_grad]
 # Erwartet im Texturordner Material_01_{BaseColor,Normal,Roughness,Metallic}.png.
 # - Polygone reduzieren (Standard 40.000 Dreiecke), Fuesse auf z=0, Hoehe skalieren
 # - Blickrichtung pruefen: Gesicht muss nach -Y (Blender) = +Z (glTF/Mixamo) zeigen
@@ -14,6 +14,7 @@ args = sys.argv[sys.argv.index("--") + 1:]
 src, texdir, dst = [os.path.abspath(a) for a in args[:3]]
 HEIGHT = float(args[3]) if len(args) > 3 else 1.85
 TRIS = int(args[4]) if len(args) > 4 else 40000
+ROT_Z = float(args[5]) if len(args) > 5 else 0.0   # z. B. -90, wenn das Modell nach +X blickt
 MAX_TEX = 2048
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -27,6 +28,9 @@ bpy.context.view_layer.objects.active = obs[0]
 if len(obs) > 1:
     bpy.ops.object.join()
 ob = bpy.context.view_layer.objects.active
+if ROT_Z:
+    import math
+    ob.rotation_euler.z += math.radians(ROT_Z)
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 
 # Reduzieren
