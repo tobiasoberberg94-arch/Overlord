@@ -11,6 +11,9 @@ const FPS_LIMITS := [30, 60, 120, 0]
 const TEXT_SPEEDS := ["Langsam", "Normal", "Schnell", "Sofort"]
 const TEXT_SPEED_FACTORS := [0.55, 1.0, 1.8, 0.0]
 const AUTOSAVE_OPTIONS := [0, 7, 30]
+const AA_MODES := ["Aus", "FXAA", "MSAA 4× + FXAA", "TAA (weichste Kanten)"]
+const RENDER_SCALES := [0.5, 0.67, 0.77, 1.0]
+const RENDER_SCALE_NAMES := ["Leistung (50 %, FSR)", "Ausgewogen (67 %, FSR)", "Qualität (77 %, FSR)", "Nativ (100 %)"]
 
 # Audio
 var master_volume := 1.0
@@ -23,6 +26,8 @@ var resolution := 1
 var vsync := true
 var max_fps := 1
 var particles := true
+var antialias := 2
+var render_scale := 3
 var ui_scale := 1.0
 # Spiel
 var text_speed := 1
@@ -56,7 +61,7 @@ func _keys() -> Array:
 	return [
 		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ui_sounds"],
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
-		["video", "particles"], ["video", "ui_scale"],
+		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"],
 	]
 
@@ -96,6 +101,18 @@ func apply_all() -> void:
 				DisplayServer.window_set_position(screen.position + (screen.size - res) / 2)
 	if get_tree() and get_tree().root:
 		get_tree().root.content_scale_factor = ui_scale
+		apply_viewport(get_tree().root)
+
+
+## Kantenglättung und Renderauflösung (FSR-Hochskalierung) für ein Viewport.
+func apply_viewport(vp: Viewport) -> void:
+	var aa := clampi(antialias, 0, AA_MODES.size() - 1)
+	vp.msaa_3d = Viewport.MSAA_4X if aa == 2 else Viewport.MSAA_DISABLED
+	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if aa in [1, 2] else Viewport.SCREEN_SPACE_AA_DISABLED
+	vp.use_taa = aa == 3
+	var sc: float = RENDER_SCALES[clampi(render_scale, 0, RENDER_SCALES.size() - 1)]
+	vp.scaling_3d_scale = sc
+	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if sc < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
 
 
 ## Faktor für den Schreibmaschinen-Effekt (0 = sofort).

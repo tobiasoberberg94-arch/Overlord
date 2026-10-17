@@ -88,6 +88,8 @@ static func add_collision(root: Node) -> void:
 		var m := mi as MeshInstance3D
 		# Gras, Blumen, Laub und Kleinkram (nocol_…) bekommen keine Kollision und werfen
 		# keine Schatten auf niedriger Stufe; die Namen kommen aus tools/pipeline/loc_kit.py
+		if String(m.name).begins_with("spin_") or String(m.get_parent().name).begins_with("spin_"):
+			continue   # drehende Teile (Windmühlenflügel) ohne statische Kollision
 		if String(m.name).begins_with("nocol_") or String(m.get_parent().name).begins_with("nocol_"):
 			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if not Settings.particles else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			continue

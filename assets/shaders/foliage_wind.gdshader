@@ -21,10 +21,10 @@ void vertex() {
 
 void fragment() {
 	vec4 c = texture(albedo_tex, UV) * albedo;
-	if (c.a < alpha_cut) {
-		discard;
-	}
 	ALBEDO = c.rgb;
+	ALPHA = c.a;
+	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
+	ALPHA_ANTIALIASING_EDGE = 0.3;
 	ROUGHNESS = roughness;
 	if (use_normal) {
 		NORMAL_MAP = texture(normal_tex, UV).rgb;

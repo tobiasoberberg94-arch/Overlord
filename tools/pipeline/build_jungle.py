@@ -10,13 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
-kit = Kit(exp_dir, dst, seed=11, tri_cap={
-    "SM_pyramid_circle": 12000, "SM_mayan_tower": 20000, "SM_mayan_altar_001": 8000,
-    "SM_rock_cliff_A_001": 8000, "SM_center_altar": 8000, "SM_Foliage_35": 2500,
-    "SM_top_pattern_wall": 6000, "SM_ChurchTree01": 8000, "SM_Tree03": 9000, "SM_Tree02": 9000,
-    "SM_Tree09": 9000, "SM_Foliage_56": 2500, "SM_Foliage_59": 2500, "SM_Foliage_22": 1500, "SM_Foliage_24": 1500,
-    "SM_Foliage_12": 1200, "SM_Foliage_33": 1500, "SM_Foliage_34": 1500, "SM_Foliage_5": 1500, "SM_Foliage_27": 2000,
-})
+kit = Kit(exp_dir, dst, seed=11)   # volle Originalqualität, Godot erzeugt LOD-Stufen
+kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
+                 "SM_Tree10", "SM_Tree13", "SM_ChurchTree01", "SM_Spruce1", "SM_TreeType1", "SM_type2Tree",
+                 "MW_tree_02", "MW_tree_03", "MW_pine_tree_Var_01", "FV_tree_01", "FV_tree_02"}   # Bäume: Instancing + Detailstufen
 put, empty = kit.put, kit.empty
 R_FLOOR, R_STAIR, R_COL, R_WALL = 12.6, 17.0, 21.6, 23.6
 GATE_A = -90.0                       # Süden (Richtung Spawn)

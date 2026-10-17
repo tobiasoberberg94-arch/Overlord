@@ -15,8 +15,8 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
-MAX_TEX = 1024
-DECIMATE_OVER = 800   # Flaechen; darueber wird reduziert
+MAX_TEX = 2048
+DECIMATE_OVER = 10 ** 9   # keine Reduktion mehr (volle Qualität, LOD macht Godot)
 DECIMATE_RATIO = 0.3
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
@@ -42,11 +42,12 @@ for o in [o for o in bpy.data.objects if o.type == "MESH"]:
 _cache = {}
 
 
-def small_image(fname, is_normal):
+def small_image(fname, is_normal, opacity=None):
     if not fname:
         return None
-    if fname in _cache:
-        return _cache[fname]
+    key = fname + "|" + (opacity or "")
+    if key in _cache:
+        return _cache[key]
     src = os.path.join(tex_dir, fname)
     if not os.path.exists(src):
         return None
@@ -56,20 +57,35 @@ def small_image(fname, is_normal):
     if s < 1.0:
         img.scale(max(1, int(w * s)), max(1, int(h * s)))
     has_alpha = False
-    if not is_normal and img.channels == 4:
+    osrc = os.path.join(tex_dir, opacity) if opacity else None
+    if not is_normal and osrc and os.path.exists(osrc):
+        # Transparenzmaske (tools/pipeline/export_opacity.py) als Alphakanal einsetzen
+        mask = bpy.data.images.load(osrc)
+        mask.scale(*img.size)
+        mp = numpy.empty(len(mask.pixels), dtype=numpy.float32)
+        mask.pixels.foreach_get(mp)
+        rgb = numpy.empty(len(img.pixels), dtype=numpy.float32)
+        img.pixels.foreach_get(rgb)
+        px = numpy.ones((img.size[0] * img.size[1], 4), dtype=numpy.float32)
+        px[:, :3] = rgb.reshape(-1, img.channels)[:, :3]
+        px[:, 3] = mp.reshape(-1, mask.channels)[:, 0]
+        img = bpy.data.images.new(os.path.splitext(fname)[0] + "_m", img.size[0], img.size[1], alpha=True)
+        img.pixels.foreach_set(px.reshape(-1))
+        has_alpha = bool(px[:, 3].min() < 0.95)
+    elif not is_normal and img.channels == 4:
         px = numpy.empty(len(img.pixels), dtype=numpy.float32)
         img.pixels.foreach_get(px)
         has_alpha = bool(px[3::4].min() < 0.95)
     ext = ".png" if has_alpha else ".jpg"
-    out = os.path.join(small_dir, os.path.splitext(fname)[0] + ext)
+    out = os.path.join(small_dir, os.path.splitext(fname)[0] + ("_m" if opacity else "") + ext)
     img.filepath_raw = out
     img.file_format = "PNG" if has_alpha else "JPEG"
     img.save()
     img.reload()
     if is_normal:
         img.colorspace_settings.name = "Non-Color"
-    _cache[fname] = (img, has_alpha)
-    return _cache[fname]
+    _cache[key] = (img, has_alpha)
+    return _cache[key]
 
 
 # --- Materialien neu aufsetzen -------------------------------------------------
@@ -94,7 +110,7 @@ for mat in bpy.data.materials:
     nt.links.new(bsdf.outputs["BSDF"], out.inputs["Surface"])
     bsdf.inputs["Roughness"].default_value = 0.85
     low = mat.name.lower()
-    bc = small_image(entry.get("basecolor"), False)
+    bc = small_image(entry.get("basecolor"), False, entry.get("opacity"))
     if bc:
         t = nt.nodes.new("ShaderNodeTexImage")
         t.image = bc[0]

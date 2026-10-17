@@ -11,13 +11,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
-kit = Kit(exp_dir, dst, seed=21, tri_cap={
-    "SM_HouseSet02": 90000, "SM_StorageSet": 40000, "SM_Foliage_56": 2500, "SM_Foliage_33": 1500,
-    "SM_Foliage_34": 1500, "SM_Tree08": 6000, "SM_Bush02": 4000, "SM_WoodenBox04": 3000,
-    "SM_WoodenBox01": 3000, "SM_WoodenBox03": 3000, "SM_tombstone02": 3000, "SM_tombStone01": 3000,
-    "SM_Tree03": 9000, "SM_Tree02": 9000, "SM_Tree09": 9000, "SM_Foliage_41": 1500, "SM_Foliage_5": 1500,
-    "SM_Foliage_59": 2500, "SM_Foliage_22": 1500, "SM_Foliage_24": 1500, "SM_Foliage_12": 1200,
-})
+kit = Kit(exp_dir, dst, seed=21)   # volle Originalqualität, Godot erzeugt LOD-Stufen
+kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
+                 "SM_Tree10", "SM_Tree13", "SM_ChurchTree01", "SM_Spruce1", "SM_TreeType1", "SM_type2Tree",
+                 "MW_tree_02", "MW_tree_03", "MW_pine_tree_Var_01", "FV_tree_01", "FV_tree_02"}   # Bäume: Instancing + Detailstufen
 put, empty, rng = kit.put, kit.empty, kit.rng
 HALF = 115.0
 PLAZA = (3.0, 5.0)
@@ -30,7 +27,9 @@ north = kit.spline([(9, 21), (23, 28), (33, 43), (40, 60)])
 south_w = kit.spline([(-2, -58), (-20, -66), (-38, -62)])
 plaza = kit.spline([(PLAZA[0] - 7, PLAZA[1] - 1), (PLAZA[0] - 2, PLAZA[1] + 6), (PLAZA[0] + 6, PLAZA[1] + 4),
                     (PLAZA[0] + 7, PLAZA[1] - 4), (PLAZA[0] - 1, PLAZA[1] - 6), (PLAZA[0] - 7, PLAZA[1] - 1)])
-path_fn = kit.roads_mask([(main, 4.2), (west, 3.2), (east, 3.0), (north, 2.4), (south_w, 2.4), (plaza, 9.0)], HALF)
+mill_road = kit.spline([(29, -15), (40, -30), (46, -44), (53, -51)])      # Feldweg zur Windmühle
+path_fn = kit.roads_mask([(main, 4.2), (west, 3.2), (east, 3.0), (north, 2.4), (south_w, 2.4), (plaza, 9.0),
+                          (mill_road, 2.2)], HALF)
 kit.terrain(HALF, flat_r=55.0, hill_h=8.0, tex="Textures_T_LandScapeLayer01_BC.png",
             normal="Textures_T_LandScapeLayer01_N.png", tile=5.0, edge_rise=14.0, res=420, inner_h=1.1,
             path_tex="Textures_T_LandScapeLayer04_BC.png", path_normal="Textures_T_LandScapeLayer04_N.png",
@@ -81,12 +80,14 @@ def yard(hx, hy, rot, rad, name):
     smoke.append((hx, hy, kit.ground_fn(hx, hy) + 7.5))
 
 
-H = ["SM_HouseSet01", "SM_HouseSet02", "SM_HouseSet01", "SM_StorageSet"]
-kit.along(main, H, spacing=(16, 24), setback=(9, 12), jitter=14, skip=0.1, on_place=yard, start=70, end=170)
-kit.along(west, H, spacing=(15, 22), setback=(8, 11), jitter=16, skip=0.15, on_place=yard, start=6)
-kit.along(east, ["SM_StorageSet", "SM_HouseSet01"], spacing=(18, 26), setback=(8, 11), jitter=12, skip=0.2,
+FV = 0.8      # Medieval-Fantasy-Village-Häuser auf Menschenmaß (Tür ~2,2 m)
+H = ["SM_HouseSet01", "SM_HouseSet02", "SM_HouseSet01", "SM_StorageSet",
+     ("FV_house_02", FV), ("FV_house_03", FV), ("FV_house_05", FV), ("FV_house_01", FV)]
+kit.along(main, H, spacing=(16, 24), gap=(3.5, 6.5), jitter=14, skip=0.1, on_place=yard, start=70, end=170)
+kit.along(west, H, spacing=(15, 22), gap=(3.5, 6.5), jitter=16, skip=0.15, on_place=yard, start=6)
+kit.along(east, ["SM_StorageSet", "SM_HouseSet01", ("FV_house_05", FV)], spacing=(18, 26), gap=(3.5, 6.5), jitter=12, skip=0.2,
           on_place=yard, start=6, end=55)
-kit.along(north, ["SM_HouseSet02", "SM_HouseSet01"], spacing=(18, 26), setback=(8, 11), jitter=15, skip=0.3,
+kit.along(north, ["SM_HouseSet02", "SM_HouseSet01", ("FV_house_04", FV), ("FV_house_02", FV)], spacing=(18, 26), gap=(3.5, 6.5), jitter=15, skip=0.3,
           on_place=yard, start=6)
 
 # Dorfeingang: alter Torbogen am Waldweg
@@ -126,6 +127,21 @@ put("SM_StorageSet", -60.0, -2.0, rot=100)
 kit.clutter(-50.0, -14.0, ["SM_WoodenBox01", "SM_WoodenBarrel01", "SM_WoodenBox03"], n=(4, 7), r=(0.5, 2.5))
 put("SM_Boat", -47.0, -18.0, rot=30)
 
+# Windmühle auf der Anhöhe hinter den Feldern – Flügel drehen sich im Spiel (spin_…, scripts/world3d/spinner.gd)
+MX, MY = 62.0, -60.0
+MR = 42.0
+mz = kit.ground_fn(MX, MY) - 0.3
+put("MW_mill_body_02", MX, MY, z=mz, rot=MR, origin=True)
+r_ = math.radians(MR)
+ox, oy = 8.7 * math.sin(r_), -8.7 * math.cos(r_)          # Nabe vor dem Rumpf (lokal -Y 8,7 m)
+prop = put("MW_mill_propeller", MX + ox, MY + oy, z=mz + 26.1, rot=MR, origin=True)
+prop.name = "spin_mill"
+kit.occupy(MX, MY, 17)
+kit.clutter(MX - 10, MY + 6, ["MW_barrel_group_01", "MW_crate_group_02", "MW_bag_02", "MW_bag_03", "MW_crate_03"],
+            n=(4, 7), r=(1.0, 4.0))
+put("MW_millstone_bottom", MX - 7, MY + 12, rot=20)
+put("SM_WoodenWagon02", MX - 14, MY + 2, rot=-30)
+
 # Felder (schräg, unregelmäßig) mit lückenhaften Zäunen und Heu
 for (fx, fy, fw, fh, fr) in FIELDS:
     r = math.radians(fr)
@@ -147,12 +163,13 @@ put("SM_WoodenWagon01", 40.0, -30.0, rot=10)
 
 # --- Wald von Tob ------------------------------------------------------------------------------
 village = [(-62, -72, 66, 70)]
-BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Tree4", "SM_Tree10", "SM_Tree03"]
+BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Tree4", "SM_Tree10", "SM_Tree03",
+       "MW_pine_tree_Var_01", "MW_pine_tree_Var_01", "MW_tree_03"]
 UNDER = ["SM_Bush07", "SM_Foliage_33", "SM_Foliage_56", "SM_Bush01", "SM_Foliage_59", "SM_Foliage_22", "SM_Foliage_24"]
 kit.forest((-HALF + 4, -HALF + 4, HALF - 4, HALF - 4), BIG, 460, avoid=village, min_d=4.0, s=(0.9, 1.35),
            under=UNDER, under_n=3, threshold=-0.2)
 # lichte Baumgruppen im Dorf
-kit.forest((-62, -72, 66, 70), ["SM_Tree02", "SM_Tree13", "SM_Tree05", "SM_Tree06", "SM_Tree09"], 55, min_d=7.0,
+kit.forest((-62, -72, 66, 70), ["SM_Tree02", "SM_Tree13", "SM_Tree05", "SM_Tree06", "SM_Tree09", "MW_tree_02", "MW_tree_03"], 60, min_d=7.0,
            density_scale=0.06, threshold=0.25, s=(0.8, 1.2), under=["SM_Bush07", "SM_Foliage_33"], under_n=2)
 kit.forest((-30, -110, 30, -60), BIG, 70, min_d=3.5, under=UNDER, under_n=3, threshold=-0.4)   # Waldweg im Süden
 
@@ -162,6 +179,11 @@ kit.grass(ALL, 30000, s=(0.8, 1.5))
 kit.grass(ALL, 5000, kind="@flower", s=(0.8, 1.2))
 kit.grass((-60, -70, 64, 66), 9000, s=(0.6, 1.0))                     # kürzeres Gras im Dorf
 kit.meadow(ALL, ["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12"], 260, s=(0.7, 1.1))
+FLOWERS = ["MW_flower_clump_01", "MW_flower_clump_02", "MW_flower_clump_03", "MW_flower_clump_04",
+           "MW_flower_01", "MW_flower_02", "MW_flower_03", "MW_flower_04"]
+kit.meadow(ALL, FLOWERS + ["MW_grass_02", "MW_plant_ground"], 2600, s=(0.8, 1.3),
+           patch=(FLOWERS, 120, 4.0))
+kit.meadow((-60, -70, 64, 66), ["MW_flower_clump_01", "MW_flower_clump_03", "MW_plant_ground", "MW_bush"], 500, s=(0.7, 1.1))
 kit.meadow((-HALF + 2, -HALF + 2, HALF - 2, HALF - 2),
            ["SM_Foliage_81", "SM_Foliage_82", "SM_Foliage_90", "SM_Foliage_91", "SM_Foliage_99"],
            900, avoid=[(-40, -40, 40, 50)])

@@ -14,11 +14,15 @@ frame = int(args[3]) if len(args) > 3 else 1
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=src)
 arm = next((o for o in bpy.data.objects if o.type == "ARMATURE"), None)
-if arm and action and action in bpy.data.actions:
+act = None
+if action:   # glTF-Import benennt Aktionen teils um (z. B. "walk_Armature") – nach Präfix/Teilstring suchen
+    act = bpy.data.actions.get(action) or next((a for a in bpy.data.actions if a.name.split("_")[0] == action or a.name.startswith(action)), None)
+    print("OVERLORD aktionen", [a.name for a in bpy.data.actions], "->", act.name if act else None)
+if arm and act:
     arm.animation_data_create()
     for t in list(arm.animation_data.nla_tracks):
         arm.animation_data.nla_tracks.remove(t)
-    arm.animation_data.action = bpy.data.actions[action]
+    arm.animation_data.action = act
 bpy.context.scene.frame_set(frame)
 sc = bpy.context.scene
 sc.render.engine = "BLENDER_EEVEE_NEXT"

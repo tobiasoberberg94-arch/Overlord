@@ -12,12 +12,10 @@ from loc_kit import Kit  # noqa: E402
 from mathutils import noise, Vector  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
-kit = Kit(exp_dir, dst, seed=8, tri_cap={
-    "SM_Tree02": 9000, "SM_WoodenBox01": 3000, "SM_WoodenBox03": 3000, "SM_HouseSet02": 90000,
-    "SM_StorageSet": 40000, "SM_Foliage_56": 2500, "SM_Foliage_33": 1500, "SM_Foliage_34": 1500,
-    "SM_Tree03": 9000, "SM_Tree09": 9000, "SM_Foliage_5": 1500, "SM_Foliage_22": 1500, "SM_Foliage_24": 1500,
-    "SM_Foliage_12": 1200,
-})
+kit = Kit(exp_dir, dst, seed=8)   # volle Originalqualität, Godot erzeugt LOD-Stufen
+kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
+                 "SM_Tree10", "SM_Tree13", "SM_ChurchTree01", "SM_Spruce1", "SM_TreeType1", "SM_type2Tree",
+                 "MW_tree_02", "MW_tree_03", "MW_pine_tree_Var_01", "FV_tree_01", "FV_tree_02"}   # Bäume: Instancing + Detailstufen
 put, empty, rng = kit.put, kit.empty, kit.rng
 HALF = 125.0
 C = (0.0, 2.0)                                    # Stadtmitte (Mauerellipse)
@@ -150,7 +148,8 @@ for (nm, x, y, r, s) in GUILDS:
 put("SM_Build2", 2.0, 52.0, rot=180, s=0.42)                 # Zitadelle / Rathaus
 
 CITY = [("SM_House", FC), ("SM_House3", FC), ("SM_House4", FC), ("SM_House6", FC), ("SM_AccomsP8", FC),
-        ("SM_HouseAdd2", FC), ("SM_HouseSet01", 1.0), ("SM_HouseSet02", 1.0)]
+        ("SM_HouseAdd2", FC), ("SM_HouseSet01", 1.0), ("SM_HouseSet02", 1.0),
+        ("FV_house_01", 0.8), ("FV_house_02", 0.8), ("FV_house_03", 0.8), ("FV_house_04", 0.8), ("FV_house_05", 0.8)]
 kit.along(main, CITY, spacing=(5, 8), gap=(3.6, 4.6), jitter=6, skip=0.05, on_place=dress, start=58, end=230)
 for line in (west, east):
     kit.along(line, CITY, spacing=(5, 8), gap=(2.9, 3.8), jitter=7, skip=0.05, on_place=dress, start=10, end=62)

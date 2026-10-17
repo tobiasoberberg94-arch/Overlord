@@ -55,7 +55,13 @@ func _ready() -> void:
 		Input.action_release("move_forward")
 		await _wait(0.5)
 		_shot("loc_%s" % l.id)
-		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)), " FPS ", Engine.get_frames_per_second())
+		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)), " FPS ", Engine.get_frames_per_second(),
+			" | Objekte ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+			" Dreiecke ", int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),
+			" DrawCalls ", Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+			" VRAM ", int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576), " MB")
+		if OS.get_environment("PERF") != "":
+			_perf_detail(w)
 	if only == "" or only == "combat":
 		# Kampf auf der Katze-Ebene
 		await w.load_location("katze")
@@ -221,3 +227,43 @@ func _gallery() -> void:
 		grid.add_child(p)
 	await _wait(6.0)
 	_shot("gallery_portraits")
+
+
+## Grobe Aufschlüsselung der sichtbaren Dreiecke je Mesh (Sichtweite berücksichtigt, ohne Frustum/Schatten).
+func _perf_detail(w: Node) -> void:
+	var cam := get_viewport().get_camera_3d()
+	var per := {}
+	for n in w.find_children("*", "GeometryInstance3D", true, false):
+		var g := n as GeometryInstance3D
+		if not g.is_visible_in_tree():
+			continue
+		var mesh: Mesh = null
+		var count := 1
+		if g is MultiMeshInstance3D:
+			var mm := (g as MultiMeshInstance3D).multimesh
+			if mm == null or mm.mesh == null:
+				continue
+			mesh = mm.mesh
+			count = mm.instance_count
+		elif g is MeshInstance3D:
+			mesh = (g as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		var aabb := g.global_transform * g.get_aabb()
+		var d := cam.global_position.distance_to(aabb.get_center())
+		var r := aabb.size.length() * 0.5
+		if g.visibility_range_end > 0.0 and d - r > g.visibility_range_end + g.visibility_range_end_margin:
+			continue
+		if d + r < g.visibility_range_begin - g.visibility_range_begin_margin:
+			continue
+		var tris := 0
+		for i in mesh.get_surface_count():
+			tris += int(RenderingServer.mesh_get_surface(mesh.get_rid(), i).get("index_count", 0)) / 3
+		var key := String(g.name).get_slice("_lod", 0).rstrip("0123456789_-")
+		if g.name.contains("_lod"):
+			key += " lod" + String(g.name).get_slice("_lod", 1).substr(0, 1)
+		per[key] = per.get(key, 0) + tris * count
+	var keys := per.keys()
+	keys.sort_custom(func(a, b): return per[a] > per[b])
+	for k in keys.slice(0, 25):
+		print("PERF %-45s %d" % [k, per[k]])

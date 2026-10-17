@@ -16,11 +16,9 @@ import numpy
 from mathutils import Matrix, Vector
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
-MAX_TEX = 1024
+MAX_TEX = 2048
 # Dreiecksbudget je Vorlage (Instanzen teilen die Geometrie)
-TRI_CAP = {"SM_statuehuman": 45000, "SM_ceilingwall02": 16000, "SM_statuestair": 35000,
-           "SM_middle_pillar": 10000, "SM_smallbraizer01": 6000, "SM_middlewall02": 8000,
-           "SM_longpot03": 6000, "SM_smallbraizer02": 6000}
+TRI_CAP = {}   # keine Reduktion – volle Originalqualität, Godot erzeugt LOD-Stufen
 info = json.load(open(os.path.join(exp_dir, "materials.json"), encoding="utf-8"))["materials"]
 tex_dir = os.path.join(exp_dir, "textures")
 small_dir = os.path.join(os.path.dirname(dst), "_throne_tex")

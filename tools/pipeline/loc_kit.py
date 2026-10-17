@@ -17,7 +17,7 @@ from mathutils import Matrix, Vector, noise
 
 
 class Kit:
-    def __init__(self, exp_dir, dst, tri_cap=None, max_tex=1024, seed=7):
+    def __init__(self, exp_dir, dst, tri_cap=None, max_tex=2048, seed=7):
         self.exp_dir, self.dst = exp_dir, dst
         self.tri_cap = tri_cap or {}
         self.max_tex = max_tex
@@ -37,6 +37,7 @@ class Kit:
         self.on_road = lambda x, y: 0.0
         self.occupied = []
         self._nocol = []
+        self.lod_names = set()     # Bäume: instanziert mit Detailstufen (write_scatter / make_lod)
 
     # --- Bauteile ---------------------------------------------------------------
     def _load(self, name):
@@ -79,7 +80,8 @@ class Kit:
     def size(self, name):
         return Vector(self.tpl(name).dimensions)
 
-    def put(self, name, x, y, z=None, rot=0.0, s=1.0, sz=None, rx=0.0, anchor="bottom", nocol=False, sink=0.0):
+    def put(self, name, x, y, z=None, rot=0.0, s=1.0, sz=None, rx=0.0, anchor="bottom", nocol=False, sink=0.0,
+            origin=False):
         """Instanz platzieren; Unterkante auf den Boden (z=None) bzw. auf z.
         nocol-Instanzen (Gras, Blumen, Kleinkram) werden nur vorgemerkt und beim Export je Kachel
         direkt zu einem Mesh zusammengesetzt – tausende Objekte wären in Blender quadratisch langsam."""
@@ -93,8 +95,13 @@ class Kit:
             z = self.ground_fn(x, y) - sink
         ref = lo.z if anchor == "bottom" else hi.z
         loc = Vector((x - (lo.x + hi.x) / 2, y - (lo.y + hi.y) / 2, z - ref))
+        if origin:                                   # Ursprung des Bauteils exakt auf (x, y, z) (zusammengesetzte Teile)
+            loc = Vector((x, y, z))
         if nocol:
             self._nocol.append((name, Matrix.Translation(loc) @ m))
+            return None
+        if name in self.lod_names:
+            self._nocol.append(("@lod:" + name, Matrix.Translation(loc) @ m))
             return None
         o = t.copy()
         o.name = name
@@ -406,33 +413,59 @@ class Kit:
         return mat
 
     # --- Materialien ----------------------------------------------------------------
-    def _small(self, fname, normal):
+    def _small(self, fname, normal, opacity=None):
+        """Textur verkleinern; opacity = Graubild (Transparenzmaske aus export_opacity.py) → Alphakanal."""
         if not fname:
             return None
-        if fname in self._img:
-            return self._img[fname]
+        key = fname + "|" + (opacity or "")
+        if key in self._img:
+            return self._img[key]
         src = os.path.join(self.tex_dir, fname)
         if not os.path.exists(src):
             return None
         img = bpy.data.images.load(src)
+        if opacity:
+            img = img.copy()
         w, h = img.size
         m = self.max_tex
         if max(w, h) > m:
             img.scale(max(1, w * m // max(w, h)), max(1, h * m // max(w, h)))
         alpha = False
-        if not normal and img.channels == 4:
+        osrc = os.path.join(self.tex_dir, opacity) if opacity else None
+        if not normal and osrc and os.path.exists(osrc):
+            mask = bpy.data.images.load(osrc)
+            mask.scale(*img.size)
+            mp = numpy.empty(len(mask.pixels), dtype=numpy.float32)
+            mask.pixels.foreach_get(mp)
+            px = numpy.empty(img.size[0] * img.size[1] * 4, dtype=numpy.float32)
+            if img.channels == 4:
+                img.pixels.foreach_get(px)
+            else:
+                rgb = numpy.empty(len(img.pixels), dtype=numpy.float32)
+                img.pixels.foreach_get(rgb)
+                px = px.reshape(-1, 4)
+                px[:, :3] = rgb.reshape(-1, img.channels)[:, :3]
+                px = px.reshape(-1)
+            px = px.reshape(-1, 4)
+            px[:, 3] = numpy.clip(mp.reshape(-1, mask.channels)[:, 0], 0.0, 1.0)
+            if img.channels != 4:
+                img = bpy.data.images.new(os.path.splitext(fname)[0] + "_rgba", img.size[0], img.size[1], alpha=True)
+            img.pixels.foreach_set(px.reshape(-1))
+            alpha = bool(px[:, 3].min() < 0.5)
+            bpy.data.images.remove(mask)
+        elif not normal and img.channels == 4:
             px = numpy.empty(len(img.pixels), dtype=numpy.float32)
             img.pixels.foreach_get(px)
             alpha = bool(px[3::4].min() < 0.5)
-        out = os.path.join(self.small_dir, os.path.splitext(fname)[0] + (".png" if alpha else ".jpg"))
+        out = os.path.join(self.small_dir, os.path.splitext(fname)[0] + ("_m" if opacity else "") + (".png" if alpha else ".jpg"))
         img.filepath_raw = out
         img.file_format = "PNG" if alpha else "JPEG"
         img.save()
         img.reload()
         if normal:
             img.colorspace_settings.name = "Non-Color"
-        self._img[fname] = (img, alpha)
-        return self._img[fname]
+        self._img[key] = (img, alpha)
+        return self._img[key]
 
     def finish_materials(self, metal_keys=()):
         for mat in bpy.data.materials:
@@ -447,7 +480,7 @@ class Kit:
             b = nt.nodes.new("ShaderNodeBsdfPrincipled")
             nt.links.new(b.outputs["BSDF"], out.inputs["Surface"])
             b.inputs["Roughness"].default_value = 0.8
-            bc = self._small(e.get("basecolor"), False)
+            bc = self._small(e.get("basecolor"), False, e.get("opacity"))
             if bc:
                 t = nt.nodes.new("ShaderNodeTexImage")
                 t.image = bc[0]
@@ -489,13 +522,82 @@ class Kit:
             self._nocol.append((kind, m))
             placed += 1
 
+    def make_lod(self, name, keep):
+        """Detailstufe eines Baums: Blattkarten (Materialien mit Alphamaske) werden ausgedünnt und die
+        verbleibenden etwas vergrößert – die Blattform bleibt erhalten. Stamm/Äste werden reduziert."""
+        import bmesh
+        t = self._tpl[name]
+        o = t.copy()
+        o.data = t.data.copy()
+        if keep >= 1.0:
+            return o
+        me = o.data
+        leafy = set()
+        for i, mat in enumerate(me.materials):
+            e = self.info.get(mat.name.split(".")[0], {}) if mat else {}
+            if e.get("opacity") or (mat and any(k in mat.name.lower() for k in ("leaf", "leav", "foliage", "needle", "pine"))):
+                leafy.add(i)
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bm.faces.ensure_lookup_table()
+        seen = set()
+        kill, grow = [], []
+        rng = random.Random(hash(name) & 0xffff)
+        for f in bm.faces:
+            if f.index in seen or f.material_index not in leafy:
+                continue
+            island, stack = [], [f]
+            seen.add(f.index)
+            while stack:                       # zusammenhängende Blattkarte
+                g = stack.pop()
+                island.append(g)
+                for e in g.edges:
+                    for h in e.link_faces:
+                        if h.index not in seen and h.material_index == g.material_index:
+                            seen.add(h.index)
+                            stack.append(h)
+            (grow if rng.random() < keep else kill).append(island)
+        sc = min(1.0 / keep ** 0.5, 2.2)
+        for island in grow:
+            vs = {v for g in island for v in g.verts}
+            c = sum((v.co for v in vs), Vector()) / len(vs)
+            for v in vs:
+                v.co = c + (v.co - c) * sc
+        bmesh.ops.delete(bm, geom=list({g for isl in kill for g in isl}), context="FACES")
+        bm.to_mesh(me)
+        bm.free()
+        trunk = {v for p_ in me.polygons if p_.material_index not in leafy for v in p_.vertices}
+        if trunk:
+            vg = o.vertex_groups.new(name="trunk")          # nur Stamm/Äste reduzieren, Blattkarten bleiben ganz
+            vg.add(list(trunk), 1.0, "REPLACE")
+            mod = o.modifiers.new("dec", "DECIMATE")
+            mod.vertex_group = "trunk"
+            mod.ratio = max(0.15, keep * 1.5)
+            mod.use_collapse_triangulate = True
+            self.scene.collection.objects.link(o)
+            bpy.context.view_layer.objects.active = o
+            bpy.ops.object.modifier_apply(modifier="dec")
+            self.scene.collection.objects.unlink(o)
+        return o
+
     def write_scatter(self):
         """nocol-Instanzen als <ziel>_scatter.json (GPU-Instancing im Spiel, MultiMesh) + je Vorlage ein
         Mesh-Objekt nocol_mm_<name> im Modell. Transformationen in Blender-Koordinaten (Z oben)."""
         groups = {}
         for name, mw in self._nocol:
+            # schwere Kleinpflanzen (Blumenbüschel, Sträucher) bekommen ebenfalls Detailstufen
+            if not name.startswith("@") and sum(len(p.vertices) - 2 for p in self._tpl[name].data.polygons) > 1500:
+                name = "@lod:" + name
             groups.setdefault(name, []).append([round(mw[r][c], 4) for r in range(3) for c in range(4)])
         for name in groups:
+            if name.startswith("@lod:"):
+                base = name[5:]
+                for lvl, keep in ((0, 1.0), (1, 0.25), (2, 0.07)):
+                    o = self.make_lod(base, keep)
+                    o.name = "nocol_mm_lod%d_%s" % (lvl, base)
+                    self.out.objects.link(o)
+                    o.location = (0, 0, -200)
+                continue
             if name.startswith("@"):
                 continue
             o = self._tpl[name].copy()
@@ -534,5 +636,5 @@ class Kit:
                     me.color_attributes.remove(ca)
         bpy.ops.export_scene.gltf(filepath=self.dst, export_format="GLB", export_yup=True, export_apply=True,
                                   export_lights=False, export_cameras=False, export_extras=False,
-                                  export_vertex_color="ACTIVE")
+                                  export_vertex_color="ACTIVE", export_image_format="WEBP", export_image_quality=88)
         print("OVERLORD glb", self.dst, os.path.getsize(self.dst) // (1024 * 1024), "MB")

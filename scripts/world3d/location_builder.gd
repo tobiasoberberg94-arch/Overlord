@@ -55,6 +55,12 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	ModelLib.add_collision(scene)
 	_scatter_instances(loc, scene)
 	_ground_blend(scene)
+	_soft_cutouts(scene)
+	var spin: Array = scene.find_children("spin_*", "Node3D", true, false)
+	if not spin.is_empty():
+		var sp := Spinner.new()
+		sp.nodes = spin
+		scene.add_child(sp)
 	# Lichter aus dem Modell (z. B. Lampen eines Unreal-Exports) haben fremde Einheiten:
 	# auf spieltaugliche Werte bringen, Schatten nur bei hoher Grafikstufe.
 	for l in scene.find_children("*", "OmniLight3D", true, false):
@@ -91,6 +97,58 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	return a
 
 
+
+## Bäume mit drei Detailstufen (lod0 = Original, lod1/lod2 = ausgedünnte Blattkarten, tools/pipeline/loc_kit.py
+## make_lod) als MultiMesh-Kacheln mit Sichtweiten; Kollision nur am Stamm (Zylinder).
+const TREE_LODS := [[0.0, 30.0], [30.0, 90.0], [90.0, 900.0]]
+const BUSH_LODS := [[0.0, 18.0], [18.0, 45.0], [45.0, 85.0]]
+const FLOWER_LODS := [[0.0, 10.0], [10.0, 25.0], [25.0, 50.0]]
+
+static func _lod_trees(scene: Node3D, base: String, mats: Array, templates: Dictionary, trunks: StaticBody3D, inv: Basis, keep: float) -> void:
+	if not templates.has("lod0_" + base):
+		return
+	var aabb: AABB = (templates["lod0_" + base] as MeshInstance3D).mesh.get_aabb()
+	var big := maxf(aabb.size.y, maxf(aabb.size.x, aabb.size.z))
+	var ranges: Array = TREE_LODS if big >= 6.0 else (BUSH_LODS if big >= 1.5 else FLOWER_LODS)
+	var solid := big >= 6.0                    # nur Bäume bekommen einen Stamm zum Anstoßen
+	var tile := SCATTER_TILE * (2.0 if big >= 6.0 else 1.0)
+	var tiles := {}
+	var k := 0
+	for m in mats:
+		k += 1
+		var b := Basis(Vector3(m[0], m[4], m[8]), Vector3(m[1], m[5], m[9]), Vector3(m[2], m[6], m[10]))
+		var t := Transform3D(BLENDER_TO_GODOT * b * inv, BLENDER_TO_GODOT * Vector3(m[3], m[7], m[11]))
+		var key := Vector2i(floori(t.origin.x / tile), floori(t.origin.z / tile))
+		if not tiles.has(key):
+			tiles[key] = []
+		if keep < 1.0 and big < 6.0 and fmod(k * 0.618, 1.0) > keep:
+			continue
+		tiles[key].append(t)
+		if not solid:
+			continue
+		var cs := CollisionShape3D.new()
+		var cyl := CylinderShape3D.new()
+		var sc := t.basis.get_scale().x
+		cyl.radius = 0.35 * sc
+		cyl.height = 5.0 * sc
+		cs.shape = cyl
+		cs.position = t.origin + Vector3(0, cyl.height * 0.5, 0)
+		trunks.add_child(cs)
+	var meshes: Array = []
+	for lvl in 3:
+		var tpl_key := "lod%d_%s" % [lvl, base]
+		var src: MeshInstance3D = templates.get(tpl_key, templates["lod0_" + base])
+		meshes.append(_wind_mesh(src.mesh, 0.012 if big >= 6.0 else (0.025 if big >= 1.5 else 0.06)))
+	var fl := scene.get_node_or_null("FoliageLod") as FoliageLod
+	if fl == null:
+		fl = FoliageLod.new()
+		fl.name = "FoliageLod"
+		scene.add_child(fl)
+	var r: Array = ranges.duplicate(true)
+	if not Settings.particles:
+		r[2] = [r[2][0], r[2][1] * 0.6]
+	fl.add_group(meshes, tiles, r, Settings.particles and big >= 3.0)
+
 static var _wind_cache: Dictionary = {}
 
 ## Kopie des Meshes, deren Materialien sich im Wind wiegen (Ausschlag wächst mit der Höhe).
@@ -124,6 +182,22 @@ static func _wind_material(mat: BaseMaterial3D, amount: float) -> Material:
 	sm.set_shader_parameter("wind", amount)
 	return sm
 
+## Blätter/Gitter mit Alpha-Schnitt: Alpha-to-Coverage glättet die Kanten (wirkt mit MSAA).
+static func _soft_cutouts(scene: Node3D) -> void:
+	var seen := {}
+	for n in scene.find_children("*", "MeshInstance3D", true, false):
+		var mesh := (n as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		for i in mesh.get_surface_count():
+			var m := mesh.surface_get_material(i) as BaseMaterial3D
+			if m and not seen.has(m) and m.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR:
+				seen[m] = true
+				m.alpha_antialiasing_mode = BaseMaterial3D.ALPHA_ANTIALIASING_ALPHA_TO_COVERAGE_AND_TO_ONE
+				m.alpha_antialiasing_edge = 0.3
+				m.cull_mode = BaseMaterial3D.CULL_DISABLED
+
+
 ## Gelände mit Wegmaske (Farbattribut): Gras- und Wegmaterial weich überblenden statt Treppenkanten.
 static func _ground_blend(scene: Node3D) -> void:
 	for n in scene.find_children("Ground*", "MeshInstance3D", true, false):
@@ -147,7 +221,7 @@ static func _ground_blend(scene: Node3D) -> void:
 
 ## Gras, Blumen, Büsche (nocol_mm_<name> + <id>_scatter.json aus tools/pipeline/loc_kit.py) als
 ## MultiMesh-Kacheln: GPU-Instancing, jede Kachel blendet ab einer Entfernung aus.
-const SCATTER_TILE := 32.0
+const SCATTER_TILE := 40.0
 const BLENDER_TO_GODOT := Basis(Vector3(1, 0, 0), Vector3(0, 0, -1), Vector3(0, 1, 0))
 
 static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
@@ -164,7 +238,12 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 		(mi as MeshInstance3D).visible = false
 	var keep := 1.0 if Settings.particles else 0.45
 	var inv := BLENDER_TO_GODOT.inverse()
+	var trunks := StaticBody3D.new()
+	trunks.name = "Baumstaemme"
 	for name in data.instances:
+		if String(name).begins_with("@lod:"):
+			_lod_trees(scene, String(name).substr(5), data.instances[name], templates, trunks, inv, keep)
+			continue
 		var procedural := String(name).begins_with("@")
 		if not procedural and not templates.has(name):
 			continue
@@ -200,12 +279,15 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 			mmi.visibility_range_end = view_end
 			mmi.visibility_range_end_margin = 12.0
 			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
-			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Settings.particles and big >= 1.2 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			# Schatten nur von Büschen/Sträuchern ab 3 m – Gras und Blumen würden die Schattenkaskaden vervielfachen
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Settings.particles and big >= 3.0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 			if not procedural:
 				mmi.multimesh.mesh = _wind_mesh(mesh, 0.06 if big < 1.2 else 0.025)
 			scene.add_child(mmi)
 			mmi.transform = Transform3D.IDENTITY
+	if trunks.get_child_count() > 0:
+		scene.add_child(trunks)
 
 
 # =====================================================================
@@ -260,8 +342,13 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	sun.light_color = preset.get("sun", Color(0.75, 0.7, 0.9))
 	sun.light_energy = float(preset.get("sun_energy", 0.6))
 	sun.rotation_degrees = preset.get("sun_rot", Vector3(-50, 35, 0))
-	sun.shadow_enabled = Settings.particles
-	sun.directional_shadow_max_distance = float(preset.get("shadow_dist", 60.0))
+	sun.shadow_enabled = Settings.particles and OS.get_environment("OVERLORD_NOSHADOW") == ""
+	sun.directional_shadow_max_distance = minf(float(preset.get("shadow_dist", 60.0)), 90.0)
+	sun.directional_shadow_split_1 = 0.08
+	sun.directional_shadow_split_2 = 0.22
+	sun.directional_shadow_split_3 = 0.5
+	sun.directional_shadow_blend_splits = true
+	sun.directional_shadow_fade_start = 0.85
 	sun.shadow_blur = 1.5
 	root.add_child(sun)
 
