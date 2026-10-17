@@ -120,12 +120,12 @@ UNDER = ["SM_Foliage_56", "SM_Foliage_59", "SM_Foliage_22", "SM_Foliage_24", "SM
          "SM_Bush07", "SM_Foliage_35", "SM_Bush03"]
 kit.forest((-90, -90, 90, 90), JUNGLE, 260, avoid=avoid, min_d=4.0, s=(1.1, 1.6), under=UNDER, under_n=4,
            threshold=-0.35, density_scale=0.05)
-kit.meadow((-90, -90, 90, 90), ["SM_Foliage_1", "SM_Foliage_2", "SM_Foliage_3", "SM_Foliage_4", "SM_Foliage_6",
-                                "SM_Foliage_5", "SM_Bush06"], 4200, avoid=arena + road, s=(1.0, 1.8),
+kit.grass((-90, -90, 90, 90), 24000, avoid=arena + road, s=(1.0, 1.8))
+kit.grass((-90, -90, 90, 90), 3000, kind="@flower", avoid=arena + road)
+kit.meadow((-90, -90, 90, 90), ["SM_Bush06", "SM_Foliage_12", "SM_Foliage_27"], 600, avoid=arena + road, s=(1.0, 1.6),
            patch=(["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12", "SM_Foliage_27"], 60, 3.0))
 kit.meadow((-90, -90, 90, 90), UNDER, 900, avoid=arena + road, s=(0.9, 1.5))
-kit.meadow((-26, -26, 26, 26), ["SM_Foliage_5", "SM_Foliage_6", "SM_Foliage_3"], 260, avoid=[(-16, -16, 16, 16)],
-           s=(0.8, 1.2))   # Gras zwischen den Rängen
+kit.grass((-26, -26, 26, 26), 1800, avoid=[(-16, -16, 16, 16)], s=(0.7, 1.1), road_ok=True)   # Gras zwischen den Rängen
 for _ in range(40):                                         # Moosfelsen im Unterholz
     a = kit.rng.uniform(0, math.tau)
     r = kit.rng.uniform(30, 88)

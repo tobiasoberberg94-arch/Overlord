@@ -473,6 +473,22 @@ class Kit:
                 b.inputs["Roughness"].default_value = 0.1
 
     # --- Export ---------------------------------------------------------------------
+    def grass(self, area, n, kind="@grass", avoid=(), s=(0.8, 1.3), road_ok=False):
+        """Prozedurales Gras/Wildblumen (im Spiel erzeugt, scripts/world3d/grass.gd): nur Positionen."""
+        placed, tries = 0, 0
+        while placed < n and tries < n * 4:
+            tries += 1
+            x = self.rng.uniform(area[0], area[2])
+            y = self.rng.uniform(area[1], area[3])
+            if (not road_ok and self.on_road(x, y) > 0.3) or any(a[0] <= x <= a[2] and a[1] <= y <= a[3] for a in avoid):
+                continue
+            if any((x - px) ** 2 + (y - py) ** 2 < (pr * 0.85) ** 2 for px, py, pr in self.occupied):
+                continue
+            sc = self.rng.uniform(*s)
+            m = Matrix.Translation((x, y, self.ground_fn(x, y) - 0.03)) @ Matrix.Rotation(self.rng.uniform(0, math.tau), 4, "Z")                 @ Matrix.Diagonal((sc, sc, sc, 1.0))
+            self._nocol.append((kind, m))
+            placed += 1
+
     def write_scatter(self):
         """nocol-Instanzen als <ziel>_scatter.json (GPU-Instancing im Spiel, MultiMesh) + je Vorlage ein
         Mesh-Objekt nocol_mm_<name> im Modell. Transformationen in Blender-Koordinaten (Z oben)."""
@@ -480,14 +496,18 @@ class Kit:
         for name, mw in self._nocol:
             groups.setdefault(name, []).append([round(mw[r][c], 4) for r in range(3) for c in range(4)])
         for name in groups:
+            if name.startswith("@"):
+                continue
             o = self._tpl[name].copy()
             o.name = "nocol_mm_" + name
             self.out.objects.link(o)
             o.location = (0, 0, -200)
         path = os.path.splitext(self.dst)[0] + "_scatter.json"
         json.dump({"version": 1, "instances": groups}, open(path, "w"))
-        tris = sum(len(v) * sum(len(p.vertices) - 2 for p in self._tpl[k].data.polygons) for k, v in groups.items())
-        per = sorted(((k, len(v) * sum(len(p.vertices) - 2 for p in self._tpl[k].data.polygons)) for k, v in groups.items()),
+        tris = sum(len(v) * sum(len(p.vertices) - 2 for p in self._tpl[k].data.polygons) for k, v in groups.items()
+                   if not k.startswith("@"))
+        per = sorted(((k, len(v) * sum(len(p.vertices) - 2 for p in self._tpl[k].data.polygons)) for k, v in groups.items()
+                      if not k.startswith("@")),
                      key=lambda kv: -kv[1])
         print("OVERLORD instanzen schwer", per[:8])
         print("OVERLORD instanzen", len(self._nocol), "vorlagen", len(groups), "dreiecke", tris, path)

@@ -217,14 +217,15 @@ for (fx, fy, fw, fh, fr) in [(-38, -84, 22, 14, 15), (36, -86, 20, 12, -10), (-8
             put(rng.choice(["SM_WheatGrass01", "SM_WheatGrass03"]), x, y, rot=rng.uniform(0, 360), nocol=True)
     kit.occupy(fx, fy, max(fw, fh) * 0.7)
 BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Spruce1", "SM_Tree03"]
-UNDER = ["SM_Bush07", "SM_Foliage_6", "SM_Foliage_56", "SM_Bush01", "SM_Foliage_22", "SM_Foliage_24"]
+UNDER = ["SM_Bush07", "SM_Foliage_33", "SM_Foliage_56", "SM_Bush01", "SM_Foliage_22", "SM_Foliage_24"]
 city_box = [(C[0] - RX * 1.15, C[1] - RY * 1.15, C[0] + RX * 1.15, C[1] + RY * 1.15)]
 kit.forest((-HALF + 4, -HALF + 4, HALF - 4, HALF - 4), BIG, 380, avoid=city_box, min_d=4.5, under=UNDER, under_n=2,
            threshold=0.0)
-GRASS = ["SM_Foliage_1", "SM_Foliage_2", "SM_Foliage_3", "SM_Foliage_4", "SM_Foliage_6"]
-kit.meadow((-HALF + 2, -HALF + 2, HALF - 2, HALF - 2), GRASS, 3800, avoid=[(-50, -45, 50, 50)],
-           patch=(["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_5"], 50, 3.5))
-kit.meadow((-60, -55, 60, 60), GRASS + ["SM_Foliage_12"], 700, s=(0.6, 1.0))     # Gras in Höfen/Ecken
+ALL = (-HALF + 2, -HALF + 2, HALF - 2, HALF - 2)
+kit.grass(ALL, 26000, avoid=[(-50, -45, 50, 50)], s=(0.8, 1.5))
+kit.grass(ALL, 4000, kind="@flower", avoid=[(-50, -45, 50, 50)])
+kit.grass((-60, -55, 60, 60), 3500, s=(0.5, 0.9))                     # Gras in Höfen und Ecken
+kit.meadow(ALL, ["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12"], 200, avoid=[(-50, -45, 50, 50)])
 
 # --- Anker ---------------------------------------------------------------------------------------
 empty("Spawn", SG[0] + 1.0, SG[1] + 9.0, rot=0)

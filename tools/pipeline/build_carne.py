@@ -67,7 +67,7 @@ def yard(hx, hy, rot, rad, name):
             a = r + k * math.pi / 3 + rng.uniform(-0.2, 0.2)
             put(rng.choice(["SM_Fence01", "SM_Fence02"]), gx + math.cos(a) * 5.5, gy + math.sin(a) * 5.5,
                 rot=math.degrees(a) + 90 + rng.uniform(-8, 8))
-        kit.clutter(gx, gy, ["SM_WheatGrass01", "SM_Foliage_12", "SM_Foliage_6", "SM_Foliage_33"], n=(6, 12),
+        kit.clutter(gx, gy, ["SM_WheatGrass01", "SM_Foliage_12", "SM_WheatGrass03", "SM_Foliage_33"], n=(6, 12),
                     r=(0.5, 4.0), nocol=True)
     # Wäsche an der Seite
     if rng.random() < 0.5:
@@ -148,18 +148,20 @@ put("SM_WoodenWagon01", 40.0, -30.0, rot=10)
 # --- Wald von Tob ------------------------------------------------------------------------------
 village = [(-62, -72, 66, 70)]
 BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Tree4", "SM_Tree10", "SM_Tree03"]
-UNDER = ["SM_Bush07", "SM_Foliage_6", "SM_Foliage_56", "SM_Bush01", "SM_Foliage_59", "SM_Foliage_22", "SM_Foliage_24"]
+UNDER = ["SM_Bush07", "SM_Foliage_33", "SM_Foliage_56", "SM_Bush01", "SM_Foliage_59", "SM_Foliage_22", "SM_Foliage_24"]
 kit.forest((-HALF + 4, -HALF + 4, HALF - 4, HALF - 4), BIG, 460, avoid=village, min_d=4.0, s=(0.9, 1.35),
            under=UNDER, under_n=3, threshold=-0.2)
 # lichte Baumgruppen im Dorf
 kit.forest((-62, -72, 66, 70), ["SM_Tree02", "SM_Tree13", "SM_Tree05", "SM_Tree06", "SM_Tree09"], 55, min_d=7.0,
-           density_scale=0.06, threshold=0.25, s=(0.8, 1.2), under=["SM_Bush07", "SM_Foliage_6"], under_n=2)
+           density_scale=0.06, threshold=0.25, s=(0.8, 1.2), under=["SM_Bush07", "SM_Foliage_33"], under_n=2)
 kit.forest((-30, -110, 30, -60), BIG, 70, min_d=3.5, under=UNDER, under_n=3, threshold=-0.4)   # Waldweg im Süden
 
 # --- Wiese ------------------------------------------------------------------------------------------
-GRASS = ["SM_Foliage_1", "SM_Foliage_2", "SM_Foliage_3", "SM_Foliage_4", "SM_Foliage_6", "SM_Foliage_1", "SM_Foliage_3"]
-kit.meadow((-HALF + 2, -HALF + 2, HALF - 2, HALF - 2), GRASS, 5200, s=(0.9, 1.6),
-           patch=(["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_5"], 70, 3.5))
+ALL = (-HALF + 2, -HALF + 2, HALF - 2, HALF - 2)
+kit.grass(ALL, 30000, s=(0.8, 1.5))
+kit.grass(ALL, 5000, kind="@flower", s=(0.8, 1.2))
+kit.grass((-60, -70, 64, 66), 9000, s=(0.6, 1.0))                     # kürzeres Gras im Dorf
+kit.meadow(ALL, ["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12"], 260, s=(0.7, 1.1))
 kit.meadow((-HALF + 2, -HALF + 2, HALF - 2, HALF - 2),
            ["SM_Foliage_81", "SM_Foliage_82", "SM_Foliage_90", "SM_Foliage_91", "SM_Foliage_99"],
            900, avoid=[(-40, -40, 40, 50)])

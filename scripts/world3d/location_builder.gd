@@ -91,6 +91,39 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	return a
 
 
+static var _wind_cache: Dictionary = {}
+
+## Kopie des Meshes, deren Materialien sich im Wind wiegen (Ausschlag wächst mit der Höhe).
+## Das Standardmaterial wird in Shader-Code umgewandelt und im vertex()-Teil ergänzt.
+static func _wind_mesh(mesh: Mesh, amount: float) -> Mesh:
+	if not Settings.particles:
+		return mesh
+	var key := "%d_%f" % [mesh.get_instance_id(), amount]
+	if _wind_cache.has(key):
+		return _wind_cache[key]
+	var m := mesh.duplicate() as Mesh
+	for i in m.get_surface_count():
+		var mat := m.surface_get_material(i) as BaseMaterial3D
+		if mat:
+			m.surface_set_material(i, _wind_material(mat, amount))
+	_wind_cache[key] = m
+	return m
+
+
+static func _wind_material(mat: BaseMaterial3D, amount: float) -> Material:
+	if mat.albedo_texture == null:
+		return mat
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/foliage_wind.gdshader")
+	sm.set_shader_parameter("albedo", mat.albedo_color)
+	sm.set_shader_parameter("albedo_tex", mat.albedo_texture)
+	sm.set_shader_parameter("use_normal", mat.normal_enabled and mat.normal_texture != null)
+	sm.set_shader_parameter("normal_tex", mat.normal_texture)
+	sm.set_shader_parameter("roughness", mat.roughness)
+	sm.set_shader_parameter("alpha_cut", mat.alpha_scissor_threshold if mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR else 0.35)
+	sm.set_shader_parameter("wind", amount)
+	return sm
+
 ## Gelände mit Wegmaske (Farbattribut): Gras- und Wegmaterial weich überblenden statt Treppenkanten.
 static func _ground_blend(scene: Node3D) -> void:
 	for n in scene.find_children("Ground*", "MeshInstance3D", true, false):
@@ -132,13 +165,15 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 	var keep := 1.0 if Settings.particles else 0.45
 	var inv := BLENDER_TO_GODOT.inverse()
 	for name in data.instances:
-		if not templates.has(name):
+		var procedural := String(name).begins_with("@")
+		if not procedural and not templates.has(name):
 			continue
-		var tpl := templates[name] as MeshInstance3D
-		var mesh := tpl.mesh
+		var mesh: Mesh = Grass.tuft(name == "@flower") if procedural else (templates[name] as MeshInstance3D).mesh
 		var aabb := mesh.get_aabb()
 		var big := maxf(aabb.size.y, maxf(aabb.size.x, aabb.size.z))
 		var view_end := 60.0 if big < 1.2 else (95.0 if big < 3.0 else 150.0)
+		if procedural:
+			view_end = 55.0 if Settings.particles else 30.0
 		var tiles := {}
 		var i := 0
 		for m in data.instances[name]:
@@ -167,10 +202,9 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Settings.particles and big >= 1.2 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
-			for sidx in tpl.get_surface_override_material_count():
-				if tpl.get_surface_override_material(sidx):
-					mmi.material_override = tpl.get_surface_override_material(sidx)
-			tpl.get_parent().add_child(mmi)
+			if not procedural:
+				mmi.multimesh.mesh = _wind_mesh(mesh, 0.06 if big < 1.2 else 0.025)
+			scene.add_child(mmi)
 			mmi.transform = Transform3D.IDENTITY
 
 
@@ -457,6 +491,11 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 			idle.append(p)
 	if not walk.is_empty() or not idle.is_empty():
 		Townsfolk.spawn(root, walk, idle, hash(loc.id))
+	if loc.kind in ["village", "city", "jungle", "forest"] and Settings.particles:
+		# Schwebende Pollen im Sonnenlicht, im Dschungel/Wald zusätzlich Glühwürmchen
+		B3.motes(root, a.spawn + Vector3(0, 2.5, -15), Vector3(40, 2.5, 40), Color(1.0, 0.95, 0.7, 0.6), 140)
+		if loc.kind in ["jungle", "forest"]:
+			B3.motes(root, a.spawn + Vector3(0, 1.5, -10), Vector3(30, 1.5, 30), Color(0.7, 1.0, 0.4), 60)
 	if loc.kind == "throne":
 		if a.has("throne"):
 			var start: Vector3 = a.gate
