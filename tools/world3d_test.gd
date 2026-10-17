@@ -55,7 +55,7 @@ func _ready() -> void:
 		Input.action_release("move_forward")
 		await _wait(0.5)
 		_shot("loc_%s" % l.id)
-		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)))
+		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)), " FPS ", Engine.get_frames_per_second())
 	if only == "" or only == "combat":
 		# Kampf auf der Katze-Ebene
 		await w.load_location("katze")

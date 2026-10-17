@@ -16,12 +16,16 @@ tex_dir = os.path.join(out_dir, "textures")
 os.makedirs(mesh_dir, exist_ok=True)
 os.makedirs(tex_dir, exist_ok=True)
 
-SLOTS = {"basecolor": ("basecolor", "base color", "albedo", "diffuse", "color", "_bc", "_d"),
-         "normal": ("normal", "_n")}
+SLOTS = {"basecolor": ("basecolor", "base color", "albedo", "diffuse", "color", "_bc", "_d", "_basecolor", "_albedo"),
+         "normal": ("normal", "_n", "_nm", "_normal")}
 
 
 def classify(name):
     n = name.lower()
+    # Endungen zuerst (T_Wall_BC / T_Wall_N), sonst Teilwörter
+    for slot, ends in (("basecolor", ("_bc", "_d", "_basecolor", "_albedo", "_diffuse")), ("normal", ("_n", "_nm", "_normal"))):
+        if any(n.endswith(e) for e in ends):
+            return slot
     for slot, keys in SLOTS.items():
         if any(k in n for k in keys):
             return slot
@@ -32,22 +36,28 @@ exported = {}
 
 
 def export_tex(tex):
+    """Textur als PNG speichern. Über RenderingLibrary (rendert die Textur), weil der
+    Asset-Exporter bei vielen Formaten/virtuellen Texturen mit einer Assertion abbricht."""
     p = tex.get_path_name()
     if p in exported:
         return exported[p]
-    fname = tex.get_name() + ".png"
-    t = unreal.AssetExportTask()
-    t.object = tex
-    t.filename = os.path.join(tex_dir, fname)
-    t.automated = True
-    t.prompt = False
-    t.replace_identical = True
-    t.exporter = unreal.TextureExporterPNG()
-    if not unreal.Exporter.run_asset_export_task(t):
-        fname = tex.get_name() + ".tga"
-        t.exporter = unreal.TextureExporterTGA()
-        t.filename = os.path.join(tex_dir, fname)
-        unreal.Exporter.run_asset_export_task(t)
+    if not isinstance(tex, unreal.Texture2D):
+        exported[p] = None
+        return None
+    # Eindeutiger Dateiname aus dem Paketpfad (gleiche Texturnamen in verschiedenen Ordnern!)
+    pkg = p.split(".")[0].split("/")
+    stem = "_".join(pkg[3:-1] + [tex.get_name()]) if len(pkg) > 4 else tex.get_name()
+    fname = stem + ".png"
+    try:
+        world = unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).get_editor_world()
+        unreal.RenderingLibrary.export_texture2d(world, tex, tex_dir, fname)
+    except Exception as e:
+        unreal.log_warning("OVERLORD Textur %s nicht exportiert: %s" % (tex.get_name(), e))
+        fname = None
+    if fname and not os.path.exists(os.path.join(tex_dir, fname)):
+        # HDR-Texturen landen als .exr
+        alt = os.path.splitext(fname)[0] + ".exr"
+        fname = alt if os.path.exists(os.path.join(tex_dir, alt)) else None
     exported[p] = fname
     return fname
 
@@ -56,6 +66,9 @@ materials = {}
 for path in paths:
     sm = unreal.load_asset(path)
     name = path.split("/")[-1]
+    if isinstance(sm, unreal.Texture2D):        # einzelne Texturen (z. B. Bodenschichten) direkt exportieren
+        unreal.log("OVERLORD Textur %s -> %s" % (name, export_tex(sm)))
+        continue
     task = unreal.AssetExportTask()
     task.object = sm
     task.filename = os.path.join(mesh_dir, name + ".fbx")
@@ -76,9 +89,11 @@ for path in paths:
         try:
             for p in unreal.MaterialEditingLibrary.get_texture_parameter_names(mat):
                 tex = mat.get_texture_parameter_value(p)
-                slot = classify(str(p))
+                slot = classify(str(p)) or (classify(tex.get_name()) if tex else None)
                 if tex and slot and slot not in entry:
-                    entry[slot] = export_tex(tex)
+                    f = export_tex(tex)
+                    if f:
+                        entry[slot] = f
         except Exception as e:
             unreal.log_warning("OVERLORD %s: %s" % (mat.get_name(), e))
         if "basecolor" not in entry:
@@ -86,7 +101,16 @@ for path in paths:
             for tex in unreal.MaterialEditingLibrary.get_used_textures(base):
                 slot = classify(tex.get_name())
                 if slot and slot not in entry:
-                    entry[slot] = export_tex(tex)
+                    f = export_tex(tex)
+                    if f:
+                        entry[slot] = f
+        if "basecolor" not in entry:
+            try:
+                names = [(str(q), (mat.get_texture_parameter_value(q).get_name() if mat.get_texture_parameter_value(q) else None))
+                         for q in unreal.MaterialEditingLibrary.get_texture_parameter_names(mat)]
+            except Exception:
+                names = []
+            unreal.log_warning("OVERLORD ohne Farbe %s %s" % (mat.get_name(), names))
         materials[mat.get_name()] = entry
 
 with open(os.path.join(out_dir, "materials.json"), "w", encoding="utf-8") as f:
