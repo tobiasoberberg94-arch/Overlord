@@ -20,6 +20,22 @@ SLOTS = {"basecolor": ("basecolor", "base color", "albedo", "diffuse", "color", 
          "normal": ("normal", "_n", "_nm", "_normal")}
 
 
+JUNK = ("empty", "default", "noise", "_mask", "white", "black", "dummy")
+
+
+def classify_param(pn):
+    """Slot aus dem Parameternamen (Base_Texture, Base_Normal, BaseColor …)."""
+    if any(k in pn for k in ("normal", "_n ", "nrm")):
+        return "normal"
+    if any(k in pn for k in ("base_texture", "basecolor", "base color", "base_color", "albedo", "diffuse", "base texture")):
+        return "basecolor"
+    if pn.endswith("-bc") or pn.endswith("_bc"):
+        return "basecolor"
+    if pn.endswith("-n") or pn.endswith("_n"):
+        return "normal"
+    return None
+
+
 def classify(name):
     n = name.lower()
     # Endungen zuerst (T_Wall_BC / T_Wall_N), sonst Teilwörter
@@ -87,10 +103,21 @@ for path in paths:
             continue
         entry = {}
         try:
+            params = []
             for p in unreal.MaterialEditingLibrary.get_texture_parameter_names(mat):
                 tex = mat.get_texture_parameter_value(p)
-                slot = classify(str(p)) or (classify(tex.get_name()) if tex else None)
-                if tex and slot and slot not in entry:
+                if not tex or any(k in tex.get_name().lower() for k in JUNK):
+                    continue                     # Platzhalter (weiß, Rauschen, Maske)
+                pn = str(p).lower()
+                slot = classify_param(pn) or classify(tex.get_name())
+                if slot:
+                    # Basis-Schicht vor Deck-/Detailschichten (Top_, Detail_, Layer2 …)
+                    prio = 0 if any(k in pn for k in ("base", "albedo", "diffuse", "color")) else 1
+                    if any(k in pn for k in ("top", "detail", "overlay", "puddle", "snow", "moss")):
+                        prio = 2
+                    params.append((prio, slot, tex))
+            for prio, slot, tex in sorted(params, key=lambda t: t[0]):
+                if slot not in entry:
                     f = export_tex(tex)
                     if f:
                         entry[slot] = f
@@ -99,6 +126,8 @@ for path in paths:
         if "basecolor" not in entry:
             base = mat.get_base_material() if isinstance(mat, unreal.MaterialInstance) else mat
             for tex in unreal.MaterialEditingLibrary.get_used_textures(base):
+                if any(k in tex.get_name().lower() for k in JUNK):
+                    continue
                 slot = classify(tex.get_name())
                 if slot and slot not in entry:
                     f = export_tex(tex)

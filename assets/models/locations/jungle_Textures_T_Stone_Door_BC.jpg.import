@@ -1,0 +1,37 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://cdo6qt6p3d3nu"
+path="res://.godot/imported/jungle_Textures_T_Stone_Door_BC.jpg-6819dab5a3a8fd80ea87818ee03880ac.ctex"
+metadata={
+"vram_texture": false
+}
+generator_parameters={
+"md5": "336e0e5d9ad4e3fcfac852c8d8bccd22"
+}
+
+[deps]
+
+source_file="res://assets/models/locations/jungle_Textures_T_Stone_Door_BC.jpg"
+dest_files=["res://.godot/imported/jungle_Textures_T_Stone_Door_BC.jpg-6819dab5a3a8fd80ea87818ee03880ac.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1
