@@ -102,6 +102,12 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "cocytus": {
+   "scale": 1.35,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
   }
  },
  "props": {},

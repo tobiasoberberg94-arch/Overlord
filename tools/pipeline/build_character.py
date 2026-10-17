@@ -115,7 +115,9 @@ if CLOTH:
     zs = [v[0].z for v in bones.values()] + [v[1].z for v in bones.values()]
     unit = (max(zs) - min(zs)) / 1.75                     # Körpergröße relativ zu 1,75 m
     # skirt = weiter Rock/Reifrock (Beine darunter unsichtbar), robe = Robe/Mantel bis zum Boden (Ainz), cape = Umhang
-    keep_leg = {"skirt": 0.08, "robe": 0.3, "cape": 0.6}.get(CLOTH, 0.25)
+    # creature = Wesen mit Zusatzgliedern (Cocytus: zweites Armpaar, Hellebarde, Schwanz) → Rumpf/Hüfte
+    keep_leg = {"skirt": 0.08, "robe": 0.3, "cape": 0.6, "creature": 0.0}.get(CLOTH, 0.25)
+    HAIR_TO = (("Spine2", 0.6), ("Spine1", 0.4)) if CLOTH == "creature" else (("Head", 0.6), ("Neck", 0.4))
     leg_r = {"skirt": (-1.0, -0.5), "robe": (0.09, 0.2)}.get(CLOTH, (0.11, 0.22))   # Reifrock: Beine/Füße unsichtbar → alles Stoff
     hand_bones = [n for n in bones if n.startswith(("LeftHand", "RightHand"))]
     LIMBS = {"arm": ["LeftArm", "LeftForeArm", "RightArm", "RightForeArm"] + hand_bones,
@@ -187,7 +189,7 @@ if CLOTH:
                     vg[n].add([v.index], w - d, "REPLACE")
                     give += d
             if hair > 0.0:
-                for n, share in (("Head", 0.6), ("Neck", 0.4)):
+                for n, share in HAIR_TO:
                     if n in vg:
                         vg[n].add([v.index], ws.get(n, 0.0) + hair * share, "REPLACE")
                 moved += 1
@@ -228,6 +230,23 @@ if CLOTH:
         probe("geglaettet")
         moved += reweight(o, vg)
         probe("pass2")
+        # rigid=Knochen:x0:x1:y0:y1:z0:z1[|…] – Waffen/Anbauteile in einer Box fest an einen Knochen (T-Pose-Koordinaten)
+        for spec in [x for x in _opts.get("rigid", "").split("|") if x]:
+            parts = spec.split(":")
+            bn, (x0, x1, y0, y1, z0, z1) = parts[0], [float(c) for c in parts[1:7]]
+            if bn not in bones:
+                continue
+            if bn not in vg:
+                vg[bn] = o.vertex_groups.new(name=bones[bn][2])
+            idx = []
+            for v in o.data.vertices:
+                p_ = POS[o.name][v.index] if o.name in POS else o.matrix_world @ v.co
+                if x0 <= p_.x <= x1 and y0 <= p_.y <= y1 and z0 <= p_.z <= z1:
+                    idx.append(v.index)
+            for g in o.vertex_groups:
+                g.remove(idx)
+            vg[bn].add(idx, 1.0, "REPLACE")
+            print("OVERLORD starr", bn, len(idx), "punkte")
         bpy.ops.object.mode_set(mode="WEIGHT_PAINT")
         bpy.ops.object.vertex_group_normalize_all(lock_active=False)
         bpy.ops.object.mode_set(mode="OBJECT")
