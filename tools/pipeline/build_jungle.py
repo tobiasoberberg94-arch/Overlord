@@ -12,8 +12,10 @@ from loc_kit import Kit  # noqa: E402
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=11, tri_cap={
     "SM_pyramid_circle": 12000, "SM_mayan_tower": 20000, "SM_mayan_altar_001": 8000,
-    "SM_rock_cliff_A_001": 8000, "SM_center_altar": 8000, "SM_Foliage_35": 6000,
-    "SM_top_pattern_wall": 6000, "SM_ChurchTree01": 8000, "SM_Tree03": 25000,
+    "SM_rock_cliff_A_001": 8000, "SM_center_altar": 8000, "SM_Foliage_35": 2500,
+    "SM_top_pattern_wall": 6000, "SM_ChurchTree01": 8000, "SM_Tree03": 9000, "SM_Tree02": 9000,
+    "SM_Tree09": 9000, "SM_Foliage_56": 2500, "SM_Foliage_59": 2500, "SM_Foliage_22": 1500, "SM_Foliage_24": 1500,
+    "SM_Foliage_12": 1200, "SM_Foliage_33": 1500, "SM_Foliage_34": 1500, "SM_Foliage_5": 1500, "SM_Foliage_27": 2000,
 })
 put, empty = kit.put, kit.empty
 R_FLOOR, R_STAIR, R_COL, R_WALL = 12.6, 17.0, 21.6, 23.6
@@ -112,9 +114,25 @@ for _ in range(400):
     n += 1
 for (x, y) in [(-8, -44), (9, -40), (-14, -28), (15, -30)]:
     put("SM_ChurchTree01", x, y, rot=kit.rng.uniform(0, 360), s=1.3)
-kit.scatter(["SM_Bush01", "SM_Bush03", "SM_Foliage_35"], 120, (-85, -85, 85, 85), avoid=arena + road, min_d=3.0)
-kit.scatter(["SM_Foliage_5", "SM_Bush06"], 520, (-80, -80, 80, 80), avoid=arena + road, min_d=1.2)
-kit.scatter(["SM_Foliage_5"], 60, (-26, -26, 26, 26), avoid=[(-16, -16, 16, 16)], min_d=1.5)   # Gras zwischen den Rängen
+# Dichter Dschungel: Baumgruppen mit Unterholz, Farne und Blattpflanzen, Gras zwischen den Rängen
+JUNGLE = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Tree03", "SM_Tree10"]
+UNDER = ["SM_Foliage_56", "SM_Foliage_59", "SM_Foliage_22", "SM_Foliage_24", "SM_Foliage_27", "SM_Foliage_12",
+         "SM_Bush07", "SM_Foliage_35", "SM_Bush03"]
+kit.forest((-90, -90, 90, 90), JUNGLE, 260, avoid=avoid, min_d=4.0, s=(1.1, 1.6), under=UNDER, under_n=4,
+           threshold=-0.35, density_scale=0.05)
+kit.meadow((-90, -90, 90, 90), ["SM_Foliage_1", "SM_Foliage_2", "SM_Foliage_3", "SM_Foliage_4", "SM_Foliage_6",
+                                "SM_Foliage_5", "SM_Bush06"], 4200, avoid=arena + road, s=(1.0, 1.8),
+           patch=(["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12", "SM_Foliage_27"], 60, 3.0))
+kit.meadow((-90, -90, 90, 90), UNDER, 900, avoid=arena + road, s=(0.9, 1.5))
+kit.meadow((-26, -26, 26, 26), ["SM_Foliage_5", "SM_Foliage_6", "SM_Foliage_3"], 260, avoid=[(-16, -16, 16, 16)],
+           s=(0.8, 1.2))   # Gras zwischen den Rängen
+for _ in range(40):                                         # Moosfelsen im Unterholz
+    a = kit.rng.uniform(0, math.tau)
+    r = kit.rng.uniform(30, 88)
+    x, y = math.cos(a) * r, math.sin(a) * r
+    if not any(b[0] <= x <= b[2] and b[1] <= y <= b[3] for b in avoid):
+        put(kit.rng.choice(["SM_Rock01", "SM_Rock03", "SM_MossyGround01"]), x, y, rot=kit.rng.uniform(0, 360),
+            s=kit.rng.uniform(0.6, 1.3), sink=0.3)
 
 # --- Anker --------------------------------------------------------------------------------------
 empty("Spawn", 0, -32.0, rot=0)
