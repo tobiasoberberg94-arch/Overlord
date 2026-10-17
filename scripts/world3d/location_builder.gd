@@ -53,6 +53,8 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
 	root.add_child(scene)
 	ModelLib.add_collision(scene)
+	_scatter_instances(loc, scene)
+	_ground_blend(scene)
 	# Lichter aus dem Modell (z. B. Lampen eines Unreal-Exports) haben fremde Einheiten:
 	# auf spieltaugliche Werte bringen, Schatten nur bei hoher Grafikstufe.
 	for l in scene.find_children("*", "OmniLight3D", true, false):
@@ -89,6 +91,89 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	return a
 
 
+## Gelände mit Wegmaske (Farbattribut): Gras- und Wegmaterial weich überblenden statt Treppenkanten.
+static func _ground_blend(scene: Node3D) -> void:
+	for n in scene.find_children("Ground*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var mesh := mi.mesh
+		if mesh == null or mesh.get_surface_count() < 2 or not (mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR):
+			continue
+		var grass := mesh.surface_get_material(0) as StandardMaterial3D
+		var path := mesh.surface_get_material(1) as StandardMaterial3D
+		if grass == null or path == null:
+			continue
+		var sm := ShaderMaterial.new()
+		sm.shader = load("res://assets/shaders/ground_blend.gdshader")
+		sm.set_shader_parameter("grass_tex", grass.albedo_texture)
+		sm.set_shader_parameter("grass_nrm", grass.normal_texture)
+		sm.set_shader_parameter("path_tex", path.albedo_texture)
+		sm.set_shader_parameter("path_nrm", path.normal_texture if path.normal_texture else grass.normal_texture)
+		for i in mesh.get_surface_count():
+			mi.set_surface_override_material(i, sm)
+
+
+## Gras, Blumen, Büsche (nocol_mm_<name> + <id>_scatter.json aus tools/pipeline/loc_kit.py) als
+## MultiMesh-Kacheln: GPU-Instancing, jede Kachel blendet ab einer Entfernung aus.
+const SCATTER_TILE := 32.0
+const BLENDER_TO_GODOT := Basis(Vector3(1, 0, 0), Vector3(0, 0, -1), Vector3(0, 1, 0))
+
+static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
+	var file: String = ModelLib.model_config("locations", loc.id).get("file", loc.id)
+	var f := FileAccess.open("res://assets/models/locations/%s_scatter.json" % file, FileAccess.READ)
+	if f == null:
+		return
+	var data: Variant = JSON.parse_string(f.get_as_text())
+	if not data is Dictionary:
+		return
+	var templates := {}
+	for mi in scene.find_children("nocol_mm_*", "MeshInstance3D", true, false):
+		templates[String(mi.name).substr(9).get_slice(".", 0)] = mi
+		(mi as MeshInstance3D).visible = false
+	var keep := 1.0 if Settings.particles else 0.45
+	var inv := BLENDER_TO_GODOT.inverse()
+	for name in data.instances:
+		if not templates.has(name):
+			continue
+		var tpl := templates[name] as MeshInstance3D
+		var mesh := tpl.mesh
+		var aabb := mesh.get_aabb()
+		var big := maxf(aabb.size.y, maxf(aabb.size.x, aabb.size.z))
+		var view_end := 60.0 if big < 1.2 else (95.0 if big < 3.0 else 150.0)
+		var tiles := {}
+		var i := 0
+		for m in data.instances[name]:
+			i += 1
+			if keep < 1.0 and fmod(i * 0.618, 1.0) > keep:
+				continue
+			var b := Basis(Vector3(m[0], m[4], m[8]), Vector3(m[1], m[5], m[9]), Vector3(m[2], m[6], m[10]))
+			var t := Transform3D(BLENDER_TO_GODOT * b * inv, BLENDER_TO_GODOT * Vector3(m[3], m[7], m[11]))
+			var key := Vector2i(floori(t.origin.x / SCATTER_TILE), floori(t.origin.z / SCATTER_TILE))
+			if not tiles.has(key):
+				tiles[key] = []
+			tiles[key].append(t)
+		for key in tiles:
+			var list: Array = tiles[key]
+			var mm := MultiMesh.new()
+			mm.transform_format = MultiMesh.TRANSFORM_3D
+			mm.mesh = mesh
+			mm.instance_count = list.size()
+			for k in list.size():
+				mm.set_instance_transform(k, list[k])
+			var mmi := MultiMeshInstance3D.new()
+			mmi.name = "mm_%s_%d_%d" % [name, key.x, key.y]
+			mmi.multimesh = mm
+			mmi.visibility_range_end = view_end
+			mmi.visibility_range_end_margin = 12.0
+			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Settings.particles and big >= 1.2 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+			for sidx in tpl.get_surface_override_material_count():
+				if tpl.get_surface_override_material(sidx):
+					mmi.material_override = tpl.get_surface_override_material(sidx)
+			tpl.get_parent().add_child(mmi)
+			mmi.transform = Transform3D.IDENTITY
+
+
 # =====================================================================
 #  Umgebung (Himmel, Nebel, Licht)
 # =====================================================================
@@ -113,8 +198,9 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	else:
 		env.background_mode = Environment.BG_COLOR
 		env.background_color = preset.get("bg", Color(0.02, 0.0, 0.04))
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
+	env.ambient_light_source = Environment.AMBIENT_SOURCE_SKY if preset.get("sky_ambient", false) else Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = preset.get("ambient", Color(0.35, 0.3, 0.45))
+	env.ambient_light_sky_contribution = 0.6
 	env.ambient_light_energy = float(preset.get("ambient_energy", 0.6))
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.tonemap_exposure = float(preset.get("exposure", 1.0))
@@ -126,6 +212,11 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	env.glow_intensity = 0.9
 	env.glow_bloom = 0.15
 	env.glow_hdr_threshold = 0.9
+	if preset.has("saturation"):
+		# Draußen: kräftigere Farben und etwas Kontrast (wie große RPGs, statt grauem Einheitslicht)
+		env.adjustment_enabled = true
+		env.adjustment_saturation = float(preset.saturation)
+		env.adjustment_contrast = float(preset.get("contrast", 1.0))
 	if is_forward_plus():
 		_forward_plus_env(env, preset)
 	var we := WorldEnvironment.new()
@@ -136,7 +227,8 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	sun.light_energy = float(preset.get("sun_energy", 0.6))
 	sun.rotation_degrees = preset.get("sun_rot", Vector3(-50, 35, 0))
 	sun.shadow_enabled = Settings.particles
-	sun.directional_shadow_max_distance = 60.0
+	sun.directional_shadow_max_distance = float(preset.get("shadow_dist", 60.0))
+	sun.shadow_blur = 1.5
 	root.add_child(sun)
 
 
@@ -184,8 +276,8 @@ static func preset(kind: String) -> Dictionary:
 		"royal": return {"sky": false, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.6, 0.5, 0.45), "ambient_energy": 0.7, "fog": Color(0.08, 0.05, 0.06), "fog_density": 0.01, "sun_energy": 0.2}
 		"library": return {"sky": false, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.55, 0.45, 0.35), "ambient_energy": 0.6, "fog": Color(0.07, 0.05, 0.03), "fog_density": 0.018, "sun_energy": 0.15}
 		"treasury": return {"sky": false, "bg": Color(0.03, 0.02, 0.0), "ambient": Color(0.7, 0.55, 0.3), "ambient_energy": 0.7, "fog": Color(0.12, 0.08, 0.02), "fog_density": 0.012, "sun_energy": 0.3}
-		"village": return {"sky_top": Color(0.2, 0.42, 0.75), "sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.55), "ambient_energy": 0.8, "fog": Color(0.55, 0.6, 0.65), "fog_density": 0.008, "sun": Color(1.0, 0.92, 0.8), "sun_energy": 1.2, "sun_rot": Vector3(-40, 50, 0)}
-		"city", "palace", "cathedral": return {"sky_top": Color(0.22, 0.4, 0.7), "sky_energy": 1.0, "ambient": Color(0.6, 0.6, 0.65), "ambient_energy": 0.75, "fog": Color(0.5, 0.55, 0.6), "fog_density": 0.007, "sun": Color(1.0, 0.95, 0.85), "sun_energy": 1.1, "sun_rot": Vector3(-45, 30, 0)}
+		"village": return {"sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
+		"city", "palace", "cathedral": return {"sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.006, "vol_fog": 1.3, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.05}
 		"wall": return {"sky_top": Color(0.25, 0.35, 0.55), "sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}
 		"forest": return {"sky_top": Color(0.08, 0.15, 0.2), "sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.35), "ambient_energy": 0.6, "fog": Color(0.1, 0.12, 0.1), "fog_density": 0.03, "sun": Color(0.8, 0.85, 0.7), "sun_energy": 0.7}
 		"swamp": return {"sky_top": Color(0.12, 0.16, 0.16), "sky_energy": 0.6, "ambient": Color(0.35, 0.4, 0.38), "ambient_energy": 0.6, "fog": Color(0.3, 0.35, 0.33), "fog_density": 0.045, "sun_energy": 0.5}
@@ -340,6 +432,8 @@ static func _desk(root: Node3D, desk: Vector3) -> void:
 ## Im Thronsaal zusätzlich roter Teppich zum Thron, Kriegstisch (Table) und Pult (Desk).
 static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a: Dictionary) -> void:
 	var crest: Texture2D = Palette.icon("faction_nazarick")
+	var walk: Array = []
+	var idle: Array = []
 	for key in named:
 		var n := named[key] as Node3D
 		if n is Light3D or n is MeshInstance3D:
@@ -354,6 +448,15 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 			B3.light(root, p, Color(1.0, 0.78, 0.5), 2.6, 14.0)
 		elif key.begins_with("violet_"):
 			B3.light(root, p, VIOLET, 3.0, 14.0)
+		elif key.begins_with("smoke_"):
+			if Settings.particles or _rng.randf() < 0.3:
+				B3.smoke(root, p)
+		elif key.begins_with("walk_"):
+			walk.append(p)
+		elif key.begins_with("idle_"):
+			idle.append(p)
+	if not walk.is_empty() or not idle.is_empty():
+		Townsfolk.spawn(root, walk, idle, hash(loc.id))
 	if loc.kind == "throne":
 		if a.has("throne"):
 			var start: Vector3 = a.gate

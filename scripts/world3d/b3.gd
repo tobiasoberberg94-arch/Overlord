@@ -357,3 +357,47 @@ static func rock(parent: Node, pos: Vector3, s: float, material: Material) -> vo
 static func stairs(parent: Node, pos: Vector3, width: float, steps: int, step_h: float, step_d: float, material: Material, dir: float = -1.0) -> void:
 	for i in steps:
 		box(parent, Vector3(width, step_h * (i + 1), step_d), pos + Vector3(0, step_h * (i + 1) / 2.0, dir * i * step_d), material)
+
+
+## Kaminrauch: langsam aufsteigende, sich ausbreitende graue Schwaden.
+static func smoke(parent: Node, pos: Vector3, amount: int = 14) -> CPUParticles3D:
+	var p := CPUParticles3D.new()
+	p.position = pos
+	p.amount = amount
+	p.lifetime = 7.0
+	p.preprocess = 7.0
+	p.direction = Vector3(0.25, 1, 0)
+	p.spread = 12.0
+	p.initial_velocity_min = 0.5
+	p.initial_velocity_max = 0.9
+	p.gravity = Vector3(0.12, 0.08, 0)
+	p.scale_amount_min = 0.8
+	p.scale_amount_max = 1.4
+	var curve := Curve.new()
+	curve.add_point(Vector2(0, 0.3))
+	curve.add_point(Vector2(1, 2.6))
+	p.scale_amount_curve = curve
+	var qm := QuadMesh.new()
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.vertex_color_use_as_albedo = true
+	var g2 := GradientTexture2D.new()
+	var gr := Gradient.new()
+	gr.set_color(0, Color(1, 1, 1, 1))
+	gr.set_color(1, Color(1, 1, 1, 0))
+	g2.gradient = gr
+	g2.fill = GradientTexture2D.FILL_RADIAL
+	g2.fill_from = Vector2(0.5, 0.5)
+	g2.fill_to = Vector2(0.5, 0.0)
+	m.albedo_texture = g2
+	qm.material = m
+	p.mesh = qm
+	var g := Gradient.new()
+	g.set_color(0, Color(0.55, 0.52, 0.5, 0.0))
+	g.add_point(0.15, Color(0.6, 0.58, 0.55, 0.35))
+	g.set_color(g.get_point_count() - 1, Color(0.75, 0.74, 0.72, 0.0))
+	p.color_ramp = g
+	parent.add_child(p)
+	return p
