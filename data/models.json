@@ -108,6 +108,12 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "death_knight": {
+   "scale": 1.1,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
   }
  },
  "props": {},

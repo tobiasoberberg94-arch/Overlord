@@ -36,10 +36,11 @@ sc.collection.objects.link(sun)
 cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam"))
 sc.collection.objects.link(cam)
 sc.camera = cam
-target = Vector((0, 0, 0.95))
+target = Vector((0, 0, float(os.environ.get("PREVIEW_Z", "0.95"))))
+DIST = float(os.environ.get("PREVIEW_DIST", "3.4"))
 for name, ang in (("front", 0), ("side", 60), ("back", 180)):
     a = math.radians(ang)
-    cam.location = target + Vector((math.sin(a) * 3.4, -math.cos(a) * 3.4, 0.25))
+    cam.location = target + Vector((math.sin(a) * DIST, -math.cos(a) * DIST, 0.25))
     cam.rotation_euler = (target - cam.location).to_track_quat("-Z", "Y").to_euler()
     sc.render.filepath = os.path.join(out, "preview_%s%s.png" % (name, "_" + action if action else ""))
     bpy.ops.render.render(write_still=True)

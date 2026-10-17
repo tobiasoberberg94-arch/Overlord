@@ -4,6 +4,7 @@
 # Texturen werden nach Materialname (badan = Koerper, mata = Augen) neu verknuepft,
 # falls Mixamo sie nicht mitliefert.
 import glob
+import math
 import os
 import sys
 
@@ -61,12 +62,192 @@ for name, act in actions.items():
     tr.mute = True
 print("OVERLORD animationen", sorted(actions))
 
+# Anbauteile, die für Mixamo abgetrennt wurden, wieder ansetzen (5. Argument ff.):
+#   attach=<datei.fbx>:transfer   – Gewichte vom nächsten Körperpunkt übernehmen (Umhang)
+#   attach=<datei.fbx>:hands      – starr an die Hände (x<0 → RightHand, x>0 → LeftHand; Schwert/Schild)
+#   attach=<datei.fbx>:<Knochen>  – starr an einen Knochen
+# Die Dateien liegen im Koordinatensystem der Mixamo-Vorbereitung (Meter, Füße auf 0).
+_opts0 = dict(a.split("=", 1) for a in sys.argv[sys.argv.index("--") + 4:] if "=" in a and not a.startswith("attach="))
+_attach = [a.split("=", 1)[1] for a in sys.argv[sys.argv.index("--") + 4:] if a.startswith("attach=")]
+if _attach:
+    bpy.context.view_layer.update()
+    body = max(meshes, key=lambda m: len(m.data.vertices))
+    bnames = {b.name.split(":")[-1]: b.name for b in arm.data.bones}
+    # Bezug: das für Mixamo hochgeladene Mesh (ref=<datei.fbx>). Mixamo gibt den Körper gedreht/skaliert zurück –
+    # die Ähnlichkeitstransformation Hochlade-Mesh → gerigter Körper (Umeyama über gleiche Punkte) setzt die Anbauteile
+    # an die richtige Stelle.
+    M = None
+    if _opts0.get("ref"):
+        import numpy as np
+        from mathutils import Matrix
+        rnew = imported(lambda: bpy.ops.import_scene.fbx(filepath=os.path.abspath(_opts0["ref"])))
+        ref = max((x for x in rnew if x.type == "MESH"), key=lambda m: len(m.data.vertices))
+        A = np.array([(ref.matrix_world @ v.co)[:] for v in ref.data.vertices])
+        dg = bpy.context.evaluated_depsgraph_get()
+        arm_pose = arm.data.pose_position
+        arm.data.pose_position = "REST"
+        bpy.context.view_layer.update()
+        ev = body.evaluated_get(bpy.context.evaluated_depsgraph_get()).to_mesh()
+        B = np.array([(body.matrix_world @ v.co)[:] for v in ev.vertices])
+        arm.data.pose_position = arm_pose
+        print("OVERLORD bezug punkte", len(A), len(B))
+        if len(A) == len(B):
+            ma, mb = A.mean(0), B.mean(0)
+            Ac, Bc = A - ma, B - mb
+            U, S, Vt = np.linalg.svd(Bc.T @ Ac / len(A))
+            D = np.eye(3)
+            if np.linalg.det(U) * np.linalg.det(Vt) < 0:
+                D[2, 2] = -1
+            Rm = U @ D @ Vt
+            sc = np.trace(np.diag(S) @ D) / (Ac ** 2).sum(1).mean()
+            t = mb - sc * Rm @ ma
+            M = Matrix.Identity(4)
+            for i in range(3):
+                for j in range(3):
+                    M[i][j] = sc * Rm[i, j]
+                M[i][3] = t[i]
+            err = np.abs((sc * (Rm @ A.T)).T + t - B).max()
+            print("OVERLORD bezug skala", round(float(sc), 4), "fehler", round(float(err), 4))
+        for x in rnew:
+            bpy.data.objects.remove(x)
+    def joint(n):
+        b = arm.data.bones.get(bnames.get(n, ""))
+        return (arm.matrix_world @ b.head_local) if b else None
+
+    def regrip(o):
+        """Waffe neu in die Hand legen: Schwert (x<0, rechte Hand) mit der Klinge zur Daumenseite der Faust,
+        Schild (x>0, linke Hand) flach auf Handrücken/Unterarm, Vorderseite nach außen."""
+        import numpy as np
+        from mathutils import Matrix
+        W = o.matrix_world
+        P = np.array([(W @ v.co)[:] for v in o.data.vertices])
+        side = "R" if P[:, 0].mean() < 0 else "L"
+        o["side"] = side
+        S = "Right" if side == "R" else "Left"
+        wrist, mid, idx, pnk, fore = (joint(S + n) for n in ("Hand", "HandMiddle1", "HandIndex1", "HandPinky1", "ForeArm"))
+        if wrist is None or fore is None or (mid is None and idx is None):
+            print("OVERLORD griff: Handgelenke fehlen", S)
+            return
+        if mid is None:
+            mid = idx
+        fy = (mid - wrist).normalized()                     # Richtung Finger
+        if idx is not None and pnk is not None:
+            knuck = (idx - pnk).normalized()                # Knöchellinie, zum Daumen hin
+        else:
+            # Rig ohne kleinen Finger: in der Ruhepose hängen die Arme, Daumen zeigen nach vorn (-Y)
+            fwd = Vector((0, -1, 0))
+            knuck = (fwd - fy * fwd.dot(fy)).normalized()
+        dors = fy.cross(knuck).normalized()                 # Handrücken/-fläche
+        if (dors.x > 0) != (side == "L"):                   # nach außen (vom Körper weg)
+            dors = -dors
+        knuck = dors.cross(fy).normalized() * (1 if knuck.dot(dors.cross(fy)) > 0 else -1)
+        c = P.mean(0)
+        ev, evec = np.linalg.eigh(np.cov((P - c).T))
+        e = [Vector(evec[:, i]) for i in (2, 1, 0)]          # lang, mittel, dünn
+        palm = wrist + (mid - wrist) * 0.45
+        if side == "R":                                     # Schwert
+            proj = (P - c) @ np.array(e[0])
+            # Griffende = Ende, das in Ruhe näher am Handgelenk liegt
+            near_end = c + np.array(e[0]) * (proj.min() if np.linalg.norm(c + np.array(e[0]) * proj.min() - np.array(wrist)) <
+                                              np.linalg.norm(c + np.array(e[0]) * proj.max() - np.array(wrist)) else proj.max())
+            if (Vector(c) - Vector(near_end)).dot(e[0]) < 0:
+                e[0] = -e[0]
+            grip = Vector(near_end) + e[0] * 0.12
+            src = Matrix((e[0], e[1], e[0].cross(e[1]))).transposed()
+            dst = Matrix((knuck, fy, knuck.cross(fy))).transposed()
+            Rm = dst @ src.inverted()
+            roll = float(_opts0.get("roll_" + side, "0"))
+            if roll:
+                Rm = Matrix.Rotation(math.radians(roll), 3, fy) @ Rm
+            T = Matrix.Translation(palm) @ Rm.to_4x4() @ Matrix.Translation(-grip)
+        else:                                               # Schild
+            front = e[2] if e[2].dot(Vector((0, -1, 0))) > 0 else -e[2]   # Vorderseite zeigt in Ruhe nach vorn (-Y)
+            e0 = e[0]
+            src = Matrix((e0, front.cross(e0), front)).transposed()
+            dst = Matrix((knuck, dors.cross(knuck), dors)).transposed()
+            Rm = dst @ src.inverted()
+            fdir = (wrist - fore).normalized()
+            centre = wrist - fdir * 0.12 + dors * 0.16
+            roll = float(_opts0.get("roll_" + side, "0"))
+            if roll:
+                Rm = Matrix.Rotation(math.radians(roll), 3, fy) @ Rm
+            T = Matrix.Translation(centre) @ Rm.to_4x4() @ Matrix.Translation(-Vector(c))
+        o.data.transform(W.inverted() @ T @ W)
+        print("OVERLORD griff", S, "neu ausgerichtet")
+
+    for spec in _attach:
+        path, mode = spec.rsplit(":", 1)
+        new = imported(lambda: bpy.ops.import_scene.fbx(filepath=os.path.abspath(path)))
+        for x in [x for x in new if x.type != "MESH"]:
+            bpy.data.objects.remove(x)
+        for o in [x for x in new if x.type == "MESH"]:
+            mw = (M @ o.matrix_world) if M is not None else o.matrix_world.copy()
+            # gleiche Objekt-Transformation wie der Körper (der glTF-Export rechnet Skin-Meshes im Armatur-Raum),
+            # die Punkte werden so umgerechnet, dass sie an derselben Weltposition bleiben
+            o.parent = arm
+            o.matrix_parent_inverse = body.matrix_parent_inverse.copy()
+            o.matrix_basis = body.matrix_basis.copy()
+            bpy.context.view_layer.update()
+            o.data.transform(o.matrix_world.inverted() @ mw)
+            for g in list(o.vertex_groups):
+                o.vertex_groups.remove(g)
+            mod = o.modifiers.new("Armature", "ARMATURE")
+            mod.object = arm
+            if mode == "transfer":
+                for g in body.vertex_groups:
+                    o.vertex_groups.new(name=g.name)
+                dt = o.modifiers.new("dt", "DATA_TRANSFER")
+                dt.object = body
+                dt.use_vert_data = True
+                dt.data_types_verts = {"VGROUP_WEIGHTS"}
+                dt.vert_mapping = "POLYINTERP_NEAREST"
+                dt.layers_vgroup_select_src = "ALL"
+                dt.layers_vgroup_select_dst = "NAME"
+                bpy.context.view_layer.objects.active = o
+                bpy.ops.object.modifier_move_to_index(modifier="dt", index=0)
+                bpy.ops.object.modifier_apply(modifier="dt")
+            elif mode == "back":
+                # Umhang: oben Brust, Mitte Rücken, unten Hüfte (+ etwas Bein je Seite) – keine Armgewichte
+                zs_ = [(o.matrix_world @ v.co).z for v in o.data.vertices]
+                z0_, z1_ = min(zs_), max(zs_)
+                grp = {n: (o.vertex_groups.get(bnames[n]) or o.vertex_groups.new(name=bnames[n]))
+                       for n in ("Spine2", "Spine1", "Spine", "Hips", "LeftUpLeg", "RightUpLeg") if n in bnames}
+                for v in o.data.vertices:
+                    p_ = o.matrix_world @ v.co
+                    t = (p_.z - z0_) / max(z1_ - z0_, 1e-6)       # 0 unten … 1 oben
+                    ws = {"Spine2": max(0.0, t * 2 - 1), "Spine1": 1 - abs(t * 2 - 1.2) if 0.1 < t < 1.0 else 0.0,
+                          "Spine": max(0.0, 1 - abs(t * 2 - 0.7)), "Hips": max(0.0, 1 - t * 2)}
+                    leg = 0.25 * max(0.0, 1 - t * 2)
+                    ws["LeftUpLeg" if p_.x > 0 else "RightUpLeg"] = leg
+                    tot = sum(ws.values()) or 1.0
+                    for n, w in ws.items():
+                        if n in grp and w > 0:
+                            grp[n].add([v.index], w / tot, "REPLACE")
+                o["overlord_rigid"] = True
+            elif mode == "grip":
+                regrip(o)
+                for v in o.data.vertices:
+                    p_ = o.matrix_world @ v.co
+                    bn = "RightHand" if o.get("side") == "R" else "LeftHand"
+                    g = o.vertex_groups.get(bnames[bn]) or o.vertex_groups.new(name=bnames[bn])
+                    g.add([v.index], 1.0, "REPLACE")
+            else:
+                for v in o.data.vertices:
+                    p_ = o.matrix_world @ v.co
+                    bn = mode if mode in bnames else ("RightHand" if p_.x < 0 else "LeftHand")
+                    g = o.vertex_groups.get(bnames[bn]) or o.vertex_groups.new(name=bnames[bn])
+                    g.add([v.index], 1.0, "REPLACE")
+            meshes.append(o)
+            if mode != "transfer":
+                o["overlord_rigid"] = True
+            print("OVERLORD anbau", os.path.basename(path), mode, len(o.data.vertices), "punkte")
+
 # Stoff-Gewichte reparieren (optional, 4. Argument z. B. "cloth=skirt" oder "cloth=robe"):
 # Mixamo bindet Rock/Mantel/Schulterplatten an Arm- und Beinknochen – der Stoff reißt dann zwischen den Beinen
 # auf oder wird von den Armen mitgezogen. Liegt ein Punkt weit vom Gliedmaßenknochen entfernt, ist er Stoff:
 # sein Gewicht wandert (weich, nach Entfernung) zum nächsten Rumpfknochen. Beine behalten einen Rest,
 # damit der Rock beim Gehen etwas mitschwingt; Arme geben Stoffpunkte ganz ab (Mantel, Schulterplatten).
-_opts = dict(a.split("=", 1) for a in sys.argv[sys.argv.index("--") + 4:] if "=" in a)
+_opts = dict(a.split("=", 1) for a in sys.argv[sys.argv.index("--") + 4:] if "=" in a and not a.startswith("attach="))
 CLOTH = _opts.get("cloth", "")
 if CLOTH:
     import numpy as np
@@ -203,7 +384,7 @@ if CLOTH:
             moved += 1
         return moved
 
-    for o in meshes:
+    for o in [m for m in meshes if not m.get("overlord_rigid")]:
         vg = {g.name.split(":")[-1]: g for g in o.vertex_groups}
         for n in TORSO + [b for b in ("Head",) if b in bones]:
             if n not in vg:
