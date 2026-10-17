@@ -1,0 +1,37 @@
+[remap]
+
+importer="texture"
+type="CompressedTexture2D"
+uid="uid://druqqgqdlafco"
+path="res://.godot/imported/skeleton_skeleton_mixamo_normal.png-a5a39e6a981c1fa84c6d2ca66555b9aa.ctex"
+metadata={
+"vram_texture": false
+}
+generator_parameters={
+"md5": "d20f328b5f51420c1fee2380135effd6"
+}
+
+[deps]
+
+source_file="res://assets/models/characters/skeleton_skeleton_mixamo_normal.png"
+dest_files=["res://.godot/imported/skeleton_skeleton_mixamo_normal.png-a5a39e6a981c1fa84c6d2ca66555b9aa.ctex"]
+
+[params]
+
+compress/mode=0
+compress/high_quality=false
+compress/lossy_quality=0.7
+compress/hdr_compression=1
+compress/normal_map=0
+compress/channel_pack=0
+mipmaps/generate=true
+mipmaps/limit=-1
+roughness/mode=0
+roughness/src_normal=""
+process/fix_alpha_border=true
+process/premult_alpha=false
+process/normal_map_invert_y=false
+process/hdr_as_srgb=false
+process/hdr_clamp_exposure=false
+process/size_limit=0
+detect_3d/compress_to=1

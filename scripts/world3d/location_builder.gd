@@ -342,6 +342,8 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 	var crest: Texture2D = Palette.icon("faction_nazarick")
 	for key in named:
 		var n := named[key] as Node3D
+		if n is Light3D or n is MeshInstance3D:
+			continue   # nur leere Ankerpunkte, keine Lampen/Meshes aus dem Modell (z. B. Lamp_n der Grabkammern)
 		var p := n.global_position
 		if key.begins_with("banner_"):
 			B3.banner(root, p, Color(0.2, 0.04, 0.3), crest, 5.5, -90.0 * signf(p.x))
