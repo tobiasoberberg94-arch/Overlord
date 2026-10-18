@@ -20,6 +20,17 @@ var _name: Label3D
 var _ring: MeshInstance3D
 var _t := randf() * 10.0
 var _base_y := 0.0
+## Eigenleben: um den Heimatpunkt schlendern, stehen bleiben, sich dem Spieler zuwenden
+static var player: Node3D
+var wander_radius := 3.5
+var home := Vector3.ZERO
+var _goal := Vector3.ZERO
+var _wait := randf_range(1.0, 5.0)
+var _walking := false
+var _look: HeadLook
+var _look_w := 0.0
+var _mark: Label3D
+const WALK_SPEED := 1.05
 
 
 static func character(cid: String, variant: String = "", height: float = 2.3) -> Actor3D:
@@ -45,11 +56,21 @@ static func object(oid: String, text: String, prompt_text: String, col: Color, r
 
 func _ready() -> void:
 	_base_y = position.y
+	home = global_position
+	_goal = home
 	if kind != "object":
-		_ring = B3.cyl(self, 0.75, 0.85, 0.12, Vector3(0, 0.06, 0), B3.mat(Color(0.05, 0.03, 0.08), 0.5, 0.4), true, 24)
-		B3.cyl(self, 0.8, 0.8, 0.02, Vector3(0, 0.13, 0), B3.mat(Color(color, 0.8), 0.3, 0.0, color, 2.0), false, 24)
-		var l := B3.light(self, Vector3(0, 1.2, 0.8), color, 0.7, 4.0)
+		# kein Podest mehr: die Figuren bewegen sich frei; ein schwaches Licht in ihrer Farbe bleibt
+		var l := B3.light(self, Vector3(0, 1.6, 0.9), color, 0.45, 3.5)
 		l.shadow_enabled = false
+		if rig and rig.has_model:
+			var sk: Skeleton3D = null
+			for n in rig.find_children("*", "Skeleton3D", true, false):
+				sk = n
+				break
+			if sk:
+				_look = HeadLook.new()
+				_look.rig = rig
+				sk.add_child(_look)
 	_name = Label3D.new()
 	_name.text = label
 	_name.billboard = BaseMaterial3D.BILLBOARD_ENABLED
@@ -77,6 +98,28 @@ func _make_standee(cid: String, variant: String, _height: float) -> void:
 		l.shadow_enabled = false
 
 
+## Quest-Markierung über dem Kopf: "!" neue Quest, "?" Abgabe, "…" läuft, "" keine.
+func set_quest_mark(m: String) -> void:
+	if m == "":
+		if _mark:
+			_mark.visible = false
+		return
+	if _mark == null:
+		_mark = Label3D.new()
+		_mark.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_mark.font = NazarickTheme.display_font(800)
+		_mark.font_size = 96
+		_mark.outline_size = 14
+		_mark.pixel_size = 0.006
+		_mark.no_depth_test = true
+		_mark.position = Vector3(0, 3.25, 0)
+		add_child(_mark)
+	_mark.visible = true
+	_mark.text = m
+	_mark.modulate = Palette.GOLD_BRIGHT if m == "!" else (Color(0.55, 1.0, 0.6) if m == "?" else Color(0.75, 0.72, 0.8))
+	_mark.outline_modulate = Color(0.1, 0.05, 0.0, 0.9)
+
+
 func set_highlight(on: bool) -> void:
 	if _name:
 		_name.modulate = Palette.GOLD_BRIGHT if on else color.lerp(Palette.GOLD_BRIGHT, 0.4)
@@ -95,8 +138,80 @@ func _process(delta: float) -> void:
 			a = maxf(a, 0.0 if d < 3.0 else 1.0)
 		_name.modulate.a = a
 		_name.outline_modulate.a = 0.85 * a
+	if _mark and _mark.visible:
+		_mark.position.y = 3.25 + sin(_t * 2.4) * 0.08
+	if kind == "object":
+		return
+	_behave(delta)
+
+
+func _behave(delta: float) -> void:
+	var near := false
+	var dp := 99.0
+	if player and is_instance_valid(player):
+		dp = Vector2(player.global_position.x - global_position.x, player.global_position.z - global_position.z).length()
+		near = dp < 7.0
+	var moving := false
+	if near and dp < 4.5:
+		# Spieler ist da: stehen bleiben und zuwenden
+		_walking = false
+		_wait = randf_range(2.0, 4.0)
+		var to := player.global_position - global_position
+		rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), minf(1.0, 3.5 * delta))
+	elif _walking:
+		var to := _goal - global_position
+		to.y = 0.0
+		if to.length() < 0.25:
+			_walking = false
+			_wait = randf_range(3.0, 9.0)
+		else:
+			var step := to.normalized() * WALK_SPEED * delta
+			global_position += step
+			global_position.y = _ground_y(global_position)
+			rotation.y = lerp_angle(rotation.y, atan2(to.x, to.z), minf(1.0, 5.0 * delta))
+			moving = true
+	else:
+		_wait -= delta
+		if _wait <= 0.0 and wander_radius > 0.1 and mood != "battle":
+			_pick_goal()
+	# Kopf folgt dem Spieler
+	_look_w = move_toward(_look_w, 1.0 if near else 0.0, delta * 2.0)
+	if _look:
+		_look.weight = _look_w
+		if player and is_instance_valid(player):
+			_look.target = player.global_position + Vector3(0, 1.75, 0)
 	if rig and not rig.has_model:
-		var st := Fighter.S.BLOCK if mood == "battle" else (Fighter.S.STAGGER if mood == "sad" else Fighter.S.IDLE)
-		rig.pose(st, "", 0.6 if st == Fighter.S.STAGGER else 0.0, 0.0)
+		var st := Fighter.S.BLOCK if mood == "battle" else (Fighter.S.STAGGER if mood == "sad" and not moving else Fighter.S.IDLE)
+		rig.pose(st, "", 0.6 if st == Fighter.S.STAGGER else 0.0, 0.35 if moving else 0.0)
 	elif rig:
-		rig.play("block" if mood == "battle" else "idle")
+		if moving:
+			rig.play("walk", 0.85)
+		else:
+			rig.play("block" if mood == "battle" else "idle")
+
+
+## Ziel in der Nähe des Heimatpunkts, nur wenn der Weg frei ist und dort Boden liegt.
+func _pick_goal() -> void:
+	var space := get_world_3d().direct_space_state
+	for i in 6:
+		var a := randf() * TAU
+		var r := randf_range(1.0, wander_radius)
+		var g := home + Vector3(cos(a) * r, 0, sin(a) * r)
+		var from := global_position + Vector3(0, 1.0, 0)
+		var rq := PhysicsRayQueryParameters3D.create(from, g + Vector3(0, 1.0, 0))
+		if not space.intersect_ray(rq).is_empty():
+			continue
+		g.y = _ground_y(g)
+		if absf(g.y - global_position.y) > 0.4:
+			continue
+		_goal = g
+		_walking = true
+		return
+	_wait = randf_range(2.0, 5.0)
+
+
+func _ground_y(p: Vector3) -> float:
+	var space := get_world_3d().direct_space_state
+	var rq := PhysicsRayQueryParameters3D.create(p + Vector3(0, 1.2, 0), p + Vector3(0, -2.0, 0))
+	var r := space.intersect_ray(rq)
+	return r.position.y if not r.is_empty() else p.y

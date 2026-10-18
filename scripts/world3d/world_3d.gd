@@ -22,6 +22,8 @@ var ui_root := Control.new()
 var overlay_layer := Control.new()
 var celebrations := CelebrationLayer.new()
 var hud := WorldHud.new()
+var quest_world := QuestWorld.new(self)
+var _pickup_focus: Pickup
 var hud_feedback := Label.new()
 var hud_vignette := ColorRect.new()
 var enemies: Array[Enemy3D] = []
@@ -39,6 +41,8 @@ func _ready() -> void:
 	if Game.state.is_empty():
 		Game.new_game()
 	add_child(player)
+	add_child(quest_world)
+	Actor3D.player = player
 	_build_ui()
 	player.feedback.connect(_on_feedback)
 	player.style_changed.connect(func(_s): _rebuild_spell_bar())
@@ -70,6 +74,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	enemies.clear()
 	_focus = null
 	player.lock = null
+	quest_world.clear()
 	if level:
 		# alten Ort erst vollständig freigeben, dann den neuen bauen (halbiert den Speicher-Spitzenwert)
 		remove_child(level)
@@ -87,6 +92,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
 	_place_actors()
 	_spawn_encounters()
+	quest_world.spawn_pickups()
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
@@ -104,16 +110,15 @@ func _place_actors() -> void:
 	var slots: Array = anchors.get("slots", []).duplicate()
 	var region: String = loc.get("region", "nazarick" if loc.group == "nazarick" else "")
 	var placed: Array = []
-	# Wächter
+	# Wächter: jeder ist an seinem Platz – im Thronsaal nur Albedo und wer gerade Aufmerksamkeit sucht
+	var guests := _throne_guests()
 	for cid in Game.unlocked_chars():
 		var c := Game.cs(cid)
 		var where := _char_whereabouts(cid)
 		var here := false
 		var variant := ""
-		if loc.id == "throne" and where == "nazarick":
-			here = true
-		elif loc.get("keeper", "") == cid and where == "nazarick":
-			here = true
+		if where == "nazarick":
+			here = (loc.id == "throne" and cid in guests) or (loc.id != "throne" and HOME.get(cid, "") == loc.id)
 		elif loc.group == "world" and where == region:
 			here = true
 			variant = "battle" if c.status == "feldzug" else ""
@@ -140,6 +145,7 @@ func _place_actors() -> void:
 		var a := Actor3D.character(n.id, "", 2.6 if n.id in ["death_knight", "platinum_dragon"] else 2.3)
 		a.line = n.get("line", "")
 		_add_actor(a, pos)
+	quest_world.spawn_givers(slots)
 	# Objekte
 	if anchors.has("throne"):
 		_add_actor(Actor3D.object("throne", "Thron von Nazarick", "Zeit vergehen lassen", Palette.GOLD_BRIGHT, 3.2), anchors.throne)
@@ -154,6 +160,33 @@ func _place_actors() -> void:
 		B3.box(level, Vector3(1.6, 1.2, 0.12), anchors.board + Vector3(0, 1.3, 0), B3.mat(Color(0.3, 0.2, 0.1), 0.8))
 		B3.cyl(level, 0.06, 0.06, 1.8, anchors.board + Vector3(0, 0.9, -0.1), B3.mat(Color(0.2, 0.14, 0.08)), true, 6)
 	_add_actor(Actor3D.object("gate", "Gate", "Reisen", Color(0.75, 0.5, 1.0), 3.0), anchors.gate)
+
+
+## Heimat in Nazarick (Ebene/Raum). Wer hier fehlt, hält sich im Thronsaal bereit.
+const HOME := {
+	"albedo": "throne", "shalltear": "tombs", "cocytus": "glacier", "aura": "jungle", "mare": "jungle",
+	"demiurge": "lava", "sebas": "royal", "pandora": "treasury", "narberal": "royal", "yuri": "royal",
+	"lupusregina": "royal", "solution": "royal", "entoma": "royal", "cz": "royal", "victim": "lava", "neuronist": "lava",
+}
+
+
+## Wer im Thronsaal wartet: Albedo, wer Ainz sprechen will (verliebt, eifersüchtig, unzufrieden),
+## dazu reihum ein Wächter für die tägliche Audienz.
+func _throne_guests() -> Array:
+	var out := ["albedo"]
+	var pool: Array = []
+	for cid in Game.unlocked_chars():
+		var c := Game.cs(cid)
+		if cid == "albedo" or _char_whereabouts(cid) != "nazarick":
+			continue
+		if not HOME.has(cid) or c.jealousy >= 60 or c.favor >= 85 or c.favor < 25:
+			out.append(cid)
+		elif HOME.get(cid, "") != "royal":
+			pool.append(cid)
+	if not pool.is_empty():
+		pool.sort()
+		out.append(pool[int(Game.state.day) % pool.size()])
+	return out.slice(0, 5)
 
 
 ## Wo hält sich ein Wächter auf? "nazarick" oder eine Regions-ID.
@@ -235,7 +268,10 @@ func _update_focus() -> void:
 		_focus = best
 		if _focus:
 			_focus.set_highlight(true)
-	if _focus and overlay_layer.get_child_count() == 0:
+	_pickup_focus = quest_world.nearest(player.global_position) if overlay_layer.get_child_count() == 0 else null
+	if _pickup_focus and (_focus == null or player.global_position.distance_to(_pickup_focus.global_position) < player.global_position.distance_to(_focus.global_position)):
+		hud.set_prompt("%s  ·  %s" % [_pickup_focus.prompt(), _pickup_focus.label])
+	elif _focus and overlay_layer.get_child_count() == 0:
 		hud.set_prompt("%s  ·  %s" % [_focus.prompt, _focus.label])
 	else:
 		hud.set_prompt("")
@@ -243,6 +279,10 @@ func _update_focus() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if overlay_layer.get_child_count() > 0 or _busy:
+		return
+	if event.is_action_pressed("interact") and _pickup_focus and is_instance_valid(_pickup_focus) and 			(_focus == null or player.global_position.distance_to(_pickup_focus.global_position) < player.global_position.distance_to(_focus.global_position)):
+		quest_world.collect(_pickup_focus)
+		_pickup_focus = null
 		return
 	if event.is_action_pressed("interact") and _focus:
 		_interact(_focus)
@@ -252,7 +292,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_ESCAPE: _pause_menu()
-		KEY_J: _open(MissionBoard.new(loc.get("region", "")))
+		KEY_J: _open(QuestJournal.new())
+		KEY_K: _open(MissionBoard.new(loc.get("region", "")))
 		KEY_M: _open_map()
 		KEY_P: _open(DiplomacyView.new())
 		KEY_V: _open(AdministrationView.new())
@@ -272,10 +313,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func _interact(a: Actor3D) -> void:
 	match a.kind:
 		"char":
+			if quest_world.talk(a):
+				return
 			var cv := CharacterView.new(a.id)
 			cv.closed.connect(_refresh_actors_soft)
 			_open(cv)
 		"npc":
+			if quest_world.talk(a):
+				return
 			_open(TalkDialog.new(a.id, a.line if a.line != "" else "…"))
 		"object":
 			match a.id:
@@ -283,7 +328,9 @@ func _interact(a: Actor3D) -> void:
 				"table": _war_table()
 				"desk": _desk_menu()
 				"gate": _gate_menu()
-				"board": _region_menu()
+				"board":
+					if not quest_world.board_menu():
+						_region_menu()
 
 
 func _refresh_actors_soft() -> void:
@@ -361,6 +408,10 @@ func _short(t: String, n: int = 110) -> String:
 		return t
 	var cut := t.substr(0, n)
 	return cut.substr(0, cut.rfind(" ")) + " …"
+
+
+func _region_menu_info() -> void:
+	_region_menu()
 
 
 func _region_menu() -> void:
@@ -613,6 +664,7 @@ func _on_player_damaged(_f: Fighter, amount: int, _kind: String) -> void:
 
 func _on_enemy_defeated(e: Enemy3D) -> void:
 	enemies.erase(e)
+	quest_world.on_enemy_defeated(e)
 	var gold := int(e.data.get("gold", 0))
 	if gold > 0:
 		Game.apply_effects({"res": {"gold": gold}})

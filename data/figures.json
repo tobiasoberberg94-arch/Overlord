@@ -342,6 +342,96 @@
   },
   "ainz_momon": {
    "special": "momon"
+  },
+  "enri": {
+   "scale": 0.93,
+   "skin": "#f0d0b0",
+   "hair": [
+    "#7a4a24",
+    "long"
+   ],
+   "top": "#b8865a",
+   "bottom": [
+    "dress",
+    "#6a5a3a"
+   ],
+   "trim": "#4a6a3a",
+   "eyes": "#5a3a1a"
+  },
+  "nfirea": {
+   "scale": 0.95,
+   "skin": "#f2dcc4",
+   "hair": [
+    "#d8c070",
+    "long"
+   ],
+   "top": "#4a6a8a",
+   "bottom": [
+    "pants",
+    "#3a3a4a"
+   ],
+   "trim": "#c8b070",
+   "eyes": "#3a5a7a"
+  },
+  "lizzie": {
+   "scale": 0.88,
+   "skin": "#e0c0a8",
+   "hair": [
+    "#d8d0c8",
+    "bun"
+   ],
+   "top": "#5a4a6a",
+   "bottom": [
+    "dress",
+    "#3a2a4a"
+   ],
+   "trim": "#a08aa0",
+   "eyes": "#3a3a3a"
+  },
+  "guild_clerk": {
+   "scale": 0.94,
+   "skin": "#f0d8c0",
+   "hair": [
+    "#c08a40",
+    "bun"
+   ],
+   "top": "#f0e8d8",
+   "bottom": [
+    "dress",
+    "#2a3a5a"
+   ],
+   "trim": "#d8b060",
+   "eyes": "#3a5a3a"
+  },
+  "ainzach": {
+   "scale": 1.02,
+   "skin": "#d8b8a0",
+   "hair": [
+    "#6a6a70",
+    "short"
+   ],
+   "top": "#3a3a5a",
+   "bottom": [
+    "pants",
+    "#2a2a3a"
+   ],
+   "trim": "#b8a070",
+   "eyes": "#3a3a3a"
+  },
+  "gravekeeper": {
+   "scale": 0.98,
+   "skin": "#d0b8a0",
+   "hair": [
+    "#8a8a80",
+    "bald"
+   ],
+   "top": "#4a4a3a",
+   "bottom": [
+    "pants",
+    "#2a2a22"
+   ],
+   "trim": "#6a6a5a",
+   "eyes": "#2a2a2a"
   }
  }
 }

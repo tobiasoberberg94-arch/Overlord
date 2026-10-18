@@ -56,6 +56,7 @@ func setup(w: Node) -> void:
 	_build_bottom()
 	_build_misc()
 	Game.log_added.connect(_on_log)
+	Quests.changed.connect(refresh)
 
 
 # ------------------------------------------------------------------ Aufbau
@@ -172,7 +173,7 @@ func _build_right() -> void:
 	_rich(tracker_text, 16)
 	tracker.add_child(tracker_text)
 	var hint := _outlined(Label.new(), 13, Palette.MUTED, NazarickTheme.italic_font(600))
-	hint.text = "[Tab] Wochenziele & Herzenskrieg"
+	hint.text = "[J] Questbuch · [Tab] Wochenziele"
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	tracker.add_child(hint)
 	col.add_child(tracker)
@@ -279,7 +280,7 @@ func _build_misc() -> void:
 		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
 		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–4, R[/color] Zauber · [color=#f5d77a]X[/color] Momon\n" + \
 		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche\n" + \
-		"[color=#f5d77a]J[/color] Aufträge · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
+		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
 		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
 	help_panel.add_child(help_text)
 	help_panel.visible = Settings.show_help
@@ -315,7 +316,13 @@ func refresh() -> void:
 	dispatch_label.text = "✉  %d Depesche%s  [Enter]" % [pend, "n" if pend != 1 else ""]
 	# Tracker: Kapitelziel, Bedrohungen, ein offenes Wochenziel
 	var lines := PackedStringArray()
+	var tq: Dictionary = Quests.by_id.get(Quests.tracked, {})
+	if not tq.is_empty() and Quests.is_active(tq.id):
+		lines.append("[color=#f5d77a][b]%s[/b][/color]  ◉" % tq.title)
+		lines.append("[color=#ebe2cc]%s[/color]" % Quests.step_text(tq))
 	for o in Game.objectives():
+		if lines.size() >= 3:
+			break
 		if not o[1]:
 			lines.append("[color=#c79bff]%s[/color]  ⚜" % o[0])
 			break
@@ -463,8 +470,25 @@ func _markers() -> Array:
 	for act in world.actors:
 		if not is_instance_valid(act):
 			continue
+		var mk := Quests.marker_for(act.id) if act.kind != "object" else ""
+		if mk == "!" or mk == "?":
+			out.append({"pos": act.global_position, "glyph": mk, "color": Palette.GOLD_BRIGHT if mk == "!" else Color(0.55, 1.0, 0.6), "label": act.label, "big": true})
+			continue
 		var col: Color = Palette.GOLD_BRIGHT if act.kind == "char" else (Palette.PARCHMENT if act.kind == "npc" else Color("7fd8ff"))
 		out.append({"pos": act.global_position, "glyph": "◆" if act.kind == "char" else ("●" if act.kind == "npc" else "▲"), "color": col, "label": act.label})
+	# gesuchte Sammelobjekte und Truhen
+	var wanted := {}
+	for q in Quests.active():
+		var st: Dictionary = Quests.step(q)
+		if String(st.get("type", "")) == "collect":
+			wanted[st.item] = true
+	for p in world.quest_world.pickups:
+		if not is_instance_valid(p) or p.global_position.distance_to(world.player.global_position) > 60.0:
+			continue
+		if p.kind == "chest":
+			out.append({"pos": p.global_position, "glyph": "▣", "color": Palette.GOLD, "label": "Truhe"})
+		elif not p.entries.is_empty() and wanted.has(p.entries[0][0]):
+			out.append({"pos": p.global_position, "glyph": "◆", "color": p.color, "label": p.label})
 	for e in world.enemies:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(world.player.global_position) < 45.0:
 			out.append({"pos": e.global_position, "glyph": "✕", "color": Palette.CRIMSON, "label": e.display_name})

@@ -141,7 +141,7 @@ func _controls_tab() -> Control:
 	var keys := [["WASD / Shift", "Gehen / Rennen"], ["Maus · Rad", "Kamera · Zoom"], ["LMB / RMB", "Leichter / schwerer Angriff"],
 		["Leertaste", "Ausweichrolle"], ["F", "Blocken (im rechten Moment: Parade)"], ["Q", "Ziel fixieren"],
 		["1–4, R", "Zauber"], ["X", "Ainz ↔ Momon"], ["E", "Sprechen / benutzen"], ["G", "Gate (Reisen)"], ["T", "Zeit verstreichen lassen"],
-		["Enter", "Nächste Depesche"], ["J", "Auftragstafel"], ["M", "Weltkarte & Legionen"], ["P", "Diplomatie"],
+		["Enter", "Nächste Depesche"], ["J", "Questbuch"], ["K", "Entsendungen der Wächter"], ["M", "Weltkarte & Legionen"], ["P", "Diplomatie"],
 		["V", "Verwaltung"], ["N", "Nazarick (Ausbau, Schatzkammer)"], ["U", "Wächter & Audienzen"], ["C", "Chronik"],
 		["Tab", "Wochenziele & Herzenskrieg"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"],
 		["F11", "Vollbild umschalten"], ["Esc", "Menü / Fenster schließen"]]

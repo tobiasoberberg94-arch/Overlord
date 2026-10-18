@@ -39,6 +39,10 @@ func _ready() -> void:
 	for c in w.overlay_layer.get_children():
 		c.queue_free()
 	var only := OS.get_environment("LOC")
+	if only == "quest":
+		await _quest_test(w)
+		get_tree().quit()
+		return
 	if only == "compare":
 		await _compare(w)
 		get_tree().quit()
@@ -179,6 +183,76 @@ func _ready() -> void:
 		assert(Game.state.world3d.loc == "throne")
 	print("3D-RAUCHTEST OK")
 	get_tree().quit()
+
+
+## Questablauf: annehmen (NPC), sammeln, töten + Beute, abgeben, Questbuch.
+func _quest_test(w: Node) -> void:
+	Game.state.chapter = 2
+	await w.load_location("carne")
+	await _wait(1.5)
+	var nf: Actor3D = null
+	for a in w.actors:
+		if a.id == "nfirea":
+			nf = a
+	assert(nf != null, "Nfirea sollte in Carne stehen")
+	print("QUEST Marker Nfirea: '%s'" % Quests.marker_for("nfirea"))
+	w.player.global_position = nf.global_position + Vector3(0, 0.2, 2.2)
+	w.player.cam_yaw = 0.0
+	await _wait(1.0)
+	_shot("quest_giver")
+	w._interact(nf)
+	await _wait(1.5)
+	_shot("quest_offer")
+	var dlg = w.overlay_layer.get_child(0)
+	for b in dlg.find_children("*", "Button", true, false):
+		if (b as Button).text.contains("annehmen"):
+			(b as Button).pressed.emit()
+	await _wait(1.0)
+	assert(Quests.is_active("q_carne_herbs"), "Quest sollte laufen")
+	# Wald von Tob: Mondkraut sammeln
+	await w.load_location("tob_wald")
+	await _wait(2.0)
+	var herbs: Array = w.quest_world.pickups.filter(func(p): return p.entries[0][0] == "moonleaf")
+	print("QUEST Sammelstellen in Tob: %d (Mondkraut %d)" % [w.quest_world.pickups.size(), herbs.size()])
+	if not herbs.is_empty():
+		w.player.global_position = herbs[0].global_position + Vector3(0, 0.3, 1.2)
+		await _wait(1.0)
+		_shot("quest_pickup")
+	for p in herbs.slice(0, 8):
+		w.quest_world.collect(p)
+	await _wait(0.5)
+	print("QUEST Mondkraut im Beutel: %d · Schritt: %s" % [Quests.count("moonleaf"), Quests.step_text(Quests.by_id.q_carne_herbs)])
+	# Wölfe: Beute
+	for e in w.enemies.duplicate():
+		e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
+	await _wait(1.0)
+	var bags: Array = w.quest_world.pickups.filter(func(p): return p.kind == "bag")
+	print("QUEST Beutebeutel nach Wolfskampf: %d" % bags.size())
+	for b in bags:
+		w.quest_world.collect(b)
+	print("QUEST Beutel: ", Quests.bag())
+	await w.load_location("carne")
+	await _wait(1.5)
+	for a in w.actors:
+		if a.id == "nfirea":
+			nf = a
+	print("QUEST Marker Nfirea vor Abgabe: '%s'" % Quests.marker_for("nfirea"))
+	w._interact(nf)
+	await _wait(1.0)
+	dlg = w.overlay_layer.get_child(0)
+	for b in dlg.find_children("*", "Button", true, false):
+		if (b as Button).text.contains("Übergeben"):
+			(b as Button).pressed.emit()
+	await _wait(1.5)
+	_shot("quest_done")
+	print("QUEST Zustand: %s · Gold %d" % [Quests.state_of("q_carne_herbs"), int(Game.state.resources.gold)])
+	for c in w.overlay_layer.get_children():
+		c.queue_free()
+	await _wait(0.3)
+	w._open(QuestJournal.new())
+	await _wait(1.2)
+	_shot("quest_journal")
+	print("QUEST-TEST " + ("OK" if Quests.state_of("q_carne_herbs") == "done" else "FEHLGESCHLAGEN"))
 
 
 ## Renderer-Vergleich: feste Ansichten ohne Oberfläche, Dateiname mit Renderer

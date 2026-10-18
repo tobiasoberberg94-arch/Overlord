@@ -93,9 +93,59 @@ static func add_collision(root: Node) -> void:
 		if String(m.name).begins_with("nocol_") or String(m.get_parent().name).begins_with("nocol_"):
 			m.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF if not Settings.particles else GeometryInstance3D.SHADOW_CASTING_SETTING_ON
 			continue
+		if _is_tree(String(m.name)) and _trunk_collision(m):
+			continue
 		m.create_trimesh_collision()
 	if root is MeshInstance3D:
 		(root as MeshInstance3D).create_trimesh_collision()
+
+
+## Bäume (Unreal-/Kit-Namen): nur der Stamm kollidiert – Äste und Laub sonst unsichtbare Wände.
+static func _is_tree(n: String) -> bool:
+	var l := n.to_lower()
+	return l.contains("tree") or l.contains("spruce") or l.contains("pine") or l.contains("palm") or l.contains("birch")
+
+
+## Zylinder um die Punkte des Meshes bis 1,2 m über seiner Unterkante (= Stamm).
+static func _trunk_collision(m: MeshInstance3D) -> bool:
+	if m.mesh == null:
+		return false
+	var xf := m.global_transform
+	var pts: Array[Vector3] = []
+	var lo := INF
+	for s in m.mesh.get_surface_count():
+		var arr := m.mesh.surface_get_arrays(s)
+		for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
+			var w := xf * v
+			pts.append(w)
+			lo = minf(lo, w.y)
+	if pts.size() < 8:
+		return false
+	var c := Vector2.ZERO
+	var n := 0
+	for w in pts:
+		if w.y < lo + 1.2:
+			c += Vector2(w.x, w.z)
+			n += 1
+	if n == 0:
+		return false
+	c /= n
+	var r := 0.0
+	for w in pts:
+		if w.y < lo + 1.2:
+			r = maxf(r, Vector2(w.x, w.z).distance_to(c))
+	r = clampf(r * 0.8, 0.15, 1.6)
+	var body := StaticBody3D.new()
+	body.name = String(m.name) + "_stamm"
+	var cs := CollisionShape3D.new()
+	var cyl := CylinderShape3D.new()
+	cyl.radius = r
+	cyl.height = 4.0
+	cs.shape = cyl
+	body.add_child(cs)
+	m.get_parent().add_child(body)
+	body.global_transform = Transform3D(Basis(), Vector3(c.x, lo + 2.0, c.y))
+	return true
 
 
 ## Liste aller erwarteten Modelle mit Status (für README/Debug).

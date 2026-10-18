@@ -67,7 +67,7 @@ func setup_combat(is_pl: bool) -> void:
 #  Bewegung mit Stufen
 # =====================================================================
 
-const STEP_HEIGHT := 0.45
+const STEP_HEIGHT := 0.55
 
 ## move_and_slide mit Treppensteigen: blockiert eine niedrige Kante (Teppichrand, Stufe, Schwelle)
 ## die Bewegung, wird geprüft, ob der Körper STEP_HEIGHT höher frei weiterkommt und dort Boden findet.

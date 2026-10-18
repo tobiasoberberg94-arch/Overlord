@@ -98,6 +98,25 @@ put("SM_GateWall01", cx, cy + 2.0, z=gz + 1.4, rot=0, s=0.9)       # Eingang in 
 BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "MW_tree_02", "MW_tree_03", "FV_tree_01"]
 kit.forest((-HALF + 4, -HALF + 4, HALF - 4, HALF - 4), BIG, 160, min_d=6.0, s=(0.9, 1.4), threshold=0.25,
            density_scale=0.03, under=["SM_Bush07", "SM_Foliage_6", "MW_bush"], under_n=3)
+# Waldgürtel als natürliche Grenze: ab ~75 m rings um die Anlage immer dichter, Lücke nur für die Straße
+RING = BIG + ["SM_Tree05", "SM_Tree06", "FV_tree_02", "SM_ChurchTree01"]
+placed_ring = 0
+for _ in range(9000):
+    x, y = rng.uniform(-HALF + 3, HALF - 3), rng.uniform(-HALF + 3, HALF - 3)
+    d = math.hypot(x - C[0], y - C[1] + 10)
+    if d < 72 or (abs(x) < 7 and y < -60):
+        continue
+    if rng.random() > min(1.0, (d - 72) / 30.0):
+        continue
+    if not kit.free(x, y, 3.2):
+        continue
+    put(rng.choice(RING), x, y, rot=rng.uniform(0, 360), s=rng.uniform(0.9, 1.6), sink=0.2)
+    kit.occupy(x, y, 2.6)
+    placed_ring += 1
+    if rng.random() < 0.6:
+        put(rng.choice(["SM_Bush07", "SM_Foliage_6", "MW_bush", "SM_Bush01"]), x + rng.uniform(-2.5, 2.5), y + rng.uniform(-2.5, 2.5),
+            rot=rng.uniform(0, 360), s=rng.uniform(0.9, 1.5), nocol=True)
+print("OVERLORD waldguertel", placed_ring)
 ALL = (-HALF + 2, -HALF + 2, HALF - 2, HALF - 2)
 kit.grass(ALL, 42000, s=(0.9, 1.7))
 kit.grass(ALL, 6000, kind="@flower", s=(0.8, 1.2))

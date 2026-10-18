@@ -1,0 +1,338 @@
+class_name QuestWorld
+extends Node
+## Bindet das Questsystem (Quests-Autoload) an die 3D-Welt: Questgeber-NPCs und ihre Markierungen,
+## Sammelstellen, Truhen und Einzigartiges, Gegner-Beute, Gespräche, Anschlagtafeln.
+## Gehört zu world_3d.gd (w); wird je Ort neu befüllt.
+
+const RESPAWN_DAYS := {"chest": 7}
+const MATERIAL_RESPAWN := 3
+## Feste Fundorte einzigartiger Gegenstände (Godot-Koordinaten), sonst Zufallsplatz
+const UNIQUE_POS := {"goblin_horn": Vector3(-31.0, 0.0, -21.0)}
+
+var w: Node
+var pickups: Array[Pickup] = []
+
+
+func _init(world: Node) -> void:
+	w = world
+	name = "QuestWorld"
+
+
+func _ready() -> void:
+	Quests.completed.connect(_on_completed)
+	Quests.step_done.connect(func(_id, text): w.toast("✔ " + text, Palette.SUCCESS))
+	Quests.changed.connect(refresh_marks)
+
+
+func clear() -> void:
+	pickups.clear()
+
+
+# ------------------------------------------------------------------ Aufbau je Ort
+
+## Questgeber, die hier stehen (nach data/quests.json → givers).
+func spawn_givers(slots: Array) -> void:
+	for gid in Quests.data.get("givers", {}):
+		var g: Dictionary = Quests.data.givers[gid]
+		if g.get("loc", "") != w.loc.id or g.get("keeper", false):
+			continue
+		var pos: Vector3
+		var si := int(g.get("slot", 0))
+		if si < slots.size():
+			pos = slots[si]
+		else:
+			pos = w.anchors.spawn + Vector3(randf_range(-6, 6), 0, randf_range(-12, -4))
+		var a := Actor3D.character(gid, "", 2.25)
+		a.prompt = "Sprechen"
+		a.wander_radius = 2.0
+		w._add_actor(a, pos)
+	refresh_marks()
+
+
+## Sammelstellen/Truhen auf festen (je Ort gleichen) Plätzen, sobald die Kollision bereitsteht.
+func spawn_pickups() -> void:
+	await w.get_tree().physics_frame
+	await w.get_tree().physics_frame
+	if not is_instance_valid(w.level):
+		return
+	var lid: String = w.loc.id
+	var list: Array = Quests.data.get("pickups", {}).get(lid, [])
+	var total := 0
+	for e in list:
+		total += int(e[1])
+	var picked: Dictionary = _picked()
+	var day := int(Game.state.day)
+	var spots := _spots(total + 6, hash(lid))
+	var idx := 0
+	for e in list:
+		for i in int(e[1]):
+			if idx >= spots.size():
+				break
+			var key := "%s:%d" % [lid, idx]
+			var pos: Vector3 = spots[idx]
+			idx += 1
+			var wait := int(RESPAWN_DAYS.get(e[0], MATERIAL_RESPAWN))
+			if picked.has(key) and day - int(picked[key]) < wait:
+				continue
+			var p := Pickup.chest() if e[0] == "chest" else Pickup.material_pickup(e[0], 1)
+			p.key = key
+			_place(p, pos)
+	# Einzigartiges für laufende Quests
+	for item in Quests.data.get("uniques", {}):
+		var u: Dictionary = Quests.data.uniques[item]
+		var locs: Array = u.get("locs", [u.get("loc", "")])
+		if not lid in locs or not Quests.is_active(u.quest):
+			continue
+		var key := "u:%s:%s" % [item, lid]
+		if picked.has(key):
+			continue
+		var pos: Vector3
+		if UNIQUE_POS.has(item) and lid == u.get("loc", ""):
+			pos = _ground_at(UNIQUE_POS[item])
+		elif u.get("near", "") != "" and w.anchors.has(u.near):
+			pos = _ground_at(w.anchors[u.near] + Vector3(1.2, 0, 1.2))
+		elif idx < spots.size():
+			pos = spots[idx]
+			idx += 1
+		else:
+			continue
+		var p := Pickup.material_pickup(item, 1)
+		p.key = key
+		p.radius = 2.0
+		_place(p, pos)
+
+
+func _place(p: Pickup, pos: Vector3) -> void:
+	p.position = pos
+	p.rotation.y = randf() * TAU
+	w.level.add_child(p)
+	pickups.append(p)
+
+
+func _picked() -> Dictionary:
+	if not Game.state.has("picked"):
+		Game.state["picked"] = {}
+	return Game.state.picked
+
+
+## Begehbare Plätze: Strahl nach unten trifft flachen Boden, frei nach oben (draußen) bzw. unter der
+## Decke (Nazarick), Sichtlinie zu einem Anker, Abstand zueinander und zum Spawn.
+func _spots(n: int, seed_v: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
+	var seeds: Array = [w.anchors.spawn]
+	seeds += w.anchors.get("slots", [])
+	if w.anchors.has("keeper"):
+		seeds.append(w.anchors.keeper)
+	var indoor: bool = w.loc.group == "nazarick" or w.loc.get("kind", "") in ["city", "palace", "cathedral"]
+	var reach := 18.0 if indoor else 48.0
+	var out: Array = []
+	var tries := 0
+	while out.size() < n and tries < n * 40:
+		tries += 1
+		var s: Vector3 = seeds[rng.randi() % seeds.size()]
+		var a := rng.randf() * TAU
+		var r := rng.randf_range(3.0, reach)
+		var x := s.x + cos(a) * r
+		var z := s.z + sin(a) * r
+		var top := Vector3(x, s.y + (2.4 if indoor else 40.0), z)
+		var rq := PhysicsRayQueryParameters3D.create(top, Vector3(x, s.y - 8.0, z))
+		var hit := space.intersect_ray(rq)
+		if hit.is_empty() or hit.normal.y < 0.85:
+			continue
+		var p: Vector3 = hit.position
+		if absf(p.y - s.y) > (2.5 if indoor else 12.0):
+			continue
+		var los := PhysicsRayQueryParameters3D.create(s + Vector3(0, 1.0, 0), p + Vector3(0, 1.0, 0))
+		if not space.intersect_ray(los).is_empty():
+			continue
+		if p.distance_to(w.anchors.spawn) < 5.0:
+			continue
+		var ok := true
+		for o in out:
+			if (o as Vector3).distance_to(p) < 4.0:
+				ok = false
+				break
+		if ok:
+			out.append(p)
+	return out
+
+
+func _ground_at(p: Vector3) -> Vector3:
+	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
+	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3(0, 30, 0), p + Vector3(0, -30, 0)))
+	return hit.position if not hit.is_empty() else p
+
+
+# ------------------------------------------------------------------ Laufzeit
+
+## Nächstes Aufhebbares in Reichweite (für den Interaktionshinweis); Beutel werden im Vorbeigehen eingesammelt.
+func nearest(pos: Vector3) -> Pickup:
+	var best: Pickup = null
+	var bd := INF
+	for p in pickups.duplicate():
+		if not is_instance_valid(p):
+			pickups.erase(p)
+			continue
+		var d := Vector2(p.global_position.x - pos.x, p.global_position.z - pos.z).length()
+		if p.auto and d < 1.3:
+			collect(p)
+			continue
+		if d < p.radius and d < bd:
+			best = p
+			bd = d
+	return best
+
+
+func collect(p: Pickup) -> void:
+	var lines := PackedStringArray()
+	for e in p.entries:
+		match String(e[0]):
+			"gold":
+				Game.apply_effects({"res": {"gold": int(e[2])}})
+				lines.append("+%d Gold" % int(e[2]))
+			"item":
+				if String(e[1]) != "":
+					Progress.grant_item(String(e[1]), "Fund: " + p.label)
+			_:
+				Quests.on_pickup(String(e[0]), int(e[2]))
+				var d: Dictionary = Quests.material(String(e[0]))
+				lines.append("+%d %s" % [int(e[2]), d.get("name", e[0])])
+	if p.key != "":
+		_picked()[p.key] = int(Game.state.day)
+	Audio.sfx("loot", 0.6)
+	if not lines.is_empty():
+		w.toast("  ".join(lines), p.color.lerp(Palette.GOLD_BRIGHT, 0.4))
+	pickups.erase(p)
+	var tw := p.create_tween()
+	tw.tween_property(p, "scale", Vector3.ONE * 0.01, 0.25).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tw.tween_callback(p.queue_free)
+	w._refresh_hud()
+
+
+## Gegner besiegt: Quest-Fortschritt + Beutebeutel.
+func on_enemy_defeated(e: Enemy3D) -> void:
+	Quests.on_kill(e.type_id, w.loc.id)
+	var loot := Quests.roll_loot(e.type_id)
+	if loot.is_empty():
+		return
+	var bag := Pickup.loot_bag(loot)
+	bag.position = e.global_position + Vector3(randf_range(-0.4, 0.4), 0.02, randf_range(-0.4, 0.4))
+	w.level.add_child(bag)
+	pickups.append(bag)
+
+
+# ------------------------------------------------------------------ Gespräche
+
+const MERCHANTS := ["lizzie", "guild_clerk", "enri"]
+
+
+## Gespräch mit einer Figur. Gibt true zurück, wenn ein Quest-Dialog geöffnet wurde.
+func talk(a: Actor3D) -> bool:
+	var before := {}
+	for q in Quests.active():
+		before[q.id] = true
+	Quests.on_talk(a.id)
+	# Abgabe
+	for q in Quests.turnins_at(a.id):
+		var qid: String = q.id
+		_dialog(a, q.get("progress", "…") + "\n\n[color=#d4af37]Ihr habt alles beisammen.[/color]", [
+			{"text": "⚜  Übergeben", "action": func(): _hand_in(a, qid)}])
+		return true
+	# soeben per Gespräch abgeschlossen?
+	for qid in before:
+		if Quests.state_of(qid) == "done":
+			_dialog(a, Quests.by_id[qid].get("done", "Gut gemacht."), [])
+			return true
+	# Angebot
+	var offers := Quests.offers_of(a.id)
+	if not offers.is_empty():
+		var q: Dictionary = offers[0]
+		var qid: String = q.id
+		var acts := [{"text": "✦  Auftrag annehmen: " + q.title, "action": func(): Quests.accept(qid); w.toast("Neuer Auftrag: " + Quests.by_id[qid].title, Palette.GOLD_BRIGHT)}]
+		if a.kind == "char":
+			acts.append({"text": "Audienz", "action": func(): w._open(CharacterView.new(a.id))})
+		_dialog(a, q.offer, acts)
+		return true
+	# laufende Quest dieser Figur: Erinnerung
+	for q in Quests.active():
+		if q.get("giver", "") == a.id or String(Quests.step(q).get("npc", "")) == a.id:
+			var acts2 := []
+			if a.kind == "char":
+				acts2.append({"text": "Audienz", "action": func(): w._open(CharacterView.new(a.id))})
+			_merchant_action(a, acts2)
+			_dialog(a, String(q.get("progress", "")) + "\n\n[color=#8f86a3]" + Quests.step_text(q) + "[/color]", acts2)
+			return true
+	if a.id in MERCHANTS and a.kind == "npc":
+		var acts3 := []
+		_merchant_action(a, acts3)
+		_dialog(a, a.line if a.line != "" else "Womit kann ich dienen, Herr Momon?", acts3)
+		return true
+	return false
+
+
+func _merchant_action(a: Actor3D, acts: Array) -> void:
+	if not a.id in MERCHANTS:
+		return
+	var value := 0
+	for m in Quests.bag():
+		var d := Quests.material(m)
+		if not d.get("unique", false):
+			value += Quests.count(m) * int(d.get("value", 1))
+	if value > 0:
+		acts.append({"text": "◈  Materialien verkaufen (~%d Gold)" % value, "action": func():
+			var g := Quests.sell_all()
+			w.toast("Verkauft: +%d Gold" % g, Palette.GOLD_BRIGHT)})
+
+
+func _hand_in(a: Actor3D, qid: String) -> void:
+	if Quests.hand_in(qid) and Quests.state_of(qid) == "done":
+		_dialog(a, Quests.by_id[qid].get("done", "Danke."), [])
+
+
+func _dialog(a: Actor3D, text: String, actions: Array) -> void:
+	w._open(TalkDialog.new(a.id, text, actions))
+
+
+func _on_completed(qid: String) -> void:
+	var q: Dictionary = Quests.by_id[qid]
+	var r: Dictionary = q.get("rewards", {})
+	var parts := PackedStringArray()
+	if r.has("gold"):
+		parts.append("+%d Gold" % int(r.gold))
+	for k in r.get("res", {}):
+		parts.append("%s +%d" % [Game.RESOURCE_LABELS.get(k, k), int(r.res[k])])
+	if String(r.get("item", "")) != "":
+		parts.append("Gegenstand")
+	Progress.celebrate.emit({"kind": "achievement", "title": "Auftrag erfüllt", "text": q.title, "sub": " · ".join(parts),
+		"icon": "⚜", "color": Palette.GOLD_BRIGHT})
+	refresh_marks()
+
+
+## "!"/"?" über den Köpfen der Questgeber.
+func refresh_marks() -> void:
+	if not is_instance_valid(w) or w.actors.is_empty():
+		return
+	for a in w.actors:
+		if is_instance_valid(a) and a.kind != "object":
+			a.set_quest_mark(Quests.marker_for(a.id))
+
+
+## Anschlagtafel: Kopfgelder des Ortes.
+func board_menu() -> bool:
+	var qs := Quests.board_quests(w.loc.id)
+	if qs.is_empty():
+		return false
+	var entries: Array = []
+	for q in qs:
+		var qid: String = q.id
+		if Quests.is_active(qid):
+			entries.append({"text": "…  %s" % q.title, "sub": Quests.step_text(q), "disabled": true, "action": func(): pass})
+		else:
+			var r: Dictionary = q.get("rewards", {})
+			entries.append({"text": "✦  %s" % q.title, "sub": "%s  · Lohn: %d Gold" % [q.offer, int(r.get("gold", 0))], "style": "ButtonPrimary",
+				"action": func(): Quests.accept(qid); w.toast("Kopfgeld angenommen: " + Quests.by_id[qid].title, Palette.GOLD_BRIGHT)})
+	entries.append({"text": "⚑  Lage der Region", "action": func(): w._region_menu_info()})
+	w._open(ChoiceMenu.new("Anschlagtafel", "Aushänge und Kopfgelder", entries, 860))
+	return true
