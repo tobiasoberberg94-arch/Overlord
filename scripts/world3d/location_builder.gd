@@ -303,6 +303,8 @@ static var _grass_on := false
 const GRASS_TINT := {
 	"grassland": {},
 	"forest": {"tip_col": Color(0.26, 0.42, 0.10), "lush_col": Color(0.14, 0.32, 0.07), "dry_amount": 0.25, "density": 0.45},
+	"mountain": {"tip_col": Color(0.34, 0.42, 0.16), "lush_col": Color(0.2, 0.32, 0.1), "dry_col": Color(0.5, 0.46, 0.3), "dry_amount": 0.6, "density": 0.45},
+	"peaks": {"tip_col": Color(0.42, 0.42, 0.26), "lush_col": Color(0.26, 0.3, 0.14), "dry_col": Color(0.56, 0.52, 0.36), "dry_amount": 0.8, "density": 0.3},
 	"battlefield": {"tip_col": Color(0.42, 0.40, 0.22), "lush_col": Color(0.26, 0.28, 0.12), "dry_col": Color(0.52, 0.46, 0.28), "dry_amount": 0.85, "density": 0.45},
 	"swamp": {"tip_col": Color(0.30, 0.38, 0.12), "lush_col": Color(0.16, 0.28, 0.08), "dry_col": Color(0.40, 0.36, 0.18), "dry_amount": 0.5, "density": 0.6},
 	"cemetery": {"tip_col": Color(0.30, 0.36, 0.14), "lush_col": Color(0.18, 0.26, 0.10), "dry_col": Color(0.42, 0.38, 0.22), "dry_amount": 0.7, "density": 0.7},
@@ -507,7 +509,7 @@ static func preset(kind: String) -> Dictionary:
 		"forest": return {"sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.6, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.14, "contrast": 1.07, "exposure": 1.05}
 		"swamp": return {"sky_top": Color(0.32, 0.42, 0.48), "sky_energy": 0.85, "sky_ambient": true, "ambient": Color(0.5, 0.58, 0.48), "ambient_energy": 0.7, "fog": Color(0.55, 0.62, 0.52), "fog_density": 0.018, "vol_fog": 1.8, "gi": 1.0, "lamp": 0.7, "lamp_range": 9.0, "sun": Color(1.0, 0.86, 0.62), "sun_energy": 1.2, "sun_rot": Vector3(-22, 70, 0), "shadow_dist": 90.0, "saturation": 1.05, "contrast": 1.08, "exposure": 1.05}
 		"battlefield": return {"sky_top": Color(0.36, 0.38, 0.46), "sky_energy": 0.8, "sky_ambient": true, "ambient": Color(0.55, 0.55, 0.62), "ambient_energy": 0.7, "fog": Color(0.58, 0.58, 0.66), "fog_density": 0.014, "vol_fog": 1.5, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(0.92, 0.86, 0.82), "sun_energy": 1.0, "sun_rot": Vector3(-24, 130, 0), "shadow_dist": 90.0, "saturation": 0.8, "contrast": 1.1, "exposure": 1.0}
-		"mountain", "peaks": return {"sky_top": Color(0.15, 0.3, 0.6), "sky_energy": 0.8, "ambient": Color(0.5, 0.55, 0.65), "ambient_energy": 0.5, "exposure": 0.85, "fog": Color(0.6, 0.65, 0.75), "fog_density": 0.012, "sun": Color(0.9, 0.95, 1.0), "sun_energy": 1.0}
+		"mountain", "peaks": return {"sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.004, "vol_fog": 1.0, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.08, "contrast": 1.08}
 	return {}
 
 
