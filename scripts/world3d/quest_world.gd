@@ -102,6 +102,98 @@ func spawn_pickups() -> void:
 		_place(p, pos)
 
 
+## Entdeckungen des Ortes (data/discoveries.json): an festen Zufallsplätzen abseits der Wege.
+func spawn_discoveries() -> void:
+	await w.get_tree().physics_frame
+	await w.get_tree().physics_frame
+	if not is_instance_valid(w.level):
+		return
+	if _disc.is_empty():
+		var f := FileAccess.open("res://data/discoveries.json", FileAccess.READ)
+		if f:
+			_disc = JSON.parse_string(f.get_as_text())
+	var lid: String = w.loc.id
+	if w.loc.group == "nazarick" and not _disc.has(lid):
+		return
+	var d: Dictionary = _disc.get(lid, _disc.get("_default", {}))
+	var lore: Array = d.get("lore", [])
+	var n := lore.size() + int(d.get("shrines", 1)) + int(d.get("caches", 2))
+	var spots := _spots(n + 4, hash(lid + "entdeckung"))
+	var picked := _picked()
+	var i := 0
+	var shrine_names := ["Schrein der Sechs Götter", "Altar des Kriegers", "Quelle des Lebens"]
+	for e in lore:
+		if i >= spots.size():
+			return
+		var p := Pickup.discovery("lore", e[0], e[1])
+		p.key = "d:%s:%d" % [lid, i]
+		p.set_meta("done", picked.has(p.key))
+		_place(p, spots[i])
+		i += 1
+	for k in int(d.get("shrines", 1)):
+		if i >= spots.size():
+			return
+		var p := Pickup.discovery("shrine", shrine_names[k % shrine_names.size()], "")
+		p.key = "d:%s:%d" % [lid, i]
+		p.set_meta("done", picked.has(p.key) and int(Game.state.day) - int(picked[p.key]) < 1)
+		_place(p, spots[i])
+		i += 1
+	for k in int(d.get("caches", 2)):
+		if i >= spots.size():
+			return
+		var key := "d:%s:%d" % [lid, i]
+		if not picked.has(key):
+			var p := Pickup.discovery("cache", "Versteckter Schatz", "")
+			p.key = key
+			_place(p, spots[i])
+		i += 1
+
+
+var _disc: Dictionary = {}
+
+
+## Inschrift lesen / am Schrein beten. Gibt true zurück, wenn die Entdeckung behandelt wurde.
+func _discover(p: Pickup) -> bool:
+	var first := not _picked().has(p.key)
+	match p.kind:
+		"lore":
+			w._open(LoreDialog.new(p.label, String(p.get_meta("text", ""))))
+			if first:
+				Game.apply_effects({"res": {"info": 1}})
+				Progress.bump("discoveries")
+				w.toast("Entdeckt: %s  (+1 Wissen)" % p.label, Color(0.55, 0.85, 1.0))
+			_picked()[p.key] = int(Game.state.day)
+			p.set_meta("done", true)
+			return true
+		"shrine":
+			if bool(p.get_meta("done", false)):
+				w.toast("Der Schrein schweigt. Kommt morgen wieder.", Palette.MUTED)
+				return true
+			var pl = w.player
+			match p.label:
+				"Altar des Kriegers":
+					pl.shield_time = maxf(pl.shield_time, 90.0)
+					w.toast("Segen des Kriegers: eine Barriere schützt Euch 90 s.", Color(1.0, 0.86, 0.5))
+				"Quelle des Lebens":
+					pl.mana = pl.max_mana
+					pl.stamina = pl.max_stamina
+					w.toast("Quelle des Lebens: Mana und Ausdauer erneuert.", Color(0.6, 0.9, 1.0))
+				_:
+					pl.hp = pl.max_hp
+					pl.mana = pl.max_mana
+					w.toast("Segen der Sechs Götter: vollständig geheilt. (Wie ironisch.)", Color(1.0, 0.86, 0.5))
+			if first:
+				Progress.bump("discoveries")
+			_picked()[p.key] = int(Game.state.day)
+			p.set_meta("done", true)
+			Audio.sfx("levelup", 0.5)
+			return true
+		"cache":
+			Progress.bump("discoveries")
+			w._show_banner("Versteckter Schatz", "Unter den Steinen lag etwas verborgen …")
+	return false
+
+
 func _place(p: Pickup, pos: Vector3) -> void:
 	p.position = pos
 	p.rotation.y = randf() * TAU
@@ -255,6 +347,8 @@ func nearest(pos: Vector3) -> Pickup:
 
 
 func collect(p: Pickup) -> void:
+	if p.kind in ["lore", "shrine", "cache"] and _discover(p):
+		return
 	var lines := PackedStringArray()
 	for e in p.entries:
 		match String(e[0]):

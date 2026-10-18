@@ -94,6 +94,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	_spawn_encounters()
 	quest_world.apply_story()
 	quest_world.spawn_pickups()
+	quest_world.spawn_discoveries()
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))

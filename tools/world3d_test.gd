@@ -67,6 +67,20 @@ func _ready() -> void:
 		Input.action_release("move_forward")
 		await _wait(0.5)
 		_shot("loc_%s" % l.id)
+		if OS.get_environment("DISC") != "":
+			await _wait(1.0)
+			var ds: Array = w.quest_world.pickups.filter(func(p): return p.kind in ["lore", "shrine", "cache"])
+			print("ENTDECKUNGEN %s: %d (%s)" % [l.id, ds.size(), ", ".join(ds.map(func(p): return p.kind + ":" + p.label))])
+			for p in ds:
+				if p.kind == "lore":
+					w.player.global_position = p.global_position + Vector3(0, 0.3, 2.2)
+					await _wait(1.0)
+					_shot("disc_" + l.id)
+					w.quest_world.collect(p)
+					await _wait(1.5)
+					_shot("disc_read_" + l.id)
+					w.overlay_layer.get_child(0).close()
+					break
 		if OS.get_environment("SHOTCAM") != "":
 			var v: PackedFloat64Array = PackedFloat64Array(Array(OS.get_environment("SHOTCAM").split(",")).map(func(x): return float(x)))
 			var cam := Camera3D.new()

@@ -485,7 +485,12 @@ func _markers() -> Array:
 	for p in world.quest_world.pickups:
 		if not is_instance_valid(p) or p.global_position.distance_to(world.player.global_position) > 60.0:
 			continue
-		if p.kind == "chest":
+		var dpl: float = p.global_position.distance_to(world.player.global_position)
+		if p.kind in ["lore", "shrine"] and not bool(p.get_meta("done", false)) and dpl < 55.0:
+			out.append({"pos": p.global_position, "glyph": "?", "color": p.color, "label": "Unentdeckt", "big": true})
+		elif p.kind == "cache" and dpl < 14.0:
+			out.append({"pos": p.global_position, "glyph": "?", "color": Palette.GOLD, "label": "Etwas glitzert"})
+		elif p.kind == "chest":
 			out.append({"pos": p.global_position, "glyph": "▣", "color": Palette.GOLD, "label": "Truhe"})
 		elif not p.entries.is_empty() and wanted.has(p.entries[0][0]):
 			out.append({"pos": p.global_position, "glyph": "◆", "color": p.color, "label": p.label})

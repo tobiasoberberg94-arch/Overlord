@@ -1,0 +1,54 @@
+{
+ "_info": "Entdeckungen je Ort (scripts/world3d/quest_world.gd → spawn_discoveries): lore = Inschriftensteine mit Texten, shrine = Schreine mit Segen, cache = versteckte Schätze. Fehlt ein Ort, gelten die Vorgaben unter _default.",
+ "_default": {"lore": [["Verwitterte Inschrift", "Die Schrift ist kaum noch zu lesen. Ein Name, ein Datum – und eine Warnung vor dem, was im Dunkeln wartet."]], "shrines": 1, "caches": 2},
+ "nazarick_land": {"shrines": 1, "caches": 3, "lore": [
+  ["Grabstein ohne Namen", "»Hier ruht, was nie lebte.« – Jemand hat diesen Spruch in den Stein gekratzt, lange bevor das Grab aus dem Sumpf auftauchte. Oder war es danach?"],
+  ["Spuren im Gras", "Kreisrunde Abdrücke, groß wie Wagenräder. Aura sagt, ihre Bestien seien hier nie gewesen. Mare sagt nichts."],
+  ["Alter Grenzstein", "»Bis hierher reicht das Land des Königs.« Die Schrift ist zur Hälfte abgeschlagen. Niemand in Nazarick erinnert sich, es getan zu haben."]]},
+ "tob_wald": {"shrines": 2, "caches": 4, "lore": [
+  ["Kratzspuren an der Rinde", "Tiefe Furchen, mannshoch. Der Weise König des Waldes markiert hier sein Revier – oder etwas, das ihn fürchtet."],
+  ["Elfenrune", "Eine Rune der Alten Elfen: »Wald, der sich erinnert«. Unter dem Moos glimmt sie noch schwach."],
+  ["Verlassenes Lager", "Eine erloschene Feuerstelle, zerrissene Zeltplanen, eine leere Feldflasche mit dem Wappen der Abenteurergilde. Was immer sie fanden, sie sind nicht zurückgekehrt."],
+  ["Hamsukes Futterstelle", "Ein Berg aus Nussschalen und abgenagten Knochen. Der Weise König des Waldes isst offenbar alles."]]},
+ "carne": {"shrines": 1, "caches": 2, "lore": [
+  ["Gedenkstein", "»Für die, die in jener Nacht fielen.« Die Namen der Dorfbewohner, die die Ritter der Theokratie erschlugen. Frische Blumen liegen davor."],
+  ["Goblin-Zeichen", "Kreidezeichen an der Wand: Jugems Goblins melden, dass der Wald ruhig ist. Darunter, krakelig: »Lob an Enri-Nee-san!«"]]},
+ "e_rantel": {"shrines": 1, "caches": 2, "lore": [
+  ["Steckbrief", "»Gesucht: Clementine, ehemals Schwarze Schrift.« Das Porträt zeigt ein lächelndes Gesicht. Jemand hat die Augen ausgekratzt."],
+  ["Gildenanschlag", "»Kupfer-Abenteurer gesucht für leichte Aufgaben. Momon, der Dunkle Held, nimmt keine Aufträge unter Mithril an.«"]]},
+ "erantel_friedhof": {"shrines": 1, "caches": 3, "lore": [
+  ["Gebrochenes Siegel", "Ein Bannkreis der Zurrernon, mit Blut gezogen. Er ist schon kalt – doch die Toten ringsum liegen unruhig in ihren Gräbern."],
+  ["Inschrift am Mausoleum", "»Der Tod ist kein Ende, sondern eine Tür.« – Khajit Dale Badantel hat diese Worte geliebt. Ainz-sama findet sie … geschmacklos."],
+  ["Kerzen auf einem Grab", "Jemand besucht dieses Grab jede Nacht. Die Kerzen brennen noch."]]},
+ "sumpf": {"shrines": 1, "caches": 3, "lore": [
+  ["Totem der Grünen Klaue", "Das Zeichen des Stammes von Zaryusu Shasha. Darunter Schuppen, Federn und ein Zahn – Opfergaben an die Ahnen."],
+  ["Fischreuse", "Eine kunstvoll geflochtene Reuse. Die Echsenmenschen züchten Fische – eine Kunst, die Zaryusu von seinen Reisen mitbrachte."]]},
+ "elfen": {"shrines": 2, "caches": 3, "lore": [
+  ["Thron aus Wurzeln", "Ein Sitz, aus lebendem Holz gewachsen. Wer hier saß, sah auf alle anderen herab. Die Elfen meiden ihn."],
+  ["Kinderzeichnung", "Zwei kleine Figuren mit dunkler Haut und spitzen Ohren, Hand in Hand. Darunter in elfischer Schrift: »Bruder und Schwester«."],
+  ["Ruinenschrift", "»Der Wald war vor den Königen. Der Wald wird nach den Königen sein.«"]]},
+ "katze": {"shrines": 1, "caches": 4, "lore": [
+  ["Zerbrochenes Banner", "Das Wappen eines Adelshauses von Re-Estize, verbrannt und zertreten. Hier stand ein Heer von zweihunderttausend Mann – einen Atemzug lang."],
+  ["Brief eines Soldaten", "»Liebste, morgen ziehen wir gegen das Kaiserreich. Man sagt, ein Magier sei bei ihnen. Ein einziger Magier – was soll er schon …« Der Brief endet hier."],
+  ["Knochen im Nebel", "Die Untoten der Katze-Ebene entstehen aus dem Hass der Gefallenen. Je mehr Schlachten, desto dichter der Nebel."]]},
+ "theokratie": {"shrines": 3, "caches": 2, "lore": [
+  ["Statue des Feuergottes", "Einer der Sechs Großen Götter. Die Inschrift spricht von »Spielern«, die vor sechshundert Jahren vom Himmel kamen. Ainz-sama liest sie zweimal."],
+  ["Gebet an der Kathedrale", "»Gebt uns Kraft gegen die Untoten, die das Licht verschlingen.« Ainz fühlt sich … persönlich angesprochen."]]},
+ "baharuth": {"shrines": 1, "caches": 2, "lore": [
+  ["Akademie-Anschlag", "»Fluder Paradyne, Magier des sechsten Ranges, sucht Schüler.« Daneben hat jemand gekritzelt: »Er sucht einen Lehrer.«"],
+  ["Gesetz des Kaisers", "»Wer Unfähigkeit zeigt, verliert seinen Titel.« Jircniv der Blutige Kaiser hat den halben Adel abgesetzt – und das Volk liebt ihn dafür."]]},
+ "roble": {"shrines": 2, "caches": 2, "lore": [
+  ["Steine der Mauer", "Hundert Jahre Arbeit. Die Große Mauer hält die Halbmenschen der Abelion-Hügel fern – bis jetzt."],
+  ["Gebetsbanner", "»Gerechtigkeit ist das Recht des Schwachen.« Neia Baraja hat diese Worte später anders gelesen."]]},
+ "azerlisia": {"shrines": 1, "caches": 4, "lore": [
+  ["Zwergenrune", "»Schmiede nur, was du ehrlich verkaufen kannst.« – Die Zwerge von Feo Jera nehmen ihre Handwerkerehre ernst."],
+  ["Quagoa-Kratzer", "Tunnel, gegraben mit bloßen Klauen. Die Quagoa fressen Erz – je seltener das Metall, desto stärker ihr Fell."]]},
+ "drachen": {"shrines": 1, "caches": 4, "lore": [
+  ["Drachenrippe", "Ein Knochen, länger als ein Haus. Die Drachenlords des Rates herrschen seit Jahrhunderten – aber auch sie sterben."],
+  ["Leere Rüstung", "Platin, glänzend wie neu, und doch ist niemand darin. Tsaindorcus Vaision spricht durch sie zu Menschen, die er nicht persönlich treffen will."]]},
+ "re_capital": {"shrines": 1, "caches": 2, "lore": [
+  ["Plakat der Acht Finger", "Ein Spielhaus, ein Bordell, ein Drogenmarkt – die Acht Finger besitzen die Unterwelt der Hauptstadt."],
+  ["Lobgesang", "Kinder singen ein Lied über Momon, der Jaldabaoth bezwang. Der Text ist schrecklich. Ainz behält ihn trotzdem."]]},
+ "glacier": {"shrines": 1, "caches": 2, "lore": [["Gefrorener Krieger", "Ein Krieger im Eis, die Klinge noch erhoben. Cocytus nennt ihn »einen würdigen Lehrmeister«."]]},
+ "jungle": {"shrines": 1, "caches": 3, "lore": [["Bäumchen mit Namensschild", "»Gepflanzt von Mare. Nicht gießen, sonst wächst es zu schnell.« – Aura hat das Schild geschrieben."]]}
+}

@@ -58,6 +58,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	ModelLib.add_collision(scene)
 	_grass_on = _grass_field(loc, scene)
 	_horizon(loc, scene)
+	AmbientLife.create(loc, scene)
 	_scatter_instances(loc, scene)
 	_ground_blend(scene)
 	_soft_cutouts(scene)
@@ -734,8 +735,10 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 			walk.append(p)
 		elif key.begins_with("idle_"):
 			idle.append(p)
-	if not walk.is_empty() or not idle.is_empty():
-		Townsfolk.spawn(root, walk, idle, hash(loc.id))
+	# Bewohner nur in Siedlungen; Städte voller als Dörfer
+	var crowd := {"city": 40, "palace": 34, "cathedral": 34, "village": 22, "wall": 16}
+	if (not walk.is_empty() or not idle.is_empty()) and crowd.has(loc.get("kind", "")):
+		Townsfolk.spawn(root, walk, idle, hash(loc.id), int(crowd[loc.kind]))
 	if loc.kind == "glacier":
 		# Schneefall rund um den Spieler-Startbereich und über dem Tempel
 		B3.motes(root, a.spawn + Vector3(0, 8, -20), Vector3(45, 8, 45), Color(0.95, 0.97, 1.0), 900 if Settings.particles else 250, 1.2)
