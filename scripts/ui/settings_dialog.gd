@@ -104,7 +104,7 @@ func _video_tab() -> Control:
 	p.add_child(_row("Bildrate begrenzen", _choice("max_fps", ["30 FPS", "60 FPS", "120 FPS", "Unbegrenzt"])))
 	p.add_child(_row("Partikel & Nebeleffekte", _check("particles", "anzeigen"), "Abschalten spart Leistung auf schwachen Rechnern (auch weniger Gras, Rauch und Bewohner)."))
 	p.add_child(_row("Kantenglättung", _choice("antialias", Settings.AA_MODES), "Glättet Kanten von Blättern, Gras und Gebäuden."))
-	p.add_child(_row("Renderauflösung", _choice("render_scale", Settings.RENDER_SCALE_NAMES), "FSR rechnet in kleinerer Auflösung und skaliert hoch – deutlich mehr FPS."))
+	p.add_child(_row("Renderauflösung", _choice("render_scale", Settings.RENDER_SCALE_NAMES), "FSR 2 (wie DLSS, für jede Grafikkarte): rendert kleiner und rechnet scharf hoch – deutlich mehr FPS. Ersetzt die Kantenglättung."))
 	p.add_child(_row("Größe der Oberfläche", _slider("ui_scale", 0.8, 1.3, 0.05), "Wird beim Loslassen des Reglers angewendet."))
 	return p
 

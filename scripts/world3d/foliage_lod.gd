@@ -38,7 +38,7 @@ func add_group(meshes: Array, tiles: Dictionary, ranges: Array, shadow: bool) ->
 			var mmi := MultiMeshInstance3D.new()
 			mmi.multimesh = mm
 			# ferne Stufe ohne Schatten (liegt ohnehin hinter der Schattenreichweite)
-			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow and lvl < 2 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if shadow and lvl == 0 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
 			add_child(mmi)
 			tile.mm.append(mm)

@@ -119,7 +119,7 @@ static func _lod_trees(scene: Node3D, base: String, mats: Array, templates: Dict
 	var big := maxf(aabb.size.y, maxf(aabb.size.x, aabb.size.z))
 	var ranges: Array = TREE_LODS if big >= 6.0 else (BUSH_LODS if big >= 1.5 else FLOWER_LODS)
 	var solid := big >= 6.0                    # nur Bäume bekommen einen Stamm zum Anstoßen
-	var tile := SCATTER_TILE * (2.0 if big >= 6.0 else 1.0)
+	var tile := SCATTER_TILE * (3.0 if big >= 6.0 else 1.5)   # große Kacheln = wenige Draw Calls
 	var tiles := {}
 	var k := 0
 	for m in mats:
@@ -434,10 +434,10 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	sun.light_energy = float(preset.get("sun_energy", 0.6))
 	sun.rotation_degrees = preset.get("sun_rot", Vector3(-50, 35, 0))
 	sun.shadow_enabled = Settings.particles and OS.get_environment("OVERLORD_NOSHADOW") == ""
-	sun.directional_shadow_max_distance = minf(float(preset.get("shadow_dist", 60.0)), 90.0)
-	sun.directional_shadow_split_1 = 0.08
-	sun.directional_shadow_split_2 = 0.22
-	sun.directional_shadow_split_3 = 0.5
+	sun.directional_shadow_max_distance = minf(float(preset.get("shadow_dist", 60.0)), 70.0)
+	# 2 Kaskaden statt 4: jede schattenwerfende Kachel wird je Kaskade erneut gezeichnet (Draw Calls/CPU)
+	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
+	sun.directional_shadow_split_1 = 0.22
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_fade_start = 0.85
 	sun.shadow_blur = 1.5

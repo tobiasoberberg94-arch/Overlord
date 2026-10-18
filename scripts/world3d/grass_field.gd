@@ -5,12 +5,12 @@ extends Node3D
 ## mittlere Entfernung ausgedünnt, dahinter übernimmt der Boden. Höhe und Wegmaske kommen aus dem
 ## Gelände-Mesh (Ground, tools/pipeline/loc_kit.py), auf Bauwerken/Felsen wächst nichts (Strahltest).
 
-const CHUNK := 8.0
+const CHUNK := 16.0
 const NEAR := 20.0              ## volle Dichte
 const FAR := 54.0               ## ausgedünnt bis hier
 const DENSITY := 10.0           ## Büschel je m² (nah)
 const FLOWERS := 0.35           ## Blumen je m²
-const BUILD_PER_FRAME := 2
+const BUILD_PER_FRAME := 1
 
 var _h: PackedFloat32Array      ## Höhe je Gitterpunkt
 var _m: PackedFloat32Array      ## Wegmaske je Gitterpunkt

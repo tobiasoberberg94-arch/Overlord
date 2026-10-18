@@ -9,6 +9,10 @@ var shots_dir := "res://tools/screenshots3d/"
 func _ready() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(shots_dir))
 	Settings.tutorial_done = true
+	if OS.get_environment("RSCALE") != "":
+		Settings.render_scale = int(OS.get_environment("RSCALE"))
+		Settings.antialias = 2
+		Settings.apply_all()
 	var only_env := OS.get_environment("LOC")
 	if only_env == "gallery":
 		await _gallery()
@@ -66,6 +70,8 @@ func _ready() -> void:
 			" VRAM ", int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576), " MB")
 		if OS.get_environment("PERF") != "":
 			_perf_detail(w)
+		if OS.get_environment("CPU") != "":
+			await _cpu_profile(w)
 	if only == "" or only == "combat" or only == "ui":
 		# Kampf auf der Katze-Ebene
 		await w.load_location("katze")
@@ -278,6 +284,63 @@ func _compare(w: Node) -> void:
 	_shot("cmp_%s_albedo" % tag)
 	await _wait(2.0)
 	print("Vergleich OK: ", tag, " – FPS im Thronsaal: ", Engine.get_frames_per_second())
+
+
+## CPU-Zeiten je Bild: Skripte (process), Physik, Rendering-Vorbereitung; dazu teuerste Knotentypen.
+func _cpu_profile(w: Node) -> void:
+	await _wait(4.0)
+	var acc := {"process": 0.0, "physics": 0.0, "nav": 0.0}
+	for i in 60:
+		await get_tree().process_frame
+		acc.process += Performance.get_monitor(Performance.TIME_PROCESS)
+		acc.physics += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS)
+	print("CPU ms/Bild: Skripte %.1f · Physik %.1f · Bild gesamt %.1f · Objekte %d · Knoten %d · Physikkörper %d" % [acc.process / 60.0 * 1000.0,
+		acc.physics / 60.0 * 1000.0, 1000.0 / maxf(1.0, Engine.get_frames_per_second()), Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
+		Performance.get_monitor(Performance.OBJECT_NODE_COUNT), Performance.get_monitor(Performance.PHYSICS_3D_ACTIVE_OBJECTS)])
+	var hist := {}
+	for n in w.find_children("*", "", true, false):
+		var c := n.get_class()
+		hist[c] = int(hist.get(c, 0)) + 1
+	var ha := []
+	for k in hist:
+		ha.append([hist[k], k])
+	ha.sort_custom(func(a, b): return a[0] > b[0])
+	print("CPU Knotentypen: ", ha.slice(0, 10))
+	# Zeit der _process-Schleifen einzelner Systeme abschätzen: kurz abschalten und vergleichen
+	var hud_nodes: Array = [w.hud]
+	var groups := [["GrassField", "Grasfeld"], ["FoliageLod", "Laub-LOD"], ["Actor3D", "Figuren"], ["Townsfolk", "Bewohner"], ["HUD", "HUD"],
+		["Pickup", "Sammelobjekte"], ["Enemy", "Gegner"], ["World", "Welt-Schleife"]]
+	for grp in groups:
+		var nodes: Array = w.level.find_children("*", grp[0], true, false) if grp[0] != "Actor3D" else w.actors.duplicate()
+		if grp[0] == "GrassField":
+			nodes = w.level.find_children("Grasfeld", "", true, false)
+		if grp[0] == "FoliageLod":
+			nodes = w.level.find_children("*", "", true, false).filter(func(n): return n.get_script() != null and String(n.get_script().resource_path).ends_with("foliage_lod.gd"))
+		if grp[0] == "Townsfolk":
+			nodes = w.level.find_children("Townsfolk", "", true, false)
+		if grp[0] == "HUD":
+			nodes = w.hud.find_children("*", "Control", true, false) + [w.hud]
+		if grp[0] == "Pickup":
+			nodes = w.quest_world.pickups.duplicate()
+		if grp[0] == "Enemy":
+			nodes = w.enemies.duplicate()
+		if grp[0] == "World":
+			nodes = [w]
+		if nodes.is_empty():
+			continue
+		var base := 0.0
+		for i in 40:
+			await get_tree().process_frame
+			base += Performance.get_monitor(Performance.TIME_PROCESS)
+		for n in nodes:
+			n.process_mode = Node.PROCESS_MODE_DISABLED
+		var t := 0.0
+		for i in 40:
+			await get_tree().process_frame
+			t += Performance.get_monitor(Performance.TIME_PROCESS)
+		for n in nodes:
+			n.process_mode = Node.PROCESS_MODE_INHERIT
+		print("CPU   %-14s (%4d): mit %.1f ms → ohne %.1f ms" % [grp[1], nodes.size(), base / 40.0 * 1000.0, t / 40.0 * 1000.0])
 
 
 func _wait(t: float) -> void:

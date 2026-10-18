@@ -12,8 +12,9 @@ const TEXT_SPEEDS := ["Langsam", "Normal", "Schnell", "Sofort"]
 const TEXT_SPEED_FACTORS := [0.55, 1.0, 1.8, 0.0]
 const AUTOSAVE_OPTIONS := [0, 7, 30]
 const AA_MODES := ["Aus", "FXAA", "MSAA 4× + FXAA", "TAA (weichste Kanten)"]
-const RENDER_SCALES := [0.5, 0.67, 0.77, 1.0]
-const RENDER_SCALE_NAMES := ["Leistung (50 %, FSR)", "Ausgewogen (67 %, FSR)", "Qualität (77 %, FSR)", "Nativ (100 %)"]
+const RENDER_SCALES := [0.5, 0.59, 0.67, 0.77, 1.0, 1.0]
+const RENDER_SCALE_NAMES := ["FSR 2 Leistung (50 %)", "FSR 2 Ausgewogen (59 %)", "FSR 2 Qualität (67 %)", "FSR 2 Ultra-Qualität (77 %)",
+	"FSR 2 Nativ (100 %, beste Kantenglättung)", "Nativ ohne Hochskalierung (100 %)"]
 
 # Audio
 var master_volume := 1.0
@@ -27,7 +28,7 @@ var vsync := true
 var max_fps := 1
 var particles := true
 var antialias := 2
-var render_scale := 3
+var render_scale := -1                 ## -1 = beim ersten Start nach Bildschirmauflösung wählen
 var ui_scale := 1.0
 # Spiel
 var text_speed := 1
@@ -111,9 +112,20 @@ func apply_viewport(vp: Viewport) -> void:
 	vp.msaa_3d = Viewport.MSAA_4X if aa == 2 else Viewport.MSAA_DISABLED
 	vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_FXAA if aa in [1, 2] else Viewport.SCREEN_SPACE_AA_DISABLED
 	vp.use_taa = aa == 3
-	var sc: float = RENDER_SCALES[clampi(render_scale, 0, RENDER_SCALES.size() - 1)]
+	if render_scale < 0:
+		# Voreinstellung: je mehr Pixel, desto stärker hochskalieren (wie „DLSS Qualität“ bei 1440p/4K)
+		var px := DisplayServer.screen_get_size().x * DisplayServer.screen_get_size().y
+		render_scale = 4 if px <= 2073600 else (3 if px <= 3686400 else (2 if px <= 5000000 else 1))
+	var idx := clampi(render_scale, 0, RENDER_SCALES.size() - 1)
+	var sc: float = RENDER_SCALES[idx]
+	var fsr := idx < RENDER_SCALES.size() - 1
 	vp.scaling_3d_scale = sc
-	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if sc < 1.0 else Viewport.SCALING_3D_MODE_BILINEAR
+	vp.scaling_3d_mode = Viewport.SCALING_3D_MODE_FSR2 if fsr else Viewport.SCALING_3D_MODE_BILINEAR
+	if fsr:
+		# FSR 2 glättet selbst (temporal) – MSAA/FXAA/TAA zusätzlich wären doppelte Arbeit
+		vp.msaa_3d = Viewport.MSAA_DISABLED
+		vp.screen_space_aa = Viewport.SCREEN_SPACE_AA_DISABLED
+		vp.use_taa = false
 
 
 ## Faktor für den Schreibmaschinen-Effekt (0 = sofort).
