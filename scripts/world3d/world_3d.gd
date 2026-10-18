@@ -158,8 +158,7 @@ func _place_actors() -> void:
 		var rname: String = World.region(region).get("name", loc.name) if region != "" else loc.name
 		var a := Actor3D.object("board", "Lage: " + rname, "Lage & Aufträge der Region", Palette.GOLD, 2.8)
 		_add_actor(a, anchors.board)
-		B3.box(level, Vector3(1.6, 1.2, 0.12), anchors.board + Vector3(0, 1.3, 0), B3.mat(Color(0.3, 0.2, 0.1), 0.8))
-		B3.cyl(level, 0.06, 0.06, 1.8, anchors.board + Vector3(0, 0.9, -0.1), B3.mat(Color(0.2, 0.14, 0.08)), true, 6)
+		_build_board(anchors.board)
 	_add_actor(Actor3D.object("gate", "Gate", "Reisen", Color(0.75, 0.5, 1.0), 3.0), anchors.gate)
 
 
@@ -188,6 +187,31 @@ func _throne_guests() -> Array:
 		pool.sort()
 		out.append(pool[int(Game.state.day) % pool.size()])
 	return out.slice(0, 5)
+
+
+## Anschlagtafel: zwei Pfosten, Brett, kleines Schindeldach, angeheftete Aushänge (mehr bei offenen Kopfgeldern).
+func _build_board(at: Vector3) -> void:
+	var root := Node3D.new()
+	root.position = at
+	var look: Vector3 = anchors.get("spawn", Vector3.ZERO)
+	root.rotation.y = atan2(look.x - at.x, look.z - at.z)
+	level.add_child(root)
+	var wood := B3.mat(Color(0.32, 0.21, 0.12), 0.85)
+	var dark := B3.mat(Color(0.2, 0.13, 0.08), 0.9)
+	for sx in [-0.95, 0.95]:
+		B3.box(root, Vector3(0.14, 2.6, 0.14), Vector3(sx, 1.3, 0), dark)
+	B3.box(root, Vector3(1.9, 1.25, 0.08), Vector3(0, 1.55, 0.02), wood, false)
+	B3.box(root, Vector3(2.0, 0.08, 0.12), Vector3(0, 2.2, 0.02), dark, false)
+	B3.box(root, Vector3(2.0, 0.08, 0.12), Vector3(0, 0.9, 0.02), dark, false)
+	var roof := B3.box(root, Vector3(2.3, 0.06, 0.6), Vector3(0, 2.7, 0.08), B3.mat(Color(0.3, 0.18, 0.12), 0.9), false)
+	roof.rotation.x = -0.35
+	var paper := B3.mat(Color(0.86, 0.8, 0.64), 0.95)
+	var n := 3 + mini(4, Quests.board_quests(loc.id).size() * 2)
+	for i in n:
+		var w := randf_range(0.28, 0.42)
+		var note := B3.box(root, Vector3(w, w * randf_range(1.1, 1.4), 0.01), Vector3(randf_range(-0.7, 0.7), randf_range(1.2, 1.95), 0.075), paper, false)
+		note.rotation.z = randf_range(-0.15, 0.15)
+		B3.box(root, Vector3(0.04, 0.04, 0.02), note.position + Vector3(0, w * 0.55, 0.01), B3.mat(Color(0.7, 0.1, 0.1), 0.5), false)
 
 
 ## Wo hält sich ein Wächter auf? "nazarick" oder eine Regions-ID.
