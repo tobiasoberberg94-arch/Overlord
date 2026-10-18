@@ -133,8 +133,14 @@ func set_style(s: String, silent: bool = false) -> void:
 	move_speed = float(style_data.speed)
 	if rig:
 		rig.queue_free()
-	var model_id := "ainz" if s == "ainz" else "ainz_momon"
-	var fb: Callable = (func(r): ProcModel.ainz(r)) if s == "ainz" else (func(r): ProcModel.momon(r))
+	var model_id: String = style_data.get("model", "ainz" if s == "ainz" else "ainz_momon")
+	var fb: Callable
+	if s == "ainz":
+		fb = func(r): ProcModel.ainz(r)
+	elif s == "momon":
+		fb = func(r): ProcModel.momon(r)
+	else:
+		fb = func(r): ProcModel.figure(r, model_id)   # Wächter: Modell oder prozedurale Gestalt
 	rig = CharacterRig.create(model_id, fb)
 	add_child(rig)
 	rig.rotation.y = atan2(facing.x, facing.z)
@@ -143,7 +149,7 @@ func set_style(s: String, silent: bool = false) -> void:
 	Game.state.world3d["style"] = s
 	if not silent:
 		rig.flash(Color(0.6, 0.3, 1.0), 0.5)
-		feedback.emit("Momon, der Dunkle Held" if s == "momon" else "Ainz Ooal Gown", Palette.GOLD_BRIGHT)
+		feedback.emit(String(style_data.name), Palette.GOLD_BRIGHT)
 	style_changed.emit(s)
 
 
@@ -190,7 +196,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		toggle_lock()
 	elif event.is_action_pressed("switch_style"):
 		if can_act():
-			set_style("momon" if style == "ainz" else "ainz")
+			if style.begins_with("g_"):
+				feedback.emit("%s kämpft für Euch – erst nach dem Einsatz zurück" % style_data.name, Color(0.8, 0.8, 0.9))
+			else:
+				set_style("momon" if style == "ainz" else "ainz")
 	else:
 		for i in 5:
 			if event.is_action_pressed("spell_%d" % (i + 1)):

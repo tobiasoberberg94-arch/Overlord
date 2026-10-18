@@ -1,218 +1,1409 @@
 {
  "_info": "Abenteuer von Ainz/Momon selbst (im Gegensatz zu den Entsendungen der Wächter in missions.json). Schritte: talk(npc, loc) · kill(enemy, count, loc?) · collect(item, count) · deliver(item, count, npc) · reach(loc, near?). Questgeber sind NPCs (givers) oder Anschlagtafeln (board: <ort>). Belohnung: gold, res, item (Gegenstands-ID oder roll:<seltenheit>), xp (Wächter), flags, bag.",
  "givers": {
-  "enri": {"loc": "carne", "slot": 0},
-  "nfirea": {"loc": "carne", "slot": 1},
-  "lizzie": {"loc": "e_rantel", "slot": 0},
-  "guild_clerk": {"loc": "e_rantel", "slot": 1},
-  "ainzach": {"loc": "e_rantel", "slot": 2},
-  "gravekeeper": {"loc": "erantel_friedhof", "slot": 0},
-  "hamsuke": {"loc": "tob_wald", "keeper": true}
+  "enri": {
+   "loc": "carne",
+   "slot": 0
+  },
+  "nfirea": {
+   "loc": "carne",
+   "slot": 1
+  },
+  "lizzie": {
+   "loc": "e_rantel",
+   "slot": 0
+  },
+  "guild_clerk": {
+   "loc": "e_rantel",
+   "slot": 1
+  },
+  "ainzach": {
+   "loc": "e_rantel",
+   "slot": 2
+  },
+  "gravekeeper": {
+   "loc": "erantel_friedhof",
+   "slot": 0
+  },
+  "hamsuke": {
+   "loc": "tob_wald",
+   "keeper": true
+  }
  },
  "materials": {
-  "moonleaf": {"name": "Mondkraut", "icon": "❦", "color": "#9fe0ff", "value": 4, "desc": "Silbrig schimmerndes Kraut aus dem Wald von Tob – Grundstoff für Heiltränke."},
-  "bloodcap": {"name": "Blutpilz", "icon": "♣", "color": "#d8343e", "value": 6, "desc": "Wächst nur im feuchten Moor. Lizzie Bareare zahlt gut dafür."},
-  "sunfruit": {"name": "Sonnenfrucht", "icon": "✺", "color": "#ffcc33", "value": 5, "desc": "Süße Frucht aus dem Dschungel der 6. Ebene."},
-  "glowbeetle": {"name": "Glühkäfer", "icon": "✲", "color": "#b8ff6a", "value": 3, "desc": "Leuchtet nachts im Wald. Entoma findet sie köstlich."},
-  "bloodrose": {"name": "Blutrose", "icon": "❀", "color": "#b0102a", "value": 7, "desc": "Wächst auf alten Gräbern. Ihr Duft gefällt Vampiren."},
-  "iron_ore": {"name": "Eisenerz", "icon": "◆", "color": "#a8a8b8", "value": 4, "desc": "Rohes Erz aus Felsadern."},
-  "bone_dust": {"name": "Knochenstaub", "icon": "☠", "color": "#e8e0c8", "value": 2, "desc": "Übrig von vernichteten Skeletten. Nekromanten und Gilden kaufen ihn."},
-  "wolf_pelt": {"name": "Wolfsfell", "icon": "♞", "color": "#8a7a68", "value": 5, "desc": "Dichtes Fell eines Waldwolfs."},
-  "fang": {"name": "Reißzahn", "icon": "⋀", "color": "#f0ead8", "value": 3, "desc": "Trophäe eines Raubtiers."},
-  "insignia": {"name": "Abzeichen der Theokratie", "icon": "✠", "color": "#d8e0f0", "value": 9, "desc": "Rangabzeichen eines Ritters der Schrift."},
-  "angel_feather": {"name": "Engelsfeder", "icon": "❧", "color": "#fff6d0", "value": 18, "desc": "Feder eines beschworenen Engels – heilig und flüchtig."},
-  "scale": {"name": "Echsenschuppe", "icon": "◈", "color": "#6fa860", "value": 4, "desc": "Harte Schuppe eines Echsenmenschen."},
-  "quagoa_claw": {"name": "Quagoa-Klaue", "icon": "⟁", "color": "#9a8a70", "value": 5, "desc": "Grabklaue der Quagoa aus dem Gebirge."},
-  "dark_essence": {"name": "Dunkle Essenz", "icon": "✦", "color": "#9b5cff", "value": 25, "desc": "Rückstand mächtiger Untoter. Demiurge interessiert sich dafür."},
-  "goblin_horn": {"name": "Horn des Goblin-Generals", "icon": "♪", "color": "#c8a050", "value": 0, "unique": true, "desc": "Enri Emmot hat es im Wald verloren."},
-  "zurrernon_seal": {"name": "Siegel der Zurrernon", "icon": "⊛", "color": "#b8ff9a", "value": 0, "unique": true, "desc": "Zeichen der Todesbeschwörer-Sekte – gefunden in Khajits Mausoleum."},
-  "ygg_coin": {"name": "Münze aus Yggdrasil", "icon": "◉", "color": "#f5d77a", "value": 0, "unique": true, "desc": "Eine Münze aus der alten Welt. Wie kam sie hierher?"},
-  "relic_shard": {"name": "Relikt-Splitter", "icon": "◇", "color": "#7fd8ff", "value": 12, "desc": "Splitter eines alten Artefakts – Pandora's Actor sammelt sie."}
+  "moonleaf": {
+   "name": "Mondkraut",
+   "icon": "❦",
+   "color": "#9fe0ff",
+   "value": 4,
+   "desc": "Silbrig schimmerndes Kraut aus dem Wald von Tob – Grundstoff für Heiltränke."
+  },
+  "bloodcap": {
+   "name": "Blutpilz",
+   "icon": "♣",
+   "color": "#d8343e",
+   "value": 6,
+   "desc": "Wächst nur im feuchten Moor. Lizzie Bareare zahlt gut dafür."
+  },
+  "sunfruit": {
+   "name": "Sonnenfrucht",
+   "icon": "✺",
+   "color": "#ffcc33",
+   "value": 5,
+   "desc": "Süße Frucht aus dem Dschungel der 6. Ebene."
+  },
+  "glowbeetle": {
+   "name": "Glühkäfer",
+   "icon": "✲",
+   "color": "#b8ff6a",
+   "value": 3,
+   "desc": "Leuchtet nachts im Wald. Entoma findet sie köstlich."
+  },
+  "bloodrose": {
+   "name": "Blutrose",
+   "icon": "❀",
+   "color": "#b0102a",
+   "value": 7,
+   "desc": "Wächst auf alten Gräbern. Ihr Duft gefällt Vampiren."
+  },
+  "iron_ore": {
+   "name": "Eisenerz",
+   "icon": "◆",
+   "color": "#a8a8b8",
+   "value": 4,
+   "desc": "Rohes Erz aus Felsadern."
+  },
+  "bone_dust": {
+   "name": "Knochenstaub",
+   "icon": "☠",
+   "color": "#e8e0c8",
+   "value": 2,
+   "desc": "Übrig von vernichteten Skeletten. Nekromanten und Gilden kaufen ihn."
+  },
+  "wolf_pelt": {
+   "name": "Wolfsfell",
+   "icon": "♞",
+   "color": "#8a7a68",
+   "value": 5,
+   "desc": "Dichtes Fell eines Waldwolfs."
+  },
+  "fang": {
+   "name": "Reißzahn",
+   "icon": "⋀",
+   "color": "#f0ead8",
+   "value": 3,
+   "desc": "Trophäe eines Raubtiers."
+  },
+  "insignia": {
+   "name": "Abzeichen der Theokratie",
+   "icon": "✠",
+   "color": "#d8e0f0",
+   "value": 9,
+   "desc": "Rangabzeichen eines Ritters der Schrift."
+  },
+  "angel_feather": {
+   "name": "Engelsfeder",
+   "icon": "❧",
+   "color": "#fff6d0",
+   "value": 18,
+   "desc": "Feder eines beschworenen Engels – heilig und flüchtig."
+  },
+  "scale": {
+   "name": "Echsenschuppe",
+   "icon": "◈",
+   "color": "#6fa860",
+   "value": 4,
+   "desc": "Harte Schuppe eines Echsenmenschen."
+  },
+  "quagoa_claw": {
+   "name": "Quagoa-Klaue",
+   "icon": "⟁",
+   "color": "#9a8a70",
+   "value": 5,
+   "desc": "Grabklaue der Quagoa aus dem Gebirge."
+  },
+  "dark_essence": {
+   "name": "Dunkle Essenz",
+   "icon": "✦",
+   "color": "#9b5cff",
+   "value": 25,
+   "desc": "Rückstand mächtiger Untoter. Demiurge interessiert sich dafür."
+  },
+  "goblin_horn": {
+   "name": "Horn des Goblin-Generals",
+   "icon": "♪",
+   "color": "#c8a050",
+   "value": 0,
+   "unique": true,
+   "desc": "Enri Emmot hat es im Wald verloren."
+  },
+  "zurrernon_seal": {
+   "name": "Siegel der Zurrernon",
+   "icon": "⊛",
+   "color": "#b8ff9a",
+   "value": 0,
+   "unique": true,
+   "desc": "Zeichen der Todesbeschwörer-Sekte – gefunden in Khajits Mausoleum."
+  },
+  "ygg_coin": {
+   "name": "Münze aus Yggdrasil",
+   "icon": "◉",
+   "color": "#f5d77a",
+   "value": 0,
+   "unique": true,
+   "desc": "Eine Münze aus der alten Welt. Wie kam sie hierher?"
+  },
+  "relic_shard": {
+   "name": "Relikt-Splitter",
+   "icon": "◇",
+   "color": "#7fd8ff",
+   "value": 12,
+   "desc": "Splitter eines alten Artefakts – Pandora's Actor sammelt sie."
+  }
  },
  "loot": {
-  "skeleton": [["bone_dust", 0.85, 1, 2], ["gold", 0.6, 2, 6], ["relic_shard", 0.04, 1, 1]],
-  "wolf": [["wolf_pelt", 0.7, 1, 1], ["fang", 0.5, 1, 2]],
-  "soldier": [["insignia", 0.6, 1, 1], ["gold", 0.9, 6, 14], ["iron_ore", 0.3, 1, 2]],
-  "angel": [["angel_feather", 0.9, 1, 2], ["gold", 1.0, 15, 30], ["relic_shard", 0.25, 1, 1]],
-  "lizard": [["scale", 0.8, 1, 2], ["gold", 0.4, 2, 5]],
-  "quagoa": [["quagoa_claw", 0.8, 1, 1], ["iron_ore", 0.5, 1, 2]],
-  "elf": [["moonleaf", 0.5, 1, 2], ["gold", 0.6, 4, 10]],
-  "death_knight": [["dark_essence", 0.9, 1, 1], ["gold", 1.0, 20, 40], ["item", 0.35, "rare"]],
-  "golem": []
+  "skeleton": [
+   [
+    "bone_dust",
+    0.85,
+    1,
+    2
+   ],
+   [
+    "gold",
+    0.6,
+    2,
+    6
+   ],
+   [
+    "relic_shard",
+    0.04,
+    1,
+    1
+   ]
+  ],
+  "wolf": [
+   [
+    "wolf_pelt",
+    0.7,
+    1,
+    1
+   ],
+   [
+    "fang",
+    0.5,
+    1,
+    2
+   ]
+  ],
+  "soldier": [
+   [
+    "insignia",
+    0.6,
+    1,
+    1
+   ],
+   [
+    "gold",
+    0.9,
+    6,
+    14
+   ],
+   [
+    "iron_ore",
+    0.3,
+    1,
+    2
+   ]
+  ],
+  "angel": [
+   [
+    "angel_feather",
+    0.9,
+    1,
+    2
+   ],
+   [
+    "gold",
+    1.0,
+    15,
+    30
+   ],
+   [
+    "relic_shard",
+    0.25,
+    1,
+    1
+   ]
+  ],
+  "lizard": [
+   [
+    "scale",
+    0.8,
+    1,
+    2
+   ],
+   [
+    "gold",
+    0.4,
+    2,
+    5
+   ]
+  ],
+  "quagoa": [
+   [
+    "quagoa_claw",
+    0.8,
+    1,
+    1
+   ],
+   [
+    "iron_ore",
+    0.5,
+    1,
+    2
+   ]
+  ],
+  "elf": [
+   [
+    "moonleaf",
+    0.5,
+    1,
+    2
+   ],
+   [
+    "gold",
+    0.6,
+    4,
+    10
+   ]
+  ],
+  "death_knight": [
+   [
+    "dark_essence",
+    0.9,
+    1,
+    1
+   ],
+   [
+    "gold",
+    1.0,
+    20,
+    40
+   ],
+   [
+    "item",
+    0.35,
+    "rare"
+   ]
+  ],
+  "golem": [],
+  "zaryusu": [
+   [
+    "scale",
+    1.0,
+    3,
+    5
+   ],
+   [
+    "gold",
+    1.0,
+    20,
+    40
+   ],
+   [
+    "item",
+    0.6,
+    "rare"
+   ]
+  ],
+  "mercenary": [
+   [
+    "gold",
+    0.9,
+    4,
+    10
+   ],
+   [
+    "iron_ore",
+    0.3,
+    1,
+    1
+   ]
+  ],
+  "brain": [
+   [
+    "gold",
+    1.0,
+    30,
+    50
+   ],
+   [
+    "item",
+    0.7,
+    "rare"
+   ]
+  ],
+  "adventurer": [
+   [
+    "gold",
+    0.9,
+    6,
+    14
+   ],
+   [
+    "relic_shard",
+    0.1,
+    1,
+    1
+   ]
+  ],
+  "gagaran": [
+   [
+    "gold",
+    1.0,
+    40,
+    70
+   ],
+   [
+    "item",
+    0.8,
+    "epic"
+   ]
+  ],
+  "eight_fingers": [
+   [
+    "gold",
+    0.9,
+    5,
+    12
+   ]
+  ],
+  "succulent": [
+   [
+    "gold",
+    1.0,
+    30,
+    50
+   ],
+   [
+    "item",
+    0.7,
+    "rare"
+   ]
+  ]
  },
  "pickups": {
-  "tob_wald": [["moonleaf", 14], ["glowbeetle", 12], ["iron_ore", 4], ["chest", 2]],
-  "nazarick_land": [["moonleaf", 6], ["iron_ore", 3], ["chest", 1]],
-  "carne": [["moonleaf", 4], ["chest", 1]],
-  "erantel_friedhof": [["bloodrose", 10], ["chest", 2]],
-  "sumpf": [["bloodcap", 10], ["chest", 1]],
-  "jungle": [["sunfruit", 10], ["glowbeetle", 4], ["chest", 1]],
-  "tombs": [["bone_dust", 5], ["relic_shard", 2], ["chest", 2]],
-  "glacier": [["iron_ore", 6], ["relic_shard", 1], ["chest", 1]],
-  "azerlisia": [["iron_ore", 10], ["chest", 1]],
-  "elfen": [["moonleaf", 8], ["glowbeetle", 6], ["chest", 1]],
-  "katze": [["bone_dust", 6], ["chest", 1]],
-  "library": [["relic_shard", 2]],
-  "lava": [["dark_essence", 2], ["chest", 1]],
-  "e_rantel": [["chest", 1]],
-  "re_capital": [["chest", 1]]
+  "tob_wald": [
+   [
+    "moonleaf",
+    14
+   ],
+   [
+    "glowbeetle",
+    12
+   ],
+   [
+    "iron_ore",
+    4
+   ],
+   [
+    "chest",
+    2
+   ]
+  ],
+  "nazarick_land": [
+   [
+    "moonleaf",
+    6
+   ],
+   [
+    "iron_ore",
+    3
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "carne": [
+   [
+    "moonleaf",
+    4
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "erantel_friedhof": [
+   [
+    "bloodrose",
+    10
+   ],
+   [
+    "chest",
+    2
+   ]
+  ],
+  "sumpf": [
+   [
+    "bloodcap",
+    10
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "jungle": [
+   [
+    "sunfruit",
+    10
+   ],
+   [
+    "glowbeetle",
+    4
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "tombs": [
+   [
+    "bone_dust",
+    5
+   ],
+   [
+    "relic_shard",
+    2
+   ],
+   [
+    "chest",
+    2
+   ]
+  ],
+  "glacier": [
+   [
+    "iron_ore",
+    6
+   ],
+   [
+    "relic_shard",
+    1
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "azerlisia": [
+   [
+    "iron_ore",
+    10
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "elfen": [
+   [
+    "moonleaf",
+    8
+   ],
+   [
+    "glowbeetle",
+    6
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "katze": [
+   [
+    "bone_dust",
+    6
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "library": [
+   [
+    "relic_shard",
+    2
+   ]
+  ],
+  "lava": [
+   [
+    "dark_essence",
+    2
+   ],
+   [
+    "chest",
+    1
+   ]
+  ],
+  "e_rantel": [
+   [
+    "chest",
+    1
+   ]
+  ],
+  "re_capital": [
+   [
+    "chest",
+    1
+   ]
+  ]
  },
  "uniques": {
-  "goblin_horn": {"loc": "tob_wald", "quest": "q_carne_horn"},
-  "zurrernon_seal": {"loc": "erantel_friedhof", "near": "keeper", "quest": "q_friedhof_siegel"},
-  "ygg_coin": {"locs": ["carne", "tob_wald", "glacier", "erantel_friedhof"], "quest": "q_pandora_coins"}
+  "goblin_horn": {
+   "loc": "tob_wald",
+   "quest": "q_carne_horn"
+  },
+  "zurrernon_seal": {
+   "loc": "erantel_friedhof",
+   "near": "keeper",
+   "quest": "q_friedhof_siegel"
+  },
+  "ygg_coin": {
+   "locs": [
+    "carne",
+    "tob_wald",
+    "glacier",
+    "erantel_friedhof"
+   ],
+   "quest": "q_pandora_coins"
+  }
  },
  "quests": [
   {
-   "id": "q_carne_herbs", "title": "Kräuter für den Apotheker", "kind": "side", "giver": "nfirea",
-   "requires": {"chapter": 1},
+   "id": "q_carne_herbs",
+   "title": "Kräuter für den Apotheker",
+   "kind": "side",
+   "giver": "nfirea",
+   "requires": {
+    "chapter": 1
+   },
    "offer": "Ah – Herr Momon! Verzeiht … Großmutter Lizzie braucht dringend Mondkraut für ihre Heiltränke. Es wächst im Wald von Tob, aber dort streifen Wölfe umher. Könntet Ihr mir acht Stängel bringen?",
    "progress": "Acht Stängel Mondkraut – sie schimmern silbrig im Unterholz des Waldes.",
    "done": "So frisch! Damit reicht es für eine ganze Woche Tränke. Bitte, nehmt das als Dank.",
-   "steps": [{"type": "collect", "item": "moonleaf", "count": 8, "text": "Sammelt Mondkraut im Wald von Tob"},
-             {"type": "deliver", "item": "moonleaf", "count": 8, "npc": "nfirea", "text": "Bringt das Mondkraut zu Nfirea (Carne)"}],
-   "rewards": {"gold": 45, "res": {"reputation": 2}, "item": "roll:uncommon"}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "moonleaf",
+     "count": 8,
+     "text": "Sammelt Mondkraut im Wald von Tob"
+    },
+    {
+     "type": "deliver",
+     "item": "moonleaf",
+     "count": 8,
+     "npc": "nfirea",
+     "text": "Bringt das Mondkraut zu Nfirea (Carne)"
+    }
+   ],
+   "rewards": {
+    "gold": 45,
+    "res": {
+     "reputation": 2
+    },
+    "item": "roll:uncommon"
+   }
   },
   {
-   "id": "q_carne_wolves", "title": "Wölfe vor dem Dorf", "kind": "side", "giver": "enri",
-   "requires": {"chapter": 1},
+   "id": "q_carne_wolves",
+   "title": "Wölfe vor dem Dorf",
+   "kind": "side",
+   "giver": "enri",
+   "requires": {
+    "chapter": 1
+   },
    "offer": "Die Wölfe aus dem Wald kommen jede Nacht näher an unsere Felder. Unsere Goblins halten Wache, aber … wenn Ihr fünf von ihnen erlegen könntet, könnten die Kinder wieder draußen spielen.",
    "progress": "Fünf Waldwölfe – im Grasland und im Wald von Tob.",
    "done": "Ihr habt es wirklich getan! Das ganze Dorf steht in Eurer Schuld, Herr.",
-   "steps": [{"type": "kill", "enemy": "wolf", "count": 5, "text": "Erlegt Waldwölfe (Grasland, Wald von Tob)"},
-             {"type": "talk", "npc": "enri", "text": "Berichtet Enri in Carne"}],
-   "rewards": {"gold": 35, "res": {"reputation": 3, "morale": 1}}
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "wolf",
+     "count": 5,
+     "text": "Erlegt Waldwölfe (Grasland, Wald von Tob)"
+    },
+    {
+     "type": "talk",
+     "npc": "enri",
+     "text": "Berichtet Enri in Carne"
+    }
+   ],
+   "rewards": {
+    "gold": 35,
+    "res": {
+     "reputation": 3,
+     "morale": 1
+    }
+   }
   },
   {
-   "id": "q_carne_horn", "title": "Das verlorene Horn", "kind": "side", "giver": "enri",
-   "requires": {"quest": "q_carne_wolves"},
+   "id": "q_carne_horn",
+   "title": "Das verlorene Horn",
+   "kind": "side",
+   "giver": "enri",
+   "requires": {
+    "quest": "q_carne_wolves"
+   },
    "offer": "Das Horn, das Ihr mir geschenkt habt … ich habe es beim Holzsammeln im Wald von Tob verloren, irgendwo nahe den alten Elfenruinen. Ohne es kann ich die Goblins nicht rufen!",
    "progress": "Das Horn liegt im Wald von Tob, bei den alten Elfenruinen.",
    "done": "Mein Horn! Ich werde es nie wieder aus den Augen lassen. Danke, Herr Ainz … äh, Herr Momon!",
-   "steps": [{"type": "collect", "item": "goblin_horn", "count": 1, "text": "Sucht das Horn im Wald von Tob (Elfenruinen)"},
-             {"type": "deliver", "item": "goblin_horn", "count": 1, "npc": "enri", "text": "Gebt Enri das Horn zurück"}],
-   "rewards": {"gold": 30, "res": {"reputation": 4}, "item": "roll:rare"}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "goblin_horn",
+     "count": 1,
+     "text": "Sucht das Horn im Wald von Tob (Elfenruinen)"
+    },
+    {
+     "type": "deliver",
+     "item": "goblin_horn",
+     "count": 1,
+     "npc": "enri",
+     "text": "Gebt Enri das Horn zurück"
+    }
+   ],
+   "rewards": {
+    "gold": 30,
+    "res": {
+     "reputation": 4
+    },
+    "item": "roll:rare"
+   }
   },
   {
-   "id": "q_lizzie_caps", "title": "Blutpilze aus dem Moor", "kind": "side", "giver": "lizzie",
-   "requires": {"chapter": 2},
+   "id": "q_lizzie_caps",
+   "title": "Blutpilze aus dem Moor",
+   "kind": "side",
+   "giver": "lizzie",
+   "requires": {
+    "chapter": 2
+   },
    "offer": "Hehehe, der berühmte Momon. Ich brauche Blutpilze für einen neuen Trank – sechs Stück, aus den Sümpfen der Echsenmenschen. Bringt sie mir, und ich zahle in Gold. Viel Gold.",
    "progress": "Sechs Blutpilze aus den Sümpfen.",
    "done": "Prächtige Exemplare! Ihr seid ein besserer Sammler als jeder Lehrling. Hier, Euer Lohn.",
-   "steps": [{"type": "collect", "item": "bloodcap", "count": 6, "text": "Sammelt Blutpilze in den Sümpfen"},
-             {"type": "deliver", "item": "bloodcap", "count": 6, "npc": "lizzie", "text": "Bringt Lizzie Bareare die Pilze (E-Rantel)"}],
-   "rewards": {"gold": 80, "res": {"info": 2}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "bloodcap",
+     "count": 6,
+     "text": "Sammelt Blutpilze in den Sümpfen"
+    },
+    {
+     "type": "deliver",
+     "item": "bloodcap",
+     "count": 6,
+     "npc": "lizzie",
+     "text": "Bringt Lizzie Bareare die Pilze (E-Rantel)"
+    }
+   ],
+   "rewards": {
+    "gold": 80,
+    "res": {
+     "info": 2
+    }
+   }
   },
   {
-   "id": "q_friedhof_ruhe", "title": "Unruhe auf dem Friedhof", "kind": "main", "giver": "gravekeeper",
-   "requires": {"chapter": 2},
+   "id": "q_friedhof_ruhe",
+   "title": "Unruhe auf dem Friedhof",
+   "kind": "main",
+   "giver": "gravekeeper",
+   "requires": {
+    "chapter": 2
+   },
    "offer": "Ihr seid der Adamant-Abenteurer? Den Göttern sei Dank! Nachts steigen Skelette aus den Gräbern – mehr als je zuvor. Vernichtet acht von ihnen, ich flehe Euch an.",
    "progress": "Vernichtet acht Skelette auf dem Friedhof von E-Rantel.",
    "done": "Ruhe … endlich Ruhe. Aber seht Ihr das Licht dort, beim großen Mausoleum? Jemand hat es geöffnet.",
-   "steps": [{"type": "kill", "enemy": "skeleton", "count": 8, "loc": "erantel_friedhof", "text": "Vernichtet Skelette auf dem Friedhof"},
-             {"type": "talk", "npc": "gravekeeper", "text": "Sprecht mit dem Friedhofswärter"}],
-   "rewards": {"gold": 60, "res": {"reputation": 4}},
-   "on_done": {"set_flags": ["friedhof_ruhe"]}
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "skeleton",
+     "count": 8,
+     "loc": "erantel_friedhof",
+     "text": "Vernichtet Skelette auf dem Friedhof"
+    },
+    {
+     "type": "talk",
+     "npc": "gravekeeper",
+     "text": "Sprecht mit dem Friedhofswärter"
+    }
+   ],
+   "rewards": {
+    "gold": 60,
+    "res": {
+     "reputation": 4
+    }
+   },
+   "on_done": {
+    "set_flags": [
+     "friedhof_ruhe"
+    ]
+   }
   },
   {
-   "id": "q_friedhof_siegel", "title": "Das offene Mausoleum", "kind": "main", "giver": "gravekeeper",
-   "requires": {"quest": "q_friedhof_ruhe"},
+   "id": "q_friedhof_siegel",
+   "title": "Das offene Mausoleum",
+   "kind": "main",
+   "giver": "gravekeeper",
+   "requires": {
+    "quest": "q_friedhof_ruhe"
+   },
    "offer": "Das Mausoleum der Familie Dravin war seit hundert Jahren versiegelt. Wenn dort jemand Untote ruft … bitte, seht nach. Und bringt dem Gildenmeister Ainzach, was Ihr findet.",
    "progress": "Untersucht das große Mausoleum am Ende des Friedhofs.",
    "done": "Das Siegel der Zurrernon … dann steckt die Sekte dahinter. Momon, Ihr habt E-Rantel womöglich vor einer Katastrophe bewahrt.",
-   "steps": [{"type": "collect", "item": "zurrernon_seal", "count": 1, "text": "Durchsucht das Mausoleum (Friedhof)"},
-             {"type": "deliver", "item": "zurrernon_seal", "count": 1, "npc": "ainzach", "text": "Bringt das Siegel zu Gildenmeister Ainzach (E-Rantel)"}],
-   "rewards": {"gold": 120, "res": {"reputation": 8, "info": 4}, "item": "roll:rare"},
-   "on_done": {"set_flags": ["zurrernon_entdeckt"]}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "zurrernon_seal",
+     "count": 1,
+     "text": "Durchsucht das Mausoleum (Friedhof)"
+    },
+    {
+     "type": "deliver",
+     "item": "zurrernon_seal",
+     "count": 1,
+     "npc": "ainzach",
+     "text": "Bringt das Siegel zu Gildenmeister Ainzach (E-Rantel)"
+    }
+   ],
+   "rewards": {
+    "gold": 120,
+    "res": {
+     "reputation": 8,
+     "info": 4
+    },
+    "item": "roll:rare"
+   },
+   "on_done": {
+    "set_flags": [
+     "zurrernon_entdeckt"
+    ]
+   }
   },
   {
-   "id": "q_shalltear_roses", "title": "Rosen für die Herrin der Gräber", "kind": "guardian", "giver": "shalltear",
-   "requires": {"chapter": 1},
+   "id": "q_shalltear_roses",
+   "title": "Rosen für die Herrin der Gräber",
+   "kind": "guardian",
+   "giver": "shalltear",
+   "requires": {
+    "chapter": 1
+   },
    "offer": "Mein Gebieter … auf den Gräbern der Menschen sollen Blutrosen wachsen, ~arinsu. Fünf davon in meinen Gemächern, und ich würde jede Nacht an Euch denken. Nicht dass ich das nicht schon täte!",
    "progress": "Fünf Blutrosen vom Friedhof von E-Rantel – für Shalltear.",
    "done": "Für mich?! Die gehörnte Kuh wird vor Neid platzen! Ich danke Euch, mein Herr!",
-   "steps": [{"type": "collect", "item": "bloodrose", "count": 5, "text": "Pflückt Blutrosen auf dem Friedhof von E-Rantel"},
-             {"type": "deliver", "item": "bloodrose", "count": 5, "npc": "shalltear", "text": "Bringt Shalltear die Rosen (Grabkammern)"}],
-   "rewards": {"chars": {"shalltear": {"favor": 8}}, "rivalry": 3, "xp": {"shalltear": 40}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "bloodrose",
+     "count": 5,
+     "text": "Pflückt Blutrosen auf dem Friedhof von E-Rantel"
+    },
+    {
+     "type": "deliver",
+     "item": "bloodrose",
+     "count": 5,
+     "npc": "shalltear",
+     "text": "Bringt Shalltear die Rosen (Grabkammern)"
+    }
+   ],
+   "rewards": {
+    "chars": {
+     "shalltear": {
+      "favor": 8
+     }
+    },
+    "rivalry": 3,
+    "xp": {
+     "shalltear": 40
+    }
+   }
   },
   {
-   "id": "q_aura_fruits", "title": "Ein Picknick in der 6. Ebene", "kind": "guardian", "giver": "aura",
-   "requires": {"chapter": 1},
+   "id": "q_aura_fruits",
+   "title": "Ein Picknick in der 6. Ebene",
+   "kind": "guardian",
+   "giver": "aura",
+   "requires": {
+    "chapter": 1
+   },
    "offer": "Ainz-sama! Mare und ich wollen ein Picknick machen – sammelt Ihr mit uns Sonnenfrüchte? Sechs Stück! Die besten hängen rund um das Amphitheater.",
    "progress": "Sechs Sonnenfrüchte im Dschungel der 6. Ebene.",
    "done": "Waaah, die sind riesig! Mare, schau mal! Danke, Ainz-sama – das wird das beste Picknick überhaupt!",
-   "steps": [{"type": "collect", "item": "sunfruit", "count": 6, "text": "Sammelt Sonnenfrüchte im Dschungel"},
-             {"type": "deliver", "item": "sunfruit", "count": 6, "npc": "aura", "text": "Bringt Aura die Früchte"}],
-   "rewards": {"chars": {"aura": {"favor": 6}, "mare": {"favor": 4}}, "xp": {"aura": 30, "mare": 30}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "sunfruit",
+     "count": 6,
+     "text": "Sammelt Sonnenfrüchte im Dschungel"
+    },
+    {
+     "type": "deliver",
+     "item": "sunfruit",
+     "count": 6,
+     "npc": "aura",
+     "text": "Bringt Aura die Früchte"
+    }
+   ],
+   "rewards": {
+    "chars": {
+     "aura": {
+      "favor": 6
+     },
+     "mare": {
+      "favor": 4
+     }
+    },
+    "xp": {
+     "aura": 30,
+     "mare": 30
+    }
+   }
   },
   {
-   "id": "q_entoma_beetles", "title": "Ein Imbiss für Entoma", "kind": "guardian", "giver": "entoma",
-   "requires": {"chapter": 2},
+   "id": "q_entoma_beetles",
+   "title": "Ein Imbiss für Entoma",
+   "kind": "guardian",
+   "giver": "entoma",
+   "requires": {
+    "chapter": 2
+   },
    "offer": "Ainz-sama … *Klicken* … im Wald von Tob leben Glühkäfer. Ich höre, sie sind … knusprig. Zehn Stück, wenn es Euch keine Mühe macht.",
    "progress": "Zehn Glühkäfer aus dem Wald von Tob (oder dem Elfenwald).",
    "done": "*Glückliches Zirpen* … Ich werde sie langsam essen. Danke, Ainz-sama.",
-   "steps": [{"type": "collect", "item": "glowbeetle", "count": 10, "text": "Fangt Glühkäfer (Wald von Tob)"},
-             {"type": "deliver", "item": "glowbeetle", "count": 10, "npc": "entoma", "text": "Bringt Entoma die Käfer (Königliche Gemächer)"}],
-   "rewards": {"chars": {"entoma": {"favor": 8}}, "gold": 20}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "glowbeetle",
+     "count": 10,
+     "text": "Fangt Glühkäfer (Wald von Tob)"
+    },
+    {
+     "type": "deliver",
+     "item": "glowbeetle",
+     "count": 10,
+     "npc": "entoma",
+     "text": "Bringt Entoma die Käfer (Königliche Gemächer)"
+    }
+   ],
+   "rewards": {
+    "chars": {
+     "entoma": {
+      "favor": 8
+     }
+    },
+    "gold": 20
+   }
   },
   {
-   "id": "q_pandora_coins", "title": "Münzen aus einer anderen Welt", "kind": "guardian", "giver": "pandora",
-   "requires": {"chapter": 2},
+   "id": "q_pandora_coins",
+   "title": "Münzen aus einer anderen Welt",
+   "kind": "guardian",
+   "giver": "pandora",
+   "requires": {
+    "chapter": 2
+   },
    "offer": "Mein Schöpfer! *Verbeugung mit Flourish* In der Neuen Welt wurden Münzen gesichtet – Münzen aus Yggdrasil! Vier Stück, verstreut: Carne, der Wald von Tob, der Gletscher, der Friedhof von E-Rantel. Für meine Sammlung … Wenn Ihr erlaubt!",
    "progress": "Vier Yggdrasil-Münzen: Carne, Wald von Tob, Eisgletscher, Friedhof von E-Rantel.",
    "done": "WUNDERBAR! *Salutiert* Vier Stück! Diese Münzen bestätigen meine Theorie, Vater … ähm, Ainz-sama!",
-   "steps": [{"type": "collect", "item": "ygg_coin", "count": 4, "text": "Findet Yggdrasil-Münzen (4 Orte)"},
-             {"type": "deliver", "item": "ygg_coin", "count": 4, "npc": "pandora", "text": "Bringt Pandora's Actor die Münzen (Schatzkammer)"}],
-   "rewards": {"gold": 150, "item": "roll:epic", "chars": {"pandora": {"favor": 10}}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "ygg_coin",
+     "count": 4,
+     "text": "Findet Yggdrasil-Münzen (4 Orte)"
+    },
+    {
+     "type": "deliver",
+     "item": "ygg_coin",
+     "count": 4,
+     "npc": "pandora",
+     "text": "Bringt Pandora's Actor die Münzen (Schatzkammer)"
+    }
+   ],
+   "rewards": {
+    "gold": 150,
+    "item": "roll:epic",
+    "chars": {
+     "pandora": {
+      "favor": 10
+     }
+    }
+   }
   },
   {
-   "id": "q_demiurge_essence", "title": "Proben für Demiurge", "kind": "guardian", "giver": "demiurge",
-   "requires": {"chapter": 3},
+   "id": "q_demiurge_essence",
+   "title": "Proben für Demiurge",
+   "kind": "guardian",
+   "giver": "demiurge",
+   "requires": {
+    "chapter": 3
+   },
    "offer": "Ainz-sama, wenn ich Eure Zeit beanspruchen darf: Die Todesritter der Katze-Ebene hinterlassen eine dunkle Essenz. Drei Proben würden meine Forschungen … erheblich beschleunigen.",
    "progress": "Drei Proben Dunkler Essenz – von Todesrittern (Katze-Ebene, Lavahölle).",
    "done": "Vortrefflich. Wie immer seid Ihr mir drei Züge voraus, Ainz-sama.",
-   "steps": [{"type": "collect", "item": "dark_essence", "count": 3, "text": "Sammelt Dunkle Essenz (Todesritter)"},
-             {"type": "deliver", "item": "dark_essence", "count": 3, "npc": "demiurge", "text": "Bringt Demiurge die Proben (Lavahölle)"}],
-   "rewards": {"res": {"power": 6, "info": 4}, "chars": {"demiurge": {"favor": 6}}, "xp": {"demiurge": 50}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "dark_essence",
+     "count": 3,
+     "text": "Sammelt Dunkle Essenz (Todesritter)"
+    },
+    {
+     "type": "deliver",
+     "item": "dark_essence",
+     "count": 3,
+     "npc": "demiurge",
+     "text": "Bringt Demiurge die Proben (Lavahölle)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 6,
+     "info": 4
+    },
+    "chars": {
+     "demiurge": {
+      "favor": 6
+     }
+    },
+    "xp": {
+     "demiurge": 50
+    }
+   }
   },
   {
-   "id": "q_cocytus_skeletons", "title": "Training mit Cocytus", "kind": "guardian", "giver": "cocytus",
-   "requires": {"chapter": 1},
+   "id": "q_cocytus_skeletons",
+   "title": "Training mit Cocytus",
+   "kind": "guardian",
+   "giver": "cocytus",
+   "requires": {
+    "chapter": 1
+   },
    "offer": "Ainz-Sama. Es Wäre Mir Eine Ehre, Euch Kämpfen Zu Sehen. In Den Grabkammern Sammeln Sich Skelette. Vernichtet Sechs. Ich Werde Zusehen Und Lernen.",
    "progress": "Sechs Skelette vernichten (Grabkammern oder Katze-Ebene), dann Cocytus berichten.",
    "done": "Prächtig. Eure Technik … Ist Ohnegleichen. Ich Werde Meine Krieger Danach Ausbilden.",
-   "steps": [{"type": "kill", "enemy": "skeleton", "count": 6, "text": "Vernichtet Skelette"},
-             {"type": "talk", "npc": "cocytus", "text": "Berichtet Cocytus (Eisgletscher)"}],
-   "rewards": {"res": {"power": 5}, "chars": {"cocytus": {"favor": 6}}, "xp": {"cocytus": 40}}
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "skeleton",
+     "count": 6,
+     "text": "Vernichtet Skelette"
+    },
+    {
+     "type": "talk",
+     "npc": "cocytus",
+     "text": "Berichtet Cocytus (Eisgletscher)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 5
+    },
+    "chars": {
+     "cocytus": {
+      "favor": 6
+     }
+    },
+    "xp": {
+     "cocytus": 40
+    }
+   }
   },
   {
-   "id": "b_wolves_tob", "title": "Kopfgeld: Rudel im Wald von Tob", "kind": "bounty", "board": "tob_wald", "repeat": true,
+   "id": "b_wolves_tob",
+   "title": "Kopfgeld: Rudel im Wald von Tob",
+   "kind": "bounty",
+   "board": "tob_wald",
+   "repeat": true,
    "offer": "Anschlag der Abenteurergilde: Ein Rudel Waldwölfe greift Holzfäller an. Belohnung für sechs erlegte Tiere, Felle als Nachweis.",
    "done": "Die Gilde zahlt die Belohnung aus.",
-   "steps": [{"type": "kill", "enemy": "wolf", "count": 6, "loc": "tob_wald", "text": "Erlegt Waldwölfe im Wald von Tob"}],
-   "rewards": {"gold": 40, "res": {"reputation": 1}}
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "wolf",
+     "count": 6,
+     "loc": "tob_wald",
+     "text": "Erlegt Waldwölfe im Wald von Tob"
+    }
+   ],
+   "rewards": {
+    "gold": 40,
+    "res": {
+     "reputation": 1
+    }
+   }
   },
   {
-   "id": "b_bones_guild", "title": "Kopfgeld: Knochenstaub für die Gilde", "kind": "bounty", "board": "e_rantel", "repeat": true,
+   "id": "b_bones_guild",
+   "title": "Kopfgeld: Knochenstaub für die Gilde",
+   "kind": "bounty",
+   "board": "e_rantel",
+   "repeat": true,
    "offer": "Die Magiergilde kauft Knochenstaub für ihre Studien. Zehn Portionen werden gut bezahlt.",
    "done": "Die Gildenkasse zahlt.",
-   "steps": [{"type": "collect", "item": "bone_dust", "count": 10, "text": "Sammelt Knochenstaub (Skelette)"},
-             {"type": "deliver", "item": "bone_dust", "count": 10, "npc": "guild_clerk", "text": "Gebt den Knochenstaub bei der Gilde ab (E-Rantel)"}],
-   "rewards": {"gold": 55, "res": {"reputation": 1}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "bone_dust",
+     "count": 10,
+     "text": "Sammelt Knochenstaub (Skelette)"
+    },
+    {
+     "type": "deliver",
+     "item": "bone_dust",
+     "count": 10,
+     "npc": "guild_clerk",
+     "text": "Gebt den Knochenstaub bei der Gilde ab (E-Rantel)"
+    }
+   ],
+   "rewards": {
+    "gold": 55,
+    "res": {
+     "reputation": 1
+    }
+   }
   },
   {
-   "id": "b_lizards", "title": "Kopfgeld: Echsenkrieger", "kind": "bounty", "board": "sumpf", "repeat": true,
+   "id": "b_lizards",
+   "title": "Kopfgeld: Echsenkrieger",
+   "kind": "bounty",
+   "board": "sumpf",
+   "repeat": true,
    "offer": "Die Echsenmenschen-Stämme liegen im Krieg miteinander. Wer vier ihrer Krieger bezwingt, erhält Lohn – Nazarick wünscht Unterwerfung, nicht Vernichtung.",
    "done": "Ein Bote aus Nazarick bringt die Belohnung.",
-   "steps": [{"type": "kill", "enemy": "lizard", "count": 4, "loc": "sumpf", "text": "Bezwingt Echsenkrieger in den Sümpfen"}],
-   "rewards": {"gold": 45, "res": {"power": 2}}
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "lizard",
+     "count": 4,
+     "loc": "sumpf",
+     "text": "Bezwingt Echsenkrieger in den Sümpfen"
+    }
+   ],
+   "rewards": {
+    "gold": 45,
+    "res": {
+     "power": 2
+    }
+   }
   },
   {
-   "id": "b_quagoa", "title": "Kopfgeld: Quagoa-Plage", "kind": "bounty", "board": "azerlisia", "repeat": true,
+   "id": "b_quagoa",
+   "title": "Kopfgeld: Quagoa-Plage",
+   "kind": "bounty",
+   "board": "azerlisia",
+   "repeat": true,
    "offer": "Die Zwerge von Feo Jera bitten um Hilfe gegen die Quagoa. Fünf Klauen als Beweis.",
    "done": "Die Zwerge danken mit Erz und Gold.",
-   "steps": [{"type": "collect", "item": "quagoa_claw", "count": 5, "text": "Sammelt Quagoa-Klauen (Azerlisia)"}],
-   "rewards": {"gold": 60, "bag": {"iron_ore": 4}, "res": {"reputation": 2}}
+   "steps": [
+    {
+     "type": "collect",
+     "item": "quagoa_claw",
+     "count": 5,
+     "text": "Sammelt Quagoa-Klauen (Azerlisia)"
+    }
+   ],
+   "rewards": {
+    "gold": 60,
+    "bag": {
+     "iron_ore": 4
+    },
+    "res": {
+     "reputation": 2
+    }
+   }
+  },
+  {
+   "id": "g_cocytus_lizards",
+   "title": "Wächter-Einsatz: Der Krieg der Echsenmenschen",
+   "kind": "guardian_play",
+   "giver": "cocytus",
+   "requires": {
+    "chapter": 2
+   },
+   "offer": "Ainz-Sama. Ihr Befahlt, Die Stämme Der Echsenmenschen Zu Unterwerfen. Ich Bitte Um Die Ehre, Selbst Zu Kämpfen – Allein, Mit Meinen Vier Armen. Erlaubt Ihr Es?",
+   "progress": "Cocytus zieht in die Sümpfe der Echsenmenschen. Reist mit dem Gate dorthin – Ihr übernehmt Cocytus.",
+   "done": "Ein Würdiger Gegner. Zaryusu Shasha Kämpfte Bis Zum Letzten Atemzug. Ainz-Sama … Ich Bitte Darum, Ihn Wiederzubeleben. Solch Ein Krieger Sollte Nazarick Dienen.",
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "lizard",
+     "count": 6,
+     "loc": "sumpf",
+     "as": "cocytus",
+     "spawn": [
+      [
+       "lizard",
+       4
+      ]
+     ],
+     "text": "Als Cocytus: Bezwingt die Krieger der Echsenmenschen (Sümpfe)"
+    },
+    {
+     "type": "kill",
+     "enemy": "zaryusu",
+     "count": 1,
+     "loc": "sumpf",
+     "as": "cocytus",
+     "spawn": [
+      [
+       "zaryusu",
+       1
+      ]
+     ],
+     "text": "Als Cocytus: Duell mit Zaryusu Shasha"
+    },
+    {
+     "type": "talk",
+     "npc": "cocytus",
+     "text": "Berichtet Ainz – sprecht mit Cocytus (Eisgletscher)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 10,
+     "reputation": 3
+    },
+    "chars": {
+     "cocytus": {
+      "favor": 12
+     }
+    },
+    "xp": {
+     "cocytus": 120
+    },
+    "item": "roll:epic"
+   },
+   "on_done": {
+    "set_flags": [
+     "echsen_unterworfen"
+    ]
+   }
+  },
+  {
+   "id": "g_shalltear_swords",
+   "title": "Wächter-Einsatz: Die Todesschwerter",
+   "kind": "guardian_play",
+   "giver": "shalltear",
+   "requires": {
+    "chapter": 2
+   },
+   "offer": "Mein Gebieter! Im Wald von Tob haust eine Söldnerbande, die »Todesschwerter«. Ihr Anführer soll ein großer Schwertkämpfer sein, ~arinsu. Lasst mich mit ihnen … spielen. Ich verspreche, ich lasse einen am Leben. Vielleicht.",
+   "progress": "Shalltear jagt die Todesschwerter im Wald von Tob. Reist dorthin – Ihr übernehmt Shalltear.",
+   "done": "Brain Unglaus … er hat meinen Fingernagel nicht einmal geritzt, und doch – er rannte. Wie süß! Ich habe für Euch gejagt, mein Gebieter, lobt mich!",
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "mercenary",
+     "count": 6,
+     "loc": "tob_wald",
+     "as": "shalltear",
+     "spawn": [
+      [
+       "mercenary",
+       6
+      ]
+     ],
+     "text": "Als Shalltear: Vernichtet die Söldner der Todesschwerter (Wald von Tob)"
+    },
+    {
+     "type": "kill",
+     "enemy": "brain",
+     "count": 1,
+     "loc": "tob_wald",
+     "as": "shalltear",
+     "spawn": [
+      [
+       "brain",
+       1
+      ],
+      [
+       "mercenary",
+       2
+      ]
+     ],
+     "text": "Als Shalltear: Stellt Brain Unglaus"
+    },
+    {
+     "type": "talk",
+     "npc": "shalltear",
+     "text": "Berichtet Ainz – sprecht mit Shalltear (Grabkammern)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 7,
+     "gold": 0
+    },
+    "gold": 90,
+    "chars": {
+     "shalltear": {
+      "favor": 10
+     }
+    },
+    "rivalry": 4,
+    "xp": {
+     "shalltear": 100
+    },
+    "item": "roll:rare"
+   }
+  },
+  {
+   "id": "g_demiurge_capital",
+   "title": "Wächter-Einsatz: Die Nacht des Jaldabaoth",
+   "kind": "guardian_play",
+   "giver": "demiurge",
+   "requires": {
+    "chapter": 3
+   },
+   "offer": "Ainz-sama, der Plan für die Königshauptstadt ist bereit. Ein Dämon namens »Jaldabaoth« wird erscheinen, die Stadt in Flammen setzen … und Momon wird sie retten. Darf ich die Rolle des Dämons persönlich übernehmen?",
+   "progress": "Demiurge erscheint als Jaldabaoth in der Königshauptstadt. Reist dorthin – Ihr übernehmt Demiurge.",
+   "done": "Alles verlief nach Eurem Plan, Ainz-sama – wie immer. Die Blauen Rosen sind gedemütigt, das Volk liebt Momon, und wir haben, was wir wollten. Ihr seid mir stets drei Züge voraus.",
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "adventurer",
+     "count": 6,
+     "loc": "re_capital",
+     "as": "demiurge",
+     "spawn": [
+      [
+       "adventurer",
+       6
+      ]
+     ],
+     "text": "Als Jaldabaoth: Zerschlagt den Widerstand der Abenteurer (Königshauptstadt)"
+    },
+    {
+     "type": "kill",
+     "enemy": "gagaran",
+     "count": 1,
+     "loc": "re_capital",
+     "as": "demiurge",
+     "spawn": [
+      [
+       "gagaran",
+       1
+      ],
+      [
+       "adventurer",
+       2
+      ]
+     ],
+     "text": "Als Jaldabaoth: Besiegt Gagaran von den Blauen Rosen"
+    },
+    {
+     "type": "talk",
+     "npc": "demiurge",
+     "text": "Berichtet Ainz – sprecht mit Demiurge (Lavahölle)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 8,
+     "info": 8,
+     "reputation": 4
+    },
+    "gold": 200,
+    "chars": {
+     "demiurge": {
+      "favor": 10
+     }
+    },
+    "xp": {
+     "demiurge": 120
+    },
+    "item": "roll:epic"
+   },
+   "on_done": {
+    "set_flags": [
+     "jaldabaoth"
+    ]
+   }
+  },
+  {
+   "id": "g_sebas_tuare",
+   "title": "Wächter-Einsatz: Ein Mädchen namens Tuare",
+   "kind": "guardian_play",
+   "giver": "sebas",
+   "requires": {
+    "chapter": 2
+   },
+   "offer": "Ainz-sama, ich muss Euch etwas gestehen. In der Königshauptstadt habe ich ein Mädchen aufgenommen – Tuare. Die Acht Finger wollen sie zurück. Gestattet Ihr mir, die Sache … persönlich zu bereinigen?",
+   "progress": "Sebas stellt sich den Acht Fingern in der Königshauptstadt. Reist dorthin – Ihr übernehmt Sebas.",
+   "done": "Die Acht Finger werden niemanden mehr belästigen. Tuare ist in Sicherheit – dank Eurer Großmut, Ainz-sama. Ich stehe tief in Eurer Schuld.",
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "eight_fingers",
+     "count": 6,
+     "loc": "re_capital",
+     "as": "sebas",
+     "spawn": [
+      [
+       "eight_fingers",
+       6
+      ]
+     ],
+     "text": "Als Sebas: Zerschlagt die Schläger der Acht Finger (Königshauptstadt)"
+    },
+    {
+     "type": "kill",
+     "enemy": "succulent",
+     "count": 1,
+     "loc": "re_capital",
+     "as": "sebas",
+     "spawn": [
+      [
+       "succulent",
+       1
+      ],
+      [
+       "eight_fingers",
+       2
+      ]
+     ],
+     "text": "Als Sebas: Stellt Succulent den Illusionisten"
+    },
+    {
+     "type": "talk",
+     "npc": "sebas",
+     "text": "Berichtet Ainz – sprecht mit Sebas (Königliche Gemächer)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "morale": 4,
+     "reputation": 3
+    },
+    "gold": 80,
+    "chars": {
+     "sebas": {
+      "favor": 12
+     }
+    },
+    "xp": {
+     "sebas": 100
+    },
+    "item": "roll:rare"
+   },
+   "on_done": {
+    "set_flags": [
+     "tuare_gerettet"
+    ]
+   }
   }
  ]
 }

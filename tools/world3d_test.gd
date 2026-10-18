@@ -43,6 +43,10 @@ func _ready() -> void:
 	for c in w.overlay_layer.get_children():
 		c.queue_free()
 	var only := OS.get_environment("LOC")
+	if only == "guardian":
+		await _guardian_test(w)
+		get_tree().quit()
+		return
 	if only == "quest":
 		await _quest_test(w)
 		get_tree().quit()
@@ -259,6 +263,43 @@ func _quest_test(w: Node) -> void:
 	await _wait(1.2)
 	_shot("quest_journal")
 	print("QUEST-TEST " + ("OK" if Quests.state_of("q_carne_herbs") == "done" else "FEHLGESCHLAGEN"))
+
+
+## Wächter-Einsatz: Cocytus gegen die Echsenmenschen.
+func _guardian_test(w: Node) -> void:
+	Game.state.chapter = 3
+	Quests.accept(OS.get_environment("GQ") if OS.get_environment("GQ") != "" else "g_cocytus_lizards")
+	var q: Dictionary = Quests.by_id[Quests.tracked]
+	var loc_id: String = q.steps[0].loc
+	await w.load_location(loc_id)
+	await _wait(2.5)
+	print("WÄCHTER Stil: %s · Gegner: %d" % [w.player.style, w.enemies.size()])
+	var e0: Enemy3D = null
+	for e in w.enemies:
+		if e.type_id == q.steps[0].enemy:
+			e0 = e
+	if e0:
+		w.player.global_position = e0.global_position + Vector3(0, 0.2, 5)
+		w.player.face(0.0)
+		await _wait(1.0)
+		w.player.toggle_lock()
+		w.player.cast(w.player.spells()[0])
+		await _wait(0.5)
+		_shot("guardian_play")
+	for round in 3:
+		for e in w.enemies.duplicate():
+			if is_instance_valid(e) and e.type_id == Quests.step(q).get("enemy", ""):
+				e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
+		await _wait(2.5)
+		print("WÄCHTER Schritt: %s · Stil %s · Gegner %d" % [Quests.step_text(q), w.player.style, w.enemies.size()])
+	for e in w.enemies:
+		if is_instance_valid(e) and e.data.get("elite", false):
+			w.player.global_position = e.global_position + Vector3(0, 0.2, 5)
+			await _wait(1.0)
+			_shot("guardian_boss")
+			break
+	await _wait(3.0)
+	print("WÄCHTER Ende: Stil %s · Schritt '%s'" % [w.player.style, Quests.step_text(q)])
 
 
 ## Renderer-Vergleich: feste Ansichten ohne Oberfläche, Dateiname mit Renderer

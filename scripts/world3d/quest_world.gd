@@ -20,7 +20,7 @@ func _init(world: Node) -> void:
 
 func _ready() -> void:
 	Quests.completed.connect(_on_completed)
-	Quests.step_done.connect(func(_id, text): w.toast("✔ " + text, Palette.SUCCESS))
+	Quests.step_done.connect(_on_step_done)
 	Quests.changed.connect(refresh_marks)
 
 
@@ -163,6 +163,75 @@ func _ground_at(p: Vector3) -> Vector3:
 	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
 	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3(0, 30, 0), p + Vector3(0, -30, 0)))
 	return hit.position if not hit.is_empty() else p
+
+
+# ------------------------------------------------------------------ Wächter-Einsätze
+
+## Beim Betreten eines Ortes: läuft hier ein Einsatz („as“), übernimmt der Spieler den Wächter und die
+## Gegner des Schritts erscheinen. Sonst zurück zu Ainz, falls noch ein Wächter gespielt wird.
+func apply_story() -> void:
+	var s := _story_step()
+	if not s.is_empty():
+		_become(String(s.as), s.q)
+		_spawn_wave(s.step)
+	elif String(w.player.style).begins_with("g_"):
+		_restore()
+
+
+func _story_step() -> Dictionary:
+	for q in Quests.active():
+		var st := Quests.step(q)
+		if st.has("as") and String(st.get("loc", "")) == w.loc.id:
+			return {"q": q, "step": st, "as": st["as"]}
+	return {}
+
+
+func _become(cid: String, q: Dictionary) -> void:
+	var style := "g_" + cid
+	if w.player.style == style or not Content.combat.player.styles.has(style):
+		return
+	if not Game.state.has("world3d"):
+		Game.state["world3d"] = {}
+	if not String(w.player.style).begins_with("g_"):
+		Game.state.world3d["prev_style"] = w.player.style
+	w.player.set_style(style, true)
+	w._show_banner(Content.char_data(cid).get("name", cid), q.title + " – Ihr kämpft als " + String(Content.char_data(cid).get("name", cid)) + ".")
+
+
+func _restore() -> void:
+	var prev: String = String(Game.state.get("world3d", {}).get("prev_style", "ainz"))
+	w.player.set_style(prev if not prev.begins_with("g_") else "ainz", true)
+	w.toast("Ihr seid wieder Ainz Ooal Gown.", Palette.VIOLET_GLOW)
+
+
+func _spawn_wave(st: Dictionary) -> void:
+	var base: Vector3 = w.anchors.spawn
+	var fwd := Vector3(sin(float(w.anchors.get("yaw", 0.0))), 0, cos(float(w.anchors.get("yaw", 0.0)))) * -1.0
+	var slots: Array = w.anchors.get("slots", [])
+	var i := 0
+	for e in st.get("spawn", []):
+		for k in int(e[1]):
+			var p: Vector3
+			if i < slots.size():
+				p = slots[i]
+			else:
+				p = base + fwd * randf_range(12.0, 20.0) + Vector3(randf_range(-6, 6), 0, randf_range(-6, 6))
+			i += 1
+			w.spawn_enemy(String(e[0]), _ground_at(p) + Vector3(0, 0.2, 0))
+
+
+func _on_step_done(qid: String, text: String) -> void:
+	w.toast("✔ " + text, Palette.SUCCESS)
+	var q: Dictionary = Quests.by_id[qid]
+	var st := Quests.step(q)
+	if st.has("as") and String(st.get("loc", "")) == w.loc.id:
+		await w.get_tree().create_timer(1.6).timeout
+		if is_instance_valid(w.level):
+			w._show_banner(String(st.text).get_slice(":", 1).strip_edges() if ":" in String(st.text) else String(st.text), q.title)
+			_spawn_wave(st)
+	elif String(w.player.style).begins_with("g_"):
+		await w.get_tree().create_timer(2.0).timeout
+		_restore()
 
 
 # ------------------------------------------------------------------ Laufzeit

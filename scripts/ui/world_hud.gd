@@ -439,7 +439,7 @@ func tick(delta: float, blocked: bool) -> void:
 	if p.shield_time > 0.0:
 		st += "  ·  ⛨ Barriere %.0f s" % p.shield_time
 	state_label.text = st
-	var pid := "ainz_momon" if String(p.style) == "momon" else "ainz"
+	var pid: String = String(p.style_data.get("model", "ainz_momon" if String(p.style) == "momon" else "ainz"))
 	if pid != _portrait_id:
 		var tex := PortraitStudio.get_texture(pid)
 		if tex:

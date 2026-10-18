@@ -92,6 +92,7 @@ func load_location(id: String, fade: bool = false) -> void:
 	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
 	_place_actors()
 	_spawn_encounters()
+	quest_world.apply_story()
 	quest_world.spawn_pickups()
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
