@@ -191,6 +191,16 @@ static func _special_surfaces(scene: Node3D) -> void:
 	for n in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		var nm := String(mi.name).to_lower()
+		if nm.contains("snowground") or nm.contains("icelake") or nm.begins_with("ice_") or nm.contains("_ice_") or nm.begins_with("frost_"):
+			var sh: String = "snow" if nm.contains("snowground") else ("frost_overlay" if nm.begins_with("frost_") else "ice")
+			var sm2 := ShaderMaterial.new()
+			sm2.shader = load("res://assets/shaders/%s.gdshader" % sh)
+			if sh == "frost_overlay":
+				mi.material_overlay = sm2
+			else:
+				for i in mi.mesh.get_surface_count():
+					mi.set_surface_override_material(i, sm2)
+			continue
 		if nm.contains("goldpile"):
 			var gp := ShaderMaterial.new()
 			gp.shader = load("res://assets/shaders/gold_pile.gdshader")
@@ -441,11 +451,11 @@ static func preset(kind: String) -> Dictionary:
 	match kind:
 		"throne": return {"sky": false, "bg": Color(0.015, 0.0, 0.03), "ambient": Color(0.5, 0.4, 0.65), "ambient_energy": 0.9, "fog": Color(0.1, 0.03, 0.16), "fog_density": 0.012, "sun_energy": 0.25}
 		"tombs": return {"sky": false, "gi": 0.6, "vol_fog": 0.6, "bg": Color(0.01, 0.015, 0.02), "ambient": Color(0.32, 0.36, 0.45), "ambient_energy": 0.85, "fog": Color(0.05, 0.07, 0.09), "fog_density": 0.03, "sun_energy": 0.12, "saturation": 1.08, "contrast": 1.08}
-		"glacier": return {"sky_top": Color(0.05, 0.12, 0.3), "sky_energy": 0.7, "ambient": Color(0.4, 0.5, 0.75), "ambient_energy": 0.45, "exposure": 0.8, "fog": Color(0.35, 0.5, 0.75), "fog_density": 0.02, "sun": Color(0.7, 0.85, 1.0), "sun_energy": 0.8}
+		"glacier": return {"sky_top": Color(0.28, 0.45, 0.72), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.5, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 1.3, "ambient": Color(0.55, 0.68, 0.9), "ambient_energy": 0.8, "exposure": 0.95, "fog": Color(0.72, 0.82, 0.95), "fog_density": 0.012, "sun": Color(0.85, 0.92, 1.0), "sun_energy": 1.3, "sun_rot": Vector3(-30, 40, 0), "shadow_dist": 120.0, "saturation": 1.05, "contrast": 1.06}
 		"jungle": return {"sky_top": Color(0.2, 0.42, 0.72), "sky_energy": 1.0, "sky_ambient": true, "ambient": Color(0.5, 0.62, 0.45), "ambient_energy": 0.8, "fog": Color(0.42, 0.55, 0.4), "fog_density": 0.009, "vol_fog": 1.4, "sun": Color(1.0, 0.93, 0.75), "sun_energy": 1.6, "sun_rot": Vector3(-48, 30, 0), "shadow_dist": 120.0, "saturation": 1.18, "contrast": 1.05, "exposure": 1.1}
 		"lava": return {"lamp": 0.6, "lamp_range": 12.0, "sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
 		"royal": return {"sky": false, "lamp": 0.9, "lamp_range": 9.0, "gi": 1.0, "vol_fog": 0.4, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.75, 0.62, 0.5), "ambient_energy": 1.1, "fog": Color(0.12, 0.08, 0.06), "fog_density": 0.008, "sun_energy": 0.25, "saturation": 1.08, "contrast": 1.04}
-		"library": return {"sky": false, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.55, 0.45, 0.35), "ambient_energy": 0.6, "fog": Color(0.07, 0.05, 0.03), "fog_density": 0.018, "sun_energy": 0.15}
+		"library": return {"sky": false, "lamp": 0.7, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 0.5, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.7, 0.58, 0.42), "ambient_energy": 0.9, "fog": Color(0.1, 0.07, 0.04), "fog_density": 0.012, "sun_energy": 0.15, "saturation": 1.06, "contrast": 1.05}
 		"treasury": return {"sky_top": Color(0.25, 0.32, 0.62), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.8, "lamp_range": 12.0, "gi": 1.0, "vol_fog": 1.2, "ambient": Color(0.85, 0.7, 0.45), "ambient_energy": 0.8, "fog": Color(0.85, 0.62, 0.35), "fog_density": 0.006, "sun": Color(1.0, 0.78, 0.5), "sun_energy": 1.7, "sun_rot": Vector3(-22, 160, 0), "shadow_dist": 120.0, "saturation": 1.12, "contrast": 1.06, "exposure": 1.0}
 		"village": return {"sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
 		"city", "palace", "cathedral": return {"sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.006, "vol_fog": 1.3, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.05}
@@ -628,6 +638,9 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 			idle.append(p)
 	if not walk.is_empty() or not idle.is_empty():
 		Townsfolk.spawn(root, walk, idle, hash(loc.id))
+	if loc.kind == "glacier":
+		# Schneefall rund um den Spieler-Startbereich und über dem Tempel
+		B3.motes(root, a.spawn + Vector3(0, 8, -20), Vector3(45, 8, 45), Color(0.95, 0.97, 1.0), 900 if Settings.particles else 250, 1.2)
 	if loc.kind in ["village", "city", "jungle", "forest"] and Settings.particles:
 		# Schwebende Pollen im Sonnenlicht, im Dschungel/Wald zusätzlich Glühwürmchen
 		B3.motes(root, a.spawn + Vector3(0, 2.5, -15), Vector3(40, 2.5, 40), Color(1.0, 0.95, 0.7, 0.6), 140)
