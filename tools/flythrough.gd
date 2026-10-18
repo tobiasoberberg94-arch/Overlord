@@ -10,6 +10,14 @@ const PATHS := {
 	"treasury": {"secs": 36.0, "cam": [
 		[2, -112, 2.5, 2, -60, 3], [2, -70, 3.0, 2, -20, 2], [-4, -30, 2.2, 4, -20, 1], [6, 10, 2.5, 2, 50, 2],
 		[-2, 44, 2.0, 6, 60, 1.5], [6, 60, 2.6, -4, 76, 1.0], [-2, 70, 3.5, 2, 88, 2.0]]},
+	"erantel_friedhof": {"secs": 34.0, "cam": [
+		[0, -52, 2.5, 0, -20, 2], [0, -30, 2.2, -6, 0, 1.5], [-10, -4, 3.0, -30, 20, 2], [-6, 14, 2.6, 0, 36, 2.5], [10, 20, 8.0, 0, 38, 3]]},
+	"nazarick_land": {"secs": 34.0, "cam": [
+		[0, -80, 4.0, 0, -20, 3], [6, -40, 3.0, 0, 20, 3], [-10, -10, 2.5, 0, 30, 3], [-4, 14, 3.0, 0, 30, 4], [30, 0, 25.0, 0, 30, 0]]},
+	"re_capital": {"secs": 36.0, "cam": [
+		[0, 8, 2.5, -8, -6, 3], [-10, 2, 3.0, -40, -10, 6], [-30, -2, 8.0, -70, -60, 30], [-10, 40, 40.0, -70, -60, 30], [40, 80, 60.0, -60, -60, 20]]},
+	"tob_wald": {"secs": 40.0, "cam": [
+		[-6, -78, 2.2, 0, -50, 2], [4, -46, 2.0, -4, -14, 2], [-4, -20, 2.4, -26, 8, 1.5], [-22, 4, 2.2, -34, 18, 1], [0, 20, 3.0, 2, 56, 2], [2, 42, 3.5, 2, 66, 3]]},
 	"glacier": {"secs": 36.0, "cam": [
 		[0, -60, 6.0, 0, -20, 3], [3, -34, 3.0, 0, 12, 1], [-14, 0, 3.5, 0, 14, 0.5], [-10, 28, 4.0, 0, 52, 3], [0, 38, 3.0, 0, 58, 4], [18, 20, 14.0, 0, 52, 2]]},
 	"library": {"secs": 34.0, "cam": [
@@ -66,7 +74,7 @@ func _cast(id: String, a: Dictionary) -> void:
 
 func _ground(x: float, z: float) -> float:
 	# Innenräume: knapp über dem Boden starten (sonst trifft der Strahl Decke/Dach)
-	var top := 4.0 if OS.get_environment("LOC") in ["tombs", "throne", "royal", "library", "treasury"] else (20.0 if OS.get_environment("LOC") == "lava" else 200.0)
+	var top := 4.0 if OS.get_environment("LOC") in ["tombs", "throne", "royal", "library", "treasury"] else (20.0 if OS.get_environment("LOC") == "lava" else (6.0 if OS.get_environment("LOC") == "re_capital" else 200.0))
 	var q := PhysicsRayQueryParameters3D.create(Vector3(x, top, z), Vector3(x, -50, z))
 	var hit := get_world_3d().direct_space_state.intersect_ray(q)
 	return (hit.position as Vector3).y if hit else 0.0

@@ -133,6 +133,26 @@
    "desc": "Berge aus Gold, Weltgegenstände – und Pandora's Actor, der jeden Fund katalogisiert."
   },
   {
+   "id": "nazarick_land",
+   "name": "Grasland um Nazarick",
+   "kind": "grassland",
+   "group": "world",
+   "sky": "nazarick_exterior",
+   "region": "nazarick",
+   "music": "title",
+   "desc": "Weites, unberührtes Grasland, wo einst der Sumpf von Yggdrasil lag. Mittendrin: die Oberfläche des Großen Grabes.",
+   "encounters": [
+    {
+     "enemy": "wolf",
+     "count": 2,
+     "at": [
+      20.0,
+      40.0
+     ]
+    }
+   ]
+  },
+  {
    "id": "carne",
    "name": "Dorf Carne",
    "kind": "village",
@@ -207,6 +227,26 @@
       "chapter_min": 4,
       "chapter_max": 6
      }
+    }
+   ]
+  },
+  {
+   "id": "erantel_friedhof",
+   "name": "Friedhof von E-Rantel",
+   "kind": "cemetery",
+   "group": "world",
+   "sky": "e_rantel",
+   "region": "e_rantel",
+   "music": "tension",
+   "desc": "Der riesige Friedhof vor den Mauern E-Rantels. In der Nacht der Untoten erhebt sich hier eine Armee aus Gräbern.",
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 4,
+     "at": [
+      0.0,
+      0.0
+     ]
     }
    ]
   },

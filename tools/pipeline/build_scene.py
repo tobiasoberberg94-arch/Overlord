@@ -60,6 +60,8 @@ for p in sc["placements"]:
         continue
     mw = to_blender(p["m"])
     t = mw.to_translation()
+    if any((t.x - c[0]) ** 2 + (t.y - c[1]) ** 2 < c[2] ** 2 for c in opt.get("clear", [])) and             (name in kit.lod_names or p.get("foliage") or "tree" in name.lower() or "spruce" in name.lower() or "bush" in name.lower()):
+        continue                         # Bäume/Büsche aus freizuhaltenden Bereichen (Spawn, Plätze)
     key = (name, round(t.x, 2), round(t.y, 2), round(t.z, 2))
     if key in seen:                      # doppelt exportierte Komponenten
         continue
@@ -100,6 +102,16 @@ for k, v in anchors.items():
 if opt.get("extra"):
     ns = {"kit": kit, "Vector": Vector, "Matrix": Matrix, "math": math, "opt": opt}
     exec(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), opt["extra"]), encoding="utf-8").read(), ns)
+
+# Gesamte Szene verschieben (Spielbereich in den Ursprung; die Spielfeldgrenze liegt bei ±120 m)
+if opt.get("offset"):
+    off = Vector(opt["offset"])
+    for o in kit.out.objects:
+        if o.parent is None:
+            o.location = o.location + off
+    T = Matrix.Translation(off)
+    kit._nocol = [(n, T @ m) for n, m in kit._nocol]
+    print("OVERLORD verschoben um", tuple(off))
 
 kit.finish_materials(metal_keys=tuple(opt.get("metal", ())))
 kit.export()
