@@ -56,6 +56,8 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	_scatter_instances(loc, scene)
 	_ground_blend(scene)
 	_soft_cutouts(scene)
+	_wall_occluders(scene)
+	_special_surfaces(scene)
 	var spin: Array = scene.find_children("spin_*", "Node3D", true, false)
 	if not spin.is_empty():
 		var sp := Spinner.new()
@@ -65,8 +67,10 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	# auf spieltaugliche Werte bringen, Schatten nur bei hoher Grafikstufe.
 	for l in scene.find_children("*", "OmniLight3D", true, false):
 		var omni := l as OmniLight3D
-		omni.light_energy = 0.05 if is_forward_plus() else 0.45   # Forward+: SDFGI verteilt das Licht zusätzlich
-		omni.omni_range = clampf(omni.omni_range, 3.0, 6.0)
+		# Forward+: SDFGI verteilt das Licht zusätzlich. Je Ort einstellbar (preset „lamp“, „lamp_range“).
+		var pr := preset(loc.kind)
+		omni.light_energy = float(pr.get("lamp", 0.05)) if is_forward_plus() else float(pr.get("lamp", 0.05)) * 9.0
+		omni.omni_range = clampf(omni.omni_range, 3.0, float(pr.get("lamp_range", 6.0)))
 		omni.omni_attenuation = 1.5
 		omni.shadow_enabled = false
 	for l in scene.find_children("*", "SpotLight3D", true, false):
@@ -181,6 +185,52 @@ static func _wind_material(mat: BaseMaterial3D, amount: float) -> Material:
 	sm.set_shader_parameter("alpha_cut", mat.alpha_scissor_threshold if mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR else 0.35)
 	sm.set_shader_parameter("wind", amount)
 	return sm
+
+## Benannte Sonderflächen aus den Ortsmodellen: „…Lava…“ → fließender Lava-Shader (leuchtet, schadet nicht).
+static func _special_surfaces(scene: Node3D) -> void:
+	for n in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var nm := String(mi.name).to_lower()
+		if nm.contains("goldpile"):
+			var gp := ShaderMaterial.new()
+			gp.shader = load("res://assets/shaders/gold_pile.gdshader")
+			for i in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(i, gp)
+			continue
+		if nm.contains("lava"):
+			var sm := ShaderMaterial.new()
+			sm.shader = load("res://assets/shaders/lava.gdshader")
+			for i in mi.mesh.get_surface_count():
+				mi.set_surface_override_material(i, sm)
+			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+			mi.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
+
+
+## Wände als Verdecker (Occlusion Culling): was hinter Mauern liegt, wird nicht gezeichnet.
+## Box je Wandstück aus dessen AABB (nur flache, große Teile: Wände, Mauern).
+static func _wall_occluders(scene: Node3D) -> void:
+	var n := 0
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		var nm := String(mi.name).to_lower()
+		if not (nm.begins_with("sm_wall") or nm.begins_with("sm_brick") or nm.contains("stonewall") or nm.contains("castlewall")):
+			continue
+		var aabb := mi.get_aabb()
+		var sz := aabb.size
+		var thin := minf(sz.x, minf(sz.y, sz.z))
+		if thin > 1.2 or maxf(sz.x, sz.z) < 3.0 or sz.y < 2.5:
+			continue
+		var occ := OccluderInstance3D.new()
+		var box := BoxOccluder3D.new()
+		box.size = Vector3(sz.x, sz.y, sz.z) * 0.92 if thin == sz.y else sz * 0.92
+		box.size = Vector3(maxf(box.size.x, 0.1), maxf(box.size.y, 0.1), maxf(box.size.z, 0.1))
+		occ.occluder = box
+		occ.position = aabb.get_center()
+		mi.add_child(occ)
+		n += 1
+	if n > 0:
+		print("Verdecker: ", n)
+
 
 ## Blätter/Gitter mit Alpha-Schnitt: Alpha-to-Coverage glättet die Kanten (wirkt mit MSAA).
 static func _soft_cutouts(scene: Node3D) -> void:
@@ -390,13 +440,13 @@ static func _forward_plus_env(env: Environment, preset: Dictionary) -> void:
 static func preset(kind: String) -> Dictionary:
 	match kind:
 		"throne": return {"sky": false, "bg": Color(0.015, 0.0, 0.03), "ambient": Color(0.5, 0.4, 0.65), "ambient_energy": 0.9, "fog": Color(0.1, 0.03, 0.16), "fog_density": 0.012, "sun_energy": 0.25}
-		"tombs": return {"sky": false, "gi": 0.3, "vol_fog": 0.25, "bg": Color(0.01, 0.02, 0.02), "ambient": Color(0.25, 0.35, 0.3), "ambient_energy": 0.45, "fog": Color(0.03, 0.06, 0.05), "fog_density": 0.035, "sun_energy": 0.1}
+		"tombs": return {"sky": false, "gi": 0.6, "vol_fog": 0.6, "bg": Color(0.01, 0.015, 0.02), "ambient": Color(0.32, 0.36, 0.45), "ambient_energy": 0.85, "fog": Color(0.05, 0.07, 0.09), "fog_density": 0.03, "sun_energy": 0.12, "saturation": 1.08, "contrast": 1.08}
 		"glacier": return {"sky_top": Color(0.05, 0.12, 0.3), "sky_energy": 0.7, "ambient": Color(0.4, 0.5, 0.75), "ambient_energy": 0.45, "exposure": 0.8, "fog": Color(0.35, 0.5, 0.75), "fog_density": 0.02, "sun": Color(0.7, 0.85, 1.0), "sun_energy": 0.8}
 		"jungle": return {"sky_top": Color(0.2, 0.42, 0.72), "sky_energy": 1.0, "sky_ambient": true, "ambient": Color(0.5, 0.62, 0.45), "ambient_energy": 0.8, "fog": Color(0.42, 0.55, 0.4), "fog_density": 0.009, "vol_fog": 1.4, "sun": Color(1.0, 0.93, 0.75), "sun_energy": 1.6, "sun_rot": Vector3(-48, 30, 0), "shadow_dist": 120.0, "saturation": 1.18, "contrast": 1.05, "exposure": 1.1}
-		"lava": return {"sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
-		"royal": return {"sky": false, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.6, 0.5, 0.45), "ambient_energy": 0.7, "fog": Color(0.08, 0.05, 0.06), "fog_density": 0.01, "sun_energy": 0.2}
+		"lava": return {"lamp": 0.6, "lamp_range": 12.0, "sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
+		"royal": return {"sky": false, "lamp": 0.9, "lamp_range": 9.0, "gi": 1.0, "vol_fog": 0.4, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.75, 0.62, 0.5), "ambient_energy": 1.1, "fog": Color(0.12, 0.08, 0.06), "fog_density": 0.008, "sun_energy": 0.25, "saturation": 1.08, "contrast": 1.04}
 		"library": return {"sky": false, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.55, 0.45, 0.35), "ambient_energy": 0.6, "fog": Color(0.07, 0.05, 0.03), "fog_density": 0.018, "sun_energy": 0.15}
-		"treasury": return {"sky": false, "bg": Color(0.03, 0.02, 0.0), "ambient": Color(0.7, 0.55, 0.3), "ambient_energy": 0.7, "fog": Color(0.12, 0.08, 0.02), "fog_density": 0.012, "sun_energy": 0.3}
+		"treasury": return {"sky_top": Color(0.25, 0.32, 0.62), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.8, "lamp_range": 12.0, "gi": 1.0, "vol_fog": 1.2, "ambient": Color(0.85, 0.7, 0.45), "ambient_energy": 0.8, "fog": Color(0.85, 0.62, 0.35), "fog_density": 0.006, "sun": Color(1.0, 0.78, 0.5), "sun_energy": 1.7, "sun_rot": Vector3(-22, 160, 0), "shadow_dist": 120.0, "saturation": 1.12, "contrast": 1.06, "exposure": 1.0}
 		"village": return {"sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
 		"city", "palace", "cathedral": return {"sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.006, "vol_fog": 1.3, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.05}
 		"wall": return {"sky_top": Color(0.25, 0.35, 0.55), "sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}

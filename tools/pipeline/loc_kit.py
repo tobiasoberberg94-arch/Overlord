@@ -109,6 +109,34 @@ class Kit:
         o.matrix_world = Matrix.Translation(loc) @ m
         return o
 
+    def place(self, name, mw, nocol=False):
+        """Instanz mit fertiger Weltmatrix (z. B. aus einer Unreal-Szene) platzieren."""
+        self.tpl(name)
+        if nocol or name in self.lod_names:
+            self._nocol.append((("@lod:" + name) if name in self.lod_names and not nocol else name, mw))
+            return None
+        o = self._tpl[name].copy()
+        o.name = name
+        self.out.objects.link(o)
+        o.matrix_world = mw
+        return o
+
+    def light(self, kind, pos, color, energy, radius=10.0, rot=None):
+        """Echtes Licht (glTF KHR_lights_punctual → Godot OmniLight/SpotLight)."""
+        t = {"PointLightComponent": "POINT", "SpotLightComponent": "SPOT", "RectLightComponent": "AREA"}.get(kind, "POINT")
+        ld = bpy.data.lights.new("Licht", "SPOT" if t == "SPOT" else "POINT")
+        ld.color = color
+        ld.energy = energy
+        if hasattr(ld, "shadow_soft_size"):
+            ld.shadow_soft_size = 0.2
+        o = bpy.data.objects.new("Licht", ld)
+        o.location = pos
+        if rot is not None:
+            o.rotation_euler = rot
+        self.out.objects.link(o)
+        self._lights = getattr(self, "_lights", 0) + 1
+        return o
+
     def empty(self, name, x, y, z=None, rot=0.0):
         e = bpy.data.objects.new(name, None)
         e.location = (x, y, self.ground_fn(x, y) if z is None else z)
@@ -392,6 +420,50 @@ class Kit:
             me.color_attributes.active_color = col
         return o
 
+    def heightfield(self, t, tex, normal=None, tile=4.0, sub=1):
+        """Gelände aus export_terrain.py (Unreal-Höhenfeld, cm) → Mesh in Blender-Metern; setzt ground_fn."""
+        import numpy as np
+        nx, ny, st = t["nx"], t["ny"], t["step"]
+        H = np.array([[(np.nan if h is None else h) for h in r] for r in t["h"]], dtype=np.float64)
+        if np.isnan(H).any():
+            H = np.where(np.isnan(H), np.nanmin(H), H)
+        X0, Y0 = t["x0"] * 0.01, t["y0"] * 0.01
+        S = st * 0.01
+        me = bpy.data.meshes.new("ground")
+        verts = []
+        for j in range(ny):
+            for i in range(nx):
+                verts.append((X0 + i * S, -(Y0 + j * S), H[j, i] * 0.01))
+        faces = []
+        for j in range(ny - 1):
+            for i in range(nx - 1):
+                a = j * nx + i
+                faces.append((a, a + nx, a + nx + 1, a + 1))
+        me.from_pydata(verts, [], faces)
+        uv = me.uv_layers.new(name="UVMap")
+        for poly in me.polygons:
+            poly.use_smooth = True
+            for li in poly.loop_indices:
+                v = me.vertices[me.loops[li].vertex_index].co
+                uv.data[li].uv = (v.x / tile, v.y / tile)
+        o = bpy.data.objects.new("Ground", me)
+        self.out.objects.link(o)
+        m = self._simple_mat("Ground", tex, normal, 0.95)
+        me.materials.append(m)
+        self._ground_mats = [m]
+
+        def gfn(x, y):
+            fi = (x - X0) / S
+            fj = (-y - Y0) / S
+            i = int(max(0, min(nx - 2, fi)))
+            j = int(max(0, min(ny - 2, fj)))
+            u, v = max(0.0, min(1.0, fi - i)), max(0.0, min(1.0, fj - j))
+            h = (H[j, i] * (1 - u) + H[j, i + 1] * u) * (1 - v) + (H[j + 1, i] * (1 - u) + H[j + 1, i + 1] * u) * v
+            return h * 0.01
+        self.ground_fn = gfn
+        print("OVERLORD gelaende", nx, "x", ny, "punkte, raster", round(S, 2), "m")
+        return o
+
     def _simple_mat(self, name, tex, normal, rough):
         mat = bpy.data.materials.new(name)
         mat.use_nodes = True
@@ -635,6 +707,6 @@ class Kit:
                 for ca in list(me.color_attributes):
                     me.color_attributes.remove(ca)
         bpy.ops.export_scene.gltf(filepath=self.dst, export_format="GLB", export_yup=True, export_apply=True,
-                                  export_lights=False, export_cameras=False, export_extras=False,
+                                  export_lights=getattr(self, "_lights", 0) > 0, export_cameras=False, export_extras=False,
                                   export_vertex_color="ACTIVE", export_image_format="WEBP", export_image_quality=88)
         print("OVERLORD glb", self.dst, os.path.getsize(self.dst) // (1024 * 1024), "MB")
