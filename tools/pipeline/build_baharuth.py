@@ -77,6 +77,16 @@ ALL = (-HALF + 2, -HALF + 2, HALF - 2, HALF - 2)
 kit.grass(ALL, 12000, s=(0.8, 1.3))
 kit.grass(ALL, 2500, kind="@flower", s=(0.8, 1.1))
 
+# --- Markt: Stände im Halbkreis um den Platz ------------------------------------------------------------------------
+for k in range(12):
+    a = math.radians(200 + k * 12)
+    mx, my = 0.0 + math.cos(a) * 26.0, 0.0 + math.sin(a) * 26.0
+    put("SM_Tent_low", mx, my, rot=math.degrees(a) + 90, s=2.2)
+    kit.clutter(mx, my, ["FV_crate_01", "FV_barrel_01", "FV_bag", "FV_bag_02", "SM_WoodenBox02", "SM_FlowerPot02"], n=(2, 4), r=(1.2, 2.6), s=(0.8, 1.0))
+for k in range(4):
+    a = math.radians(200 + k * 40)
+    put("SM_WoodenWagon01", 0.0 + math.cos(a) * (26.0 + 6), 0.0 + math.sin(a) * (26.0 + 6), rot=math.degrees(a), s=1.1)
+
 # --- Anker ---------------------------------------------------------------------------------------------------------------
 empty("Spawn", 0.0, -78.0, rot=0)
 empty("Gate", 0.0, -84.0)
