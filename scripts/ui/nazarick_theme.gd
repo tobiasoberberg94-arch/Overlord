@@ -55,6 +55,26 @@ static func box(bg: Color, border: Color = Color.TRANSPARENT, border_w: int = 0,
 	return sb
 
 
+## 9-Slice aus den gerenderten Texturen (tools/build_ui_textures.tscn); fehlt die Datei, null.
+const GEN := "res://assets/ui/gen/"
+const GEN_PAD := 12
+
+
+static func tex_box(name: String, margin_x: float = 14.0, margin_y: float = 10.0) -> StyleBox:
+	var p := GEN + name + ".png"
+	if not ResourceLoader.exists(p):
+		return null
+	var sb := StyleBoxTexture.new()
+	sb.texture = load(p)
+	sb.set_texture_margin_all(GEN_PAD + 14)
+	sb.set_expand_margin_all(GEN_PAD)
+	sb.content_margin_left = margin_x
+	sb.content_margin_right = margin_x
+	sb.content_margin_top = margin_y
+	sb.content_margin_bottom = margin_y
+	return sb
+
+
 static func build() -> Theme:
 	var t := Theme.new()
 	t.default_font = body_font()
@@ -72,13 +92,17 @@ static func build() -> Theme:
 	_label_variant(t, "GoldLabel", display_font(700), 18, Palette.GOLD_BRIGHT, Color(0, 0, 0, 0.8), 0)
 
 	# ------------------------------------------------------------ Panels
-	var glass := box(Color(Palette.ABYSS, 0.86), Palette.GOLD_DARK, 1, 12, Color(Palette.VIOLET, 0.35), 14, 14)
+	var glass: StyleBox = tex_box("panel", 16, 14)
+	if glass == null:
+		glass = box(Color(Palette.ABYSS, 0.86), Palette.GOLD_DARK, 1, 12, Color(Palette.VIOLET, 0.35), 14, 14)
 	t.set_stylebox("panel", "Panel", glass)
 	t.set_stylebox("panel", "PanelContainer", glass)
 	for v in ["PanelGlass", "PanelCard", "PanelOrnate", "PanelDim"]:
 		t.set_type_variation(v, "PanelContainer")
 	t.set_stylebox("panel", "PanelGlass", glass)
-	var card := box(Color(Palette.NIGHT, 0.95), Palette.GOLD_DARK, 2, 14, Color(0, 0, 0, 0.6), 10, 8)
+	var card: StyleBox = tex_box("card", 10, 8)
+	if card == null:
+		card = box(Color(Palette.NIGHT, 0.95), Palette.GOLD_DARK, 2, 14, Color(0, 0, 0, 0.6), 10, 8)
 	t.set_stylebox("panel", "PanelCard", card)
 	var ornate := box(Color(Palette.ABYSS, 0.97), Palette.GOLD, 2, 16, Color(Palette.VIOLET_GLOW, 0.35), 28, 22)
 	ornate.border_blend = true
@@ -86,15 +110,15 @@ static func build() -> Theme:
 	t.set_stylebox("panel", "PanelDim", box(Color(0, 0, 0, 0.35), Color.TRANSPARENT, 0, 10, Color.TRANSPARENT, 0, 10))
 
 	# ------------------------------------------------------------ Buttons
-	_button(t, "Button", Palette.NIGHT, Palette.GOLD_DARK, Palette.GOLD, Palette.PARCHMENT)
+	_button(t, "Button", Palette.NIGHT, Palette.GOLD_DARK, Palette.GOLD, Palette.PARCHMENT, "btn", "btn_hover")
 	for v in ["ButtonPrimary", "ButtonDanger", "ButtonSuccess", "ButtonWarning", "ButtonGhost", "ButtonCard"]:
 		t.set_type_variation(v, "Button")
-	_button(t, "ButtonPrimary", Color("2b1a07"), Palette.GOLD, Palette.GOLD_BRIGHT, Palette.GOLD_BRIGHT)
-	_button(t, "ButtonDanger", Color("2a050c"), Palette.BLOOD, Palette.CRIMSON, Color("ffc9d0"))
-	_button(t, "ButtonSuccess", Color("0b2414"), Color("2f7a45"), Palette.SUCCESS, Color("d6ffe0"))
-	_button(t, "ButtonWarning", Color("2a1c05"), Color("8a5d12"), Palette.WARNING, Color("ffe9bf"))
+	_button(t, "ButtonPrimary", Color("2b1a07"), Palette.GOLD, Palette.GOLD_BRIGHT, Palette.GOLD_BRIGHT, "btn_primary", "btn_primary_hover")
+	_button(t, "ButtonDanger", Color("2a050c"), Palette.BLOOD, Palette.CRIMSON, Color("ffc9d0"), "btn_danger", "btn_danger_hover")
+	_button(t, "ButtonSuccess", Color("0b2414"), Color("2f7a45"), Palette.SUCCESS, Color("d6ffe0"), "btn_success", "btn_success_hover")
+	_button(t, "ButtonWarning", Color("2a1c05"), Color("8a5d12"), Palette.WARNING, Color("ffe9bf"), "btn_warning", "btn_warning_hover")
 	_button(t, "ButtonGhost", Color(0, 0, 0, 0.0), Color(Palette.GOLD_DARK, 0.5), Palette.GOLD, Palette.MUTED)
-	_button(t, "ButtonCard", Color(Palette.NIGHT, 0.92), Color(Palette.VIOLET, 0.6), Palette.GOLD, Palette.PARCHMENT)
+	_button(t, "ButtonCard", Color(Palette.NIGHT, 0.92), Color(Palette.VIOLET, 0.6), Palette.GOLD, Palette.PARCHMENT, "btn_card", "btn_card_hover")
 	t.set_font("font", "Button", body_font(700))
 	t.set_font_size("font_size", "Button", 19)
 	t.set_font("font", "ButtonCard", body_font(600))
@@ -124,7 +148,8 @@ static func build() -> Theme:
 	t.set_constant("line_separation", "RichTextLabel", 2)
 
 	# ------------------------------------------------------------ Tooltip
-	t.set_stylebox("panel", "TooltipPanel", box(Palette.ABYSS, Palette.GOLD, 1, 6, Color(0, 0, 0, 0.7), 6, 8))
+	var tip: StyleBox = tex_box("tooltip", 10, 7)
+	t.set_stylebox("panel", "TooltipPanel", tip if tip else box(Palette.ABYSS, Palette.GOLD, 1, 6, Color(0, 0, 0, 0.7), 6, 8))
 	t.set_color("font_color", "TooltipLabel", Palette.PARCHMENT)
 	t.set_font_size("font_size", "TooltipLabel", 16)
 
@@ -173,19 +198,24 @@ static func _label_variant(t: Theme, name: String, font: Font, size: int, color:
 		t.set_constant("outline_size", name, outline_size)
 
 
-static func _button(t: Theme, type: String, bg: Color, border: Color, hover_border: Color, font: Color) -> void:
-	var normal := box(bg, border, 1, 9, Color(0, 0, 0, 0.5), 4, 10)
+static func _button(t: Theme, type: String, bg: Color, border: Color, hover_border: Color, font: Color, tex: String = "", tex_hover: String = "") -> void:
+	var normal: StyleBox = box(bg, border, 1, 9, Color(0, 0, 0, 0.5), 4, 10)
 	normal.content_margin_left = 16
 	normal.content_margin_right = 16
-	var hover := box(bg.lightened(0.1), hover_border, 2, 9, Color(hover_border, 0.45), 12, 10)
+	var hover: StyleBox = box(bg.lightened(0.1), hover_border, 2, 9, Color(hover_border, 0.45), 12, 10)
 	hover.content_margin_left = 16
 	hover.content_margin_right = 16
-	var pressed := box(bg.darkened(0.2), hover_border, 2, 9, Color(hover_border, 0.7), 6, 10)
+	var pressed: StyleBox = box(bg.darkened(0.2), hover_border, 2, 9, Color(hover_border, 0.7), 6, 10)
 	pressed.content_margin_left = 16
 	pressed.content_margin_right = 16
-	var disabled := box(Color(0.06, 0.05, 0.08, 0.8), Color(0.25, 0.22, 0.3), 1, 9, Color.TRANSPARENT, 0, 10)
+	var disabled: StyleBox = box(Color(0.06, 0.05, 0.08, 0.8), Color(0.25, 0.22, 0.3), 1, 9, Color.TRANSPARENT, 0, 10)
 	disabled.content_margin_left = 16
 	disabled.content_margin_right = 16
+	if tex != "" and tex_box(tex) != null:
+		normal = tex_box(tex, 16, 9)
+		hover = tex_box(tex_hover, 16, 9)
+		pressed = tex_box("btn_pressed", 16, 9)
+		disabled = tex_box("btn_disabled", 16, 9)
 	t.set_stylebox("normal", type, normal)
 	t.set_stylebox("hover", type, hover)
 	t.set_stylebox("pressed", type, pressed)

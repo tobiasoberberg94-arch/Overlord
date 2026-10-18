@@ -14,7 +14,7 @@ func _ready() -> void:
 		await _gallery()
 		get_tree().quit()
 		return
-	if only_env == "" or only_env == "title":
+	if only_env == "" or only_env == "title" or only_env == "ui":
 		var title: Node = load("res://scenes/title_screen.tscn").instantiate()
 		get_tree().root.add_child.call_deferred(title)
 		await _wait(3.0)
@@ -44,7 +44,7 @@ func _ready() -> void:
 		get_tree().quit()
 		return
 	for l in Content.locations:
-		if only != "" and l.id != only:
+		if only != "" and l.id != only and not (only == "ui" and l.id == "throne"):
 			continue
 		await w.load_location(l.id)
 		await _wait(0.6)
@@ -62,7 +62,7 @@ func _ready() -> void:
 			" VRAM ", int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576), " MB")
 		if OS.get_environment("PERF") != "":
 			_perf_detail(w)
-	if only == "" or only == "combat":
+	if only == "" or only == "combat" or only == "ui":
 		# Kampf auf der Katze-Ebene
 		await w.load_location("katze")
 		await _wait(0.5)
@@ -88,7 +88,7 @@ func _ready() -> void:
 		await _wait(1.5)
 		w.player.set_style("ainz")
 		print("Kampf OK – Gegner übrig: ", w.enemies.size(), " Leben Ainz: ", int(w.player.hp))
-	if only == "":
+	if only == "" or only == "ui":
 		await w.load_location("throne")
 		await _wait(0.5)
 		# zu Albedo laufen (Teleport in die Nähe) und ansprechen
@@ -111,6 +111,23 @@ func _ready() -> void:
 		_shot("map_table_3d")
 		w.overlay_layer.get_child(0).close()
 		await _wait(0.5)
+		if only == "ui":
+			for v in [["view_missions", MissionBoard.new("")], ["view_admin", AdministrationView.new()], ["view_nazarick", NazarickView.new()],
+					["view_diplomacy", DiplomacyView.new()], ["view_chronicle", ChronicleView.new()], ["view_settings", SettingsDialog.new(true)]]:
+				w._open(v[1])
+				if v[0] == "view_settings":
+					var tabs: TabContainer = v[1].find_children("*", "TabContainer", true, false)[0]
+					tabs.current_tab = tabs.get_tab_count() - 1
+				await _wait(1.6)
+				_shot(v[0])
+				if is_instance_valid(v[1]):
+					v[1].close()
+				await _wait(0.5)
+		w._open(TalkDialog.new("shalltear", "Mein Gebieter! Wenn Ihr mich lobt statt dieser gehörnten Kuh, schwöre ich Euch ewige Treue – ~arinsu!"))
+		await _wait(2.5)
+		_shot("talk_dialog")
+		w.overlay_layer.get_child(0).close()
+		await _wait(0.5)
 		# Schlacht persönlich anführen
 		var army := Military.create_army()
 		for u in ["death_knight", "skeleton"]:
@@ -122,7 +139,13 @@ func _ready() -> void:
 		w._open_next_dispatch(true)
 		await _wait(1.0)
 		_shot("battle_dispatch")
-		var dd = w.overlay_layer.get_child(0)
+		var dd = null
+		for c in w.overlay_layer.get_children():
+			if c is DispatchDialog:
+				dd = c
+			else:
+				print("Weiteres Fenster offen: ", c.get_class(), " ", c.get_script().resource_path)
+		assert(dd != null, "Schlacht-Depesche sollte offen sein")
 		dd._choose("lead")
 		await _wait(0.4)
 		if is_instance_valid(dd):

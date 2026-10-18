@@ -20,6 +20,7 @@ var _dim := ColorRect.new()
 func _init(panel_size: Vector2 = Vector2(1100, 720), variation: String = "PanelOrnate") -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	add_to_group("ui_overlay")
 	_dim.color = Color(0.01, 0.0, 0.02, 0.78)
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_dim)
@@ -36,10 +37,10 @@ func _init(panel_size: Vector2 = Vector2(1100, 720), variation: String = "PanelO
 		var sb := StyleBoxTexture.new()
 		sb.texture = pattern
 		sb.modulate_color = Color(0.75, 0.7, 0.8)
-		sb.content_margin_left = 88
-		sb.content_margin_right = 88
-		sb.content_margin_top = 76
-		sb.content_margin_bottom = 84
+		sb.content_margin_left = 98
+		sb.content_margin_right = 98
+		sb.content_margin_top = 84
+		sb.content_margin_bottom = 88
 		panel.add_theme_stylebox_override("panel", sb)
 		panel.draw.connect(_draw_frame)
 	content.add_theme_constant_override("separation", 12)

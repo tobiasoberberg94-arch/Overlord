@@ -16,6 +16,9 @@ static var _rng := RandomNumberGenerator.new()
 
 static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	_rng.seed = hash(loc.id)
+	# Vorlagen und Wind-Kopien des vorigen Ortes freigeben (sonst wächst der Grafikspeicher je Reise)
+	ModelLib.release("locations", loc.id)
+	_wind_cache.clear()
 	# Ein komplettes Ortsmodell (assets/models/locations/<id>.glb) ersetzt das Rezept
 	var scene := ModelLib.instance("locations", loc.id)
 	var a: Dictionary

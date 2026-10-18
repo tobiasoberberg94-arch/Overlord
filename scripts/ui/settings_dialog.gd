@@ -136,11 +136,15 @@ func _controls_tab() -> Control:
 	t.bbcode_enabled = true
 	t.fit_content = true
 	t.scroll_active = false
-	t.add_theme_font_size_override("normal_font_size", 18)
-	var keys := [["A", "Auftragstafel"], ["K", "Weltkarte & Legionen"], ["P", "Diplomatie"], ["V", "Verwaltung: Finanzen & Erlasse"],
-		["U", "Untertanen & Audienzen"], ["C", "Chronik"], ["D", "Nächste Depesche öffnen"],
-		["1 / 2 / 3", "Einen Tag / eine Woche / einen Monat vergehen lassen"], ["F5", "Speichern"],
-		["F11", "Vollbild umschalten"], ["ESC", "Fenster schließen"], ["Klick in Text", "Schreibeffekt überspringen"]]
+	t.add_theme_font_size_override("normal_font_size", 16)
+	t.add_theme_font_size_override("bold_font_size", 16)
+	var keys := [["WASD / Shift", "Gehen / Rennen"], ["Maus · Rad", "Kamera · Zoom"], ["LMB / RMB", "Leichter / schwerer Angriff"],
+		["Leertaste", "Ausweichrolle"], ["F", "Blocken (im rechten Moment: Parade)"], ["Q", "Ziel fixieren"],
+		["1–4, R", "Zauber"], ["X", "Ainz ↔ Momon"], ["E", "Sprechen / benutzen"], ["G", "Gate (Reisen)"], ["T", "Zeit verstreichen lassen"],
+		["Enter", "Nächste Depesche"], ["J", "Auftragstafel"], ["M", "Weltkarte & Legionen"], ["P", "Diplomatie"],
+		["V", "Verwaltung"], ["N", "Nazarick (Ausbau, Schatzkammer)"], ["U", "Wächter & Audienzen"], ["C", "Chronik"],
+		["Tab", "Wochenziele & Herzenskrieg"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"],
+		["F11", "Vollbild umschalten"], ["Esc", "Menü / Fenster schließen"]]
 	var out := ""
 	for k in keys:
 		out += "[color=#f5d77a][b]%s[/b][/color]   %s\n" % [k[0], k[1]]

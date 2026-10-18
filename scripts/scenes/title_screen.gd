@@ -60,16 +60,35 @@ func _build_ui() -> void:
 	ui_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	ui_root.theme = load("res://assets/ui/nazarick_theme.tres")
 	ui.add_child(ui_root)
-	var shade := ColorRect.new()
+	# Weicher Schatten von links und eine goldgerahmte Säule hinter dem Menü
+	var grad := Gradient.new()
+	grad.set_color(0, Color(0.01, 0.0, 0.02, 0.82))
+	grad.set_color(1, Color(0.01, 0.0, 0.02, 0.0))
+	grad.add_point(0.55, Color(0.01, 0.0, 0.02, 0.55))
+	var gt := GradientTexture2D.new()
+	gt.gradient = grad
+	gt.width = 256
+	gt.height = 4
+	var shade := TextureRect.new()
+	shade.texture = gt
+	shade.stretch_mode = TextureRect.STRETCH_SCALE
+	shade.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	shade.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	shade.offset_right = 620
-	shade.color = Color(0.01, 0.0, 0.02, 0.55)
+	shade.offset_right = 1100
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(shade)
+	var column := NzPanel.new(Vector4(0, 0, 0, 0), Color(0.03, 0.015, 0.05, 0.62), Palette.GOLD_DARK, true, 4.0)
+	column.set_anchors_preset(Control.PRESET_LEFT_WIDE)
+	column.offset_left = 52
+	column.offset_right = 760
+	column.offset_top = 46
+	column.offset_bottom = -46
+	column.glow = 0.25
+	ui_root.add_child(column)
 	var vb := VBoxContainer.new()
 	vb.set_anchors_preset(Control.PRESET_LEFT_WIDE)
-	vb.offset_left = 80
-	vb.offset_right = 600
+	vb.offset_left = 102
+	vb.offset_right = 710
 	vb.alignment = BoxContainer.ALIGNMENT_CENTER
 	vb.add_theme_constant_override("separation", 10)
 	ui_root.add_child(vb)
@@ -89,8 +108,14 @@ func _build_ui() -> void:
 	sub.add_theme_font_size_override("font_size", 26)
 	sub.add_theme_color_override("font_color", Palette.GOLD)
 	vb.add_child(sub)
+	var orn := Label.new()
+	orn.text = "━━━━━━━━━━━  ◆  ━━━━━━━━━━━"
+	orn.add_theme_color_override("font_color", Color(Palette.GOLD, 0.7))
+	orn.add_theme_font_size_override("font_size", 14)
+	orn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(orn)
 	var sp := Control.new()
-	sp.custom_minimum_size.y = 26
+	sp.custom_minimum_size.y = 18
 	vb.add_child(sp)
 	_menu.add_theme_constant_override("separation", 10)
 	vb.add_child(_menu)
@@ -105,8 +130,8 @@ func _build_ui() -> void:
 	foot.theme_type_variation = "MutedLabel"
 	foot.add_theme_font_size_override("font_size", 14)
 	foot.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	foot.offset_left = 80
-	foot.offset_top = -50
+	foot.offset_left = 102
+	foot.offset_top = -86
 	ui_root.add_child(foot)
 	UIFx.fade_in(vb, 1.4, 0.3)
 	_title.add_theme_color_override("font_outline_color", Color("2a0a3a"))
@@ -119,8 +144,9 @@ func _add_button(text: String, variation: String, cb: Callable) -> void:
 	var b := Button.new()
 	b.text = text
 	b.theme_type_variation = variation
-	b.custom_minimum_size = Vector2(360, 52)
-	b.add_theme_font_size_override("font_size", 19)
+	b.custom_minimum_size = Vector2(360, 54)
+	b.add_theme_font_override("font", NazarickTheme.display_font(700))
+	b.add_theme_font_size_override("font_size", 18)
 	b.pressed.connect(cb)
 	_menu.add_child(b)
 	UIFx.add_hover_scale(b, 1.04)

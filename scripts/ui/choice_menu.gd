@@ -30,6 +30,7 @@ func _init(title: String, subtitle: String, entries: Array, width: float = 760.0
 		b.text = e.text + ("\n" + e.sub if e.get("sub", "") != "" else "")
 		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		b.custom_minimum_size.y = 54
+		b.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		b.disabled = e.get("disabled", false)
 		b.tooltip_text = e.get("tip", "")
 		b.theme_type_variation = e.get("style", "Button")

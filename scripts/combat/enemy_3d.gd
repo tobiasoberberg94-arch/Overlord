@@ -68,7 +68,9 @@ func _build_bars() -> void:
 	_label.font_size = 36
 	_label.outline_size = 8
 	_label.pixel_size = 0.005
-	_label.modulate = Color(1, 0.6, 0.6) if not data.get("elite", false) else Palette.GOLD_BRIGHT
+	_label.modulate = Color(1, 0.78, 0.74) if not data.get("elite", false) else Palette.GOLD_BRIGHT
+	_label.outline_modulate = Color(0.05, 0.0, 0.02, 0.9)
+	_label.text = ("◆ " + display_name + " ◆") if data.get("elite", false) else display_name
 	_label.position.y = h + 0.25
 	_label.visible = false
 	add_child(_label)
@@ -226,7 +228,10 @@ func _pose(_delta: float) -> void:
 	var show := hp < max_hp and state != S.DEAD
 	_hpbar.visible = show
 	_hpbar_bg.visible = show
-	_label.visible = show or (target != null and is_instance_valid(target) and global_position.distance_to(target.global_position) < 8.0 and state != S.DEAD)
+	# Namensschild nur für das fixierte Ziel und für Elite-Gegner in der Nähe (kein Schilderwald)
+	var locked: bool = target != null and is_instance_valid(target) and target.get("lock") == self
+	var near: bool = target != null and is_instance_valid(target) and global_position.distance_to(target.global_position) < 14.0
+	_label.visible = state != S.DEAD and (locked or (data.get("elite", false) and near))
 	_hpbar.scale.x = maxf(0.001, hp / max_hp)
 	if state == S.DEAD and state_time > 2.5:
 		queue_free()

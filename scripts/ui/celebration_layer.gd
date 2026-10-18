@@ -11,6 +11,7 @@ var _rays := 0.0          ## 0…1 Deckkraft der Lichtstrahlen
 var _ray_color := Palette.GOLD
 var _t := 0.0
 var _anchor := Vector2.ZERO
+var _card: Control
 
 
 func _init() -> void:
@@ -30,6 +31,11 @@ func push(data: Dictionary) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	# Öffnet sich ein Fenster, weicht die Karte nach oben aus
+	if is_instance_valid(_card) and _card.modulate.a > 0.9:
+		var over := not get_tree().get_nodes_in_group("ui_overlay").is_empty()
+		_card.position.y = move_toward(_card.position.y, 4.0 if over else 110.0, delta * 400.0)
+		_card.scale = _card.scale.move_toward(Vector2.ONE * (0.82 if over else 1.0), delta * 1.5)
 	if _rays > 0.01:
 		queue_redraw()
 
@@ -77,8 +83,8 @@ func _next() -> void:
 		"build": Audio.sfx("build_done", 0.85)
 		_: Audio.sfx("love", 0.7)
 
-	var card := PanelContainer.new()
-	card.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.VOID, 0.96), col, 2, 14, Color(col, 0.55), 28 if big else 16, 18))
+	var card := NzPanel.new(Vector4(20, 16, 26, 16), Color(0.03, 0.015, 0.05, 0.96), col.lerp(Palette.GOLD, 0.35))
+	card.glow = 1.0 if big else 0.6
 	card.custom_minimum_size = Vector2(560 if big else 480, 0)
 	var hb := HBoxContainer.new()
 	hb.add_theme_constant_override("separation", 18)
@@ -113,9 +119,12 @@ func _next() -> void:
 	await get_tree().process_frame
 	if not is_instance_valid(card):
 		return
-	card.position = Vector2((size.x - card.size.x) / 2.0, 110.0)
-	card.pivot_offset = card.size / 2.0
+	# Bei offenem Fenster ganz oben und etwas kleiner, damit Titel und Knöpfe frei bleiben
+	var over := not get_tree().get_nodes_in_group("ui_overlay").is_empty()
+	card.position = Vector2((size.x - card.size.x) / 2.0, 4.0 if over else 110.0)
+	card.pivot_offset = Vector2(card.size.x / 2.0, 0.0 if over else card.size.y / 2.0)
 	_anchor = card.position + card.size / 2.0
+	_card = card
 	_ray_color = col
 	_burst(_anchor, col, big)
 
@@ -123,7 +132,7 @@ func _next() -> void:
 	card.scale = Vector2(0.6, 0.6)
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(card, "modulate:a", 1.0, 0.25)
-	tw.tween_property(card, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(card, "scale", Vector2.ONE * (0.82 if over else 1.0), 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	if big:
 		tw.tween_property(self, "_rays", 1.0, 0.4)
 	await tw.finished

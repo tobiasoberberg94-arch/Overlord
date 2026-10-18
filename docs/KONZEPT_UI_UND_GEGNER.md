@@ -34,6 +34,20 @@ Vorbilder: Diablo IV (Ornamentrahmen, Kugeln), Elden Ring (minimales HUD), Baldu
 3. Danach jede Ansicht (`scripts/ui/*.gd`, ~4200 Zeilen) auf die neuen Bausteine umstellen.
 4. Optional: kostenlose Fab-UI-Pakete (Fantasy-GUI-Rahmen, Icons) prüfen und übernehmen.
 
+**Stand 2026-10-18 (umgesetzt)**
+- `assets/shaders/ui_panel.gdshader` + `NzPanel`: Obsidian-Glas, Goldkante, Innenlinie, Eck-Rauten, Leuchten.
+- `tools/build_ui_textures.tscn` rendert daraus 9-Slice-Texturen (`assets/ui/gen/`), `NazarickTheme.tex_box()`
+  nutzt sie für Panels, Karten, Tooltips und alle Knopf-Varianten (Theme neu bauen mit `tools/build_theme.gd`).
+- `WorldHud` ersetzt das alte HUD: Kompassband (Gate/Figuren/Gegner mit Entfernung), Zielrahmen beim Lock-on,
+  Ort/Datum klein oben links, Meldungen verblassen, Ressourcen + Depeschen-Hinweis oben rechts, Tracker (max. 3),
+  Tab = Wochenziele & Herzenskrieg, Medaillon mit Porträt, `HudBar` mit Nachlauf, runde `SpellSlot`s mit radialem
+  Cooldown, F1/H Steuerungshilfe (Einstellung `show_help`). Unter Fenstern blendet das HUD aus.
+- Gespräche (`TalkDialog`): Kinobalken, großes freigestelltes Porträt, Namensschild, Box im unteren Drittel.
+- Titelbildschirm: goldgerahmte Säule, Cinzel-Knöpfe. Errungenschaften weichen offenen Fenstern aus.
+- Namensschilder: Gegner nur bei Lock-on/Elite, Figuren blenden in der Ferne aus.
+- Offen: Ansichten (`administration_view`, `mission_board`, `diplomacy_view` …) inhaltlich auf Karten umbauen,
+  Schadenszahlen hübscher, Raritätsfarben sobald Gegner-Varianten existieren.
+
 ## 2. Gegner-Varianten (Beispiel Skelett)
 
 Ein Grundmodell (Mixamo-Rig, alle Animationen) + **Ausrüstung an Knochen** + **Material/Leuchten** + **Raritätsstufe**:

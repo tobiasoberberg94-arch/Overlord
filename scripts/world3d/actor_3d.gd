@@ -89,7 +89,10 @@ func _process(delta: float) -> void:
 	var cam := get_viewport().get_camera_3d()
 	if cam and _name:
 		var d := cam.global_position.distance_to(_name.global_position)
-		var a := clampf((d - 3.0) / 2.5, 0.0, 1.0)
+		# … und in der Ferne ebenfalls, damit sich die Namen im Thronsaal nicht stapeln
+		var a := clampf((d - 3.0) / 2.5, 0.0, 1.0) * clampf((15.0 - d) / 4.0, 0.0, 1.0)
+		if _name.font_size > 44:
+			a = maxf(a, 0.0 if d < 3.0 else 1.0)
 		_name.modulate.a = a
 		_name.outline_modulate.a = 0.85 * a
 	if rig and not rig.has_model:

@@ -20,21 +20,8 @@ var anchors: Dictionary = {}
 var ui := CanvasLayer.new()
 var ui_root := Control.new()
 var overlay_layer := Control.new()
-var toast_box := VBoxContainer.new()
 var celebrations := CelebrationLayer.new()
-var hud_loc := Label.new()
-var hud_date := Label.new()
-var hud_res := RichTextLabel.new()
-var hud_prompt := Label.new()
-var hud_ticker := RichTextLabel.new()
-var hud_weekly := RichTextLabel.new()
-var hud_help := RichTextLabel.new()
-var rivalry := RivalryMeter.new()
-var day_bar := ProgressBar.new()
-
-var hud_bars: Dictionary = {}           ## hp/stamina/mana → [ProgressBar, Label]
-var hud_style := Label.new()
-var hud_spells := HBoxContainer.new()
+var hud := WorldHud.new()
 var hud_feedback := Label.new()
 var hud_vignette := ColorRect.new()
 var enemies: Array[Enemy3D] = []
@@ -44,6 +31,8 @@ var _day_timer := 0.0
 var _time_running := true
 var _busy := false
 var _last_autosave := 0
+var _spinners: Array = []
+var _flickers: Array = []
 
 
 func _ready() -> void:
@@ -51,14 +40,12 @@ func _ready() -> void:
 		Game.new_game()
 	add_child(player)
 	_build_ui()
-	_build_combat_hud()
 	player.feedback.connect(_on_feedback)
 	player.style_changed.connect(func(_s): _rebuild_spell_bar())
 	player.damaged.connect(_on_player_damaged)
 	player.died.connect(func(_f): _on_player_died())
 	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
-	Game.log_added.connect(func(_e): _refresh_ticker())
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
 	var w3: Dictionary = Game.state.get("world3d", {})
 	var start: String = w3.get("loc", "throne")
@@ -79,17 +66,25 @@ func _ready() -> void:
 func load_location(id: String, fade: bool = false) -> void:
 	if fade:
 		await _fade(1.0, 0.35)
-	if level:
-		level.queue_free()
 	actors.clear()
 	enemies.clear()
 	_focus = null
+	player.lock = null
+	if level:
+		# alten Ort erst vollständig freigeben, dann den neuen bauen (halbiert den Speicher-Spitzenwert)
+		remove_child(level)
+		level.queue_free()
+		level = null
+		await get_tree().process_frame
+		await get_tree().process_frame
 	loc = Content.location_by_id[id]
 	level = Node3D.new()
 	level.name = "Level_" + id
 	add_child(level)
 	LocationBuilder.environment(level, loc, LocationBuilder.preset(loc.kind))
 	anchors = LocationBuilder.build(loc, level)
+	_spinners = level.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.has_meta("spin"))
+	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
 	_place_actors()
 	_spawn_encounters()
 	player.global_position = anchors.spawn
@@ -99,7 +94,7 @@ func load_location(id: String, fade: bool = false) -> void:
 		Game.state["world3d"] = {}
 	Game.state.world3d["loc"] = id
 	Audio.play_music(loc.get("music", "throne"))
-	hud_loc.text = loc.name
+	hud.set_location(loc.name)
 	_show_banner(loc.name, loc.get("desc", ""))
 	if fade:
 		await _fade(0.0, 0.5)
@@ -203,24 +198,24 @@ func _process(delta: float) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_update_focus()
 	_animate(delta)
-	_update_combat_hud()
+	_update_combat_hud(blocked)
 	# Echtzeit: Tage vergehen, solange niemand wartet
 	if not blocked and _time_running and Game.pending().is_empty():
 		_day_timer += delta
 		if _day_timer >= DAY_SECONDS:
 			_day_timer = 0.0
 			_advance(1, false)
-	day_bar.value = _day_timer / DAY_SECONDS * 100.0
+	hud.day_line.set_values(_day_timer, DAY_SECONDS)
 
 
 func _animate(delta: float) -> void:
 	if level == null:
 		return
-	for n in level.find_children("*", "MeshInstance3D", true, false):
-		if n.has_meta("spin"):
+	for n in _spinners:
+		if is_instance_valid(n):
 			n.rotate_object_local(Vector3.UP, float(n.get_meta("spin")) * delta)
-	for l in level.find_children("*", "OmniLight3D", true, false):
-		if l.has_meta("flicker"):
+	for l in _flickers:
+		if is_instance_valid(l):
 			l.light_energy = 2.0 + sin(Time.get_ticks_msec() * 0.013 + l.position.x) * 0.25 + randf() * 0.2
 
 
@@ -241,10 +236,9 @@ func _update_focus() -> void:
 		if _focus:
 			_focus.set_highlight(true)
 	if _focus and overlay_layer.get_child_count() == 0:
-		hud_prompt.text = "[E]  %s  ·  %s" % [_focus.prompt, _focus.label]
-		hud_prompt.visible = true
+		hud.set_prompt("%s  ·  %s" % [_focus.prompt, _focus.label])
 	else:
-		hud_prompt.visible = false
+		hud.set_prompt("")
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -267,7 +261,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_C: _open(ChronicleView.new())
 		KEY_G: _gate_menu()
 		KEY_T: _time_menu()
-		KEY_H: hud_help.visible = not hud_help.visible
+		KEY_H, KEY_F1: hud.toggle_help()
+		KEY_TAB: hud.toggle_goals()
 		KEY_ENTER, KEY_KP_ENTER: _open_next_dispatch(true)
 		KEY_F5:
 			SaveSystem.save_game(1)
@@ -352,9 +347,20 @@ func _gate_menu() -> void:
 			why = "Noch nicht erkundet – entsendet einen Wächter zur Erkundung."
 		var here: bool = l.id == loc.id
 		entries.append({"text": ("☗  " if l.group == "nazarick" else "✧  ") + l.name + ("   (hier)" if here else ""),
-			"sub": l.get("desc", "").substr(0, 90), "disabled": not ok or here, "tip": why if not ok else "",
+			"sub": _short(l.get("desc", "")), "disabled": not ok or here, "tip": why if not ok else "",
 			"action": func(): _travel(l.id)})
 	_open(ChoiceMenu.new("Gate", "Wohin soll das Tor sich öffnen?", entries, 980))
+
+
+## Kurzbeschreibung: erster Satz, sonst an einer Wortgrenze gekürzt.
+func _short(t: String, n: int = 110) -> String:
+	var dot := t.find(". ")
+	if dot > 0 and dot < n:
+		return t.substr(0, dot + 1)
+	if t.length() <= n:
+		return t
+	var cut := t.substr(0, n)
+	return cut.substr(0, cut.rfind(" ")) + " …"
 
 
 func _region_menu() -> void:
@@ -465,163 +471,36 @@ func _build_ui() -> void:
 	ui_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.theme = load("res://assets/ui/nazarick_theme.tres")
 	ui.add_child(ui_root)
-	# Kopfzeile
-	var top := PanelContainer.new()
-	top.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.VOID, 0.72), Color(Palette.GOLD_DARK, 0.8), 1, 10, Color.TRANSPARENT, 0, 10))
-	top.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	top.offset_left = 14
-	top.offset_right = -14
-	top.offset_top = 10
-	top.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_root.add_child(top)
-	var hb := HBoxContainer.new()
-	hb.add_theme_constant_override("separation", 16)
-	top.add_child(hb)
-	var lv := VBoxContainer.new()
-	lv.add_theme_constant_override("separation", -2)
-	hud_loc.theme_type_variation = "GoldLabel"
-	hud_loc.add_theme_font_size_override("font_size", 22)
-	hud_date.theme_type_variation = "MutedLabel"
-	lv.add_child(hud_loc)
-	lv.add_child(hud_date)
-	day_bar.show_percentage = false
-	day_bar.custom_minimum_size = Vector2(220, 4)
-	day_bar.add_theme_stylebox_override("fill", NazarickTheme.box(Palette.GOLD, Color.TRANSPARENT, 0, 2))
-	day_bar.tooltip_text = "Fortschritt des aktuellen Tages"
-	lv.add_child(day_bar)
-	hb.add_child(lv)
-	hud_res.bbcode_enabled = true
-	hud_res.fit_content = true
-	hud_res.scroll_active = false
-	hud_res.autowrap_mode = TextServer.AUTOWRAP_OFF
-	hud_res.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	hud_res.add_theme_font_size_override("normal_font_size", 18)
-	hud_res.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hb.add_child(hud_res)
-	# Wochenziele & Hinweise rechts
-	var right := PanelContainer.new()
-	right.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.VOID, 0.88), Color(Palette.VIOLET, 0.5), 1, 10, Color.TRANSPARENT, 0, 10))
-	right.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	right.offset_left = -400
-	right.offset_right = -14
-	right.offset_top = 92
-	right.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_weekly.bbcode_enabled = true
-	hud_weekly.fit_content = true
-	hud_weekly.scroll_active = false
-	hud_weekly.add_theme_font_size_override("normal_font_size", 14)
-	hud_weekly.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var rv := VBoxContainer.new()
-	rv.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	right.add_child(rv)
-	rv.add_child(hud_weekly)
-	rv.add_child(HSeparator.new())
-	rivalry.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	rv.add_child(rivalry)
-	ui_root.add_child(right)
-	# Ticker unten links
-	hud_ticker.bbcode_enabled = true
-	hud_ticker.fit_content = true
-	hud_ticker.scroll_active = false
-	hud_ticker.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-	hud_ticker.offset_top = 96
-	hud_ticker.offset_right = 620
-	hud_ticker.offset_left = 18
-	hud_ticker.offset_bottom = 200
-	hud_ticker.add_theme_font_size_override("normal_font_size", 15)
-	hud_ticker.add_theme_constant_override("outline_size", 6)
-	hud_ticker.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	hud_ticker.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_root.add_child(hud_ticker)
-	# Interaktionshinweis
-	hud_prompt.set_anchors_and_offsets_preset(Control.PRESET_CENTER_BOTTOM)
-	hud_prompt.offset_top = -170
-	hud_prompt.offset_bottom = -130
-	hud_prompt.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	hud_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hud_prompt.theme_type_variation = "GoldLabel"
-	hud_prompt.add_theme_font_size_override("font_size", 24)
-	hud_prompt.add_theme_stylebox_override("normal", NazarickTheme.box(Color(Palette.VOID, 0.8), Palette.GOLD, 1, 10, Color(Palette.GOLD, 0.3), 10, 10))
-	hud_prompt.visible = false
-	ui_root.add_child(hud_prompt)
-	# Steuerungshilfe
-	hud_help.bbcode_enabled = true
-	hud_help.fit_content = true
-	hud_help.scroll_active = false
-	hud_help.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	hud_help.offset_left = -360
-	hud_help.offset_top = -330
-	hud_help.offset_right = -18
-	hud_help.offset_bottom = -14
-	hud_help.add_theme_font_size_override("normal_font_size", 14)
-	hud_help.add_theme_stylebox_override("normal", NazarickTheme.box(Color(Palette.VOID, 0.65), Color(Palette.GOLD_DARK, 0.6), 1, 10, Color.TRANSPARENT, 0, 10))
-	hud_help.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hud_help.text = "[color=#d4af37][b]Steuerung[/b][/color]  [color=#8f86a3](H ausblenden)[/color]\n" + \
-		"WASD gehen · Shift rennen · Maus Kamera · Rad Zoom\n" + \
-		"[color=#ff9a8a]LMB[/color] leichte · [color=#ff9a8a]RMB[/color] schwere Attacke\n[b]Leertaste[/b] Rolle · [b]F[/b] Block/Parade · [b]Q[/b] Lock-on\n" + \
-		"[b]1–4, R[/b] Zauber · [b]X[/b] Ainz ↔ Momon\n" + \
-		"[b]E[/b] sprechen / benutzen · [b]G[/b] Gate · [b]T[/b] Zeit\n[b]J[/b] Aufträge · [b]M[/b] Karte · [b]P[/b] Diplomatie\n" + \
-		"[b]V[/b] Verwaltung · [b]N[/b] Nazarick · [b]U[/b] Wächter\n[b]Esc[/b] Menü"
-	ui_root.add_child(hud_help)
+	hud_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hud_vignette.color = Color(0.6, 0.0, 0.05, 0.0)
+	hud_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ui_root.add_child(hud_vignette)
+	ui_root.add_child(hud)
+	hud.setup(self)
+	hud_feedback.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	hud_feedback.offset_top = 60
+	hud_feedback.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	hud_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hud_feedback.theme_type_variation = "GoldLabel"
+	hud_feedback.add_theme_font_size_override("font_size", 28)
+	hud_feedback.add_theme_constant_override("outline_size", 8)
+	hud_feedback.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
+	hud_feedback.modulate.a = 0.0
+	ui_root.add_child(hud_feedback)
 	overlay_layer.set_anchors_preset(Control.PRESET_FULL_RECT)
 	overlay_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ui_root.add_child(overlay_layer)
-	toast_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
-	toast_box.position.y = 100
-	toast_box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	toast_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_root.add_child(toast_box)
+	ui_root.add_child(hud.toast_box)
 	ui_root.add_child(celebrations)
 
 
 func _refresh_hud() -> void:
-	if not is_inside_tree():
-		return
-	var s := Game.state
-	hud_date.text = "Tag %d · %s · Kapitel %s" % [s.day, Game.format_date(s.day), Content.chapter(s.chapter).numeral]
-	var parts := PackedStringArray()
-	for k in Game.RESOURCE_KEYS:
-		parts.append("[color=%s]%s %d[/color]" % [Palette.hex(Palette.RESOURCE_COLORS[k]), Palette.RESOURCE_ICONS[k], int(s.resources.get(k, 0))])
-	var pend := Game.pending().size()
-	hud_res.text = "[right]%s%s[/right]" % ["   ".join(parts), "    [color=#ff4a5a][b]✉ %d Depesche%s [Enter][/b][/color]" % [pend, "n" if pend != 1 else ""] if pend > 0 else ""]
-	var p := Progress.ps()
-	var lines := PackedStringArray()
-	lines.append("[color=#d4af37][b]❤ Wochenziele[/b][/color] [color=#8f86a3]noch %d T.[/color]" % Progress.week_days_left())
-	for g in p.goals:
-		var done := Progress.goal_done(g)
-		lines.append("[color=%s]%s %s (%d/%d)[/color]" % ["#6fdc8c" if done else "#ebe2cc", "✔" if done else "◇", g.text, mini(Progress.goal_value(g), int(g.target)), int(g.target)])
-	for o in Game.objectives():
-		if not o[1]:
-			lines.append("[color=#c79bff]⚜ %s[/color]" % o[0])
-			break
-	for t in s.get("threats", []):
-		lines.append("[color=#ff4a5a]⚠ %s – %d T.[/color]" % [Game.mission(t.mission_id).get("title", "Bedrohung"), World.threat_days_left(t)])
-	hud_weekly.text = "\n".join(lines)
-	rivalry.refresh()
-	_refresh_ticker()
-
-
-func _refresh_ticker() -> void:
-	var lines := PackedStringArray()
-	var entries: Array = Game.state.get("log", [])
-	for e in entries.slice(maxi(0, entries.size() - 4)):
-		lines.append("[color=#7a6f8f]T%d[/color]  [color=%s]%s[/color]" % [e.day, Palette.LOG_COLORS.get(e.cat, "#b7aecb"), e.text])
-	hud_ticker.text = "\n".join(lines)
+	if is_inside_tree():
+		hud.refresh()
 
 
 func toast(text: String, color: Color = Palette.GOLD_BRIGHT) -> void:
-	var p := PanelContainer.new()
-	p.add_theme_stylebox_override("panel", NazarickTheme.box(Color(Palette.ABYSS, 0.95), color, 1, 10, Color(color, 0.4), 12, 10))
-	var l := Label.new()
-	l.text = text
-	l.add_theme_color_override("font_color", color)
-	p.add_child(l)
-	toast_box.add_child(p)
-	UIFx.pop_in(p, 0.25)
-	var tw := p.create_tween()
-	tw.tween_interval(2.6)
-	tw.tween_property(p, "modulate:a", 0.0, 0.5)
-	tw.tween_callback(p.queue_free)
+	hud.toast(text, color)
 
 
 var _banner: Control
@@ -633,33 +512,47 @@ func _show_banner(title: String, sub: String) -> void:
 	var vb := VBoxContainer.new()
 	_banner = vb
 	vb.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	vb.offset_top = -180
+	vb.offset_top = -280
 	vb.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	vb.grow_vertical = Control.GROW_DIRECTION_BOTH
+	vb.add_theme_constant_override("separation", 4)
 	vb.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var t := Label.new()
-	t.text = title
+	t.text = title.to_upper()
 	t.theme_type_variation = "TitleLabel"
-	t.add_theme_font_size_override("font_size", 44)
+	t.add_theme_font_size_override("font_size", 46)
+	t.add_theme_constant_override("outline_size", 10)
+	t.add_theme_color_override("font_outline_color", Color(0.05, 0.0, 0.02, 0.9))
 	t.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vb.add_child(t)
+	var orn := Label.new()
+	orn.text = "━━━━━━━━  ◆  ━━━━━━━━"
+	orn.add_theme_color_override("font_color", Color(Palette.GOLD, 0.8))
+	orn.add_theme_font_size_override("font_size", 14)
+	orn.add_theme_constant_override("outline_size", 4)
+	orn.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.7))
+	orn.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	vb.add_child(orn)
 	var s := Label.new()
 	s.text = sub
 	s.add_theme_font_override("font", NazarickTheme.italic_font(600))
-	s.add_theme_font_size_override("font_size", 20)
+	s.add_theme_font_size_override("font_size", 21)
 	s.add_theme_color_override("font_color", Palette.PARCHMENT)
-	s.add_theme_constant_override("outline_size", 6)
+	s.add_theme_constant_override("outline_size", 7)
 	s.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
 	s.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	s.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	s.custom_minimum_size.x = 900
+	s.custom_minimum_size.x = 860
 	vb.add_child(s)
-	ui_root.add_child(vb)
+	hud.add_child(vb)
 	vb.modulate.a = 0.0
+	t.pivot_offset = Vector2(430, 28)
+	t.scale = Vector2(1.06, 1.06)
 	var tw := vb.create_tween()
-	tw.tween_property(vb, "modulate:a", 1.0, 0.6)
-	tw.tween_interval(2.4)
-	tw.tween_property(vb, "modulate:a", 0.0, 0.8)
+	tw.tween_property(vb, "modulate:a", 1.0, 0.7)
+	tw.parallel().tween_property(t, "scale", Vector2.ONE, 3.0).set_trans(Tween.TRANS_SINE)
+	tw.tween_interval(2.2)
+	tw.tween_property(vb, "modulate:a", 0.0, 0.9)
 	tw.tween_callback(vb.queue_free)
 
 
@@ -708,7 +601,9 @@ func spawn_enemy(id: String, pos: Vector3) -> Enemy3D:
 
 func _on_enemy_damaged(f: Fighter, amount: int, kind: String) -> void:
 	var col: Color = {"fire": Color(1, 0.6, 0.2), "negative": Color(0.75, 0.4, 1.0), "holy": Color(1, 0.95, 0.6)}.get(kind, Color(1, 1, 1))
-	_float_text(f.global_position + Vector3(randf_range(-0.4, 0.4), 2.4, 0), str(amount), col, 56 if amount >= 40 else 44)
+	var crit := amount >= 40
+	_float_text(f.global_position + Vector3(randf_range(-0.4, 0.4), 2.4, 0), str(amount) + ("!" if crit else ""),
+		col.lerp(Palette.GOLD_BRIGHT, 0.35) if crit else col, 60 if crit else 44)
 
 
 func _on_player_damaged(_f: Fighter, amount: int, _kind: String) -> void:
@@ -764,126 +659,37 @@ func _on_feedback(text: String, color: Color) -> void:
 
 
 func _float_text(at: Vector3, text: String, col: Color, size: int) -> void:
+	# Schadenszahl: springt groß auf, schrumpft auf Normalgröße und steigt in leichtem Bogen davon
 	var l := Label3D.new()
 	l.text = text
 	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	l.font = NazarickTheme.display_font(800)
 	l.font_size = size
-	l.outline_size = 10
+	l.outline_size = 12
 	l.modulate = col
+	l.outline_modulate = Color(col.darkened(0.85), 0.9)
 	l.pixel_size = 0.006
 	l.no_depth_test = true
+	l.render_priority = 10
 	level.add_child(l)
 	l.global_position = at
+	var big := size >= 50
+	l.scale = Vector3.ONE * (1.9 if big else 1.4)
+	var side := Vector3(randf_range(-0.7, 0.7), 0, randf_range(-0.3, 0.3))
 	var tw := l.create_tween().set_parallel(true)
-	tw.tween_property(l, "global_position", at + Vector3(0, 1.2, 0), 0.9)
-	tw.tween_property(l, "modulate:a", 0.0, 0.9).set_delay(0.3)
+	tw.tween_property(l, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "global_position", at + Vector3(0, 1.4, 0) + side, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tw.tween_property(l, "modulate:a", 0.0, 0.5).set_delay(0.55)
+	tw.tween_property(l, "outline_modulate:a", 0.0, 0.5).set_delay(0.55)
 	tw.chain().tween_callback(l.queue_free)
 
 
-func _build_combat_hud() -> void:
-	var box := VBoxContainer.new()
-	box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
-	box.offset_left = 18
-	box.offset_top = -170
-	box.offset_bottom = -16
-	box.offset_right = 420
-	box.add_theme_constant_override("separation", 4)
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_root.add_child(box)
-	hud_style.theme_type_variation = "GoldLabel"
-	hud_style.add_theme_constant_override("outline_size", 6)
-	hud_style.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	box.add_child(hud_style)
-	for spec in [["hp", "Leben", Color(0.85, 0.12, 0.2)], ["stamina", "Ausdauer", Color(0.95, 0.78, 0.3)], ["mana", "Mana", Color(0.35, 0.55, 1.0)]]:
-		var row := HBoxContainer.new()
-		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var bar := ProgressBar.new()
-		bar.show_percentage = false
-		bar.custom_minimum_size = Vector2(320, 14 if spec[0] == "hp" else 9)
-		bar.add_theme_stylebox_override("fill", NazarickTheme.box(spec[2], Color.TRANSPARENT, 0, 4, Color(spec[2], 0.5), 6, 0))
-		bar.add_theme_stylebox_override("background", NazarickTheme.box(Color(0, 0, 0, 0.6), Color(spec[2], 0.4), 1, 4))
-		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(bar)
-		var l := Label.new()
-		l.add_theme_font_size_override("font_size", 14)
-		l.add_theme_constant_override("outline_size", 5)
-		l.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-		row.add_child(l)
-		box.add_child(row)
-		hud_bars[spec[0]] = [bar, l]
-	hud_spells.add_theme_constant_override("separation", 6)
-	hud_spells.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_child(hud_spells)
-	hud_feedback.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	hud_feedback.offset_top = 60
-	hud_feedback.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	hud_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hud_feedback.theme_type_variation = "GoldLabel"
-	hud_feedback.add_theme_font_size_override("font_size", 28)
-	hud_feedback.add_theme_constant_override("outline_size", 8)
-	hud_feedback.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0.9))
-	hud_feedback.modulate.a = 0.0
-	ui_root.add_child(hud_feedback)
-	hud_vignette.set_anchors_preset(Control.PRESET_FULL_RECT)
-	hud_vignette.color = Color(0.6, 0.0, 0.05, 0.0)
-	hud_vignette.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	ui_root.add_child(hud_vignette)
-	ui_root.move_child(hud_vignette, 0)
-
-
 func _rebuild_spell_bar() -> void:
-	for c in hud_spells.get_children():
-		c.queue_free()
-	_spell_slots.clear()
-	var keys := ["1", "2", "3", "4", "R"]
-	var sp: Array = player.spells()
-	for i in sp.size():
-		var d: Dictionary = Content.combat.spells[sp[i]]
-		var slot := PanelContainer.new()
-		slot.custom_minimum_size = Vector2(58, 58)
-		slot.tooltip_text = "%s [%s] – %s\nKosten: %d %s · Abklingzeit %.0f s" % [d.name, keys[i], d.desc, int(d.cost), "Mana" if d.cost_type == "mana" else "Ausdauer", float(d.cooldown)]
-		slot.add_theme_stylebox_override("panel", NazarickTheme.box(Color(0, 0, 0, 0.7), Color(d.color), 2, 8, Color(Color(d.color), 0.3), 6, 2))
-		var vb := VBoxContainer.new()
-		vb.add_theme_constant_override("separation", -4)
-		slot.add_child(vb)
-		var ic := Label.new()
-		ic.text = d.icon
-		ic.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		ic.add_theme_font_size_override("font_size", 24)
-		ic.add_theme_color_override("font_color", Color(d.color))
-		vb.add_child(ic)
-		var k := Label.new()
-		k.text = keys[i]
-		k.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		k.add_theme_font_size_override("font_size", 13)
-		vb.add_child(k)
-		hud_spells.add_child(slot)
-		_spell_slots.append([sp[i], slot, k, keys[i]])
+	hud.rebuild_spells(player)
 
 
-func _update_combat_hud() -> void:
-	if hud_bars.is_empty():
-		return
-	var vals := {"hp": [player.hp, player.max_hp], "stamina": [maxf(0.0, player.stamina), player.max_stamina], "mana": [player.mana, player.max_mana]}
-	for k in vals:
-		var bar: ProgressBar = hud_bars[k][0]
-		bar.max_value = maxf(1.0, vals[k][1])
-		bar.value = vals[k][0]
-		(hud_bars[k][1] as Label).text = "%d / %d" % [int(vals[k][0]), int(vals[k][1])]
-		bar.get_parent().visible = vals[k][1] > 0.0
-	var st: String = Fighter.STATE_NAMES[player.state]
-	var extra := ""
-	if player.lock and is_instance_valid(player.lock):
-		extra = "  ·  ◆ " + player.lock.display_name
-	if player.shield_time > 0.0:
-		extra += "  ·  ⛨ Barriere %.0fs" % player.shield_time
-	hud_style.text = "%s  [%s]%s" % [player.display_name, st, extra]
-	for s in _spell_slots:
-		var cd := float(player.cooldowns.get(s[0], 0.0))
-		var ready := player.spell_ready(s[0])
-		(s[1] as Control).modulate = Color(1, 1, 1, 1) if ready else Color(0.5, 0.5, 0.55, 0.85)
-		(s[2] as Label).text = ("%.0f" % ceilf(cd)) if cd > 0.0 else s[3]
+func _update_combat_hud(blocked: bool = false) -> void:
+	hud.tick(get_process_delta_time(), blocked or _busy)
 	if hud_vignette.color.a > 0.0:
 		hud_vignette.color.a = maxf(0.0, hud_vignette.color.a - get_process_delta_time() * 0.8)
 

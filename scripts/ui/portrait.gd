@@ -16,6 +16,8 @@ const EXTENSIONS := ["png", "webp", "jpg", "jpeg"]
 		_refresh_texture()
 @export var framed: bool = true
 @export var show_symbol: bool = true
+## false = nur die freigestellte Figur (ohne Studio-Hintergrund), z. B. im Gesprächsfenster
+@export var backdrop: bool = true
 ## Emotionale Variante, z. B. "love" → sucht zuerst <id>_love.webp
 @export var variant: String = "":
 	set(v):
@@ -72,9 +74,10 @@ func _draw() -> void:
 func _draw_texture_cover(r: Rect2) -> void:
 	# Studio-Hintergrund hinter dem freigestellten 3D-Render
 	var col := Content.char_color(char_id)
-	draw_rect(r, Palette.ABYSS)
-	draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.55, Color(col, 0.18))
-	draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.32, Color(col, 0.12))
+	if backdrop:
+		draw_rect(r, Palette.ABYSS)
+		draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.55, Color(col, 0.18))
+		draw_circle(Vector2(r.size.x * 0.5, r.size.y * 0.42), r.size.x * 0.32, Color(col, 0.12))
 	var ts := _texture.get_size()
 	var target_aspect := r.size.x / r.size.y
 	var src := Rect2(Vector2.ZERO, ts)
@@ -86,8 +89,9 @@ func _draw_texture_cover(r: Rect2) -> void:
 		src.position.y = (ts.y - src.size.y) * focus_y
 	draw_texture_rect_region(_texture, r, src)
 	# leichter Verlauf nach unten für lesbare Namensleisten
-	draw_polygon([Vector2(0, r.size.y * 0.6), Vector2(r.size.x, r.size.y * 0.6), r.size, Vector2(0, r.size.y)],
-		[Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0.6), Color(0, 0, 0, 0.6)])
+	if backdrop:
+		draw_polygon([Vector2(0, r.size.y * 0.6), Vector2(r.size.x, r.size.y * 0.6), r.size, Vector2(0, r.size.y)],
+			[Color(0, 0, 0, 0), Color(0, 0, 0, 0), Color(0, 0, 0, 0.6), Color(0, 0, 0, 0.6)])
 
 
 func _draw_frame(r: Rect2) -> void:

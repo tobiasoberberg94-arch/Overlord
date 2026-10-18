@@ -34,6 +34,7 @@ var text_speed := 1
 var auto_open := true
 var autosave := 1
 var tutorial_done := false
+var show_help := true                 ## Steuerungshilfe im HUD (F1)
 
 ## Kompatibilität: alter Schalter
 var fullscreen: bool:
@@ -62,7 +63,7 @@ func _keys() -> Array:
 		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ui_sounds"],
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
 		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"],
-		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"],
+		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],
 	]
 
 

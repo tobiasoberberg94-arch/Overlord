@@ -146,3 +146,14 @@ static func _load_runtime(path: String) -> Node3D:
 
 static func clear_cache() -> void:
 	_cache.clear()
+
+
+## Gibt zwischengespeicherte Vorlagen einer Art frei (außer `keep_id`) – Ortsmodelle sind groß
+## (Texturen im Grafikspeicher) und sollen nach einem Ortswechsel nicht liegen bleiben.
+static func release(kind: String, keep_id: String = "") -> void:
+	for key in _cache.keys():
+		if String(key).begins_with(kind + "/") and key != kind + "/" + keep_id:
+			var t: Variant = _cache[key]
+			if is_instance_valid(t) and t is Node:
+				(t as Node).queue_free()
+			_cache.erase(key)
