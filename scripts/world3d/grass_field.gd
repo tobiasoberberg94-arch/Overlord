@@ -27,6 +27,7 @@ var _space: PhysicsDirectSpaceState3D
 var _ground_rids: Dictionary = {}
 var _last_center := Vector2i(99999, 99999)
 var density_scale := 1.0
+var water_y := -INF               ## unter dem Wasserspiegel wächst kein Gras
 var _build_us := 0
 var _built := 0
 
@@ -101,6 +102,9 @@ func _sample(ground: MeshInstance3D) -> bool:
 
 func _ready() -> void:
 	_space = get_world_3d().direct_space_state
+	for n in get_parent().find_children("*", "MeshInstance3D", true, false):
+		if String(n.name).to_lower().begins_with("water"):
+			water_y = maxf(water_y, (n as MeshInstance3D).global_position.y)
 	for n in get_parent().find_children("Ground*", "MeshInstance3D", true, false):
 		for b in n.find_children("*", "StaticBody3D", true, false):
 			_ground_rids[(b as StaticBody3D).get_rid()] = true
@@ -181,7 +185,7 @@ func _build(k: Vector2i) -> void:
 			var x := k.x * CHUNK + cx + 0.5
 			var z := k.y * CHUNK + cz + 0.5
 			var hm := _height(x, z)
-			if hm.x < -9000.0 or hm.y > 0.6:
+			if hm.x < -9000.0 or hm.y > 0.6 or hm.x < water_y + 0.08:
 				continue
 			var rq := PhysicsRayQueryParameters3D.create(Vector3(x, hm.x + 25.0, z), Vector3(x, hm.x - 0.5, z))
 			var r := _space.intersect_ray(rq)
@@ -198,6 +202,8 @@ func _build(k: Vector2i) -> void:
 		var x := k.x * CHUNK + lx
 		var z := k.y * CHUNK + lz
 		var hm := _height(x, z)
+		if hm.x < water_y + 0.05:
+			continue
 		# am Wegrand dünner und kürzer
 		if rng.randf() < smoothstep(0.15, 0.55, hm.y):
 			continue

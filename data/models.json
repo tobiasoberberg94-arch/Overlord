@@ -114,6 +114,12 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "aura": {
+   "scale": 0.82,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {}
   }
  },
  "props": {},

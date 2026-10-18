@@ -405,6 +405,76 @@
      "iron_skin",
      "flash_step"
     ]
+   },
+   "g_aura": {
+    "name": "Aura Bella Fiora",
+    "model": "aura",
+    "guardian": "aura",
+    "hp": 330,
+    "stamina": 170,
+    "mana": 140,
+    "armor": 30,
+    "speed": 6.6,
+    "light": [
+     {
+      "id": "whip1",
+      "name": "Peitschenhieb",
+      "windup": 0.12,
+      "active": 0.12,
+      "recovery": 0.22,
+      "damage": 13,
+      "range": 4.0,
+      "stamina": 2,
+      "stagger": 15,
+      "lunge": 1.0,
+      "arc": 90
+     },
+     {
+      "id": "whip2",
+      "name": "Peitschenwirbel",
+      "windup": 0.14,
+      "active": 0.14,
+      "recovery": 0.24,
+      "damage": 14,
+      "range": 4.0,
+      "stamina": 2,
+      "stagger": 18,
+      "lunge": 1.0,
+      "arc": 180
+     },
+     {
+      "id": "whip3",
+      "name": "Fesselschlag",
+      "windup": 0.22,
+      "active": 0.16,
+      "recovery": 0.36,
+      "damage": 22,
+      "range": 4.4,
+      "stamina": 5,
+      "stagger": 45,
+      "lunge": 1.5,
+      "arc": 100
+     }
+    ],
+    "heavy": {
+     "id": "beast_strike",
+     "name": "Bestienstoß",
+     "windup": 0.45,
+     "active": 0.18,
+     "recovery": 0.45,
+     "damage": 40,
+     "range": 3.0,
+     "stamina": 22,
+     "stagger": 70,
+     "lunge": 3.5,
+     "arc": 120
+    },
+    "spells": [
+     "arrow_volley",
+     "beast_call",
+     "paralyze_breath",
+     "forest_dash"
+    ]
    }
   }
  },
@@ -803,6 +873,75 @@
    "knockback": 3,
    "color": "#ffffff",
    "desc": "Schneller als das Auge – und schon am Gegner."
+  },
+  "arrow_volley": {
+   "name": "Pfeilhagel",
+   "icon": "➶",
+   "key": "1",
+   "cost": 12,
+   "cost_type": "stamina",
+   "cooldown": 0.8,
+   "cast": 0.3,
+   "kind": "projectile",
+   "damage": 24,
+   "type": "physical",
+   "speed": 30,
+   "stagger": 20,
+   "color": "#d8f070",
+   "desc": "Aura schießt mit tödlicher Präzision."
+  },
+  "beast_call": {
+   "name": "Ruf der Bestien",
+   "icon": "♞",
+   "key": "2",
+   "cost": 30,
+   "cost_type": "mana",
+   "cooldown": 7.0,
+   "cast": 0.4,
+   "kind": "cone",
+   "range": 7.0,
+   "arc": 360,
+   "damage": 28,
+   "type": "physical",
+   "stagger": 80,
+   "knockback": 6,
+   "color": "#8ad860",
+   "desc": "Fenrir und die Bestien des Dschungels stürmen heran."
+  },
+  "paralyze_breath": {
+   "name": "Lähmender Atem",
+   "icon": "〰",
+   "key": "3",
+   "cost": 24,
+   "cost_type": "mana",
+   "cooldown": 8.0,
+   "cast": 0.3,
+   "kind": "target",
+   "range": 12,
+   "status": {
+    "stun": 3.5
+   },
+   "damage": 0,
+   "color": "#c8a0ff",
+   "desc": "Ein Hauch, der jeden Gegner erstarren lässt."
+  },
+  "forest_dash": {
+   "name": "Waldläufersprung",
+   "icon": "⇶",
+   "key": "4",
+   "cost": 22,
+   "cost_type": "stamina",
+   "cooldown": 3.0,
+   "cast": 0.2,
+   "kind": "leap",
+   "range": 9,
+   "damage": 26,
+   "radius": 2.5,
+   "type": "physical",
+   "stagger": 50,
+   "knockback": 3,
+   "color": "#a0e070",
+   "desc": "Flink wie ein Raubtier mitten unter die Feinde."
   }
  },
  "enemies": {
@@ -1419,6 +1558,46 @@
      "lunge": 2.5,
      "stagger": 30,
      "arc": 50
+    }
+   ]
+  },
+  "decem": {
+   "name": "Decem Hougan, König der Elfen",
+   "hp": 680,
+   "armor": 40,
+   "speed": 4.8,
+   "poise": 160,
+   "aggro": 22,
+   "model": "soldier",
+   "color": "#3a8a5a",
+   "gold": 70,
+   "elite": true,
+   "resist": {
+    "physical": 0.85
+   },
+   "attacks": [
+    {
+     "id": "blade",
+     "name": "Klingentanz",
+     "windup": 0.45,
+     "active": 0.15,
+     "recovery": 0.55,
+     "damage": 25,
+     "range": 2.0,
+     "stagger": 20,
+     "arc": 110
+    },
+    {
+     "id": "dash",
+     "name": "Sturmschritt",
+     "windup": 0.7,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 34,
+     "range": 3.5,
+     "lunge": 4.5,
+     "stagger": 30,
+     "arc": 60
     }
    ]
   }

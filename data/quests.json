@@ -391,6 +391,25 @@
     0.7,
     "rare"
    ]
+  ],
+  "decem": [
+   [
+    "moonleaf",
+    1.0,
+    2,
+    4
+   ],
+   [
+    "gold",
+    1.0,
+    40,
+    70
+   ],
+   [
+    "item",
+    0.9,
+    "epic"
+   ]
   ]
  },
  "pickups": {
@@ -1402,6 +1421,81 @@
    "on_done": {
     "set_flags": [
      "tuare_gerettet"
+    ]
+   }
+  },
+  {
+   "id": "g_aura_elves",
+   "title": "Wächter-Einsatz: Der König der Elfen",
+   "kind": "guardian_play",
+   "giver": "aura",
+   "requires": {
+    "chapter": 3
+   },
+   "offer": "Ainz-sama … man sagt, der König der Elfen im Ewigen Wald sei unser … also, Mares und mein Vater. Und dass er seine eigenen Kinder als Waffen züchtet. Lasst mich hingehen. Bitte. Ich will ihm in die Augen sehen.",
+   "progress": "Aura zieht in den Ewigen Wald der Elfen. Reist dorthin – Ihr übernehmt Aura.",
+   "done": "Er … war nicht einmal stark. Nur grausam. Mare weint, aber ich nicht. Danke, dass Ihr mich habt gehen lassen, Ainz-sama. Nazarick ist unser Zuhause – nicht er.",
+   "steps": [
+    {
+     "type": "kill",
+     "enemy": "elf",
+     "count": 6,
+     "loc": "elfen",
+     "as": "aura",
+     "spawn": [
+      [
+       "elf",
+       5
+      ]
+     ],
+     "text": "Als Aura: Durchbrecht die Wache der Elfen (Ewiger Wald)"
+    },
+    {
+     "type": "kill",
+     "enemy": "decem",
+     "count": 1,
+     "loc": "elfen",
+     "as": "aura",
+     "spawn": [
+      [
+       "decem",
+       1
+      ],
+      [
+       "elf",
+       2
+      ]
+     ],
+     "text": "Als Aura: Stellt den Elfenkönig Decem Hougan"
+    },
+    {
+     "type": "talk",
+     "npc": "aura",
+     "text": "Berichtet Ainz – sprecht mit Aura (Dschungel, 6. Ebene)"
+    }
+   ],
+   "rewards": {
+    "res": {
+     "power": 8,
+     "reputation": 4
+    },
+    "gold": 120,
+    "chars": {
+     "aura": {
+      "favor": 14
+     },
+     "mare": {
+      "favor": 8
+     }
+    },
+    "xp": {
+     "aura": 130
+    },
+    "item": "roll:epic"
+   },
+   "on_done": {
+    "set_flags": [
+     "elfenkoenig_gefallen"
     ]
    }
   }
