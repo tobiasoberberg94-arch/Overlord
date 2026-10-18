@@ -39,6 +39,76 @@ for path in sorted(glob.glob(os.path.join(mix, "*.fbx"))):
     for o in new:
         bpy.data.objects.remove(o)
 
+# Fremd-Animationen (anims=<ordner>): Mixamo-Clips einer anderen Figur werden auf dieses Skelett
+# umgerechnet – je Knochen die Drehung relativ zur Ruhepose im Weltraum, Hüfte nach Körpergröße skaliert.
+def _retarget(src_arm, tgt_arm, name):
+    from mathutils import Quaternion
+    sb = {b.name.split(":")[-1]: b for b in src_arm.data.bones}
+    order = [b for b in tgt_arm.data.bones]                     # Eltern vor Kindern (Blender-Reihenfolge)
+    smw = src_arm.matrix_world.to_quaternion()
+    tmw = tgt_arm.matrix_world.to_quaternion()
+    rest_s = {k: smw @ b.matrix_local.to_quaternion() for k, b in sb.items()}
+    rest_t = {b.name: tmw @ b.matrix_local.to_quaternion() for b in order}
+    hips_s = next((b for k, b in sb.items() if k == "Hips"), None)
+    hips_t = next((b for b in order if b.name.split(":")[-1] == "Hips"), None)
+    h_s = (src_arm.matrix_world @ hips_s.head_local).z if hips_s else 1.0
+    h_t = (tgt_arm.matrix_world @ hips_t.head_local).z if hips_t else 1.0
+    ratio = h_t / h_s if abs(h_s) > 1e-6 else 1.0
+    act = bpy.data.actions.new(name)
+    if tgt_arm.animation_data is None:
+        tgt_arm.animation_data_create()
+    tgt_arm.animation_data.action = act
+    src_act = src_arm.animation_data.action
+    f0, f1 = int(src_act.frame_range[0]), int(src_act.frame_range[1])
+    for pb in tgt_arm.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        arm_pose = {}
+        for b in order:
+            key = b.name.split(":")[-1]
+            pb = tgt_arm.pose.bones[b.name]
+            if key in sb:
+                sp = src_arm.pose.bones[sb[key].name]
+                delta = (smw @ sp.matrix.to_quaternion()) @ rest_s[key].inverted()
+                q_arm = tmw.inverted() @ (delta @ rest_t[b.name])
+            else:   # Knochen ohne Gegenstück: Ruhelage relativ zum Elternteil
+                q_arm = (arm_pose[b.parent.name] @ (b.parent.matrix_local.to_quaternion().inverted() @ b.matrix_local.to_quaternion())) if b.parent else b.matrix_local.to_quaternion()
+            arm_pose[b.name] = q_arm
+            if b.parent:
+                rel = b.parent.matrix_local.to_quaternion().inverted() @ b.matrix_local.to_quaternion()
+                loc_q = rel.inverted() @ arm_pose[b.parent.name].inverted() @ q_arm
+            else:
+                loc_q = b.matrix_local.to_quaternion().inverted() @ q_arm
+            pb.rotation_quaternion = loc_q
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            if key == "Hips" and hips_s is not None:
+                sp = src_arm.pose.bones[hips_s.name]
+                d_world = (src_arm.matrix_world @ sp.head) - (src_arm.matrix_world @ hips_s.head_local)
+                d_world.x = 0.0          # an Ort und Stelle: die Fortbewegung macht das Spiel
+                d_world.y = 0.0
+                d_arm = tgt_arm.matrix_world.inverted().to_3x3() @ (d_world * ratio)
+                pb.location = b.matrix_local.to_3x3().inverted() @ d_arm
+                pb.keyframe_insert("location", frame=f)
+    tgt_arm.animation_data.action = None
+    return act
+
+
+_anim_dir = next((a.split("=", 1)[1] for a in sys.argv[sys.argv.index("--") + 4:] if a.startswith("anims=")), "")
+if _anim_dir:
+    for path in sorted(glob.glob(os.path.join(os.path.abspath(_anim_dir), "*.fbx"))):
+        name = os.path.splitext(os.path.basename(path))[0]
+        if name.startswith("_") or name in actions:
+            continue
+        new = imported(lambda: bpy.ops.import_scene.fbx(filepath=path, automatic_bone_orientation=False))
+        sa = next(o for o in new if o.type == "ARMATURE")
+        arm.animation_data.action = None
+        actions[name] = _retarget(sa, arm, name)
+        print("OVERLORD retarget", name, len(actions[name].fcurves), "Kurven")
+        for o in new:
+            bpy.data.objects.remove(o)
+    bpy.context.scene.frame_set(1)
+
 # Einheiten pruefen: Mixamo liest OBJ-Uploads als Zentimeter -> Figur ist 100x zu klein.
 # Die Armatur (samt Animationen und Skin) wird dann als Ganzes hochskaliert.
 _dg = bpy.context.evaluated_depsgraph_get()

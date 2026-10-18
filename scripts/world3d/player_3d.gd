@@ -243,9 +243,25 @@ func _start_dodge() -> void:
 	use_stamina(float(cfg.dodge_stamina))
 	var iv := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_enabled else Vector2.ZERO
 	_dodge_dir = Basis(Vector3.UP, cam_yaw) * Vector3(iv.x, 0, iv.y)
-	if _dodge_dir.length() < 0.1:
+	var stand := _dodge_dir.length() < 0.1
+	if stand:
 		_dodge_dir = -facing
 	_dodge_dir = _dodge_dir.normalized()
+	# Animation nach Richtung: frei → Rolle in Laufrichtung, im Stand → Sprung zurück,
+	# mit fixiertem Ziel → vor/zurück/seitlich relativ zur Blickrichtung
+	if rig:
+		if stand:
+			rig.dodge_key = "dodge_back"
+		elif lock and is_instance_valid(lock):
+			var fwd := facing.dot(_dodge_dir)
+			var right := facing.cross(Vector3.UP).normalized().dot(_dodge_dir)
+			if absf(fwd) >= absf(right):
+				rig.dodge_key = "dodge_fwd" if fwd > 0.0 else "dodge_back"
+			else:
+				rig.dodge_key = "dodge_right" if right > 0.0 else "dodge_left"
+		else:
+			facing = _dodge_dir
+			rig.dodge_key = "dodge_fwd"
 	set_state(S.DODGE)
 	Audio.sfx("page", 0.5)
 
@@ -319,6 +335,13 @@ func cast(id: String) -> bool:
 	cooldowns[id] = float(sp.cooldown)
 	casting = sp.duplicate()
 	casting["id"] = id
+	if rig:
+		match String(sp.kind):
+			"projectile": rig.cast_key = "cast_projectile"
+			"cone": rig.cast_key = "cast_area"
+			"self": rig.cast_key = "cast_self"
+			"target": rig.cast_key = "cast_heavy" if float(sp.get("damage", 0)) >= 100.0 else "cast_target"
+			_: rig.cast_key = "cast"
 	_aim_soft()
 	set_state(S.CAST)
 	rig.flash(Color(sp.color), float(sp.cast))
@@ -463,7 +486,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = maxf(velocity.y, -1.0)
 	velocity += knock
-	move_and_slide()
+	move_with_steps(delta)
 	velocity -= Vector3(knock.x, 0, knock.z)
 	_move_amount = clampf(Vector2(velocity.x, velocity.z).length() / (move_speed * SPRINT_MULT), 0.0, 1.0)
 	_update_camera(delta)
@@ -515,7 +538,11 @@ func _process(_delta: float) -> void:
 				"windup": prog = state_time / w
 				"active": prog = (state_time - w) / a
 				_: prog = (state_time - w - a) / maxf(r, 0.01)
-		S.DODGE: prog = state_time / float(cfg.dodge_time)
+		S.DODGE:
+			prog = state_time / float(cfg.dodge_time)
+			total = float(cfg.dodge_time)
+		S.CAST:
+			total = float(casting.get("cast", 0.3))
 		S.STAGGER: prog = state_time / 0.75
 		S.DEAD: prog = state_time
 	rig.pose(state, phase, clampf(prog, 0.0, 1.0), _move_amount, kind, total)

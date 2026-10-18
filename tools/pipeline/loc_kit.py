@@ -92,7 +92,9 @@ class Kit:
         lo = Vector((min(v.x for v in bb), min(v.y for v in bb), min(v.z for v in bb)))
         hi = Vector((max(v.x for v in bb), max(v.y for v in bb), max(v.z for v in bb)))
         if z is None:
-            z = self.ground_fn(x, y) - sink
+            # tiefster Geländepunkt unter der Grundfläche: am Hang nichts schweben lassen
+            hx, hy = (hi.x - lo.x) * 0.45, (hi.y - lo.y) * 0.45
+            z = min(self.ground_fn(x + dx, y + dy) for dx in (-hx, 0.0, hx) for dy in (-hy, 0.0, hy)) - sink
         ref = lo.z if anchor == "bottom" else hi.z
         loc = Vector((x - (lo.x + hi.x) / 2, y - (lo.y + hi.y) / 2, z - ref))
         if origin:                                   # Ursprung des Bauteils exakt auf (x, y, z) (zusammengesetzte Teile)

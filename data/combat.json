@@ -1,12 +1,12 @@
 {
  "player": {
   "parry_window": 0.22,
-  "dodge_time": 0.5,
+  "dodge_time": 0.62,
   "iframes": [
    0.05,
-   0.38
+   0.46
   ],
-  "dodge_speed": 11.0,
+  "dodge_speed": 9.5,
   "dodge_stamina": 22,
   "block_stamina_mult": 0.6,
   "stamina_regen": 22,

@@ -7,7 +7,19 @@ extends Node3D
 ## Für .glb-Modelle werden Animationsnamen über data/models.json → animation_aliases
 ## zugeordnet (idle, walk, run, attack_light, attack_heavy, dodge, block, hit, death, cast).
 
-const ANIM_KEYS := ["idle", "walk", "run", "attack_light", "attack_heavy", "dodge", "block", "hit", "death", "cast", "stagger"]
+const ANIM_KEYS := ["idle", "walk", "run", "attack_light", "attack_heavy", "dodge", "block", "hit", "death", "cast", "stagger",
+	"dodge_fwd", "dodge_back", "dodge_left", "dodge_right", "cast_projectile", "cast_area", "cast_self", "cast_target", "cast_heavy"]
+## Nutzbarer Abschnitt der Mixamo-Clips aus der Animationsbibliothek (Sekunden): die Rolle selbst ohne
+## Anlauf/Aufstehen; rel = Anteil, an dem der Zauber „losgeht“ (fällt auf das Ende der Wirkzeit).
+const SEGMENTS := {
+	"dodge_fwd": [0.78, 2.05], "dodge_back": [0.3, 1.6], "dodge_left": [0.05, 0.95], "dodge_right": [0.05, 0.95],
+	"dodge": [0.2, 1.4],
+}
+const CAST_RELEASE := {"cast_projectile": 0.45, "cast_area": 0.5, "cast_self": 0.45, "cast_target": 0.42, "cast_heavy": 0.62, "cast": 0.45}
+
+var dodge_key := "dodge"            ## vom Kämpfer gesetzt (Richtung)
+var cast_key := "cast"              ## vom Kämpfer gesetzt (Zauberart)
+var _oneshot_left := 0.0           ## Ausschwingen eines Zaubers nach der Wirkzeit
 
 var model_id := ""
 var has_model := false
@@ -82,6 +94,42 @@ func play(key: String, speed: float = 1.0, restart: bool = false) -> void:
 		anim.speed_scale = speed
 
 
+## Spielt den Abschnitt [a, b] eines Clips in `duration` Sekunden ab.
+func play_segment(key: String, duration: float) -> void:
+	if anim == null or not anim_map.has(key):
+		return
+	var n: String = anim_map[key]
+	var seg: Array = SEGMENTS.get(key, [0.0, anim_length(key)])
+	var b := minf(float(seg[1]), anim_length(key))
+	var a := minf(float(seg[0]), b - 0.05)
+	var speed := (b - a) / maxf(duration, 0.05)
+	if n != _current:
+		anim.play(n, 0.08, speed)
+		anim.seek(a, true)
+		_current = n
+	else:
+		anim.speed_scale = speed
+
+
+## Zauber: Clip so schnell abspielen, dass der Auslösemoment auf `cast_time` fällt, danach ausschwingen.
+func play_cast(key: String, cast_time: float) -> void:
+	if anim == null:
+		return
+	if not anim_map.has(key):
+		key = "cast"
+	if not anim_map.has(key):
+		return
+	var rel: float = CAST_RELEASE.get(key, 0.45)
+	var l := anim_length(key)
+	var speed := clampf(l * rel / maxf(cast_time, 0.1), 0.8, 3.5)
+	if anim_map[key] != _current:
+		anim.play(anim_map[key], 0.1, speed)
+		_current = anim_map[key]
+		_oneshot_left = l * (1.0 - rel) / speed + cast_time
+	else:
+		anim.speed_scale = speed
+
+
 func anim_length(key: String) -> float:
 	if anim == null or not anim_map.has(key):
 		return 0.0
@@ -106,6 +154,7 @@ func glow(color: Color, alpha: float) -> void:
 
 func _process(delta: float) -> void:
 	_t += delta
+	_oneshot_left = maxf(0.0, _oneshot_left - delta)
 	if _flash_time > 0.0:
 		_flash_time -= delta
 		_overlay.albedo_color.a = 0.55 * maxf(0.0, _flash_time / maxf(_flash_len, 0.01))
@@ -128,12 +177,16 @@ func _pose_model(state: int, move_ratio: float, attack_kind: String, total: floa
 			var key := "attack_heavy" if attack_kind == "heavy" else "attack_light"
 			var l := anim_length(key)
 			play(key, l / maxf(total, 0.1) if l > 0.0 else 1.0)
-		Fighter.S.DODGE: play("dodge", 1.4)
+		Fighter.S.DODGE: play_segment(dodge_key if anim_map.has(dodge_key) else "dodge", total)
 		Fighter.S.BLOCK: play("block")
-		Fighter.S.CAST: play("cast")
+		Fighter.S.CAST: play_cast(cast_key, total)
 		Fighter.S.STAGGER, Fighter.S.STUN: play("stagger" if anim_map.has("stagger") else "hit")
 		Fighter.S.DEAD: play("death")
 		_:
+			# Zauber schwingt aus, solange Ainz nicht losläuft
+			if _oneshot_left > 0.0 and move_ratio < 0.15:
+				return
+			_oneshot_left = 0.0
 			if move_ratio > 0.6:
 				play("run")
 			elif move_ratio > 0.08:

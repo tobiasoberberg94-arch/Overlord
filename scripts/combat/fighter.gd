@@ -54,10 +54,56 @@ func setup_combat(is_pl: bool) -> void:
 	is_player = is_pl
 	collision_layer = 2
 	collision_mask = 1 | 2
+	floor_max_angle = deg_to_rad(50.0)
+	floor_snap_length = 0.35
+	floor_constant_speed = true
 	hurtbox = Hurtbox.new(self, is_pl)
 	add_child(hurtbox)
 	hitbox = Hitbox.new(self, not is_pl)
 	add_child(hitbox)
+
+
+# =====================================================================
+#  Bewegung mit Stufen
+# =====================================================================
+
+const STEP_HEIGHT := 0.45
+
+## move_and_slide mit Treppensteigen: blockiert eine niedrige Kante (Teppichrand, Stufe, Schwelle)
+## die Bewegung, wird geprüft, ob der Körper STEP_HEIGHT höher frei weiterkommt und dort Boden findet.
+func move_with_steps(delta: float) -> void:
+	var horiz := Vector3(velocity.x, 0, velocity.z)
+	var was_floor := is_on_floor()
+	var before := global_position
+	move_and_slide()
+	if not was_floor or horiz.length() < 0.2:
+		return
+	# Nur bei einer Kante auf Fußhöhe (nicht bei echten Wänden, die sind höher)
+	var low_wall := false
+	for i in get_slide_collision_count():
+		var c := get_slide_collision(i)
+		if c.get_normal().y < 0.75 and c.get_position().y - before.y < STEP_HEIGHT and c.get_normal().dot(horiz) < 0.0:
+			low_wall = true
+			break
+	if not low_wall:
+		return
+	var t := Transform3D(global_transform.basis, before)
+	var up := Vector3(0, STEP_HEIGHT, 0)
+	if test_move(t, up):
+		return
+	t.origin += up
+	var fwd := horiz.normalized() * maxf(horiz.length() * delta, 0.12)
+	if test_move(t, fwd):
+		return
+	t.origin += fwd
+	var col := KinematicCollision3D.new()
+	if not test_move(t, -up - Vector3(0, 0.05, 0), col) or col.get_normal().y < 0.7:
+		return
+	var land := t.origin + col.get_travel()
+	if land.y - before.y < 0.01:
+		return   # keine Stufe, nur flach daneben
+	global_position = land
+	apply_floor_snap()
 
 
 # =====================================================================

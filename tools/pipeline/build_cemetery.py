@@ -76,6 +76,13 @@ for i in range(-1, 2):
     for j in range(-1, 2):
         put("SM_floor", kx + i * 5, ky + j * 5, z=gz + 0.6)
 put("SM_understair02", kx, ky - 8.8, z=gz - 0.9, rot=0, s=0.7)
+# Sockel unter der Plattform
+for k in (-5.0, 0.0, 5.0):
+    for sx in (-1, 1):
+        put("SM_middlewall02", kx + sx * 7.8, ky + k, z=gz + 0.6 - 4.2, rot=90 * sx)
+    put("SM_middlewall02", kx + k, ky + 7.8, z=gz + 0.6 - 4.2, rot=180)
+for sx in (-1, 1):
+    put("SM_middlewall02", kx + sx * 5.0, ky - 7.8, z=gz + 0.6 - 4.2, rot=0)
 for k in range(6):
     a = math.radians(k * 60 + 30)
     put("SM_middle_pillar", kx + math.cos(a) * 6.2, ky + math.sin(a) * 6.2, z=gz + 0.6, s=0.7)

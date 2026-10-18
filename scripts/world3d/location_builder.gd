@@ -56,6 +56,7 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
 	root.add_child(scene)
 	ModelLib.add_collision(scene)
+	_grass_on = _grass_field(loc, scene)
 	_scatter_instances(loc, scene)
 	_ground_blend(scene)
 	_soft_cutouts(scene)
@@ -287,6 +288,31 @@ static func _ground_blend(scene: Node3D) -> void:
 const SCATTER_TILE := 40.0
 const BLENDER_TO_GODOT := Basis(Vector3(1, 0, 0), Vector3(0, 0, -1), Vector3(0, 1, 0))
 
+static var _grass_on := false
+
+## Farbe des Grases je Ortsart (Shader-Parameter von grass_field.gdshader).
+const GRASS_TINT := {
+	"grassland": {},
+	"forest": {"tip_col": Color(0.26, 0.42, 0.10), "lush_col": Color(0.14, 0.32, 0.07), "dry_amount": 0.25, "density": 0.45},
+	"cemetery": {"tip_col": Color(0.30, 0.36, 0.14), "lush_col": Color(0.18, 0.26, 0.10), "dry_col": Color(0.42, 0.38, 0.22), "dry_amount": 0.7, "density": 0.7},
+}
+
+
+## Dichtes Grasfeld um die Kamera auf Kit-Gelände (Ground mit Wegmaske im Farbattribut).
+static func _grass_field(loc: Dictionary, scene: Node3D) -> bool:
+	if not GRASS_TINT.has(loc.get("kind", "")):
+		return false
+	for n in scene.find_children("Ground*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null or not (mi.mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR):
+			continue
+		var gf := GrassField.create(mi, GRASS_TINT[loc.kind])
+		if gf:
+			scene.add_child(gf)
+			return true
+	return false
+
+
 static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 	var file: String = ModelLib.model_config("locations", loc.id).get("file", loc.id)
 	var f := FileAccess.open("res://assets/models/locations/%s_scatter.json" % file, FileAccess.READ)
@@ -310,6 +336,8 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 		var procedural := String(name).begins_with("@")
 		if not procedural and not templates.has(name):
 			continue
+		if procedural and _grass_on:
+			continue   # das GrassField übernimmt Gras und Blumen
 		var mesh: Mesh = Grass.tuft(name == "@flower") if procedural else (templates[name] as MeshInstance3D).mesh
 		var aabb := mesh.get_aabb()
 		var big := maxf(aabb.size.y, maxf(aabb.size.x, aabb.size.z))

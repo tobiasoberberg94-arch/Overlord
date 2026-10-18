@@ -61,19 +61,36 @@ for (x, y) in [(cx - 24, cy + 22), (cx + 24, cy + 22), (cx - 24, cy - 20), (cx +
     put("SM_ChurchTree01", x, y, rot=rng.uniform(0, 360), s=1.1)
 
 # --- Zentrales Mausoleum ------------------------------------------------------------------------------
-put("SM_understair02", cx, cy - 9.5, rot=0, s=0.9)
+put("SM_understair02", cx, cy - 9.5, z=gz, rot=0, s=0.9)
 for i in range(-2, 2):
-    for j in range(-1, 3):
-        put("SM_floor", cx + i * 5 + 2.5, cy + j * 5 - 2.5, z=gz + 1.4)
+    for j in range(-2, 2):
+        put("SM_floor", cx + i * 5 + 2.5, cy + j * 5 + 2.5, z=gz + 1.4)
+# Sockel: Mauerblöcke rings um die Plattform, Oberkante = Plattform (nichts schwebt)
+TOP = gz + 1.4
+for k in (-7.5, -2.5, 2.5, 7.5):
+    for sx in (-1, 1):
+        put("SM_middlewall02", cx + sx * 10.3, cy + k, z=TOP - 4.2, rot=90 * sx)
+    put("SM_middlewall02", cx + k, cy + 10.3, z=TOP - 4.2, rot=180)
+for sx in (-1, 1):
+    put("SM_middlewall02", cx + sx * 7.5, cy - 10.3, z=TOP - 4.2, rot=0)
+    put("SM_middlewall02", cx + sx * 4.4, cy - 10.3, z=TOP - 4.2, rot=0)
+# Säulenhalle, Seiten- und Rückwand, flaches Dach mit Gesims
 for sx in (-1, 1):
     for k in range(4):
-        put("SM_middle_pillar", cx + sx * 9.0, cy - 5 + k * 5, z=gz + 1.4, s=0.85)
-    put("SM_wall02", cx + sx * 10.5, cy + 2.5, z=gz + 1.4, rot=90 * sx)
-    put("SM_wall02", cx + sx * 10.5, cy + 7.5, z=gz + 1.4, rot=90 * sx)
-    put("SM_smallbraizer01", cx + sx * 4.5, cy - 4.5, z=gz + 1.4)
+        put("SM_middle_pillar", cx + sx * 9.0, cy - 7 + k * 5, z=TOP, s=0.85)
+    for k in (2.5, 7.5):
+        put("SM_wall02", cx + sx * 10.0, cy + k, z=TOP, rot=90 * sx, sz=1.12)
+    put("SM_smallbraizer01", cx + sx * 4.5, cy - 4.5, z=TOP)
 for k in range(-1, 2):
-    put("SM_wall02", cx + k * 5, cy + 10.5, z=gz + 1.4, rot=180)
-put("SM_ceiling02", cx, cy + 2.5, z=gz + 7.4, s=1.25)
+    put("SM_wall02", cx + k * 5, cy + 10.0, z=TOP, rot=180, sz=1.12)
+ROOF = TOP + 5.6
+for i in range(-2, 2):
+    for j in range(-2, 2):
+        put("SM_ceiling01", cx + i * 5 + 2.5, cy + j * 5 + 2.5, z=ROOF)
+for k in (-7.5, -2.5, 2.5, 7.5):
+    for sx in (-1, 1):
+        put("SM_updan", cx + sx * 10.2, cy + k, z=ROOF + 0.5, rot=90 * sx)
+        put("SM_updan", cx + k, cy + sx * 10.2, z=ROOF + 0.5, rot=0 if sx < 0 else 180)
 put("SM_statuehuman", cx, cy + 7.5, z=gz + 1.4, rot=180, s=0.5)
 put("SM_GateWall01", cx, cy + 2.0, z=gz + 1.4, rot=0, s=0.9)       # Eingang in die Tiefe (Gate-Portal)
 

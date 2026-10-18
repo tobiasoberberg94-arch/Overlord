@@ -115,7 +115,7 @@ func _physics_process(delta: float) -> void:
 	else:
 		velocity.y = -0.5
 	velocity += knock
-	move_and_slide()
+	move_with_steps(delta)
 	velocity -= Vector3(knock.x, 0, knock.z)
 	_pose(delta)
 
