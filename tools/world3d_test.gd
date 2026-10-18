@@ -67,6 +67,22 @@ func _ready() -> void:
 		Input.action_release("move_forward")
 		await _wait(0.5)
 		_shot("loc_%s" % l.id)
+		if OS.get_environment("SHOTCAM") != "":
+			var v: PackedFloat64Array = PackedFloat64Array(Array(OS.get_environment("SHOTCAM").split(",")).map(func(x): return float(x)))
+			var cam := Camera3D.new()
+			cam.far = 3000.0
+			cam.fov = 70.0
+			w.add_child(cam)
+			cam.look_at_from_position(Vector3(v[0], v[1], v[2]), Vector3(v[3], v[4], v[5]))
+			cam.current = true
+			for c in w.find_children("*", "CanvasLayer", true, false):
+				(c as CanvasLayer).visible = false
+			await _wait(2.5)
+			_shot("cam_%s" % l.id)
+			for c in w.find_children("*", "CanvasLayer", true, false):
+				(c as CanvasLayer).visible = true
+			cam.queue_free()
+			w.player.camera.current = true
 		print("Ort OK: ", l.id, " – Figuren: ", w.actors.size(), " Position ", w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)), " FPS ", Engine.get_frames_per_second(),
 			" | Objekte ", Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME),
 			" Dreiecke ", int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME)),

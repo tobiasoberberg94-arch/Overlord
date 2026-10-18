@@ -32,7 +32,7 @@ for k in range(26):
     a = k / 26 * math.tau + rng.uniform(-0.05, 0.05)
     d = rng.uniform(150, 210)
     put(rng.choice(["SM_rock_02", "SM_rock_01"]), math.cos(a) * d, math.sin(a) * d, z=-12.0, rot=rng.uniform(0, 360),
-        s=rng.uniform(9.0, 15.0), sz=rng.uniform(10.0, 18.0), nocol=True)
+        s=rng.uniform(7.0, 10.0), sz=rng.uniform(8.0, 11.0), nocol=True)
 # Felswände am Talrand
 for k in range(60):
     a = k / 60 * math.tau + rng.uniform(-0.03, 0.03)

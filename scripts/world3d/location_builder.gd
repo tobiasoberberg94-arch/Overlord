@@ -57,6 +57,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	root.add_child(scene)
 	ModelLib.add_collision(scene)
 	_grass_on = _grass_field(loc, scene)
+	_horizon(loc, scene)
 	_scatter_instances(loc, scene)
 	_ground_blend(scene)
 	_soft_cutouts(scene)
@@ -299,6 +300,34 @@ const BLENDER_TO_GODOT := Basis(Vector3(1, 0, 0), Vector3(0, 0, -1), Vector3(0, 
 
 static var _grass_on := false
 
+## Fernkulisse je Ortsart: Stil und Farbe des Kronendachs.
+const HORIZON := {
+	"grassland": ["forest", Color(0.17, 0.26, 0.1)], "forest": ["forest", Color(0.14, 0.22, 0.09)],
+	"swamp": ["forest", Color(0.12, 0.17, 0.09)], "cemetery": ["forest", Color(0.08, 0.1, 0.08)],
+	"village": ["plain", Color(0.18, 0.26, 0.11)], "city": ["plain", Color(0.18, 0.25, 0.11)],
+	"palace": ["plain", Color(0.18, 0.26, 0.11)], "cathedral": ["plain", Color(0.2, 0.28, 0.12)],
+	"wall": ["forest", Color(0.16, 0.24, 0.1)], "battlefield": ["plain", Color(0.24, 0.22, 0.14)],
+	"mountain": ["mountain", Color(0.15, 0.2, 0.12)], "peaks": ["mountain", Color(0.2, 0.2, 0.16)],
+	"glacier": ["mountain", Color(0.75, 0.8, 0.86)], "jungle": ["forest", Color(0.1, 0.22, 0.08)],
+}
+
+
+static func _horizon(loc: Dictionary, scene: Node3D) -> void:
+	var h: Array = HORIZON.get(loc.get("kind", ""), [])
+	if h.is_empty():
+		return
+	# Fernbäume: grobe Detailstufe (lod2) der großen Bäume des Ortes
+	var trees: Array = []
+	for t in scene.find_children("nocol_mm_lod2_*", "MeshInstance3D", true, false):
+		var tm := (t as MeshInstance3D).mesh
+		if tm and tm.get_aabb().size.y > 6.0 and trees.size() < 4:
+			trees.append(tm)
+	for n in scene.find_children("*Ground*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh and mi.get_aabb().size.x > 60.0:
+			Horizon.build(scene, mi, h[0], h[1], trees)
+			return
+
 ## Farbe des Grases je Ortsart (Shader-Parameter von grass_field.gdshader).
 const GRASS_TINT := {
 	"grassland": {},
@@ -400,7 +429,27 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 
 static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> void:
 	var env := Environment.new()
-	if preset.get("sky", true):
+	if preset.get("sky", true) and (preset.get("sky_ambient", false) or preset.has("clouds")):
+		# Außenorte: Wolkenhimmel (assets/shaders/sky_clouds.gdshader) mit Sonne, Dunst und ggf. Sternen
+		var sky := Sky.new()
+		var sm := ShaderMaterial.new()
+		sm.shader = load("res://assets/shaders/sky_clouds.gdshader")
+		var top: Color = preset.get("sky_top", Color(0.2, 0.42, 0.78))
+		var hor: Color = preset.get("fog", Color(0.6, 0.65, 0.72)).lerp(Color(0.75, 0.78, 0.84), 0.35)
+		sm.set_shader_parameter("top_col", top)
+		sm.set_shader_parameter("horizon_col", hor)
+		sm.set_shader_parameter("ground_col", hor.darkened(0.55))
+		sm.set_shader_parameter("coverage", float(preset.get("clouds", 0.45)))
+		sm.set_shader_parameter("energy", float(preset.get("sky_energy", 1.0)))
+		sm.set_shader_parameter("stars", float(preset.get("stars", 0.0)))
+		sm.set_shader_parameter("cloud_col", preset.get("cloud_col", Color(1.0, 0.97, 0.93)))
+		sm.set_shader_parameter("cloud_shade", preset.get("cloud_shade", hor.darkened(0.35)))
+		sky.sky_material = sm
+		sky.process_mode = Sky.PROCESS_MODE_REALTIME
+		sky.radiance_size = Sky.RADIANCE_SIZE_128
+		env.background_mode = Environment.BG_SKY
+		env.sky = sky
+	elif preset.get("sky", true):
 		# Prozeduraler Himmel (keine gemalten Bilder): Farben je Ort
 		var sky := Sky.new()
 		var pm := ProceduralSkyMaterial.new()
@@ -454,6 +503,8 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	sun.directional_shadow_blend_splits = true
 	sun.directional_shadow_fade_start = 0.85
 	sun.shadow_blur = 1.5
+	sun.light_volumetric_fog_energy = 1.8
+	sun.light_angular_distance = 0.6               # weiche, natürliche Schattenkanten
 	root.add_child(sun)
 
 
@@ -484,7 +535,8 @@ static func _forward_plus_env(env: Environment, preset: Dictionary) -> void:
 	env.volumetric_fog_albedo = preset.get("fog", Color(0.08, 0.04, 0.12)).lightened(0.4)
 	env.volumetric_fog_emission = preset.get("fog", Color(0.08, 0.04, 0.12)) * 0.15
 	env.volumetric_fog_gi_inject = 0.8
-	env.volumetric_fog_length = 48.0
+	env.volumetric_fog_length = 64.0
+	env.volumetric_fog_anisotropy = 0.6          # Vorwärtsstreuung: Lichtstrahlen durch Kronen und Dunst
 	env.fog_density *= 0.35
 	# Umgebungslicht kommt jetzt teils aus SDFGI – Grundhelligkeit etwas zurücknehmen
 	env.ambient_light_energy *= 0.7
@@ -502,14 +554,14 @@ static func preset(kind: String) -> Dictionary:
 		"library": return {"sky": false, "lamp": 0.7, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 0.5, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.7, 0.58, 0.42), "ambient_energy": 0.9, "fog": Color(0.1, 0.07, 0.04), "fog_density": 0.012, "sun_energy": 0.15, "saturation": 1.06, "contrast": 1.05}
 		"treasury": return {"sky_top": Color(0.25, 0.32, 0.62), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.8, "lamp_range": 12.0, "gi": 1.0, "vol_fog": 1.2, "ambient": Color(0.85, 0.7, 0.45), "ambient_energy": 0.8, "fog": Color(0.85, 0.62, 0.35), "fog_density": 0.006, "sun": Color(1.0, 0.78, 0.5), "sun_energy": 1.7, "sun_rot": Vector3(-22, 160, 0), "shadow_dist": 120.0, "saturation": 1.12, "contrast": 1.06, "exposure": 1.0}
 		"village": return {"sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
-		"grassland": return {"sky_top": Color(0.2, 0.45, 0.82), "sky_energy": 1.15, "sky_ambient": true, "ambient": Color(0.7, 0.7, 0.6), "ambient_energy": 0.75, "fog": Color(0.7, 0.75, 0.78), "fog_density": 0.004, "vol_fog": 1.2, "gi": 1.0, "sun": Color(1.0, 0.93, 0.8), "sun_energy": 1.6, "sun_rot": Vector3(-42, 30, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.05}
-		"cemetery": return {"sky_top": Color(0.03, 0.05, 0.12), "sky_energy": 0.35, "lamp": 0.9, "lamp_range": 11.0, "ambient": Color(0.3, 0.35, 0.5), "ambient_energy": 0.6, "fog": Color(0.18, 0.22, 0.3), "fog_density": 0.03, "vol_fog": 0.9, "gi": 0.8, "sun": Color(0.55, 0.65, 0.95), "sun_energy": 0.35, "sun_rot": Vector3(-35, 140, 0), "shadow_dist": 90.0, "saturation": 0.95, "contrast": 1.1, "exposure": 1.1}
+		"grassland": return {"sky_top": Color(0.2, 0.45, 0.82), "sky_energy": 1.15, "sky_ambient": true, "ambient": Color(0.7, 0.7, 0.6), "ambient_energy": 0.75, "fog": Color(0.7, 0.75, 0.78), "fog_density": 0.003, "vol_fog": 0.55, "gi": 1.0, "sun": Color(1.0, 0.93, 0.8), "sun_energy": 1.6, "sun_rot": Vector3(-42, 30, 0), "shadow_dist": 140.0, "saturation": 1.2, "contrast": 1.12, "clouds": 0.5}
+		"cemetery": return {"clouds": 0.35, "stars": 1.0, "cloud_col": Color(0.25, 0.28, 0.38), "sky_top": Color(0.03, 0.05, 0.12), "sky_energy": 0.35, "lamp": 0.9, "lamp_range": 11.0, "ambient": Color(0.3, 0.35, 0.5), "ambient_energy": 0.6, "fog": Color(0.18, 0.22, 0.3), "fog_density": 0.03, "vol_fog": 0.9, "gi": 0.8, "sun": Color(0.55, 0.65, 0.95), "sun_energy": 0.35, "sun_rot": Vector3(-35, 140, 0), "shadow_dist": 90.0, "saturation": 0.95, "contrast": 1.1, "exposure": 1.1}
 		"city", "palace", "cathedral": return {"sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.006, "vol_fog": 1.3, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.05}
 		"wall": return {"sky_top": Color(0.25, 0.35, 0.55), "sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}
-		"forest": return {"sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.6, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.14, "contrast": 1.07, "exposure": 1.05}
+		"forest": return {"sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.1, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.14, "contrast": 1.12, "exposure": 1.05}
 		"swamp": return {"sky_top": Color(0.32, 0.42, 0.48), "sky_energy": 0.85, "sky_ambient": true, "ambient": Color(0.5, 0.58, 0.48), "ambient_energy": 0.7, "fog": Color(0.55, 0.62, 0.52), "fog_density": 0.018, "vol_fog": 1.8, "gi": 1.0, "lamp": 0.7, "lamp_range": 9.0, "sun": Color(1.0, 0.86, 0.62), "sun_energy": 1.2, "sun_rot": Vector3(-22, 70, 0), "shadow_dist": 90.0, "saturation": 1.05, "contrast": 1.08, "exposure": 1.05}
 		"battlefield": return {"sky_top": Color(0.36, 0.38, 0.46), "sky_energy": 0.8, "sky_ambient": true, "ambient": Color(0.55, 0.55, 0.62), "ambient_energy": 0.7, "fog": Color(0.58, 0.58, 0.66), "fog_density": 0.014, "vol_fog": 1.5, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(0.92, 0.86, 0.82), "sun_energy": 1.0, "sun_rot": Vector3(-24, 130, 0), "shadow_dist": 90.0, "saturation": 0.8, "contrast": 1.1, "exposure": 1.0}
-		"mountain", "peaks": return {"sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.004, "vol_fog": 1.0, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.08, "contrast": 1.08}
+		"mountain", "peaks": return {"sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.0025, "vol_fog": 0.35, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.12, "contrast": 1.12, "clouds": 0.35}
 	return {}
 
 
