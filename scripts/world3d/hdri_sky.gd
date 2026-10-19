@@ -62,7 +62,8 @@ static func analyze(name: String) -> Dictionary:
 	var avg_l := avg.x * 0.2126 + avg.y * 0.7152 + avg.z * 0.0722
 	# Sonnenstärke: wie stark die (unscharfe) Sonne über dem Himmelsmittel liegt – klar ≈ 1, bedeckt ≈ 0.3
 	var strength := clampf(log(maxf(sb / maxf(avg_l, 0.001), 1.0)) / log(10.0) / 1.6, 0.3, 1.0)
-	var res := {"tex": tex, "sun_dir": sd.normalized(), "sun_col": sun_col, "peak": best, "strength": strength,
+	# nur die Messwerte zwischenspeichern – das Bild selbst (≈90 MB Grafikspeicher) gehört zum Ort und wird mit ihm frei
+	var res := {"path": path, "sun_dir": sd.normalized(), "sun_col": sun_col, "peak": best, "strength": strength,
 		"avg": avg_l, "horizon": Color(hor.x, hor.y, hor.z)}
 	_cache[name] = res
 	return res
@@ -87,7 +88,7 @@ static func apply(env: Environment, sun: DirectionalLight3D, preset: Dictionary)
 	var sky := Sky.new()
 	var sm := ShaderMaterial.new()
 	sm.shader = load("res://assets/shaders/sky_hdri.gdshader")
-	sm.set_shader_parameter("panorama", a.tex)
+	sm.set_shader_parameter("panorama", load(String(a.path)))
 	sm.set_shader_parameter("yaw", want_az - az_h)
 	sm.set_shader_parameter("energy", energy)
 	var hc: Color = a.horizon

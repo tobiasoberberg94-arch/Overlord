@@ -193,6 +193,10 @@ func _ready() -> void:
 		_shot("talk_dialog")
 		w.overlay_layer.get_child(0).close()
 		await _wait(0.5)
+		# offene Fenster (z. B. Quest-Gespräche) schließen
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(0.4)
 		# Schlacht persönlich anführen
 		var army := Military.create_army()
 		for u in ["death_knight", "skeleton"]:
@@ -273,7 +277,7 @@ func _quest_test(w: Node) -> void:
 	# Wald von Tob: Mondkraut sammeln
 	await w.load_location("tob_wald")
 	await _wait(2.0)
-	var herbs: Array = w.quest_world.pickups.filter(func(p): return p.entries[0][0] == "moonleaf")
+	var herbs: Array = w.quest_world.pickups.filter(func(p): return not p.entries.is_empty() and p.entries[0][0] == "moonleaf")
 	print("QUEST Sammelstellen in Tob: %d (Mondkraut %d)" % [w.quest_world.pickups.size(), herbs.size()])
 	if not herbs.is_empty():
 		w.player.global_position = herbs[0].global_position + Vector3(0, 0.3, 1.2)

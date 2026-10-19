@@ -578,7 +578,7 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 		sm.set_shader_parameter("cloud_shade", preset.get("cloud_shade", hor.darkened(0.35)))
 		sky.sky_material = sm
 		sky.process_mode = Sky.PROCESS_MODE_REALTIME
-		sky.radiance_size = Sky.RADIANCE_SIZE_128
+		sky.radiance_size = Sky.RADIANCE_SIZE_256
 		env.background_mode = Environment.BG_SKY
 		env.sky = sky
 	elif preset.get("sky", true):
