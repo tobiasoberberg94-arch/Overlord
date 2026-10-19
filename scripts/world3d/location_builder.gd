@@ -110,7 +110,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 
 ## Bäume mit drei Detailstufen (lod0 = Original, lod1/lod2 = ausgedünnte Blattkarten, tools/pipeline/loc_kit.py
 ## make_lod) als MultiMesh-Kacheln mit Sichtweiten; Kollision nur am Stamm (Zylinder).
-const TREE_LODS := [[0.0, 30.0], [30.0, 90.0], [90.0, 900.0]]
+const TREE_LODS := [[0.0, 20.0], [20.0, 60.0], [60.0, 900.0]]
 const BUSH_LODS := [[0.0, 18.0], [18.0, 45.0], [45.0, 85.0]]
 const FLOWER_LODS := [[0.0, 10.0], [10.0, 25.0], [25.0, 50.0]]
 

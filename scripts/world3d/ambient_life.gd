@@ -9,6 +9,8 @@ const KINDS := {
 	"palace": ["birds", "smoke"], "cathedral": ["birds", "smoke"], "wall": ["birds", "smoke"], "forest": ["birds", "leaves", "butterflies"],
 	"jungle": ["birds", "butterflies", "fireflies"], "swamp": ["fireflies", "birds"], "cemetery": ["fireflies"],
 	"battlefield": ["crows"], "mountain": ["birds"], "peaks": ["crows"], "glacier": [],
+	"throne": ["dust"], "library": ["dust"], "royal": ["dust"], "tombs": ["wisps", "dust"], "treasury": ["sparkle", "dust"],
+	"lava": ["embers"],
 }
 
 var _birds: Array = []        ## {node, wing_l, wing_r, center, radius, speed, height, phase}
@@ -31,6 +33,10 @@ static func create(loc: Dictionary, scene: Node3D) -> AmbientLife:
 			"leaves": a._particles_follow(_leaves())
 			"fireflies": a._particles_follow(_fireflies())
 			"smoke": a._smoke(scene)
+			"dust": a._particles_follow(_motes(Color(1.0, 0.92, 0.75), 160, 0.025, 1.5, 2.5))
+			"wisps": a._particles_follow(_motes(Color(0.55, 0.85, 1.0), 26, 0.12, 5.0, 1.4))
+			"sparkle": a._particles_follow(_motes(Color(1.0, 0.85, 0.35), 80, 0.04, 6.0, 1.0))
+			"embers": a._particles_follow(_embers())
 	return a
 
 
@@ -206,6 +212,59 @@ static func _fireflies() -> GPUParticles3D:
 	qm.material = _quad_mat(Color(0.85, 1.0, 0.45), 6.0)
 	p.draw_pass_1 = qm
 	p.set_meta("y", 1.2)
+	return p
+
+
+## Schwebende Teilchen (Staub im Licht, Geisterlichter, Goldglitzern): langsam, leuchtend, um die Kamera.
+static func _motes(col: Color, amount: int, size: float, glow: float, y: float) -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = amount
+	p.lifetime = 8.0
+	p.preprocess = 8.0
+	p.visibility_aabb = AABB(Vector3(-30, -3, -30), Vector3(60, 12, 60))
+	var pm := _proc(amount, 8.0, Vector3(18, 2.5, 18), Vector2(0.02, 0.12), Vector3(0, 0.01, 0))
+	pm.turbulence_noise_strength = 0.6
+	var a := Curve.new()
+	a.add_point(Vector2(0, 0))
+	a.add_point(Vector2(0.25, 1))
+	a.add_point(Vector2(0.75, 1))
+	a.add_point(Vector2(1, 0))
+	var ac := CurveTexture.new()
+	ac.curve = a
+	pm.scale_curve = ac
+	pm.color = col
+	p.process_material = pm
+	var qm := QuadMesh.new()
+	qm.size = Vector2(size, size)
+	var m := _quad_mat(col, glow)
+	m.albedo_texture = _soft_dot()
+	qm.material = m
+	p.draw_pass_1 = qm
+	p.set_meta("y", y)
+	return p
+
+
+static func _embers() -> GPUParticles3D:
+	var p := GPUParticles3D.new()
+	p.amount = 140
+	p.lifetime = 4.0
+	p.preprocess = 4.0
+	p.visibility_aabb = AABB(Vector3(-30, -2, -30), Vector3(60, 20, 60))
+	var pm := _proc(140, 4.0, Vector3(22, 0.5, 22), Vector2(0.5, 1.5), Vector3(0, 0.9, 0))
+	pm.direction = Vector3.UP
+	pm.spread = 25.0
+	var g := Gradient.new()
+	g.set_color(0, Color(1.0, 0.75, 0.3))
+	g.set_color(1, Color(0.8, 0.15, 0.02, 0.0))
+	var gt := GradientTexture1D.new()
+	gt.gradient = g
+	pm.color_ramp = gt
+	p.process_material = pm
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.05, 0.05)
+	qm.material = _quad_mat(Color(1.0, 0.6, 0.2), 8.0)
+	p.draw_pass_1 = qm
+	p.set_meta("y", 0.0)
 	return p
 
 

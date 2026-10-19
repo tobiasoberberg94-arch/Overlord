@@ -10,7 +10,7 @@ from loc_kit import Kit  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=73)
-kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
+kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
                  "SM_Tree10", "SM_Tree13", "MW_tree_02", "MW_tree_03", "FV_tree_01", "FV_tree_02"}
 put, empty, rng = kit.put, kit.empty, kit.rng
 HALF = 110.0
