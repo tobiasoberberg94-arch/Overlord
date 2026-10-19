@@ -67,7 +67,7 @@ func _ready() -> void:
 	_pivot.add_child(_arm)
 	camera.position = Vector3(0.6, 0, 0)
 	camera.fov = 68.0
-	camera.far = 2500.0
+	camera.far = 4000.0
 	_arm.add_child(camera)
 	camera.current = true
 	var sm := SphereMesh.new()

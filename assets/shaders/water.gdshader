@@ -3,8 +3,8 @@
 shader_type spatial;
 render_mode cull_disabled, depth_draw_always;
 
-uniform vec3 shallow : source_color = vec3(0.16, 0.22, 0.12);
-uniform vec3 deep : source_color = vec3(0.03, 0.06, 0.04);
+uniform vec3 shallow : source_color = vec3(0.12, 0.15, 0.08);
+uniform vec3 deep : source_color = vec3(0.02, 0.035, 0.02);
 uniform float murk = 1.6;            // wie schnell das Wasser mit der Tiefe trüb wird
 uniform float wave_speed = 0.035;
 uniform float refraction = 0.025;
@@ -46,12 +46,15 @@ void fragment() {
 	// Schaum/Schlick am Ufer
 	float foam = (1.0 - smoothstep(0.0, 0.18, water_depth)) * (0.5 + 0.5 * vnoise(p * 6.0 + TIME * 0.3));
 	col = mix(col, vec3(0.42, 0.44, 0.36), foam * 0.45);
+	// Algen/Entengrütze in Flecken: matt, grün – das Wasser spiegelt nur dazwischen
+	float algae = smoothstep(0.52, 0.7, vnoise(p * 0.18) * 0.65 + vnoise(p * 0.9) * 0.35);
+	col = mix(col, vec3(0.09, 0.12, 0.035) * mix(0.8, 1.2, vnoise(p * 3.0)), algae);
 	ALBEDO = col;
-	ROUGHNESS = 0.06;
+	ROUGHNESS = mix(0.22, 0.85, algae);
 	METALLIC = 0.0;
-	SPECULAR = 0.65;
+	SPECULAR = mix(0.32, 0.1, algae);
 	float fres = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 4.0);
 	EMISSION = vec3(0.0);
 	ALPHA = 1.0;
-	RIM = fres * 0.25;
+	RIM = fres * 0.15 * (1.0 - algae);
 }

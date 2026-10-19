@@ -56,12 +56,19 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
 	root.add_child(scene)
 	ModelLib.add_collision(scene)
+	if HORIZON.has(loc.get("kind", "")) and loc.get("kind", "") != "glacier":
+		PhProps.swap_rocks(scene, loc.get("kind", ""))
 	_grass_on = _grass_field(loc, scene)
 	_horizon(loc, scene)
+	if not _grass_on:
+		var df := DetailField.create(loc.get("kind", ""), null)
+		if df:
+			scene.add_child(df)
 	AmbientLife.create(loc, scene)
 	_scatter_instances(loc, scene)
-	_ground_blend(scene)
+	_ground_blend(scene, loc.get("kind", ""))
 	_soft_cutouts(scene)
+	_foliage_materials(scene)
 	_wall_occluders(scene)
 	_special_surfaces(scene)
 	var spin: Array = scene.find_children("spin_*", "Node3D", true, false)
@@ -164,23 +171,57 @@ static var _wind_cache: Dictionary = {}
 ## Kopie des Meshes, deren Materialien sich im Wind wiegen (Ausschlag wächst mit der Höhe).
 ## Das Standardmaterial wird in Shader-Code umgewandelt und im vertex()-Teil ergänzt.
 static func _wind_mesh(mesh: Mesh, amount: float) -> Mesh:
-	if not Settings.particles:
-		return mesh
 	var key := "%d_%f" % [mesh.get_instance_id(), amount]
 	if _wind_cache.has(key):
 		return _wind_cache[key]
 	var m := mesh.duplicate() as Mesh
+	var h := mesh.get_aabb().end.y
 	for i in m.get_surface_count():
 		var mat := m.surface_get_material(i) as BaseMaterial3D
 		if mat:
-			m.surface_set_material(i, _wind_material(mat, amount))
+			m.surface_set_material(i, _wind_material(mat, amount if Settings.particles else 0.0, h))
 	_wind_cache[key] = m
 	return m
 
 
-static func _wind_material(mat: BaseMaterial3D, amount: float) -> Material:
+static var _tex_avg: Dictionary = {}
+
+## Mittlere Farbe einer Textur (nur deckende Pixel), zwischengespeichert.
+static func _texture_avg(t: Texture2D) -> Color:
+	if t == null:
+		return Color(0.5, 0.5, 0.5)
+	var k := t.get_rid().get_id()
+	if _tex_avg.has(k):
+		return _tex_avg[k]
+	var img := t.get_image()
+	var acc := Color(0, 0, 0, 0)
+	if img:
+		if img.is_compressed():
+			img.decompress()
+		img.resize(24, 24, Image.INTERPOLATE_BILINEAR)
+		var n := 0
+		for y in 24:
+			for x in 24:
+				var c := img.get_pixel(x, y)
+				if c.a > 0.5:
+					acc += c
+					n += 1
+		if n > 0:
+			acc /= n
+	_tex_avg[k] = acc
+	return acc
+
+
+static func _wind_material(mat: BaseMaterial3D, amount: float, height: float = 6.0) -> Material:
 	if mat.albedo_texture == null:
 		return mat
+	var mname := String(mat.resource_name).to_lower()
+	var leafy := mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or mname.contains("leaf") or mname.contains("leaves") 		or mname.contains("branch") or mname.contains("foliage") or mname.contains("needle") or mname.contains("grass")
+	if mname.contains("bark") or mname.contains("trunk"):
+		leafy = false
+	var flower := mname.contains("flower") or mname.contains("blossom") or mname.contains("blume")
+	var avg := _texture_avg(mat.albedo_texture)
+	var lum := avg.r * 0.2126 + avg.g * 0.7152 + avg.b * 0.0722
 	var sm := ShaderMaterial.new()
 	sm.shader = load("res://assets/shaders/foliage_wind.gdshader")
 	sm.set_shader_parameter("albedo", mat.albedo_color)
@@ -190,7 +231,40 @@ static func _wind_material(mat: BaseMaterial3D, amount: float) -> Material:
 	sm.set_shader_parameter("roughness", mat.roughness)
 	sm.set_shader_parameter("alpha_cut", mat.alpha_scissor_threshold if mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR else 0.35)
 	sm.set_shader_parameter("wind", amount)
+	sm.set_shader_parameter("leaf", 1.0 if leafy else 0.0)
+	# stilisiertes Herbstlaub (orange/rot) → grün umfärben
+	sm.set_shader_parameter("recolor", 1.0 if leafy and not flower and avg.r > avg.g * 1.18 and avg.r > avg.b * 1.6 else 0.0)
+	# helle, graue Rinde (Birke) → meist abdunkeln
+	var chroma := maxf(avg.r, maxf(avg.g, avg.b)) - minf(avg.r, minf(avg.g, avg.b))
+	sm.set_shader_parameter("pale_bark", 1.0 if not leafy and lum > 0.45 and chroma < 0.15 else 0.0)
+	sm.set_shader_parameter("height_hint", maxf(height, 0.5))
+	sm.set_shader_parameter("grassy", 1.0 if leafy and not flower and (mname.contains("grass") or mname.contains("wheat")) else 0.0)
+	# Laub auf natürliche Helligkeit/Sättigung bringen (grelles Lindgrün, helles Gelb dämpfen)
+	if leafy and not flower:
+		sm.set_shader_parameter("leaf_gain", clampf(0.2 / maxf(lum, 0.05), 0.5, 1.15))
+		var sat_now := chroma / maxf(maxf(avg.r, maxf(avg.g, avg.b)), 0.01)
+		sm.set_shader_parameter("leaf_sat", clampf(0.62 / maxf(sat_now, 0.1), 0.65, 1.1))
+	if OS.get_environment("FOLIAGE_DEBUG") != "":
+		print("LAUB %-26s avg(%.2f %.2f %.2f) blatt=%s umfaerben=%s birke=%s" % [String(mat.resource_name).substr(0, 26), avg.r, avg.g, avg.b, leafy,
+			sm.get_shader_parameter("recolor"), sm.get_shader_parameter("pale_bark")])
 	return sm
+
+
+## Fest platzierte Bäume/Büsche des Ortsmodells (keine Streu-Instanzen) bekommen dasselbe Laubmaterial.
+static func _foliage_materials(scene: Node3D) -> void:
+	for n in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var nm := String(mi.name).to_lower()
+		if mi.mesh == null or nm.begins_with("nocol_mm_") or nm.begins_with("frost_") or nm.begins_with("ice_"):
+			continue
+		if not (nm.contains("tree") or nm.contains("spruce") or nm.contains("pine") or nm.contains("bush") or nm.contains("foliage") or nm.contains("palm")):
+			continue
+		var h := mi.mesh.get_aabb().end.y
+		for i in mi.mesh.get_surface_count():
+			var mat := mi.mesh.surface_get_material(i) as BaseMaterial3D
+			if mat:
+				mi.set_surface_override_material(i, _wind_material(mat, 0.008 if Settings.particles else 0.0, h))
+
 
 ## Benannte Sonderflächen aus den Ortsmodellen: „…Lava…“ → fließender Lava-Shader (leuchtet, schadet nicht).
 static func _special_surfaces(scene: Node3D) -> void:
@@ -274,11 +348,22 @@ static func _soft_cutouts(scene: Node3D) -> void:
 
 
 ## Gelände mit Wegmaske (Farbattribut): Gras- und Wegmaterial weich überblenden statt Treppenkanten.
-static func _ground_blend(scene: Node3D) -> void:
+static func _ground_blend(scene: Node3D, kind: String = "") -> void:
+	var layers: Array = TERRAIN.get(kind, [])
 	for n in scene.find_children("Ground*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		var mesh := mi.mesh
-		if mesh == null or mesh.get_surface_count() < 2 or not (mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR):
+		if mesh == null:
+			continue
+		var masked: bool = mesh.get_surface_count() >= 2 and (mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_COLOR) != 0
+		if not layers.is_empty():
+			var gt: Dictionary = GRASS_TINT.get(kind, {})
+			var gc: Color = (gt.get("lush_col", Color(0.11, 0.22, 0.045)) as Color).lerp(gt.get("tip_col", Color(0.2, 0.3, 0.07)), 0.45)
+			var tm := _terrain_material(layers, masked, gc)
+			for i in mesh.get_surface_count():
+				mi.set_surface_override_material(i, tm)
+			continue
+		if not masked:
 			continue
 		var grass := mesh.surface_get_material(0) as StandardMaterial3D
 		var path := mesh.surface_get_material(1) as StandardMaterial3D
@@ -292,6 +377,48 @@ static func _ground_blend(scene: Node3D) -> void:
 		sm.set_shader_parameter("path_nrm", path.normal_texture if path.normal_texture else grass.normal_texture)
 		for i in mesh.get_surface_count():
 			mi.set_surface_override_material(i, sm)
+
+
+## Fotoscan-Böden je Ortsart (assets/textures/terrain/<name>, Poly Haven CC0): [base, alt, path, rock, alt_amount]
+const TERRAIN := {
+	"grassland": ["forrest_ground_01", "leafy_grass", "grass_path_2", "rock_face", 0.35, 0.75],
+	"village": ["forrest_ground_01", "leafy_grass", "grass_path_2", "rock_face", 0.35, 0.7],
+	"wall": ["forrest_ground_01", "withered_grass", "grass_path_2", "rock_face", 0.35, 0.65],
+	"city": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
+	"palace": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
+	"cathedral": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
+	"forest": ["forrest_ground_01", "forest_leaves_02", "forest_ground_04", "mossy_rock", 0.45, 0.3],
+	"jungle": ["leaves_forest_ground", "forrest_ground_01", "forest_ground_04", "mossy_rock", 0.45, 0.35],
+	"swamp": ["brown_mud_leaves_01", "sparse_grass", "mud_forest", "mossy_rock", 0.5, 0.35],
+	"cemetery": ["withered_grass", "dirt", "gravel_road", "rock_face", 0.45, 0.4],
+	"battlefield": ["brown_mud_leaves_01", "withered_grass", "mud_forest", "rock_face", 0.45, 0.35],
+	"mountain": ["rocky_terrain_02", "forrest_ground_01", "rocky_trail", "cliff_side", 0.45, 0.3],
+	"peaks": ["rocky_terrain_02", "withered_grass", "rocky_trail", "cliff_side", 0.4, 0.2],
+}
+static var _terrain_cache: Dictionary = {}
+
+
+static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Color(0.11, 0.2, 0.05)) -> ShaderMaterial:
+	var key := str(layers) + str(masked)
+	if _terrain_cache.has(key):
+		return _terrain_cache[key]
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/terrain_pbr.gdshader")
+	var slot := ["base", "alt", "path", "rock"]
+	for i in 4:
+		var d := "res://assets/textures/terrain/%s/%s_" % [layers[i], layers[i]]
+		sm.set_shader_parameter(slot[i] + "_diff", load(d + "diff.jpg"))
+		sm.set_shader_parameter(slot[i] + "_nor", load(d + "nor.jpg"))
+		if i < 3:
+			sm.set_shader_parameter(slot[i] + "_rough", load(d + "rough.jpg"))
+		if i == 0:
+			sm.set_shader_parameter("base_ao", load(d + "ao.jpg"))
+	sm.set_shader_parameter("alt_amount", float(layers[4]))
+	sm.set_shader_parameter("far_mix", float(layers[5]) if layers.size() > 5 else 0.0)
+	sm.set_shader_parameter("use_mask", masked)
+	sm.set_shader_parameter("far_col", grass_col)
+	_terrain_cache[key] = sm
+	return sm
 
 
 ## Gras, Blumen, Büsche (nocol_mm_<name> + <id>_scatter.json aus tools/pipeline/loc_kit.py) als
@@ -322,7 +449,7 @@ static func _horizon(loc: Dictionary, scene: Node3D) -> void:
 	for t in scene.find_children("nocol_mm_lod2_*", "MeshInstance3D", true, false):
 		var tm := (t as MeshInstance3D).mesh
 		if tm and tm.get_aabb().size.y > 6.0 and trees.size() < 4:
-			trees.append(tm)
+			trees.append(_wind_mesh(tm, 0.0))
 	for n in scene.find_children("*Ground*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		if mi.mesh and mi.get_aabb().size.x > 60.0:
@@ -332,13 +459,13 @@ static func _horizon(loc: Dictionary, scene: Node3D) -> void:
 ## Farbe des Grases je Ortsart (Shader-Parameter von grass_field.gdshader).
 const GRASS_TINT := {
 	"grassland": {},
-	"forest": {"tip_col": Color(0.26, 0.42, 0.10), "lush_col": Color(0.14, 0.32, 0.07), "dry_amount": 0.25, "density": 0.45},
+	"forest": {"tip_col": Color(0.2, 0.31, 0.075), "lush_col": Color(0.12, 0.23, 0.05), "dry_amount": 0.25, "density": 0.45},
 	"palace": {"density": 0.4}, "cathedral": {"density": 0.4}, "wall": {"density": 0.55},
-	"mountain": {"tip_col": Color(0.34, 0.42, 0.16), "lush_col": Color(0.2, 0.32, 0.1), "dry_col": Color(0.5, 0.46, 0.3), "dry_amount": 0.6, "density": 0.45},
-	"peaks": {"tip_col": Color(0.42, 0.42, 0.26), "lush_col": Color(0.26, 0.3, 0.14), "dry_col": Color(0.56, 0.52, 0.36), "dry_amount": 0.8, "density": 0.3},
-	"battlefield": {"tip_col": Color(0.42, 0.40, 0.22), "lush_col": Color(0.26, 0.28, 0.12), "dry_col": Color(0.52, 0.46, 0.28), "dry_amount": 0.85, "density": 0.45},
-	"swamp": {"tip_col": Color(0.30, 0.38, 0.12), "lush_col": Color(0.16, 0.28, 0.08), "dry_col": Color(0.40, 0.36, 0.18), "dry_amount": 0.5, "density": 0.6},
-	"cemetery": {"tip_col": Color(0.30, 0.36, 0.14), "lush_col": Color(0.18, 0.26, 0.10), "dry_col": Color(0.42, 0.38, 0.22), "dry_amount": 0.7, "density": 0.7},
+	"mountain": {"tip_col": Color(0.23, 0.3, 0.1), "lush_col": Color(0.13, 0.22, 0.06), "dry_col": Color(0.36, 0.33, 0.2), "dry_amount": 0.6, "density": 0.45},
+	"peaks": {"tip_col": Color(0.3, 0.3, 0.17), "lush_col": Color(0.17, 0.2, 0.09), "dry_col": Color(0.4, 0.37, 0.25), "dry_amount": 0.8, "density": 0.3},
+	"battlefield": {"tip_col": Color(0.3, 0.29, 0.15), "lush_col": Color(0.18, 0.2, 0.08), "dry_col": Color(0.38, 0.33, 0.19), "dry_amount": 0.85, "density": 0.45},
+	"swamp": {"tip_col": Color(0.2, 0.27, 0.08), "lush_col": Color(0.11, 0.2, 0.05), "dry_col": Color(0.3, 0.27, 0.13), "dry_amount": 0.5, "density": 0.6},
+	"cemetery": {"tip_col": Color(0.2, 0.25, 0.09), "lush_col": Color(0.12, 0.18, 0.06), "dry_col": Color(0.32, 0.29, 0.16), "dry_amount": 0.7, "density": 0.7},
 }
 
 
@@ -353,6 +480,9 @@ static func _grass_field(loc: Dictionary, scene: Node3D) -> bool:
 		var gf := GrassField.create(mi, GRASS_TINT[loc.kind])
 		if gf:
 			scene.add_child(gf)
+			var df := DetailField.create(loc.kind, gf)
+			if df:
+				scene.add_child(df)
 			return true
 	return false
 
@@ -490,6 +620,8 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 		env.adjustment_contrast = float(preset.get("contrast", 1.0))
 	if is_forward_plus():
 		_forward_plus_env(env, preset)
+	if preset.has("hdri"):
+		_outdoor_look(env, preset)
 	var we := WorldEnvironment.new()
 	we.environment = env
 	root.add_child(we)
@@ -508,6 +640,12 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	sun.light_volumetric_fog_energy = 1.8
 	sun.light_angular_distance = 0.6               # weiche, natürliche Schattenkanten
 	root.add_child(sun)
+	if preset.has("hdri"):
+		var p2 := preset.duplicate()
+		var sky_by_loc := {"baharuth": "rocky_ridge_puresky", "theokratie": "belfast_sunset_puresky", "drachen": "scythian_tombs_puresky"}
+		if sky_by_loc.has(String(_loc.get("id", ""))):
+			p2["hdri"] = sky_by_loc[_loc.id]
+		HdriSky.apply(env, sun, p2)
 
 
 static func is_forward_plus() -> bool:
@@ -544,26 +682,66 @@ static func _forward_plus_env(env: Environment, preset: Dictionary) -> void:
 	env.ambient_light_energy *= 0.7
 
 
+## Bildwirkung im Freien (wie große Open-World-RPGs): ACES-Tonemapping mit Tiefe und Kontrast, Glow nur um helle
+## Lichtquellen statt Schleier, Luftperspektive aus der Himmelsfarbe statt weißem Nebel, kräftige Umgebungsverdeckung.
+static func _outdoor_look(env: Environment, preset: Dictionary) -> void:
+	env.tonemap_mode = Environment.TONE_MAPPER_ACES
+	env.tonemap_white = 6.0
+	env.tonemap_exposure = float(preset.get("exposure", 1.0)) * 0.95
+	env.glow_enabled = true
+	env.glow_intensity = 0.4
+	env.glow_strength = 1.0
+	env.glow_bloom = 0.0
+	env.glow_hdr_threshold = 1.1
+	env.glow_hdr_scale = 2.0
+	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
+	env.fog_enabled = true
+	env.fog_density = float(preset.get("fog_density", 0.004)) * 0.28 * float(preset.get("haze", 1.0))
+	env.fog_aerial_perspective = 0.8
+	env.fog_sky_affect = 0.0
+	env.fog_sun_scatter = 0.12
+	env.fog_height = -20.0
+	env.fog_height_density = 0.0
+	env.adjustment_enabled = true
+	env.adjustment_saturation = float(preset.get("saturation", 1.1)) * 0.98
+	env.adjustment_contrast = float(preset.get("contrast", 1.05))
+	env.adjustment_brightness = 1.0
+	if env.ssao_enabled:
+		env.ssao_radius = 1.6
+		env.ssao_intensity = 2.2
+		env.ssao_power = 1.6
+		env.ssao_light_affect = 0.15
+		env.ssil_intensity = 0.7
+	if env.volumetric_fog_enabled:
+		env.volumetric_fog_density = float(preset.get("fog_density", 0.004)) * float(preset.get("vol_fog", 0.6)) * 0.45
+		env.volumetric_fog_anisotropy = 0.7
+		env.volumetric_fog_length = 96.0
+		env.volumetric_fog_detail_spread = 1.5
+		env.volumetric_fog_emission = Color(0, 0, 0)
+		env.volumetric_fog_ambient_inject = 0.35
+	env.sdfgi_energy = float(preset.get("gi", 1.0)) * 0.9
+
+
 ## Licht-/Nebelvorgaben je Ortstyp.
 static func preset(kind: String) -> Dictionary:
 	match kind:
 		"throne": return {"sky": false, "bg": Color(0.015, 0.0, 0.03), "ambient": Color(0.5, 0.4, 0.65), "ambient_energy": 0.9, "fog": Color(0.1, 0.03, 0.16), "fog_density": 0.012, "sun_energy": 0.25}
 		"tombs": return {"sky": false, "gi": 0.6, "vol_fog": 0.6, "bg": Color(0.01, 0.015, 0.02), "ambient": Color(0.32, 0.36, 0.45), "ambient_energy": 0.85, "fog": Color(0.05, 0.07, 0.09), "fog_density": 0.03, "sun_energy": 0.12, "saturation": 1.08, "contrast": 1.08}
-		"glacier": return {"sky_top": Color(0.28, 0.45, 0.72), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.5, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 1.3, "ambient": Color(0.55, 0.68, 0.9), "ambient_energy": 0.8, "exposure": 0.95, "fog": Color(0.72, 0.82, 0.95), "fog_density": 0.012, "sun": Color(0.85, 0.92, 1.0), "sun_energy": 1.3, "sun_rot": Vector3(-30, 40, 0), "shadow_dist": 120.0, "saturation": 1.05, "contrast": 1.06}
-		"jungle": return {"sky_top": Color(0.2, 0.42, 0.72), "sky_energy": 1.0, "sky_ambient": true, "ambient": Color(0.5, 0.62, 0.45), "ambient_energy": 0.8, "fog": Color(0.42, 0.55, 0.4), "fog_density": 0.009, "vol_fog": 1.4, "sun": Color(1.0, 0.93, 0.75), "sun_energy": 1.6, "sun_rot": Vector3(-48, 30, 0), "shadow_dist": 120.0, "saturation": 1.18, "contrast": 1.05, "exposure": 1.1}
+		"glacier": return {"hdri": "kloofendal_48d_partly_cloudy_puresky", "sky_top": Color(0.28, 0.45, 0.72), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.5, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 1.3, "ambient": Color(0.55, 0.68, 0.9), "ambient_energy": 0.8, "exposure": 0.78, "fog": Color(0.72, 0.82, 0.95), "fog_density": 0.012, "sun": Color(0.85, 0.92, 1.0), "sun_energy": 1.3, "sun_rot": Vector3(-30, 40, 0), "shadow_dist": 120.0, "saturation": 1.05, "contrast": 1.06}
+		"jungle": return {"hdri": "kloofendal_48d_partly_cloudy_puresky", "sky_top": Color(0.2, 0.42, 0.72), "sky_energy": 1.0, "sky_ambient": true, "ambient": Color(0.5, 0.62, 0.45), "ambient_energy": 0.8, "fog": Color(0.42, 0.55, 0.4), "fog_density": 0.009, "vol_fog": 1.4, "sun": Color(1.0, 0.93, 0.75), "sun_energy": 1.6, "sun_rot": Vector3(-48, 30, 0), "shadow_dist": 120.0, "saturation": 1.18, "contrast": 1.05, "exposure": 1.1}
 		"lava": return {"lamp": 0.6, "lamp_range": 12.0, "sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
 		"royal": return {"sky": false, "lamp": 0.9, "lamp_range": 9.0, "gi": 1.0, "vol_fog": 0.4, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.75, 0.62, 0.5), "ambient_energy": 1.1, "fog": Color(0.12, 0.08, 0.06), "fog_density": 0.008, "sun_energy": 0.25, "saturation": 1.08, "contrast": 1.04}
 		"library": return {"sky": false, "lamp": 0.7, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 0.5, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.7, 0.58, 0.42), "ambient_energy": 0.9, "fog": Color(0.1, 0.07, 0.04), "fog_density": 0.012, "sun_energy": 0.15, "saturation": 1.06, "contrast": 1.05}
 		"treasury": return {"sky_top": Color(0.25, 0.32, 0.62), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.8, "lamp_range": 12.0, "gi": 1.0, "vol_fog": 1.2, "ambient": Color(0.85, 0.7, 0.45), "ambient_energy": 0.8, "fog": Color(0.85, 0.62, 0.35), "fog_density": 0.006, "sun": Color(1.0, 0.78, 0.5), "sun_energy": 1.7, "sun_rot": Vector3(-22, 160, 0), "shadow_dist": 120.0, "saturation": 1.12, "contrast": 1.06, "exposure": 1.0}
-		"village": return {"sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
-		"grassland": return {"sky_top": Color(0.2, 0.45, 0.82), "sky_energy": 1.15, "sky_ambient": true, "ambient": Color(0.7, 0.7, 0.6), "ambient_energy": 0.75, "fog": Color(0.7, 0.75, 0.78), "fog_density": 0.003, "vol_fog": 0.55, "gi": 1.0, "sun": Color(1.0, 0.93, 0.8), "sun_energy": 1.6, "sun_rot": Vector3(-42, 30, 0), "shadow_dist": 140.0, "saturation": 1.2, "contrast": 1.12, "clouds": 0.5}
-		"cemetery": return {"clouds": 0.35, "stars": 1.0, "cloud_col": Color(0.25, 0.28, 0.38), "sky_top": Color(0.03, 0.05, 0.12), "sky_energy": 0.35, "lamp": 0.9, "lamp_range": 11.0, "ambient": Color(0.3, 0.35, 0.5), "ambient_energy": 0.6, "fog": Color(0.18, 0.22, 0.3), "fog_density": 0.03, "vol_fog": 0.9, "gi": 0.8, "sun": Color(0.55, 0.65, 0.95), "sun_energy": 0.35, "sun_rot": Vector3(-35, 140, 0), "shadow_dist": 90.0, "saturation": 0.95, "contrast": 1.1, "exposure": 1.1}
-		"city", "palace", "cathedral": return {"sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.004, "vol_fog": 0.6, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.1, "clouds": 0.4}
-		"wall": return {"sky_top": Color(0.25, 0.35, 0.55), "sky_energy": 0.9, "ambient": Color(0.55, 0.55, 0.6), "ambient_energy": 0.7, "fog": Color(0.45, 0.45, 0.5), "fog_density": 0.01, "sun_energy": 0.9}
-		"forest": return {"sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.1, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.14, "contrast": 1.12, "exposure": 1.05}
-		"swamp": return {"sky_top": Color(0.32, 0.42, 0.48), "sky_energy": 0.85, "sky_ambient": true, "ambient": Color(0.5, 0.58, 0.48), "ambient_energy": 0.7, "fog": Color(0.55, 0.62, 0.52), "fog_density": 0.018, "vol_fog": 1.8, "gi": 1.0, "lamp": 0.7, "lamp_range": 9.0, "sun": Color(1.0, 0.86, 0.62), "sun_energy": 1.2, "sun_rot": Vector3(-22, 70, 0), "shadow_dist": 90.0, "saturation": 1.05, "contrast": 1.08, "exposure": 1.05}
-		"battlefield": return {"sky_top": Color(0.36, 0.38, 0.46), "sky_energy": 0.8, "sky_ambient": true, "ambient": Color(0.55, 0.55, 0.62), "ambient_energy": 0.7, "fog": Color(0.58, 0.58, 0.66), "fog_density": 0.014, "vol_fog": 1.5, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(0.92, 0.86, 0.82), "sun_energy": 1.0, "sun_rot": Vector3(-24, 130, 0), "shadow_dist": 90.0, "saturation": 0.8, "contrast": 1.1, "exposure": 1.0}
-		"mountain", "peaks": return {"sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.0025, "vol_fog": 0.35, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.12, "contrast": 1.12, "clouds": 0.35}
+		"village": return {"hdri": "kloppenheim_06_puresky", "sky_top": Color(0.22, 0.45, 0.8), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.75, 0.68, 0.55), "ambient_energy": 0.7, "fog": Color(0.75, 0.68, 0.55), "fog_density": 0.006, "vol_fog": 1.4, "gi": 1.0, "sun": Color(1.0, 0.86, 0.66), "sun_energy": 1.6, "sun_rot": Vector3(-28, 55, 0), "shadow_dist": 140.0, "saturation": 1.15, "contrast": 1.06, "exposure": 1.05}
+		"grassland": return {"hdri": "table_mountain_1_puresky", "sky_top": Color(0.2, 0.45, 0.82), "sky_energy": 1.15, "sky_ambient": true, "ambient": Color(0.7, 0.7, 0.6), "ambient_energy": 0.75, "fog": Color(0.7, 0.75, 0.78), "fog_density": 0.003, "vol_fog": 0.55, "gi": 1.0, "sun": Color(1.0, 0.93, 0.8), "sun_energy": 1.6, "sun_rot": Vector3(-42, 30, 0), "shadow_dist": 140.0, "saturation": 1.2, "contrast": 1.12, "clouds": 0.5}
+		"cemetery": return {"hdri": "qwantani_night_puresky", "night": true, "hdri_energy": 0.6, "clouds": 0.35, "stars": 1.0, "cloud_col": Color(0.25, 0.28, 0.38), "sky_top": Color(0.03, 0.05, 0.12), "sky_energy": 0.35, "lamp": 0.9, "lamp_range": 11.0, "ambient": Color(0.3, 0.35, 0.5), "ambient_energy": 0.6, "fog": Color(0.18, 0.22, 0.3), "fog_density": 0.03, "vol_fog": 0.9, "gi": 0.8, "sun": Color(0.55, 0.65, 0.95), "sun_energy": 0.35, "sun_rot": Vector3(-35, 140, 0), "shadow_dist": 90.0, "saturation": 0.95, "contrast": 1.1, "exposure": 1.1}
+		"city", "palace", "cathedral": return {"hdri": "citrus_orchard_road_puresky", "sky_top": Color(0.24, 0.44, 0.78), "sky_energy": 1.05, "sky_ambient": true, "ambient": Color(0.72, 0.68, 0.6), "ambient_energy": 0.7, "fog": Color(0.72, 0.68, 0.6), "fog_density": 0.004, "vol_fog": 0.6, "gi": 1.0, "sun": Color(1.0, 0.9, 0.74), "sun_energy": 1.5, "sun_rot": Vector3(-34, 35, 0), "shadow_dist": 140.0, "saturation": 1.12, "contrast": 1.1, "clouds": 0.4}
+		"wall": return {"hdri": "qwantani_sunset_puresky", "sky_ambient": true, "ambient": Color(0.6, 0.55, 0.55), "ambient_energy": 0.7, "fog": Color(0.7, 0.55, 0.45), "fog_density": 0.004, "vol_fog": 0.3, "haze": 0.45, "hdri_energy": 0.7, "gi": 1.0, "lamp": 0.8, "lamp_range": 11.0, "sun_rot": Vector3(-12, 230, 0), "shadow_dist": 100.0, "saturation": 1.12, "contrast": 1.1}
+		"forest": return {"hdri": "kloofendal_28d_misty_puresky", "sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.1, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.22, "contrast": 1.12, "exposure": 1.05}
+		"swamp": return {"hdri": "evening_road_01_puresky", "sky_top": Color(0.32, 0.42, 0.48), "sky_energy": 0.85, "sky_ambient": true, "ambient": Color(0.5, 0.58, 0.48), "ambient_energy": 0.7, "fog": Color(0.55, 0.62, 0.52), "fog_density": 0.018, "vol_fog": 1.8, "gi": 1.0, "lamp": 0.7, "lamp_range": 9.0, "sun": Color(1.0, 0.86, 0.62), "sun_energy": 1.2, "sun_rot": Vector3(-22, 70, 0), "shadow_dist": 90.0, "saturation": 1.05, "contrast": 1.08, "exposure": 1.05}
+		"battlefield": return {"hdri": "overcast_soil_puresky", "sky_top": Color(0.36, 0.38, 0.46), "sky_energy": 0.8, "sky_ambient": true, "ambient": Color(0.55, 0.55, 0.62), "ambient_energy": 0.7, "fog": Color(0.58, 0.58, 0.66), "fog_density": 0.014, "vol_fog": 1.5, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(0.92, 0.86, 0.82), "sun_energy": 1.0, "sun_rot": Vector3(-24, 130, 0), "shadow_dist": 90.0, "saturation": 0.8, "contrast": 1.1, "exposure": 0.82, "hdri_energy": 0.55, "haze": 1.6}
+		"mountain", "peaks": return {"hdri": "farm_field_puresky", "sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.0025, "vol_fog": 0.35, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.12, "contrast": 1.12, "clouds": 0.35}
 	return {}
 
 

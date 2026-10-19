@@ -5,11 +5,11 @@
 shader_type spatial;
 render_mode cull_disabled;
 
-uniform vec3 base_col : source_color = vec3(0.05, 0.09, 0.02);
-uniform vec3 tip_col : source_color = vec3(0.34, 0.46, 0.12);
-uniform vec3 dry_col : source_color = vec3(0.62, 0.55, 0.26);
-uniform vec3 lush_col : source_color = vec3(0.19, 0.36, 0.08);
-uniform float dry_amount = 0.45;
+uniform vec3 base_col : source_color = vec3(0.03, 0.05, 0.012);
+uniform vec3 tip_col : source_color = vec3(0.2, 0.3, 0.07);
+uniform vec3 dry_col : source_color = vec3(0.42, 0.37, 0.18);
+uniform vec3 lush_col : source_color = vec3(0.11, 0.22, 0.045);
+uniform float dry_amount = 0.32;
 uniform float wind = 0.22;
 uniform float fade_start = 40.0;
 uniform float fade_end = 54.0;
@@ -19,7 +19,8 @@ varying float v_h;
 
 void vertex() {
 	vec3 wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	vec3 origin = MODEL_MATRIX[3].xyz;
+	// Instanz-Ursprung (MultiMesh): ID mischt sich ein, falls MODEL_MATRIX nur die Kachel liefert
+	vec3 origin = MODEL_MATRIX[3].xyz + vec3(float(INSTANCE_ID) * 0.37, 0.0, float(INSTANCE_ID) * 0.21);
 	float h = COLOR.r;
 	v_h = h;
 	// Wind: großräumige Böen, die über die Wiese laufen, plus Zittern je Halm
@@ -39,7 +40,11 @@ void vertex() {
 	float patch2 = sin(origin.x * 0.21 - origin.z * 0.17) * 0.5 + 0.5;
 	vec3 tip = mix(lush_col, tip_col, patch2);
 	tip = mix(tip, dry_col, smoothstep(0.55, 0.95, patch) * dry_amount + COLOR.g * 0.15 * dry_amount);
-	float ao = mix(0.35, 1.0, smoothstep(0.0, 0.55, h));
+	// einzelne trockene bzw. dunkle Halme
+	float bl = COLOR.g;
+	tip = mix(tip, dry_col * 1.15, step(0.86, bl) * 0.8);
+	tip *= mix(1.0, 0.68, step(bl, 0.12));
+	float ao = mix(0.55, 1.0, smoothstep(0.0, 0.55, h));
 	v_col = mix(base_col, tip, smoothstep(0.0, 0.9, h)) * ao * (0.85 + 0.3 * COLOR.g) * (1.0 + gust * 0.12);
 	if (COLOR.b > 0.5) {
 		int k = int(COLOR.a * 4.99);
@@ -53,9 +58,9 @@ void vertex() {
 
 void fragment() {
 	ALBEDO = v_col;
-	ROUGHNESS = 0.55;
-	SPECULAR = 0.35;
-	BACKLIGHT = v_col * 0.6;
-	AO = mix(0.4, 1.0, v_h);
+	ROUGHNESS = 0.72;
+	SPECULAR = 0.22;
+	BACKLIGHT = v_col * 0.55;
+	AO = mix(0.6, 1.0, v_h);
 	AO_LIGHT_AFFECT = 0.6;
 }

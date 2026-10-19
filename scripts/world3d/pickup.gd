@@ -118,10 +118,20 @@ func _ready() -> void:
 				B3.cyl(_visual, 0.03, 0.03, 0.16, cp, B3.mat(Color(0.95, 0.92, 0.85), 0.6), false, 6)
 				B3.sphere(_visual, 0.025, cp + Vector3(0, 0.11, 0), B3.mat(Color(1, 0.7, 0.3), 0.3, 0.0, Color(1, 0.65, 0.25), 6.0))
 		"cache":
-			for k in 7:
-				var r := B3.sphere(_visual, randf_range(0.25, 0.42), Vector3(randf_range(-0.45, 0.45), 0.18 + k * 0.05, randf_range(-0.45, 0.45)),
-					B3.mat(Color(0.4, 0.39, 0.37), 0.95), Vector3(1, 0.7, 1), false)
-				r.rotation.y = randf() * TAU
+			# Steinhaufen aus Fotoscans (Poly Haven), darunter etwas Moos
+			var stones := PhProps.pool(["boulder_01", "namaqualand_boulder_05", "rock_moss_set_02"])
+			for k in 6:
+				if stones.is_empty():
+					break
+				var v: Dictionary = stones[randi() % stones.size()]
+				var vs: Vector3 = v.size
+				var s := 0.55 / maxf(vs.x, maxf(vs.y, vs.z)) * randf_range(0.7, 1.15)
+				var mi := MeshInstance3D.new()
+				mi.mesh = v.mesh
+				var a := float(k) / 6.0 * TAU + randf() * 0.4
+				var pos := Vector3(cos(a) * 0.32, (0.14 if k > 3 else 0.0), sin(a) * 0.32) if k < 5 else Vector3(0, 0.22, 0)
+				mi.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3(s, s, s)), pos) * (v.xf as Transform3D)
+				_visual.add_child(mi)
 		"bag":
 			B3.sphere(_visual, 0.2, Vector3(0, 0.2, 0), B3.mat(Color(0.42, 0.3, 0.16), 0.9), Vector3(1, 0.85, 1))
 			B3.cyl(_visual, 0.05, 0.08, 0.12, Vector3(0, 0.4, 0), B3.mat(Color(0.35, 0.24, 0.12), 0.9), false, 8)

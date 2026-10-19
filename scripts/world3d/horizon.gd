@@ -2,9 +2,9 @@ class_name Horizon
 ## Fernkulisse um Außenorte: ein Geländering vom Kartenrand bis ~1,8 km mit Hügeln oder Bergketten,
 ## im Shader (horizon.gdshader) als dichtes Kronendach, Fels und Schnee gezeichnet. Keine Kollision.
 
-const OUTER := 1800.0
-const RINGS := 46
-const SEGS := 160
+const OUTER := 3200.0
+const RINGS := 64
+const SEGS := 512
 
 
 ## style: "forest" (bewaldete Hügel), "mountain" (Bergketten mit Schnee), "plain" (flaches Land mit Wäldern)
@@ -59,6 +59,7 @@ static func build(root: Node3D, ground: MeshInstance3D, style: String, tint: Col
 			for v in [a, d, cc, a, cc, b]:
 				st.set_uv(Vector2(v.x, v.z))
 				st.add_vertex(v)
+	st.index()                        # gemeinsame Eckpunkte → weiche Normalen statt Facetten
 	st.generate_normals()
 	if not trees.is_empty():
 		_forest(root, pts, half, r0, trees, style)
@@ -68,7 +69,10 @@ static func build(root: Node3D, ground: MeshInstance3D, style: String, tint: Col
 	var m := ShaderMaterial.new()
 	m.shader = load("res://assets/shaders/horizon.gdshader")
 	m.set_shader_parameter("canopy", tint)
-	m.set_shader_parameter("mountain", 1.0 if style == "mountain" else 0.0)
+	m.set_shader_parameter("mountain", 1.0)
+	m.set_shader_parameter("snow_line", 380.0 if style == "mountain" else 480.0)
+	m.set_shader_parameter("rock_tex", load("res://assets/textures/terrain/cliff_side/cliff_side_diff.jpg"))
+	m.set_shader_parameter("snow_tex", load("res://assets/textures/terrain/snow_02/snow_02_diff.jpg"))
 	mi.material_override = m
 	mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
@@ -83,14 +87,18 @@ static func _height(r: float, a: float, t: float, style: String, seed_v: int) ->
 	var n1 := _noise(x * 0.004 + seed_v, z * 0.004)
 	var n2 := _noise(x * 0.012, z * 0.012 + seed_v)
 	var n3 := _noise(x * 0.04 + 7.0, z * 0.04)
+	# ferne Bergketten (Grat-Rauschen) für alle Stile – große Fernsicht
+	var r1 := 1.0 - absf(_noise(x * 0.0011 + seed_v * 0.3, z * 0.0011) * 2.0 - 1.0)
+	var r2 := 1.0 - absf(_noise(x * 0.0032, z * 0.0032 + 3.0) * 2.0 - 1.0)
+	var base_m := _noise(x * 0.0006 + 5.0, z * 0.0006)
+	var ridge := (r1 * r1 * 0.8 + r2 * r2 * 0.2) * (0.55 + 0.45 * base_m)
 	match style:
 		"mountain":
-			var ridge := 1.0 - absf(n1 * 2.0 - 1.0)
-			return (40.0 + ridge * ridge * 420.0 + n2 * 80.0) * smoothstep(0.0, 0.45, t) + n3 * 8.0
+			return (40.0 + ridge * 900.0 + n2 * 90.0) * smoothstep(0.0, 0.4, t) + n3 * 10.0
 		"plain":
-			return (n1 * 30.0 + n2 * 12.0) * smoothstep(0.0, 0.3, t) + (smoothstep(0.55, 1.0, t) * 160.0 * n1)
+			return (n1 * 30.0 + n2 * 12.0) * smoothstep(0.0, 0.25, t) + smoothstep(0.4, 0.85, t) * (110.0 + ridge * 500.0)
 		_:
-			return (n1 * 70.0 + n2 * 25.0 + 15.0) * smoothstep(0.0, 0.25, t) + smoothstep(0.6, 1.0, t) * 220.0 * n1 + n3 * 4.0
+			return (n1 * 70.0 + n2 * 25.0 + 15.0) * smoothstep(0.0, 0.2, t) + smoothstep(0.35, 0.8, t) * (140.0 + ridge * 560.0) + n3 * 5.0
 
 
 static func _noise(x: float, z: float) -> float:

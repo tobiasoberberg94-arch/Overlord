@@ -158,8 +158,8 @@ static func _butterflies() -> GPUParticles3D:
 	pm.scale_max = 1.3
 	p.process_material = pm
 	var qm := QuadMesh.new()
-	qm.size = Vector2(0.12, 0.09)
-	qm.material = _quad_mat(Color.WHITE, 0.0)
+	qm.size = Vector2(0.11, 0.09)
+	qm.material = _critter_mat(_butterfly_tex(), true)
 	p.draw_pass_1 = qm
 	p.set_meta("y", 1.0)
 	return p
@@ -183,8 +183,8 @@ static func _leaves() -> GPUParticles3D:
 	pm.color_initial_ramp = gt
 	p.process_material = pm
 	var qm := QuadMesh.new()
-	qm.size = Vector2(0.1, 0.08)
-	qm.material = _quad_mat(Color.WHITE, 0.0)
+	qm.size = Vector2(0.08, 0.1)
+	qm.material = _critter_mat(_leaf_tex(), false)
 	p.draw_pass_1 = qm
 	p.set_meta("y", 14.0)
 	return p
@@ -208,8 +208,10 @@ static func _fireflies() -> GPUParticles3D:
 	pm.scale_curve = ac
 	p.process_material = pm
 	var qm := QuadMesh.new()
-	qm.size = Vector2(0.06, 0.06)
-	qm.material = _quad_mat(Color(0.85, 1.0, 0.45), 6.0)
+	qm.size = Vector2(0.09, 0.09)
+	var fm := _quad_mat(Color(0.85, 1.0, 0.45), 6.0)
+	fm.albedo_texture = _soft_dot()
+	qm.material = fm
 	p.draw_pass_1 = qm
 	p.set_meta("y", 1.2)
 	return p
@@ -324,6 +326,67 @@ func _smoke(scene: Node3D) -> void:
 
 
 static var _dot: Texture2D
+static var _bfly: Texture2D
+static var _leaf: Texture2D
+
+
+static func _critter_mat(t: Texture2D, flapping: bool) -> ShaderMaterial:
+	var m := ShaderMaterial.new()
+	m.shader = load("res://assets/shaders/critter.gdshader")
+	m.set_shader_parameter("tex", t)
+	m.set_shader_parameter("flap", 1.0 if flapping else 0.0)
+	return m
+
+
+## Schmetterling: zwei Flügelpaare (oben groß, unten klein), dunkler Rand, Flecken, schmaler Körper.
+static func _butterfly_tex() -> Texture2D:
+	if _bfly:
+		return _bfly
+	var n := 64
+	var img := Image.create(n, n, true, Image.FORMAT_RGBA8)
+	for y in n:
+		for x in n:
+			var u := absf((x + 0.5) / n * 2.0 - 1.0)
+			var v := (y + 0.5) / n * 2.0 - 1.0
+			var e1 := Vector2((u - 0.48) / 0.48, (v + 0.28) / 0.42).length()
+			var e2 := Vector2((u - 0.36) / 0.32, (v - 0.38) / 0.3).length()
+			var e := minf(e1, e2)
+			var c := Color(0, 0, 0, 0)
+			if e < 1.0:
+				var w := 1.0 - smoothstep(0.72, 1.0, e) * 0.75          # dunkler Rand
+				var spot := 1.0 - (1.0 - smoothstep(0.08, 0.13, Vector2(u - 0.62, v + 0.3).length())) * 0.7
+				c = Color(w * spot, w * spot, w * spot, 1.0)
+			if u < 0.06 and absf(v) < 0.62:
+				c = Color(0.12, 0.09, 0.06, 1.0)
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	_bfly = ImageTexture.create_from_image(img)
+	return _bfly
+
+
+## Blatt: spitz zulaufend, Mittelrippe, Farbe kommt aus der Partikelfarbe.
+static func _leaf_tex() -> Texture2D:
+	if _leaf:
+		return _leaf
+	var n := 64
+	var img := Image.create(n, n, true, Image.FORMAT_RGBA8)
+	for y in n:
+		for x in n:
+			var u := (x + 0.5) / n * 2.0 - 1.0
+			var v := (y + 0.5) / n * 2.0 - 1.0
+			var half_w := 0.55 * (1.0 - v * v) * (1.0 - 0.25 * v)
+			var c := Color(0, 0, 0, 0)
+			if absf(u) < half_w:
+				var shade := 0.75 + 0.25 * (absf(u) / maxf(half_w, 0.01))
+				if absf(u) < 0.04:
+					shade = 0.6
+				c = Color(shade, shade, shade, 1.0)
+			if absf(u) < 0.03 and v > 0.85:
+				c = Color(0.35, 0.3, 0.2, 1.0)                      # Stiel
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	_leaf = ImageTexture.create_from_image(img)
+	return _leaf
 
 
 static func _soft_dot() -> Texture2D:

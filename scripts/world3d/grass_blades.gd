@@ -31,8 +31,10 @@ static func tuft(blades: int, segs: int, radius: float, tint: Dictionary = {}) -
 		var a := rng.randf() * TAU
 		var r := sqrt(rng.randf()) * radius
 		var base := Vector3(cos(a) * r, 0.0, sin(a) * r)
-		var height := rng.randf_range(0.28, 0.72) * (1.15 - r / radius * 0.35)
-		var width := rng.randf_range(0.018, 0.032)
+		var height := rng.randf_range(0.22, 0.78) * (1.15 - r / radius * 0.35)
+		if rng.randf() < 0.08:
+			height *= 1.45                                   # einzelne hohe Halme/Rispen
+		var width := rng.randf_range(0.011, 0.021)
 		var face := rng.randf() * TAU
 		var side := Vector3(cos(face), 0, sin(face))
 		var out := Vector3(-side.z, 0, side.x)

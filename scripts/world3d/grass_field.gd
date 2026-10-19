@@ -42,8 +42,8 @@ static func create(ground: MeshInstance3D, tint: Dictionary = {}) -> GrassField:
 	g.density_scale = (1.0 if Settings.particles else 0.45) * float(tint.get("density", 1.0))
 	tint = tint.duplicate()
 	tint.erase("density")
-	g._mesh_near = GrassBlades.tuft(24, 3, 0.32, tint)
-	g._mesh_mid = GrassBlades.tuft(12, 2, 0.36, tint)
+	g._mesh_near = GrassBlades.tuft(34, 3, 0.3, tint)
+	g._mesh_mid = GrassBlades.tuft(16, 2, 0.34, tint)
 	g._mesh_flower = GrassBlades.flowers(tint)
 	return g
 

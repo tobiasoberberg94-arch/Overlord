@@ -81,18 +81,39 @@ func _ready() -> void:
 					_shot("disc_read_" + l.id)
 					w.overlay_layer.get_child(0).close()
 					break
-		if OS.get_environment("SHOTCAM") != "":
-			var v: PackedFloat64Array = PackedFloat64Array(Array(OS.get_environment("SHOTCAM").split(",")).map(func(x): return float(x)))
+		var cams: PackedStringArray = OS.get_environment("SHOTCAM").split(";", false)
+		for ci in cams.size():
+			var rel := cams[ci].begins_with("@")    # @… = relativ zum Startpunkt des Ortes
+			var v: PackedFloat64Array = PackedFloat64Array(Array(cams[ci].trim_prefix("@").split(",")).map(func(x): return float(x)))
+			if rel:
+				var sp: Vector3 = w.anchors.spawn
+				v[0] += sp.x
+				v[2] += sp.z
+				v[3] += sp.x
+				v[5] += sp.z
 			var cam := Camera3D.new()
 			cam.far = 3000.0
 			cam.fov = 70.0
 			w.add_child(cam)
-			cam.look_at_from_position(Vector3(v[0], v[1], v[2]), Vector3(v[3], v[4], v[5]))
+			# negative Höhe = Meter über dem Boden an dieser Stelle
+			var cp := Vector3(v[0], v[1], v[2])
+			var tp := Vector3(v[3], v[4], v[5])
+			var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
+			for q in [0, 1]:
+				var pt: Vector3 = cp if q == 0 else tp
+				if pt.y < 0.0:
+					var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(pt.x, 400.0, pt.z), Vector3(pt.x, -200.0, pt.z)))
+					var gy: float = hit.position.y if not hit.is_empty() else 0.0
+					if q == 0:
+						cp.y = gy - pt.y
+					else:
+						tp.y = gy - pt.y
+			cam.look_at_from_position(cp, tp)
 			cam.current = true
 			for c in w.find_children("*", "CanvasLayer", true, false):
 				(c as CanvasLayer).visible = false
 			await _wait(2.5)
-			_shot("cam_%s" % l.id)
+			_shot("cam_%s%s" % [l.id, "" if ci == 0 else "_%d" % ci])
 			for c in w.find_children("*", "CanvasLayer", true, false):
 				(c as CanvasLayer).visible = true
 			cam.queue_free()
