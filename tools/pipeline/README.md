@@ -25,3 +25,18 @@ Das Modell muss in **T- oder A-Pose** stehen (Arme vom Körper weg), sonst kann 
 4. `<figur>.glb` nach `assets/models/characters/`, ggf. `scale` in `data/models.json`.
 
 `preview.py` rendert Kontrollbilder, `inspect_fbx.py` zeigt Kennzahlen eines FBX.
+
+**Orte mit Baukästen (Stand Oktober 2026)**
+- `loc_kit.py` (Kit): Bauteile setzen, Gelände (`height_field`/`terrain` mit Weg- und Hofmaske), Streulisten,
+  `kit.ph(modell, x, y)` = Markierung für Poly-Haven-Fotoscans (im Spiel `PhProps.spawn_markers`).
+  `Kit(..., extra_dirs=[…])` sucht Bauteile in mehreren Kit-Ordnern.
+- `town_kit.py` (Town): Belegungsraster, Häuserzeilen Wand an Wand mit Gassen und Hinterhöfen, Marktstände,
+  Wirtshäuser, Stadtmauern, `great_wall`, `colosseum`, `palisade` mit Wachtürmen, `outskirts`, `anchors`,
+  `save_map` (Kontrollbild `<ort>_map.png`).
+- `struct_kit.py` (Structs): Grüfte, Friedhofsmauern, Eisengitter, Gräber, Pfahlhütten, Stege, Totems,
+  Zwergentor, Stollen, Riesenbäume mit Plattformen/Pavillons/Hängebrücken/Wendeltreppen, Höhleneingang.
+  Materialnamen `MI_…` werden im Spiel durch Fotomaterialien ersetzt (`scripts/world3d/building_look.gd`).
+- Bauen: `blender -b -P build_<ort>.py -- <Kit-Ordner> C:/Projekte/Overlord/UE/<ort>.glb`
+- Übernehmen: `tools/deploy_location.sh <ort>` (kopiert GLB + Streuliste, importiert, stellt Texturen mit
+  `vram_import.py --ue` auf GPU-Kompression um, aktualisiert `data/tex_stats.json`).
+- Prüfen: `LOC=<ort> SHOTCAM="@x,-h,z,tx,-th,tz;…" godot res://tools/world3d_test.tscn` → `tools/screenshots3d/`.

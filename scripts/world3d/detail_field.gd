@@ -34,12 +34,16 @@ const TABLES := {
 		[["dead_tree_trunk", "dead_tree_trunk_02"], 0.003, [0.8, 1.4], 80.0],
 	],
 	"grassland": [
+		[["grass_medium_01"], 0.45, [1.1, 1.7], 30.0],
+		[["celandine_01", "flower_empodium", "dandelion_01", "flower_ursinia", "periwinkle_plant"], 0.07, [1.0, 1.4], 35.0],
 		[["nettle_plant", "weed_plant_02"], 0.02, [1.0, 1.6], 35.0],
 		[["shrub_04", "shrub_03"], 0.012, [1.0, 1.8], 45.0],
 		[["rock_07", "stone_01"], 0.012, [2.0, 5.0], 30.0],
 		[["boulder_01", "namaqualand_boulder_02", "namaqualand_boulder_05"], 0.0012, [0.6, 1.4], 120.0],
 	],
 	"village": [
+		[["grass_medium_01"], 0.35, [1.1, 1.6], 30.0],
+		[["celandine_01", "flower_empodium", "dandelion_01", "periwinkle_plant"], 0.05, [1.0, 1.4], 35.0],
 		[["nettle_plant", "weed_plant_02"], 0.015, [1.0, 1.5], 35.0],
 		[["rock_07", "stone_01"], 0.01, [2.0, 4.0], 30.0],
 		[["boulder_01", "namaqualand_boulder_05"], 0.0008, [0.6, 1.2], 110.0],
@@ -67,7 +71,21 @@ const TABLES := {
 		[["boulder_01", "namaqualand_boulder_02"], 0.004, [0.8, 2.2], 130.0],
 		[["dry_branches_medium_01"], 0.006, [0.8, 1.3], 35.0],
 	],
+	"city": [
+		[["grass_medium_01"], 0.25, [1.0, 1.5], 28.0],
+		[["dandelion_01", "celandine_01", "weed_plant_02"], 0.04, [1.0, 1.3], 30.0],
+		[["nettle_plant", "weed_plant_02"], 0.012, [1.0, 1.5], 30.0],
+	],
+	"palace": [
+		[["grass_medium_01"], 0.2, [1.0, 1.4], 28.0],
+		[["celandine_01", "flower_empodium"], 0.03, [1.0, 1.3], 30.0],
+	],
+	"cathedral": [
+		[["grass_medium_01"], 0.2, [1.0, 1.4], 28.0],
+		[["celandine_01", "flower_empodium", "periwinkle_plant"], 0.03, [1.0, 1.3], 30.0],
+	],
 	"wall": [
+		[["grass_medium_01"], 0.3, [1.1, 1.6], 30.0],
 		[["nettle_plant", "weed_plant_02"], 0.015, [1.0, 1.5], 35.0],
 		[["rock_07", "stone_01"], 0.012, [2.0, 4.0], 30.0],
 		[["boulder_01", "namaqualand_boulder_05"], 0.001, [0.6, 1.3], 110.0],

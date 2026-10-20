@@ -197,14 +197,14 @@ func _build_board(at: Vector3) -> void:
 	var look: Vector3 = anchors.get("spawn", Vector3.ZERO)
 	root.rotation.y = atan2(look.x - at.x, look.z - at.z)
 	level.add_child(root)
-	var wood := B3.mat(Color(0.32, 0.21, 0.12), 0.85)
-	var dark := B3.mat(Color(0.2, 0.13, 0.08), 0.9)
+	var wood := BuildingLook.photo_material("planks", "wood", Color(0.85, 0.75, 0.62), 0.5)
+	var dark := BuildingLook.photo_material("logs", "wood", Color(0.62, 0.52, 0.42), 0.6)
 	for sx in [-0.95, 0.95]:
 		B3.box(root, Vector3(0.14, 2.6, 0.14), Vector3(sx, 1.3, 0), dark)
 	B3.box(root, Vector3(1.9, 1.25, 0.08), Vector3(0, 1.55, 0.02), wood, false)
 	B3.box(root, Vector3(2.0, 0.08, 0.12), Vector3(0, 2.2, 0.02), dark, false)
 	B3.box(root, Vector3(2.0, 0.08, 0.12), Vector3(0, 0.9, 0.02), dark, false)
-	var roof := B3.box(root, Vector3(2.3, 0.06, 0.6), Vector3(0, 2.7, 0.08), B3.mat(Color(0.3, 0.18, 0.12), 0.9), false)
+	var roof := B3.box(root, Vector3(2.3, 0.06, 0.6), Vector3(0, 2.7, 0.08), BuildingLook.photo_material("roof_slate", "roof", Color(0.7, 0.7, 0.72), 0.8), false)
 	roof.rotation.x = -0.35
 	var paper := B3.mat(Color(0.86, 0.8, 0.64), 0.95)
 	var n := 3 + mini(4, Quests.board_quests(loc.id).size() * 2)

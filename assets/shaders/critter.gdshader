@@ -28,8 +28,10 @@ void vertex() {
 void fragment() {
 	vec4 t = texture(tex, UV);
 	ALBEDO = t.rgb * v_col.rgb;
-	ALPHA = t.a;
+	// direkt vor der Kamera ausblenden (sonst fliegen große schwarze Blätter durchs Bild)
+	ALPHA = t.a * smoothstep(1.2, 2.8, length(VERTEX));
 	ALPHA_SCISSOR_THRESHOLD = 0.5;
 	ROUGHNESS = 0.8;
-	BACKLIGHT = ALBEDO * 0.5;
+	BACKLIGHT = ALBEDO * 0.8;
+	EMISSION = ALBEDO * 0.05;
 }

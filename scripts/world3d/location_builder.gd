@@ -175,8 +175,8 @@ static var _wind_cache: Dictionary = {}
 
 ## Kopie des Meshes, deren Materialien sich im Wind wiegen (Ausschlag wächst mit der Höhe).
 ## Das Standardmaterial wird in Shader-Code umgewandelt und im vertex()-Teil ergänzt.
-static func _wind_mesh(mesh: Mesh, amount: float) -> Mesh:
-	var key := "%d_%f" % [mesh.get_instance_id(), amount]
+static func _wind_mesh(mesh: Mesh, amount: float, natural := false) -> Mesh:
+	var key := "%d_%f_%s" % [mesh.get_instance_id(), amount, natural]
 	if _wind_cache.has(key):
 		return _wind_cache[key]
 	var m := mesh.duplicate() as Mesh
@@ -184,7 +184,7 @@ static func _wind_mesh(mesh: Mesh, amount: float) -> Mesh:
 	for i in m.get_surface_count():
 		var mat := m.surface_get_material(i) as BaseMaterial3D
 		if mat:
-			m.surface_set_material(i, _wind_material(mat, amount if Settings.particles else 0.0, h))
+			m.surface_set_material(i, _wind_material(mat, amount if Settings.particles else 0.0, h, natural))
 	_wind_cache[key] = m
 	return m
 
@@ -196,9 +196,24 @@ static func _texture_avg(t: Texture2D) -> Color:
 	return TexStats.color(t)
 
 
-static func _wind_material(mat: BaseMaterial3D, amount: float, height: float = 6.0) -> Material:
+static func _wind_material(mat: BaseMaterial3D, amount: float, height: float = 6.0, natural := false) -> Material:
 	if mat.albedo_texture == null:
 		return mat
+	if natural:
+		# Fotoscan-Pflanze: Farben und Helligkeit stimmen schon – nur Wind, Durchscheinen, leichte Abweichung je Pflanze
+		var nm := ShaderMaterial.new()
+		nm.shader = load("res://assets/shaders/foliage_wind.gdshader")
+		nm.set_shader_parameter("albedo", mat.albedo_color)
+		nm.set_shader_parameter("albedo_tex", mat.albedo_texture)
+		nm.set_shader_parameter("use_normal", mat.normal_enabled and mat.normal_texture != null)
+		nm.set_shader_parameter("normal_tex", mat.normal_texture)
+		nm.set_shader_parameter("roughness", clampf(mat.roughness, 0.6, 1.0))
+		nm.set_shader_parameter("alpha_cut", mat.alpha_scissor_threshold if mat.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR else 0.4)
+		nm.set_shader_parameter("wind", amount)
+		nm.set_shader_parameter("leaf", 1.0)
+		nm.set_shader_parameter("variation", 0.35)
+		nm.set_shader_parameter("height_hint", maxf(height, 0.2))
+		return nm
 	var mname := String(mat.resource_name).to_lower()
 	var leafy := mat.transparency != BaseMaterial3D.TRANSPARENCY_DISABLED or mname.contains("leaf") or mname.contains("leaves") 		or mname.contains("branch") or mname.contains("foliage") or mname.contains("needle") or mname.contains("grass")
 	if mname.contains("bark") or mname.contains("trunk"):
@@ -452,7 +467,8 @@ static func _ground_blend(scene: Node3D, kind: String = "") -> void:
 		if not layers.is_empty():
 			var gt: Dictionary = GRASS_TINT.get(kind, {})
 			var gc: Color = (gt.get("lush_col", Color(0.11, 0.22, 0.045)) as Color).lerp(gt.get("tip_col", Color(0.2, 0.3, 0.07)), 0.45)
-			var tm := _terrain_material(layers, masked, gc, masked and _has_dirt_mask(mesh))
+			var cover: float = float(gt.get("cover", 0.0)) if _grass_on else 0.0
+			var tm := _terrain_material(layers, masked, gc, masked and _has_dirt_mask(mesh), cover)
 			for i in mesh.get_surface_count():
 				mi.set_surface_override_material(i, tm)
 			continue
@@ -485,7 +501,7 @@ const TERRAIN := {
 	"jungle": ["leaves_forest_ground", "forrest_ground_01", "forest_ground_04", "mossy_rock", 0.45, 0.35, "forest_ground_04"],
 	"swamp": ["brown_mud_leaves_01", "sparse_grass", "mud_forest", "mossy_rock", 0.5, 0.35, "mud_forest"],
 	"cemetery": ["withered_grass", "dirt", "gravel_road", "mossy_rock", 0.45, 0.4, "dirt"],
-	"battlefield": ["brown_mud_leaves_01", "withered_grass", "mud_forest", "rock_face", 0.45, 0.35, "mud_forest"],
+	"battlefield": ["brown_mud_leaves_01", "dirt", "mud_forest", "rock_face", 0.4, 0.3, "mud_forest"],
 	"mountain": ["rocky_terrain_02", "forrest_ground_01", "rocky_trail", "rock_face_03", 0.45, 0.3, "rocky_trail", Color(0.78, 0.86, 1.0)],
 	"peaks": ["rocky_terrain_02", "withered_grass", "rocky_trail", "dark_rock_02", 0.4, 0.2, "rocky_trail", Color(1.5, 1.5, 1.55)],
 	"lava": ["dark_rock_02", "rock_face", "stony_dirt_path", "dark_rock_02", 0.3, 0.0, "stony_dirt_path"],
@@ -493,8 +509,8 @@ const TERRAIN := {
 static var _terrain_cache: Dictionary = {}
 
 
-static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Color(0.11, 0.2, 0.05), dirt := false) -> ShaderMaterial:
-	var key := str(layers) + str(masked) + str(dirt)
+static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Color(0.11, 0.2, 0.05), dirt := false, cover := 0.0) -> ShaderMaterial:
+	var key := str(layers) + str(masked) + str(dirt) + str(cover)
 	if _terrain_cache.has(key):
 		return _terrain_cache[key]
 	var sm := ShaderMaterial.new()
@@ -520,6 +536,7 @@ static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Co
 	sm.set_shader_parameter("far_mix", float(layers[5]) if layers.size() > 5 else 0.0)
 	sm.set_shader_parameter("use_mask", masked)
 	sm.set_shader_parameter("far_col", grass_col)
+	sm.set_shader_parameter("grass_cover", cover)
 	_terrain_cache[key] = sm
 	return sm
 
@@ -535,6 +552,79 @@ static func _has_dirt_mask(mesh: Mesh) -> bool:
 			if absf(cs[i].g - cs[i].r) > 0.05:
 				return true
 	return false
+
+
+## Stilisierte Kleinpflanzen der Bausätze → Fotoscans (Poly Haven): Vorlage → [Modelle, Pflanzen je Original,
+## Streuradius (m), Maßstab min/max, Sichtweite]. Karten-Büsche, Spielzeug-Tulpen und Comic-Blumen fallen so weg.
+const SCATTER_SWAP := {
+	"MW_bush": [["shrub_02", "wild_rooibos_bush"], 1, 0.0, [0.55, 0.8], 90.0],
+	"FV_bush_05": [["shrub_02", "wild_rooibos_bush"], 1, 0.0, [0.55, 0.8], 90.0],
+	"MW_flower_clump_01": [["celandine_01", "flower_ursinia", "flower_empodium"], 4, 0.55, [1.0, 1.5], 45.0],
+	"MW_flower_clump_02": [["periwinkle_plant", "flower_gazania", "celandine_01"], 4, 0.6, [1.0, 1.5], 45.0],
+	"MW_flower_clump_03": [["flower_gazania", "flower_ursinia", "dandelion_01"], 4, 0.55, [1.0, 1.4], 45.0],
+	"MW_flower_clump_04": [["flower_empodium", "dandelion_01", "celandine_01"], 4, 0.55, [1.0, 1.4], 45.0],
+	"MW_flower_01": [["dandelion_01", "flower_empodium"], 1, 0.0, [1.1, 1.5], 40.0],
+	"MW_flower_02": [["flower_ursinia", "celandine_01"], 1, 0.0, [1.1, 1.5], 40.0],
+	"MW_flower_03": [["celandine_01", "flower_empodium"], 1, 0.0, [1.1, 1.5], 40.0],
+	"MW_flower_04": [["flower_gazania", "dandelion_01"], 1, 0.0, [1.1, 1.5], 40.0],
+	"MW_plant_ground": [["periwinkle_plant", "weed_plant_02"], 3, 0.7, [1.2, 1.7], 40.0],
+	"MW_grass_02": [["grass_medium_01"], 2, 0.35, [1.3, 1.8], 40.0],
+}
+
+
+## Tausch einer stilisierten Streu-Vorlage gegen Fotoscans; false, wenn die Modelle fehlen.
+static func _swap_scatter(scene: Node3D, base: String, mats: Array, template: MeshInstance3D, inv: Basis, keep: float) -> bool:
+	var e: Array = SCATTER_SWAP[base]
+	var pool := PhProps.pool(e[0])
+	if pool.is_empty():
+		return false
+	var aabb := template.mesh.get_aabb() if template and template.mesh else AABB(Vector3.ZERO, Vector3.ONE)
+	var foot := Vector3(aabb.get_center().x, aabb.position.y, aabb.get_center().z)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(base)
+	var groups := {}                       # Variante + Kachel → [Transform3D]
+	var i := 0
+	for m in mats:
+		i += 1
+		if keep < 1.0 and fmod(i * 0.618, 1.0) > keep:
+			continue
+		var b := Basis(Vector3(m[0], m[4], m[8]), Vector3(m[1], m[5], m[9]), Vector3(m[2], m[6], m[10]))
+		var t := Transform3D(BLENDER_TO_GODOT * b * inv, BLENDER_TO_GODOT * Vector3(m[3], m[7], m[11]))
+		var base_pos := t * foot
+		var sc := t.basis.get_scale().y
+		for k in int(e[1]):
+			var a := rng.randf() * TAU
+			var r := sqrt(rng.randf()) * float(e[2]) * sc
+			var p := base_pos + Vector3(cos(a) * r, 0.0, sin(a) * r)
+			var vi := rng.randi() % pool.size()
+			var v: Dictionary = pool[vi]
+			var s := rng.randf_range(float(e[3][0]), float(e[3][1]))
+			var tt := Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s, s)), p - Vector3(0, 0.02, 0)) * (v.xf as Transform3D)
+			var key := "%d|%d|%d" % [vi, floori(p.x / SCATTER_TILE), floori(p.z / SCATTER_TILE)]
+			if not groups.has(key):
+				groups[key] = [vi, []]
+			groups[key][1].append(tt)
+	for key in groups:
+		var vi: int = groups[key][0]
+		var list: Array = groups[key][1]
+		var v: Dictionary = pool[vi]
+		var big := (v.size as Vector3).y
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = _wind_mesh(v.mesh, 0.06 if big < 0.6 else 0.03, true)
+		mm.instance_count = list.size()
+		for k in list.size():
+			mm.set_instance_transform(k, list[k])
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "foto_streu_%s" % base
+		mmi.multimesh = mm
+		mmi.visibility_range_end = float(e[4]) * (1.0 if Settings.particles else 0.7)
+		mmi.visibility_range_end_margin = 8.0
+		mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		mmi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_ON if Settings.particles and big >= 0.8 else GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mmi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+		scene.add_child(mmi)
+	return true
 
 
 ## Gras, Blumen, Büsche (nocol_mm_<name> + <id>_scatter.json aus tools/pipeline/loc_kit.py) als
@@ -574,13 +664,13 @@ static func _horizon(loc: Dictionary, scene: Node3D) -> void:
 
 ## Farbe des Grases je Ortsart (Shader-Parameter von grass_field.gdshader).
 const GRASS_TINT := {
-	"grassland": {},
+	"grassland": {"cover": 0.7},
 	"forest": {"tip_col": Color(0.2, 0.31, 0.075), "lush_col": Color(0.12, 0.23, 0.05), "dry_amount": 0.25, "density": 0.45},
-	"palace": {"density": 0.4}, "cathedral": {"density": 0.4}, "wall": {"density": 0.55}, "city": {"density": 0.5},
-	"village": {"density": 0.85},
+	"palace": {"density": 0.4, "cover": 0.4}, "cathedral": {"density": 0.4, "cover": 0.4}, "wall": {"density": 0.55, "cover": 0.55},
+	"city": {"density": 0.5, "cover": 0.45}, "village": {"density": 0.85, "cover": 0.65},
 	"mountain": {"tip_col": Color(0.23, 0.3, 0.1), "lush_col": Color(0.13, 0.22, 0.06), "dry_col": Color(0.36, 0.33, 0.2), "dry_amount": 0.6, "density": 0.45},
 	"peaks": {"tip_col": Color(0.3, 0.3, 0.17), "lush_col": Color(0.17, 0.2, 0.09), "dry_col": Color(0.4, 0.37, 0.25), "dry_amount": 0.8, "density": 0.3},
-	"battlefield": {"tip_col": Color(0.3, 0.29, 0.15), "lush_col": Color(0.18, 0.2, 0.08), "dry_col": Color(0.38, 0.33, 0.19), "dry_amount": 0.85, "density": 0.45},
+	"battlefield": {"tip_col": Color(0.34, 0.31, 0.17), "lush_col": Color(0.17, 0.18, 0.07), "dry_col": Color(0.4, 0.34, 0.19), "dry_amount": 0.8, "density": 0.6, "cover": 0.25},
 	"swamp": {"tip_col": Color(0.2, 0.27, 0.08), "lush_col": Color(0.11, 0.2, 0.05), "dry_col": Color(0.3, 0.27, 0.13), "dry_amount": 0.5, "density": 0.6},
 	"cemetery": {"tip_col": Color(0.2, 0.25, 0.09), "lush_col": Color(0.12, 0.18, 0.06), "dry_col": Color(0.32, 0.29, 0.16), "dry_amount": 0.7, "density": 0.7},
 }
@@ -596,8 +686,9 @@ static func _grass_field(loc: Dictionary, scene: Node3D) -> bool:
 			continue
 		var gf := GrassField.create(mi, GRASS_TINT[loc.kind])
 		if gf:
-			scene.add_child(gf)
-			var df := DetailField.create(loc.kind, gf)
+			if OS.get_environment("NO_GF") == "":
+				scene.add_child(gf)
+			var df := DetailField.create(loc.kind, gf) if OS.get_environment("NO_DF") == "" else null
 			if df:
 				scene.add_child(df)
 			return true
@@ -621,6 +712,11 @@ static func _scatter_instances(loc: Dictionary, scene: Node3D) -> void:
 	var trunks := StaticBody3D.new()
 	trunks.name = "Baumstaemme"
 	for name in data.instances:
+		var base_name := String(name).trim_prefix("@lod:")
+		if SCATTER_SWAP.has(base_name) and OS.get_environment("NO_SWAP") == "":
+			var tpl: MeshInstance3D = templates.get("lod0_" + base_name, templates.get(base_name))
+			if _swap_scatter(scene, base_name, data.instances[name], tpl, inv, keep):
+				continue
 		if String(name).begins_with("@lod:"):
 			_lod_trees(scene, String(name).substr(5), data.instances[name], templates, trunks, inv, keep)
 			continue

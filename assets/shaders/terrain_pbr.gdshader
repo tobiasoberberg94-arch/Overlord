@@ -39,6 +39,7 @@ uniform vec3 far_col : source_color = vec3(0.11, 0.2, 0.05);   // Farbe des Gras
 uniform float far_mix = 0.0;          // wie stark der Boden in der Ferne die Grasfarbe annimmt
 uniform float far_start = 28.0;
 uniform float far_end = 70.0;
+uniform float grass_cover = 0.0;      // Grasnarbe unter dem Grasfeld: Boden zwischen den Halmen dunkel-grün statt kahl
 
 varying vec3 wpos;
 varying vec3 wnrm;
@@ -114,6 +115,16 @@ void fragment() {
 		col = mix(col, dd.rgb, w_dirt);
 		nm = mix(nm, texture(dirt_nor, p / dirt_size).rgb, w_dirt);
 		rg = mix(rg, texture(dirt_rough, p / dirt_size).r, w_dirt);
+	}
+
+	// Grasnarbe: wo Gras wächst, sieht man zwischen den Halmen Wurzelfilz und Schatten statt nackter Erde
+	if (grass_cover > 0.0) {
+		float patchy = smoothstep(0.25, 0.65, fbm(p * 0.09 + 11.0));
+		float cover = grass_cover * mix(0.55, 1.0, patchy) * (1.0 - w_alt * 0.35);
+		float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
+		vec3 sod = far_col * mix(0.42, 0.75, smoothstep(0.03, 0.3, l)) * mix(0.85, 1.12, fbm(p * 0.6));
+		col = mix(col, sod, cover);
+		rg = mix(rg, 0.95, cover * 0.6);
 	}
 
 	// Wege

@@ -30,6 +30,7 @@ var density_scale := 1.0
 var water_y := -INF               ## unter dem Wasserspiegel wächst kein Gras
 var _build_us := 0
 var _built := 0
+var _hnoise := FastNoiseLite.new()   ## großflächige Grashöhe: abgegraste Flächen, hohe Wiesenstücke
 
 
 ## Baut ein Grasfeld für das Gelände `ground`; null, wenn kein passendes Gelände.
@@ -42,7 +43,7 @@ static func create(ground: MeshInstance3D, tint: Dictionary = {}) -> GrassField:
 	g.density_scale = (1.0 if Settings.particles else 0.45) * float(tint.get("density", 1.0))
 	tint = tint.duplicate()
 	tint.erase("density")
-	g._mesh_near = GrassBlades.tuft(34, 3, 0.3, tint)
+	g._mesh_near = GrassBlades.tuft(44, 3, 0.3, tint)
 	g._mesh_mid = GrassBlades.tuft(16, 2, 0.34, tint)
 	g._mesh_flower = GrassBlades.flowers(tint)
 	return g
@@ -103,6 +104,9 @@ func _sample(ground: MeshInstance3D) -> bool:
 
 
 func _ready() -> void:
+	_hnoise.seed = 1234
+	_hnoise.frequency = 0.035
+	_hnoise.fractal_octaves = 3
 	_space = get_world_3d().direct_space_state
 	for n in get_parent().find_children("*", "MeshInstance3D", true, false):
 		if String(n.name).to_lower().begins_with("water"):
@@ -210,12 +214,25 @@ func _build(k: Vector2i) -> void:
 		if rng.randf() < smoothstep(0.15, 0.55, hm.y):
 			continue
 		var s := rng.randf_range(0.75, 1.3) * (1.0 - smoothstep(0.1, 0.5, hm.y) * 0.5)
-		var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.25), s))
+		# Wiese ungleichmäßig hoch: abgegraste, kurze Stellen neben hohen Grasinseln
+		var field := 0.45 + 0.75 * smoothstep(-0.35, 0.45, _hnoise.get_noise_2d(x, z))
+		if i >= count:
+			field = maxf(field, 0.85)                     # Blumen ragen heraus
+		var b := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(s, s * rng.randf_range(0.8, 1.25) * field, s))
 		var t := Transform3D(b, Vector3(x, hm.x - 0.02, z))
 		if i >= count:
 			fl.append(t)
 		else:
 			xforms.append(t)
+	if OS.get_environment("GRASS_DEBUG") != "" and _built < 6:
+		var opened := 0
+		for v in open:
+			opened += v
+		for j in mini(3, xforms.size()):
+			var tp: Vector3 = xforms[j].origin
+			var rr := _space.intersect_ray(PhysicsRayQueryParameters3D.create(tp + Vector3(0, 30, 0), tp - Vector3(0, 30, 0)))
+			print("GRAS   Büschel bei %s, Boden (Strahl) %s, Maßstab %s" % [tp, rr.get("position", "kein Treffer"), xforms[j].basis.get_scale()])
+		print("GRAS Kachel %s: offen %d/%d Zellen, Büschel %d (Soll %d), Blumen %d" % [k, opened, cells * cells, xforms.size(), count, fl.size()])
 	var c := {}
 	c["grass"] = _mmi(_mesh_near, xforms)
 	if not fl.is_empty():
