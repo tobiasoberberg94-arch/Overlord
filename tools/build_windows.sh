@@ -9,5 +9,5 @@ ISCC="${ISCC:-ISCC.exe}"
 mkdir -p build/windows
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 "$GODOT" --headless --path . --export-release "Windows Desktop" build/windows/OverlordNazarick.exe
-"$ISCC" /Q installer/overlord.iss
+MSYS_NO_PATHCONV=1 "$ISCC" /Q installer/overlord.iss
 ls -lh build/windows/ build/OverlordNazarick-Setup-*.exe
