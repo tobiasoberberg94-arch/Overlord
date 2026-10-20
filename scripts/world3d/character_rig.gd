@@ -4,6 +4,9 @@ extends Node3D
 ## prozeduraler Ersatz aus Primitiven. Beide werden über dieselbe Schnittstelle animiert:
 ##   pose(state, phase, progress, move_ratio, attack_kind)  – jedes Bild aufrufen
 ##   flash(color, secs)                                      – Treffer/Telegraf-Leuchten
+##   hit_react(dir, strength)                                – Zurückzucken (Feder auf Rumpf und Kopf)
+##   time_mult / jitter(secs)                                – Trefferstopp: Animation anhalten, Körper bebt
+##   hand_anchor(right)                                      – Punkt an der Hand (Zauberlicht, Waffen)
 ## Für .glb-Modelle werden Animationsnamen über data/models.json → animation_aliases
 ## zugeordnet (idle, walk, run, attack_light, attack_heavy, dodge, block, hit, death, cast).
 
@@ -29,9 +32,26 @@ var parts: Dictionary = {}             ## prozedural: Name → Node3D (Gelenke)
 var body_base := 0.0                   ## Höhe des Körper-Drehpunkts (Hüfte)
 var _current := ""
 var _t := 0.0
-var _overlay := StandardMaterial3D.new()
+var _overlay := StandardMaterial3D.new()        ## Leuchten (additiv): Warnungen, Zauber
+var _flash_mat := StandardMaterial3D.new()      ## Trefferblitz (mischend): überstrahlt helle Figuren nicht
+var _glow_on := false
 var _flash_time := 0.0
 var _flash_len := 0.0
+var _flash_a := 0.4
+var time_mult := 1.0:                  ## 0 = angehalten (Trefferstopp)
+	set(v):
+		time_mult = v
+		if anim:
+			anim.speed_scale = _speed * time_mult
+var _speed := 1.0                      ## Abspielgeschwindigkeit der laufenden Animation
+var _jitter := 0.0
+var _jitter_amp := 0.03
+var _hr: HitReact                      ## Trefferreaktion am Skelett (nur Modelle)
+var _hr_axis := Vector3.RIGHT
+var _hr_angle := 0.0
+var _hr_vel := 0.0
+var _anchors := {}
+var _torso_base := Vector3.ZERO
 
 
 ## Erzeugt das Rig: Modell, falls vorhanden, sonst baut fallback(rig) die Ersatzfigur.
@@ -46,10 +66,22 @@ static func create(id: String, fallback: Callable) -> CharacterRig:
 	elif fallback.is_valid():
 		fallback.call(r)
 	B3.exclude_from_gi(r)
+	# Figuren auf Sichtebene 2: Bodenmarken (Blut, Brand) und die Partikel-Bodenkollision lassen sie aus
+	for gi in r.find_children("*", "GeometryInstance3D", true, false):
+		(gi as GeometryInstance3D).layers = 2
+	var sk := r.skeleton()
+	if sk and sk.find_bone("mixamorig_Spine") >= 0:
+		r._hr = HitReact.new()
+		r._hr.name = "HitReact"
+		sk.add_child(r._hr)
 	r._overlay.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	r._overlay.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	r._overlay.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	r._overlay.albedo_color = Color(0, 0, 0, 0)
+	r._flash_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	r._flash_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	r._flash_mat.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
+	r._flash_mat.albedo_color = Color(0, 0, 0, 0)
 	return r
 
 
@@ -87,11 +119,12 @@ func play(key: String, speed: float = 1.0, restart: bool = false) -> void:
 	var n: String = anim_map.get(key, anim_map.get("idle", ""))
 	if n == "":
 		return
+	# Geschwindigkeit nur über speed_scale (play() mit eigener Geschwindigkeit würde sich damit multiplizieren)
+	_speed = speed
 	if n != _current or restart:
-		anim.play(n, 0.15, speed)
+		anim.play(n, 0.15, 1.0)
 		_current = n
-	else:
-		anim.speed_scale = speed
+	anim.speed_scale = _speed * time_mult
 
 
 ## Spielt den Abschnitt [a, b] eines Clips in `duration` Sekunden ab.
@@ -102,13 +135,12 @@ func play_segment(key: String, duration: float) -> void:
 	var seg: Array = SEGMENTS.get(key, [0.0, anim_length(key)])
 	var b := minf(float(seg[1]), anim_length(key))
 	var a := minf(float(seg[0]), b - 0.05)
-	var speed := (b - a) / maxf(duration, 0.05)
+	_speed = (b - a) / maxf(duration, 0.05)
 	if n != _current:
-		anim.play(n, 0.08, speed)
+		anim.play(n, 0.08, 1.0)
 		anim.seek(a, true)
 		_current = n
-	else:
-		anim.speed_scale = speed
+	anim.speed_scale = _speed * time_mult
 
 
 ## Zauber: Clip so schnell abspielen, dass der Auslösemoment auf `cast_time` fällt, danach ausschwingen.
@@ -122,12 +154,12 @@ func play_cast(key: String, cast_time: float) -> void:
 	var rel: float = CAST_RELEASE.get(key, 0.45)
 	var l := anim_length(key)
 	var speed := clampf(l * rel / maxf(cast_time, 0.1), 0.8, 3.5)
+	_speed = speed
 	if anim_map[key] != _current:
-		anim.play(anim_map[key], 0.1, speed)
+		anim.play(anim_map[key], 0.1, 1.0)
 		_current = anim_map[key]
 		_oneshot_left = l * (1.0 - rel) / speed + cast_time
-	else:
-		anim.speed_scale = speed
+	anim.speed_scale = _speed * time_mult
 
 
 func anim_length(key: String) -> float:
@@ -136,31 +168,121 @@ func anim_length(key: String) -> float:
 	return anim.get_animation(anim_map[key]).length
 
 
-func flash(color: Color, secs: float = 0.2) -> void:
-	_overlay.albedo_color = Color(color, 0.55)
+func flash(color: Color, secs: float = 0.2, strength: float = 0.4) -> void:
+	_flash_mat.albedo_color = Color(color, strength)
 	_flash_time = secs
 	_flash_len = secs
+	_flash_a = strength
+	_set_overlay(_flash_mat)
+
+
+func _set_overlay(m: Material) -> void:
 	for mi in find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_overlay = _overlay
+		(mi as MeshInstance3D).material_overlay = m
 
 
 ## Dauerhaftes Leuchten (z. B. Wind-up eines Gegners). alpha 0 = aus.
 func glow(color: Color, alpha: float) -> void:
 	_overlay.albedo_color = Color(color, alpha)
 	var on := alpha > 0.01
-	for mi in find_children("*", "MeshInstance3D", true, false):
-		(mi as MeshInstance3D).material_overlay = _overlay if on else null
+	if on == _glow_on and _flash_time <= 0.0:
+		return
+	_glow_on = on
+	if _flash_time <= 0.0:
+		_set_overlay(_overlay if on else null)
 
 
 func _process(delta: float) -> void:
-	_t += delta
-	_oneshot_left = maxf(0.0, _oneshot_left - delta)
+	_t += delta * time_mult
+	_oneshot_left = maxf(0.0, _oneshot_left - delta * time_mult)
+	# Trefferstopp: Körper bebt kurz auf der Stelle
+	if _jitter > 0.0:
+		_jitter -= delta
+		position = Vector3(randf_range(-1, 1), randf_range(-0.3, 0.3), randf_range(-1, 1)) * _jitter_amp if _jitter > 0.0 else Vector3.ZERO
+	# Zurückzucken: gedämpfte Feder (läuft erst nach dem Trefferstopp los)
+	if time_mult > 0.0 and (absf(_hr_angle) > 0.0005 or absf(_hr_vel) > 0.0005):
+		var dt := minf(delta, 0.05)
+		_hr_vel += (-130.0 * _hr_angle - 12.0 * _hr_vel) * dt
+		_hr_angle += _hr_vel * dt
+		if absf(_hr_angle) < 0.0005 and absf(_hr_vel) < 0.01:
+			_hr_angle = 0.0
+			_hr_vel = 0.0
+	if _hr:
+		_hr.axis = _hr_axis
+		_hr.angle = _hr_angle
 	if _flash_time > 0.0:
 		_flash_time -= delta
-		_overlay.albedo_color.a = 0.55 * maxf(0.0, _flash_time / maxf(_flash_len, 0.01))
+		_flash_mat.albedo_color.a = _flash_a * maxf(0.0, _flash_time / maxf(_flash_len, 0.01))
 		if _flash_time <= 0.0:
-			for mi in find_children("*", "MeshInstance3D", true, false):
-				(mi as MeshInstance3D).material_overlay = null
+			_set_overlay(_overlay if _glow_on else null)
+
+
+## Zurückzucken vom Treffer weg: dir = Schlagrichtung (Welt), strength ≈ 0.3 (leicht) … 1.5 (schwer).
+func hit_react(dir: Vector3, strength: float) -> void:
+	var d := Vector3(dir.x, 0.0, dir.z)
+	if d.length() < 0.01:
+		d = -global_basis.z
+	d = d.normalized()
+	# Drehachse so, dass der Oberkörper in Schlagrichtung wegkippt
+	_hr_axis = Vector3.UP.cross(d).normalized()
+	_hr_vel += 10.0 * clampf(strength, 0.0, 2.0)
+
+
+## Trefferstopp: Körper bebt `secs` lang.
+func jitter(secs: float, amp: float = 0.03) -> void:
+	_jitter = maxf(_jitter, secs)
+	_jitter_amp = amp
+
+
+func skeleton() -> Skeleton3D:
+	var list := find_children("*", "Skeleton3D", true, false)
+	return list[0] if not list.is_empty() else null
+
+
+## Punkt an der Hand, der der Animation folgt (Zauberlicht, gehaltene Waffen). Ohne Skelett: Ende des Arms.
+func hand_anchor(right: bool = true) -> Node3D:
+	var key := "r" if right else "l"
+	if _anchors.has(key) and is_instance_valid(_anchors[key]):
+		return _anchors[key]
+	var a: Node3D = null
+	var sk := skeleton()
+	var bone := "mixamorig_RightHand" if right else "mixamorig_LeftHand"
+	if sk and sk.find_bone(bone) >= 0:
+		var ba := BoneAttachment3D.new()
+		ba.bone_name = bone
+		sk.add_child(ba)
+		a = Node3D.new()
+		a.name = "hand_" + key
+		ba.add_child(a)
+	if a == null:
+		var arm: Node3D = parts.get("arm_r" if right else "arm_l")
+		if arm:
+			a = Node3D.new()
+			a.position = Vector3(0, -0.78, 0.06)
+			arm.add_child(a)
+	if a == null:
+		a = Node3D.new()
+		a.position = Vector3(-0.3 if right else 0.3, 1.3, 0.4)
+		add_child(a)
+	_anchors[key] = a
+	return a
+
+
+## Hängt ein Objekt an einen Knochen (z. B. Bogen an die linke Hand). false = kein passender Knochen.
+func attach_to_bone(bone: String, node: Node3D) -> bool:
+	var sk := skeleton()
+	if sk == null or sk.find_bone(bone) < 0:
+		return false
+	var ba := BoneAttachment3D.new()
+	ba.bone_name = bone
+	sk.add_child(ba)
+	ba.add_child(node)
+	# Skelette aus Mixamo sind oft skaliert (cm): Waffe auf Weltmaß der Figur bringen
+	if ba.is_inside_tree():
+		var s_b := ba.global_basis.get_scale()
+		var s_r := global_basis.get_scale()
+		node.scale = Vector3(s_r.x / maxf(s_b.x, 0.0001), s_r.y / maxf(s_b.y, 0.0001), s_r.z / maxf(s_b.z, 0.0001))
+	return true
 
 
 ## Haupt-Animationssteuerung. state = Fighter.S, progress 0…1 innerhalb der Phase.
@@ -177,7 +299,19 @@ func _pose_model(state: int, move_ratio: float, attack_kind: String, total: floa
 			var key := "attack_heavy" if attack_kind == "heavy" else "attack_light"
 			var l := anim_length(key)
 			play(key, l / maxf(total, 0.1) if l > 0.0 else 1.0)
-		Fighter.S.DODGE: play_segment(dodge_key if anim_map.has(dodge_key) else "dodge", total)
+		Fighter.S.DODGE:
+			if dodge_key == "leap":
+				# Sprungangriff: schwerer Schlag über die ganze Flugzeit
+				var lh := anim_length("attack_heavy")
+				play("attack_heavy", lh / maxf(total, 0.1) if lh > 0.0 else 1.0)
+			elif dodge_key == "step":
+				# Ausweichschritt der Gegner: kurzer Satz statt Rolle
+				if anim_map.has("dodge_back"):
+					play_segment("dodge_back", total)
+				else:
+					play("run", 1.8)
+			else:
+				play_segment(dodge_key if anim_map.has(dodge_key) else "dodge", total)
 		Fighter.S.BLOCK: play("block")
 		Fighter.S.CAST: play_cast(cast_key, total)
 		Fighter.S.STAGGER, Fighter.S.STUN: play("stagger" if anim_map.has("stagger") else "hit")
@@ -234,8 +368,20 @@ func _pose_proc(state: int, phase: String, p: float, move_ratio: float, attack_k
 					if heavy:
 						al = Vector3(lerpf(-1.1, 0.0, p), 0, 0)
 		Fighter.S.DODGE:
-			b_rot.x = p * TAU
-			b_y = sin(p * PI) * 0.3 - 0.4 * sin(p * PI)
+			if dodge_key == "leap":
+				# beide Arme/Waffen hoch über dem Kopf, zum Aufschlag nach vorn
+				var k := clampf(p * 1.3, 0.0, 1.0)
+				ar = Vector3(lerpf(2.6, -1.0, smoothstep(0.6, 1.0, k)), 0, 0)
+				al = ar
+				tor = Vector3(lerpf(-0.25, 0.3, smoothstep(0.55, 1.0, k)), 0, 0)
+				b_y = 0.0
+			elif dodge_key == "step":
+				tor = Vector3(-0.25, 0, 0.2)
+				b_y = sin(p * PI) * 0.18
+				ar = Vector3(-0.6, 0, 0.5)
+			else:
+				b_rot.x = p * TAU
+				b_y = sin(p * PI) * 0.3 - 0.4 * sin(p * PI)
 		Fighter.S.BLOCK:
 			ar = Vector3(-1.4, 0, 0.5)
 			al = Vector3(-1.5, 0, -0.5)
@@ -255,6 +401,10 @@ func _pose_proc(state: int, phase: String, p: float, move_ratio: float, attack_k
 	if arm_l:
 		arm_l.rotation = arm_l.rotation.lerp(al, 0.3)
 	if torso:
-		torso.rotation = torso.rotation.lerp(tor, 0.3)
+		_torso_base = _torso_base.lerp(tor, 0.3)
+		var flinch := Vector3.ZERO
+		if absf(_hr_angle) > 0.0005:
+			flinch = (global_basis.orthonormalized().inverse() * _hr_axis).normalized() * _hr_angle * 0.9
+		torso.rotation = _torso_base + flinch
 	body.rotation.x = b_rot.x if state in [Fighter.S.DODGE, Fighter.S.DEAD] else lerpf(body.rotation.x, 0.0, 0.3)
 	body.position.y = body_base + b_y

@@ -132,14 +132,62 @@ static func momon(r: CharacterRig) -> void:
 #  Gegner
 # =====================================================================
 
-static func enemy(r: CharacterRig, kind: String, color: Color) -> void:
+static func enemy(r: CharacterRig, kind: String, color: Color, weapon: String = "") -> void:
 	match kind:
 		"wolf": _wolf(r, color)
 		"golem": _golem(r, color)
-		_: _humanoid(r, kind, color)
+		_: _humanoid(r, kind, color, weapon)
 
 
-static func _humanoid(r: CharacterRig, kind: String, color: Color) -> void:
+## Bogen: gebogener Holzstab aus Segmenten mit Sehne (Griff im Ursprung, Bogen entlang Y).
+static func bow(col: Color) -> Node3D:
+	var n := Node3D.new()
+	n.name = "bow"
+	var wood := B3.mat(Color(0.34, 0.22, 0.12).lerp(col.darkened(0.5), 0.25), 0.7)
+	var pts: Array = []
+	for i in 9:
+		var a := deg_to_rad(-58.0 + 116.0 * i / 8.0)
+		pts.append(Vector3(0, sin(a) * 0.7, -cos(a) * 0.7 + 0.7))
+	for i in 8:
+		var a: Vector3 = pts[i]
+		var b: Vector3 = pts[i + 1]
+		var seg := B3.cyl(n, 0.018 if i in [0, 7] else 0.026, 0.026 if i in [0, 7] else 0.03, a.distance_to(b), (a + b) * 0.5, wood, false, 6)
+		seg.basis = Basis(Quaternion(Vector3.UP, (b - a).normalized()))
+	var string := B3.cyl(n, 0.004, 0.004, (pts[0] as Vector3).distance_to(pts[8]), ((pts[0] as Vector3) + pts[8]) * 0.5, B3.mat(Color(0.85, 0.82, 0.72), 0.9), false, 4)
+	string.basis = Basis(Quaternion(Vector3.UP, ((pts[8] as Vector3) - pts[0]).normalized()))
+	B3.box(n, Vector3(0.05, 0.12, 0.05), Vector3.ZERO, B3.mat(Color(0.25, 0.15, 0.08), 0.8), false)
+	return n
+
+
+## Zauberstab mit leuchtender Kugel (Priester, Leichname, Magier).
+static func staff(col: Color) -> Node3D:
+	var n := Node3D.new()
+	n.name = "staff"
+	B3.cyl(n, 0.025, 0.03, 1.7, Vector3(0, 0.35, 0), B3.mat(Color(0.25, 0.18, 0.12), 0.7), false, 6)
+	B3.sphere(n, 0.09, Vector3(0, 1.25, 0), B3.mat(col, 0.2, 0.0, col, 4.0))
+	for k in 3:
+		var prong := B3.cyl(n, 0.012, 0.012, 0.22, Vector3(0, 1.17, 0), B3.mat(Color(0.7, 0.6, 0.3), 0.3, 0.9), false, 4)
+		prong.rotation = Vector3(0.45, TAU * k / 3.0, 0)
+	var l := B3.light(n, Vector3(0, 1.25, 0), col, 0.9, 3.5)
+	l.shadow_enabled = false
+	return n
+
+
+## Waffe an ein echtes Modell hängen (Bogen links, Stab rechts).
+static func attach_weapon(r: CharacterRig, weapon: String, col: Color) -> void:
+	match weapon:
+		"bow":
+			var b := bow(col)
+			b.rotation = Vector3(0, 0, PI * 0.5)
+			r.attach_to_bone("mixamorig_LeftHand", b)
+		"staff":
+			var st := staff(col)
+			st.rotation = Vector3(PI * 0.5, 0, 0)
+			st.position = Vector3(0, 0.05, 0)
+			r.attach_to_bone("mixamorig_RightHand", st)
+
+
+static func _humanoid(r: CharacterRig, kind: String, color: Color, weapon: String = "") -> void:
 	var big := kind in ["death_knight", "angel"]
 	var sc := 1.25 if big else 1.0
 	var p := _skeleton(r, sc)
@@ -191,6 +239,19 @@ static func _humanoid(r: CharacterRig, kind: String, color: Color) -> void:
 	w.rotation_degrees.x = 90
 	p.arm_r.add_child(w)
 	var steel := B3.mat(Color(0.7, 0.7, 0.75), 0.2, 1.0)
+	if weapon == "bow":
+		w.queue_free()
+		var b := bow(color)
+		b.position = Vector3(0, -0.74, 0.06) * sc
+		b.rotation = Vector3(0, PI * 0.5, 0)
+		p.arm_l.add_child(b)
+		return
+	if weapon == "staff":
+		w.queue_free()
+		var st := staff(color.lightened(0.3))
+		st.position = Vector3(0, -0.74, 0.06) * sc
+		p.arm_r.add_child(st)
+		return
 	match kind:
 		"death_knight":
 			B3.box(w, Vector3(0.16, 1.9, 0.04) * sc, Vector3(0, 1.0, 0) * sc, B3.mat(Color(0.3, 0.1, 0.4), 0.2, 0.8, Color(0.4, 0.1, 0.6), 0.8), false)

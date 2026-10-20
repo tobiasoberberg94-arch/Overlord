@@ -36,6 +36,8 @@ var auto_open := true
 var autosave := 1
 var tutorial_done := false
 var show_help := true                 ## Steuerungshilfe im HUD (F1)
+var screen_shake := 1.0               ## Stärke der Kamera-Erschütterung im Kampf (0 = aus)
+var hitstop := true                   ## Trefferstopp und kurze Zeitlupe bei Paraden/großen Siegen
 
 ## Kompatibilität: alter Schalter
 var fullscreen: bool:
@@ -65,6 +67,7 @@ func _keys() -> Array:
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
 		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],
+		["game", "screen_shake"], ["game", "hitstop"],
 	]
 
 

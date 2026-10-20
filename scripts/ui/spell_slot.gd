@@ -15,15 +15,19 @@ var _flash := 0.0
 var _t := 0.0
 var _font: Font
 var _glyph_font: Font
+var _r := 27.0                 ## Radius (Superrang-Slot größer)
+var _super := false
 
 
-func _init(id: String, d: Dictionary, key_label: String) -> void:
+func _init(id: String, d: Dictionary, key_label: String, big: bool = false) -> void:
+	_super = big
+	_r = 34.0 if big else 27.0
 	spell_id = id
 	icon = d.get("icon", "?")
 	key = key_label
 	color = Color(d.get("color", "#ffffff"))
 	cooldown_max = maxf(0.1, float(d.get("cooldown", 1.0)))
-	custom_minimum_size = Vector2(64, 76)
+	custom_minimum_size = Vector2(80, 92) if big else Vector2(64, 76)
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	tooltip_text = "%s [%s]\n%s\nKosten: %d %s · Abklingzeit %.0f s" % [d.get("name", id), key_label, d.get("desc", ""), int(d.get("cost", 0)),
 		"Mana" if d.get("cost_type", "mana") == "mana" else "Ausdauer", float(d.get("cooldown", 0))]
@@ -47,8 +51,8 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	var c := Vector2(size.x * 0.5, 32.0)
-	var r := 27.0
+	var c := Vector2(size.x * 0.5, _r + 5.0)
+	var r := _r
 	var ready := cooldown <= 0.0 and affordable
 	# Leuchten
 	var pulse := 0.5 + 0.5 * sin(_t * 3.0)
@@ -57,12 +61,16 @@ func _draw() -> void:
 			draw_circle(c, r + 3.0 + i * 2.5, Color(color, (0.07 + 0.04 * pulse) * (1.0 - i * 0.22)))
 	if _flash > 0.0:
 		draw_circle(c, r + 6.0 + (1.0 - _flash) * 10.0, Color(color.lightened(0.5), 0.45 * _flash))
+	if _super and ready:
+		for i in 12:
+			var a := TAU * i / 12.0 + _t * 0.4
+			draw_line(c + Vector2(cos(a), sin(a)) * (r + 4.0), c + Vector2(cos(a), sin(a)) * (r + 9.0 + 3.0 * pulse), Color(Palette.GOLD_BRIGHT, 0.55), 2.0, true)
 	# Scheibe mit radialem Verlauf
 	draw_circle(c, r, Color(0.02, 0.01, 0.035, 0.92))
 	for i in 5:
 		draw_circle(c + Vector2(0, -r * 0.18), r * (0.85 - i * 0.15), Color(color.darkened(0.55), 0.10))
 	# Glyphe
-	var fs := 28
+	var fs := 34 if _super else 28
 	var gcol := color.lightened(0.15) if ready else (Color(0.45, 0.55, 0.9) if not affordable else Color(0.55, 0.52, 0.6))
 	var gs := _glyph_font.get_string_size(icon, HORIZONTAL_ALIGNMENT_LEFT, -1, fs)
 	var gp := c + Vector2(-gs.x * 0.5, fs * 0.36)

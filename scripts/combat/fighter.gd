@@ -7,9 +7,12 @@ extends CharacterBody3D
 ##   DODGE (i-Frames) · BLOCK (Parierfenster am Anfang) · CAST · STAGGER · STUN · DEAD
 ## Werte: Leben, Ausdauer, Mana, Rüstung, Widerstände, Haltung (Poise), Statuseffekte.
 ## Schaden läuft immer über take_hit(info, angreifer) – auch für Zauber und Projektile.
+## Treffergefühl (CombatFX.on_struck): Trefferstopp (freeze), Zurückzucken (react), Funken/Blut/Splitter je Stoff.
+## Kritische Treffer, Rückentreffer, Konter (Gegner in der Erholung) und Treffer gegen Wehrlose zählen mehr.
 
 signal died(f: Fighter)
 signal damaged(f: Fighter, amount: int, kind: String)
+signal struck(f: Fighter, result: String, info: Dictionary, dealt: float)
 
 enum S { IDLE, MOVE, ATTACK, DODGE, BLOCK, CAST, STAGGER, STUN, DEAD }
 const STATE_NAMES := ["Bereit", "Bewegung", "Angriff", "Ausweichen", "Block", "Zauber", "Taumeln", "Gelähmt", "Tot"]
@@ -27,6 +30,14 @@ var max_poise := 40.0
 var poise := 40.0
 var move_speed := 4.0
 var is_player := false
+var body_height := 1.85                ## für Trefferpunkt, Zahlen, Effekte
+var body_radius := 0.45
+var fx_material := "flesh"             ## Stoff für Treffereffekte (CombatFX.MATERIALS)
+var crit_chance := 0.0                 ## Chance auf kritische Treffer (×1,6)
+var undying := false                   ## überlebt den ersten tödlichen Treffer mit 1 LP (Todesritter)
+var _undying_used := false
+var _freeze := 0.0
+var _status_fx := {}
 
 var state: int = S.IDLE
 var state_time := 0.0
@@ -148,7 +159,27 @@ func start_attack(a: Dictionary) -> bool:
 	return true
 
 
+## Trefferstopp: Zustandszeit und Animation stehen still (victim = Getroffener bebt dazu).
+func freeze(secs: float, victim: bool = false) -> void:
+	if state == S.DEAD and not victim:
+		return
+	_freeze = maxf(_freeze, secs)
+	if rig:
+		rig.time_mult = 0.0
+		if victim:
+			rig.jitter(secs, 0.035)
+
+
+func frozen() -> bool:
+	return _freeze > 0.0
+
+
 func tick_combat(delta: float) -> void:
+	if _freeze > 0.0:
+		_freeze -= delta
+		if _freeze <= 0.0 and rig:
+			rig.time_mult = 1.0
+		return
 	state_time += delta
 	_tick_status(delta)
 	if shield_time > 0.0:
@@ -179,7 +210,9 @@ func _tick_attack(delta: float) -> void:
 	if phase == "windup" and state_time >= w:
 		phase = "active"
 		_on_attack_active()
-		hitbox.activate(_attack_info(attack), float(attack.get("range", 2.0)), float(attack.get("arc", 120)))
+		# Fern-, Flächen- und Beschwörungsangriffe treffen über eigene Wege, nicht über die Nahkampfzone
+		if not String(attack.get("kind", "melee")) in ["projectile", "aoe", "summon"]:
+			hitbox.activate(_attack_info(attack), float(attack.get("range", 2.0)), float(attack.get("arc", 120)))
 	elif phase == "active":
 		# Vorwärtsschub während des Schlags
 		var lunge := float(attack.get("lunge", 0.0))
@@ -208,6 +241,7 @@ func _attack_info(a: Dictionary) -> Dictionary:
 		"amount": float(a.get("damage", 10)), "type": a.get("type", "physical"),
 		"stagger": float(a.get("stagger", 20)), "knockback": float(a.get("knockback", 2.0)),
 		"unblockable": a.get("unblockable", false), "status": a.get("status", {}), "name": a.get("name", ""),
+		"kind": a.get("kind", "light"), "guard_mult": float(a.get("guard_mult", 2.0 if a.get("kind", "") == "heavy" else 1.0)),
 	}
 
 
@@ -223,44 +257,83 @@ func use_stamina(amount: float) -> void:
 # =====================================================================
 
 ## Ergebnis: "dodge" | "parry" | "block" | "guardbreak" | "shield" | "hit" | "kill" | "none"
-func take_hit(info: Dictionary, from: Node3D) -> String:
+func take_hit(info_in: Dictionary, from: Node3D) -> String:
 	if state == S.DEAD:
 		return "none"
+	var info := info_in.duplicate()
+	var res := _resolve_hit(info, from)
+	var dealt := float(info.get("_dealt", 0.0))
+	CombatFX.on_struck(self, from, info, res, dealt)
+	struck.emit(self, res, info, dealt)
+	return res
+
+
+func _resolve_hit(info: Dictionary, from: Node3D) -> String:
 	if invulnerable:
 		_feedback("Ausgewichen", Color(0.7, 0.85, 1.0))
 		return "dodge"
-	var src := from.global_position if from else global_position + facing
+	var src := from.global_position if from and is_instance_valid(from) else global_position + facing
+	var atk := CombatFX.attacker_of(from)
+	info["_src"] = src
 	# Blocken / Parieren (nur von vorn, nicht gegen rote Angriffe)
 	if state == S.BLOCK and is_facing(src, 150.0) and not info.get("unblockable", false):
 		if block_time <= parry_window:
 			_feedback("PARIERT!", Palette.GOLD_BRIGHT)
 			stamina = minf(max_stamina, stamina + 15.0)
-			if from is Fighter:
-				(from as Fighter).stagger(1.0, global_position)
+			if atk and not info.get("ranged", false):
+				atk.stagger(1.0, global_position)
 			_on_parry()
 			return "parry"
-		use_stamina(float(info.amount) * block_stamina_mult)
+		use_stamina(float(info.amount) * block_stamina_mult * float(info.get("guard_mult", 1.0)))
 		if stamina <= 0.0:
 			_feedback("Deckung gebrochen", Palette.DANGER)
-			_apply_damage(float(info.amount) * 0.5, info, src)
+			info["_dealt"] = _apply_damage(float(info.amount) * 0.5, info, src)
 			stagger(1.0, src)
 			return "guardbreak"
 		_feedback("Geblockt", Color(0.8, 0.8, 0.9))
-		_apply_damage(float(info.amount) * 0.1, info, src, false)
+		info["_dealt"] = _apply_damage(float(info.amount) * 0.1, info, src, false)
 		knock = (global_position - src).normalized() * 2.0
+		_on_block()
 		return "block"
 	if shield_time > 0.0:
 		shield_time = 0.0
 		_feedback("Barriere absorbiert", Palette.GOLD_BRIGHT)
-		_on_shield_break()
+		_on_shield_break(src)
 		return "shield"
-	var dealt := _apply_damage(float(info.amount), info, src)
-	# Haltung: genug Wucht lässt den Gegner taumeln
-	poise -= float(info.get("stagger", 0.0))
+	# Wucht-Zuschläge: Rücken, Konter (Gegner in der Erholung), wehrlos (taumelt/gelähmt), kritischer Treffer
+	var flags: Array = []
+	var mult := 1.0
+	if not info.get("ranged", false) and atk and not is_facing(atk.global_position, 220.0):
+		flags.append("back")
+		mult *= 1.35
+	if state == S.ATTACK and phase == "recovery":
+		flags.append("punish")
+	if state in [S.STAGGER, S.STUN]:
+		flags.append("helpless")
+		mult *= 1.3
+	var cc := (atk.crit_chance if atk else 0.0) + float(info.get("crit_bonus", 0.0))
+	if cc > 0.0 and randf() < cc:
+		flags.append("crit")
+		mult *= 1.6
+	info["flags"] = flags
+	var dealt := _apply_damage(float(info.amount) * mult, info, src)
+	info["_dealt"] = dealt
+	# Haltung: genug Wucht lässt den Gegner taumeln – außer er holt gerade unaufhaltsam aus
+	var armored: bool = state == S.ATTACK and phase == "windup" and attack.get("armor", false)
+	if not armored:
+		poise -= float(info.get("stagger", 0.0)) * (1.25 if "crit" in flags else 1.0)
 	var st: Dictionary = info.get("status", {})
-	for k in st:
-		add_status(k, float(st[k]))
+	if hp > 0.0 or (undying and not _undying_used):
+		for k in st:
+			add_status(k, float(st[k]))
 	if hp <= 0.0:
+		if undying and not _undying_used:
+			_undying_used = true
+			hp = 1.0
+			_feedback("Unbeugsam!", Color(0.8, 0.5, 1.0))
+			_on_undying()
+			stagger(1.0, src)
+			return "hit"
 		die()
 		return "kill"
 	if poise <= 0.0 and state != S.STUN:
@@ -271,6 +344,20 @@ func take_hit(info: Dictionary, from: Node3D) -> String:
 	return "hit"
 
 
+## Trefferpunkt am Körper (Brusthöhe, zur Quelle hin) – dort entstehen Funken, Blut und Splitter.
+func hit_point(src: Vector3) -> Vector3:
+	var d := src - global_position
+	d.y = 0.0
+	d = d.normalized() if d.length() > 0.05 else facing
+	return global_position + Vector3.UP * body_height * 0.6 + d * body_radius * 0.8
+
+
+## Zurückzucken (Feder auf Rumpf/Kopf), dir = Schlagrichtung.
+func react(dir: Vector3, strength: float) -> void:
+	if rig and state != S.DEAD:
+		rig.hit_react(dir, strength)
+
+
 func _apply_damage(amount: float, info: Dictionary, src: Vector3, show_number: bool = true) -> float:
 	var t: String = info.get("type", "physical")
 	var mult := float(resist.get(t, 1.0))
@@ -279,7 +366,7 @@ func _apply_damage(amount: float, info: Dictionary, src: Vector3, show_number: b
 	else:
 		mult *= 100.0 / (100.0 + armor * 0.3)
 	if state == S.ATTACK and phase == "recovery":
-		mult *= 1.25    # Wer nach einem Fehlschlag offen steht, nimmt mehr Schaden
+		mult *= 1.25    # Wer nach einem Fehlschlag offen steht, nimmt mehr Schaden (Konter)
 	var dmg := maxf(0.0, amount * mult)
 	hp = maxf(0.0, hp - dmg)
 	var kb := float(info.get("knockback", 0.0))
@@ -303,6 +390,7 @@ func stagger(_strength: float, src: Vector3) -> void:
 
 func die() -> void:
 	hp = 0.0
+	_clear_status_fx()
 	hitbox.deactivate()
 	state = S.DEAD
 	state_time = 0.0
@@ -317,6 +405,7 @@ func die() -> void:
 
 func add_status(k: String, secs: float) -> void:
 	status[k] = maxf(float(status.get(k, 0.0)), secs)
+	_status_visual(k, true)
 	if k == "stun" and state != S.DEAD:
 		hitbox.deactivate()
 		set_state(S.STUN)
@@ -336,14 +425,44 @@ func _tick_status(delta: float) -> void:
 		status[k] = float(status[k]) - delta
 		if float(status[k]) <= 0.0:
 			status.erase(k)
+			_status_visual(k, false)
 	if has_status("burn") and state != S.DEAD:
 		_burn_tick += delta
 		if _burn_tick >= 0.5:
 			_burn_tick = 0.0
 			hp = maxf(0.0, hp - 4.0)
 			damaged.emit(self, 4, "fire")
+			CombatFX.float_text(get_parent(), global_position + Vector3(randf_range(-0.3, 0.3), body_height + 0.3, 0), "4", Color(1.0, 0.55, 0.2), 30)
 			if hp <= 0.0:
 				die()
+
+
+## Sichtbare Zustände: Flammen bei Brand, Frosthauch bei Kälte, kreisende Funken bei Lähmung.
+func _status_visual(k: String, on: bool) -> void:
+	if on and not _status_fx.has(k) and is_inside_tree() and state != S.DEAD:
+		var e: GPUParticles3D = null
+		match k:
+			"burn":
+				e = CombatFX.emitter(self, "burning", Color(1.0, 0.5, 0.15))
+				if e:
+					e.position = Vector3.UP * body_height * 0.5
+			"chill":
+				e = CombatFX.emitter(self, "aura", Color(0.6, 0.85, 1.0))
+			"stun":
+				e = CombatFX.emitter(self, "trail_motes", Color(0.7, 0.9, 1.0))
+				if e:
+					e.position = Vector3.UP * (body_height + 0.25)
+		if e:
+			_status_fx[k] = e
+	elif not on and _status_fx.has(k):
+		CombatFX.stop(_status_fx[k])
+		_status_fx.erase(k)
+
+
+func _clear_status_fx() -> void:
+	for k in _status_fx.keys():
+		CombatFX.stop(_status_fx[k])
+	_status_fx.clear()
 
 
 # =====================================================================
@@ -378,5 +497,13 @@ func _on_hurt() -> void:
 	pass
 
 
-func _on_shield_break() -> void:
+func _on_shield_break(_src: Vector3 = Vector3.ZERO) -> void:
+	pass
+
+
+func _on_block() -> void:
+	pass
+
+
+func _on_undying() -> void:
 	pass

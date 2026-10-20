@@ -80,7 +80,8 @@ Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Mode
 | Ausweichrolle (mit i-Frames) | `Leertaste` |
 | Blocken – früh gedrückt = **Parieren** | `F` halten |
 | Ziel fixieren (Lock-on) | `Q` |
-| Zauber bzw. Techniken | `1` `2` `3` `4` `R` |
+| Zauber bzw. Techniken | `1` `2` `3` `4` `5` `R` |
+| Superrang-Magie (nur Ainz) | `Y` (QWERTZ; auf US-Tastaturen `Z`) |
 | Kampfstil wechseln: Ainz ↔ Momon | `X` |
 
 - **Zustandsautomat** für Spieler und Gegner (`scripts/combat/fighter.gd`): Bereit · Bewegung · Angriff (*Wind-up → aktiv → Recovery*) · Ausweichen · Block · Zauber · Taumeln · Gelähmt · Tot.
@@ -88,9 +89,13 @@ Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Mode
 - **Ausdauer** (schwere Attacken, Rolle, Blocken, Momons Techniken) und **Mana** (Ainz' Zauber) regenerieren sich; **Haltung (Poise)** bricht bei wuchtigen Treffern → Taumeln.
 - **Schaden**: Rüstung mindert physischen Schaden, Widerstände je Schadensart (physisch, Feuer, negativ, heilig); wer nach einem verfehlten Angriff in der Recovery steht, nimmt mehr Schaden.
 - **Statuseffekte**: Brennen (Schaden über Zeit), Unterkühlt (verlangsamt), Gelähmt, Schutzbarriere.
-- **Ainz** – magiefokussiert: Stabhiebe plus *Feuerkugel* (Projektil, entzündet), *Druckwelle* (stößt zurück, bricht Deckung – wie Aard), *Größere Magische Schutzbarriere* (absorbiert einen Treffer – wie Quen), *Lähmung* (wie Axii) und der starke **Herzgriff**.
-- **Momon** – zwei Großschwerter: 3-Schlag-Kombo, Großschwert-Spaltung, *Sprungangriff* und *Schwerterwirbel* (Ausdauer); mehr Leben und Rüstung, kaum Mana.
-- **Gegner mit lesbaren Mustern** (`enemy_3d.gd`, Werte in `data/combat.json`): Skelettkrieger, Todesritter, Ritter der Schrift, Wölfe, Engel der Herrschaft, Echsenkrieger, Quagoa, Elfenkrieger und ein Übungsgolem in der Arena der 6. Ebene. Beim Ausholen leuchten sie **orange (blockbar)** oder **rot (nur ausweichen!)**, zielen bis kurz vor dem Schlag nach und bleiben danach in ihrer Richtung – Ausweichen zur Seite lohnt sich.
+- **Ainz** – magiefokussiert: Stabhiebe plus *Feuerkugel* (Projektil mit Flammenschweif, Explosion, entzündet), *Kettendrachenblitz* (springt auf bis zu fünf Ziele), *Druckwelle* (stößt zurück, bricht jede Deckung – wie Aard), *Größere Magische Schutzbarriere* (Wabenschild, absorbiert einen Treffer – wie Quen), *Lähmung* (Bannkreise – wie Axii), der **Herzgriff** (ein geisterhaftes Herz schlägt immer schneller, bis Ainz die Hand schließt) und die Superrang-Magie **Fallen Down**: vier Sekunden Beschwörung mit Kranz aus Magiekreisen, dann fällt eine Säule aus Licht vom Himmel.
+- **Momon** – zwei Großschwerter: 3-Schlag-Kombo, Großschwert-Spaltung, *Sprungangriff* (Bogen mit Nachbildern, Krater beim Aufschlag), *Schwerterwirbel* und *Schwertwurf* (Ausdauer); mehr Leben und Rüstung, kaum Mana.
+- **Treffergefühl** (`combat_fx.gd`): Trefferstopp (Angreifer und Opfer frieren kurz ein), federndes Zurückzucken am Skelett der Figuren, Funken an Rüstung, Blut und Blutnebel an Fleisch, Knochensplitter an Untoten, Steinbrocken an Golems, Lichtfunken an Engeln – mit Bodenkollision und Blutflecken am Boden. Hiebspuren genau auf der Trefferzone, Kamera-Erschütterung, Blickwinkel-Stoß, kurze Zeitlupe bei Paraden und großen Siegen, Schadenszahlen mit **Kritisch**, **Rückentreffer**, **Konter** und **Wehrlos**. Erschütterung und Trefferstopp lassen sich in den Einstellungen abschwächen bzw. abschalten.
+- **Kampfgeräusche** (`tools/audio/combat_sfx.py`, prozedural): Schwünge, Treffer je Stoff, Block, Parade, Explosionen, Blitze, Eis, Schatten, Licht, Herzschlag, Superrang – als Raumklang mit Hall je Ort.
+- **Gegner-KI mit Gruppenregie** (`enemy_3d.gd`, `combat_director.gd`): höchstens zwei Nahkämpfer und zwei Schützen greifen gleichzeitig an, die anderen umkreisen Ainz auf eigenen Plätzen (Wölfe und Quagoa im Rücken). Verhaltensarten: Fußvolk, Duellanten (blocken und kontern), Hünen (unaufhaltsame schwere Schläge), Rudeltiere, Plänkler (zuschlagen, ausweichen), Bogenschützen und Zauberer (halten Abstand, schießen mit Vorhalt, Flächenzauber mit Bodenwarnung, Beschwörungen), Bosse mit Phasen bei halbem Leben. Gegner rufen sich gegenseitig zu Hilfe und weichen Feuerkugeln aus; Todesritter überleben den ersten tödlichen Treffer.
+- **Lesbare Angriffe**: Beim Ausholen pulsieren Gegner **orange (blockbar)** oder **rot (nur ausweichen!)**, schwere Schläge und Flächenzauber zeigen eine sich füllende Bodenwarnung, kurz vor dem Treffer blitzt es (jetzt blocken = Parade). Angriffe außerhalb des Blickfelds melden Pfeile am Bildschirmrand, rote Bögen zeigen, woher Ainz getroffen wurde; Bosse bekommen einen großen Lebens- und Haltungsbalken.
+- **Gegner** (`data/combat.json`): Skelettkrieger und -schützen, Ältester Leichnam, Todesritter, Ritter, Schützen und Magier der Schrift (beschwören Flammenerzengel), Engel der Herrschaft, Wölfe, Echsenkrieger und -schamanen, Quagoa, Elfenkrieger und -schützinnen, Söldner – dazu Bosse wie Zaryusu, Brain, Gagaran, Succulent (Spiegelbilder) und der Elfenkönig.
 - Begegnungen je Ort in `data/locations.json` (`encounters`). Besiegte Gegner bringen Gold, Eliten zusätzlich Beute. Fällt Ainz, zieht er sich nach Nazarick zurück (Stimmung −4).
 - Werte anpassen: `data/combat.json` (Stile, Angriffe mit `windup/active/recovery/damage/range/arc/stagger/lunge/unblockable`, Zauber, Gegner).
 
@@ -209,8 +214,12 @@ scripts/
   combat/
     fighter.gd             Kämpfer-Basis: Zustandsautomat, Werte, Treffer, Status
     hitbox.gd, hurtbox.gd  Trefferzonen
-    enemy_3d.gd            Gegner-KI mit Wind-up/Angriff/Recovery
-    projectile.gd          Zauberprojektile
+    enemy_3d.gd            Gegner-KI: Verhaltensarten, Reaktionen, Fern-/Flächen-/Beschwörungsangriffe, Bossphasen
+    combat_director.gd     Gruppenregie: Angriffsrechte, Kreisplätze, Alarm
+    combat_fx.gd           Treffergefühl: Partikel, Trefferstopp, Zeitlupe, Kamera, Zahlen, Raumklang
+    spell_fx.gd            Inszenierung der Zauber (Geschosse, Explosionen, Blitze, Herzgriff, Superrang)
+    slash_fx.gd            Hiebspuren · ground_mark.gd Bodenwarnungen und Magiekreise · hit_react.gd Zurückzucken
+    projectile.gd          Geschosse (Lenkung, Pfeilflug)
     save_system.gd         JSON-Speichern/Laden (3 Slots)
   scenes/                  Skripte der Szenen
   ui/

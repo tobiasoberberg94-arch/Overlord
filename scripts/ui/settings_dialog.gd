@@ -114,6 +114,8 @@ func _game_tab() -> Control:
 	p.add_child(_row("Textgeschwindigkeit", _choice("text_speed", Settings.TEXT_SPEEDS)))
 	p.add_child(_row("Depeschen automatisch öffnen", _check("auto_open", "aktiv"), "Aus: Depeschen warten im Eingang, bis Ihr sie öffnet."))
 	p.add_child(_row("Automatisch speichern", _choice("autosave", ["Aus", "Jede Woche", "Jeden Monat"]), "Speichert in das Siegel »Automatisch«."))
+	p.add_child(_row("Kamera-Erschütterung im Kampf", _slider("screen_shake", 0.0, 1.5, 0.05), "Wie stark die Kamera bei Treffern, Explosionen und Paraden bebt (0 = aus)."))
+	p.add_child(_row("Trefferstopp & Zeitlupe", _check("hitstop", "aktiv"), "Treffer frieren den Moment kurz ein, Paraden und große Siege laufen kurz in Zeitlupe."))
 	if _allow_tutorial:
 		var t := Button.new()
 		t.text = "Einführung erneut zeigen"
@@ -140,7 +142,7 @@ func _controls_tab() -> Control:
 	t.add_theme_font_size_override("bold_font_size", 16)
 	var keys := [["WASD / Shift", "Gehen / Rennen"], ["Maus · Rad", "Kamera · Zoom"], ["LMB / RMB", "Leichter / schwerer Angriff"],
 		["Leertaste", "Ausweichrolle"], ["F", "Blocken (im rechten Moment: Parade)"], ["Q", "Ziel fixieren"],
-		["1–4, R", "Zauber"], ["X", "Ainz ↔ Momon"], ["E", "Sprechen / benutzen"], ["G", "Gate (Reisen)"], ["T", "Zeit verstreichen lassen"],
+		["1–5, R", "Zauber"], [Player3D.key_label("spell_super"), "Superrang-Magie (Ainz)"], ["X", "Ainz ↔ Momon"], ["E", "Sprechen / benutzen"], ["G", "Gate (Reisen)"], ["T", "Zeit verstreichen lassen"],
 		["Enter", "Nächste Depesche"], ["J", "Questbuch"], ["K", "Entsendungen der Wächter"], ["M", "Weltkarte & Legionen"], ["P", "Diplomatie"],
 		["V", "Verwaltung"], ["N", "Nazarick (Ausbau, Schatzkammer)"], ["U", "Wächter & Audienzen"], ["C", "Chronik"],
 		["Tab", "Wochenziele & Herzenskrieg"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"],

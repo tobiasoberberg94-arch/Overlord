@@ -55,6 +55,14 @@ func _ready() -> void:
 		await _compare(w)
 		get_tree().quit()
 		return
+	if only == "fx":
+		await _fx_test(w)
+		get_tree().quit()
+		return
+	if only == "battle":
+		await _battle_test(w)
+		get_tree().quit()
+		return
 	for l in Content.locations:
 		if only != "" and l.id != only and not (only == "ui" and l.id == "throne"):
 			continue
@@ -437,6 +445,271 @@ func _cpu_profile(w: Node) -> void:
 		for n in nodes:
 			n.process_mode = Node.PROCESS_MODE_INHERIT
 		print("CPU   %-14s (%4d): mit %.1f ms → ohne %.1f ms" % [grp[1], nodes.size(), base / 40.0 * 1000.0, t / 40.0 * 1000.0])
+
+
+## Effekt-Schau: stellt Kampfmomente nach und fotografiert sie (LOC=fx, optional FXLOC=<ort>).
+##   godot --path . res://tools/world3d_test.tscn   mit LOC=fx
+func _fx_test(w: Node) -> void:
+	var where := OS.get_environment("FXLOC")
+	await w.load_location(where if where != "" else "nazarick_land")
+	await _wait(1.0)
+	for e in w.enemies.duplicate():
+		e.queue_free()
+	w.enemies.clear()
+	var p: Player3D = w.player
+	p.max_hp = 99999.0
+	p.hp = p.max_hp
+	p.max_mana = 9999.0
+	var base: Vector3 = p.global_position
+	var fwd := -p.global_basis.z
+	fwd = (Basis(Vector3.UP, p.cam_yaw) * Vector3(0, 0, -1)).normalized()
+	var side := fwd.cross(Vector3.UP).normalized()
+	p.cam_distance = 5.0
+	p.cam_pitch = -0.22
+	var frame := func(yaw_off: float):
+		p.cam_yaw = atan2(-fwd.x, -fwd.z) + yaw_off
+	var spawn := func(id: String, at: Vector3, ai: bool = false) -> Enemy3D:
+		var e: Enemy3D = w.spawn_enemy(id, at)
+		if not ai:
+			e.target = null
+		e.face_towards(p.global_position)
+		return e
+	var reset := func():
+		for e in w.enemies.duplicate():
+			if is_instance_valid(e):
+				e.queue_free()
+		w.enemies.clear()
+		p.revive()
+		p.set_state(Fighter.S.IDLE)
+		p.cooldowns.clear()
+		p.global_position = base
+		p.face(atan2(-fwd.x, -fwd.z))
+		p.lock = null
+	# 1) Stabhieb auf Skelett
+	var e1: Enemy3D = spawn.call("skeleton", base + fwd * 1.7)
+	frame.call(0.6)
+	await _wait(0.8)
+	p.request("light")
+	await _wait(float(p.attack.windup) + 0.05)
+	_shot("fx_01_staff_hit")
+	await _wait(1.0)
+	reset.call()
+	# 2) Momon: schwerer Hieb auf einen Ritter (Funken)
+	p.set_style("momon")
+	spawn.call("soldier", base + fwd * 2.0)
+	frame.call(-0.6)
+	await _wait(0.8)
+	p.request("heavy")
+	await _wait(float(p.attack.windup) + 0.06)
+	_shot("fx_02_momon_heavy")
+	await _wait(1.2)
+	p.set_style("ainz")
+	reset.call()
+	# 3) Feuerkugel auf Todesritter
+	var dk: Enemy3D = spawn.call("death_knight", base + fwd * 9.0)
+	frame.call(0.35)
+	await _wait(0.8)
+	p.toggle_lock()
+	p.cast("fireball")
+	await _wait(0.33)
+	_shot("fx_03_fireball_flight")
+	await _wait(0.32)
+	_shot("fx_04_fireball_impact")
+	await _wait(1.2)
+	reset.call()
+	# 4) Kettendrachenblitz auf drei Skelette
+	for i in 3:
+		spawn.call("skeleton", base + fwd * (6.0 + i * 1.5) + side * (i - 1) * 2.2)
+	frame.call(0.25)
+	await _wait(0.8)
+	p.toggle_lock()
+	p.cast("chain_lightning")
+	await _wait(0.5)
+	_shot("fx_05_chain_lightning")
+	await _wait(1.5)
+	reset.call()
+	# 5) Druckwelle
+	for i in 3:
+		spawn.call("soldier", base + fwd * 3.0 + side * (i - 1) * 1.6)
+	frame.call(0.5)
+	await _wait(0.8)
+	p.cast("shockwave")
+	await _wait(0.42)
+	_shot("fx_06_shockwave")
+	await _wait(1.5)
+	reset.call()
+	# 6) Barriere + Lähmung
+	var dk2: Enemy3D = spawn.call("death_knight", base + fwd * 5.0)
+	frame.call(0.7)
+	await _wait(0.6)
+	p.cast("shield")
+	await _wait(0.6)
+	p.toggle_lock()
+	p.cast("hold")
+	await _wait(0.9)
+	_shot("fx_07_barrier_bind")
+	await _wait(0.5)
+	# 7) Herzgriff (Herz vor der Hand, dann Zugriff)
+	p.cooldowns.clear()
+	p.mana = p.max_mana
+	p.cast("grasp_heart")
+	await _wait(0.85)
+	_shot("fx_08_heart_cast")
+	await _wait(0.35)
+	_shot("fx_09_heart_crush")
+	await _wait(1.5)
+	reset.call()
+	# 8) Gegner holt aus: rote Warnung (Todesurteil) und Leichnam-Feuerball am Boden
+	var dk3: Enemy3D = spawn.call("death_knight", base + fwd * 2.6)
+	var lich: Enemy3D = spawn.call("elder_lich", base + fwd * 9.0 + side * 3.0)
+	frame.call(-0.5)
+	await _wait(0.8)
+	dk3.target = p
+	dk3.notice(p)
+	dk3._alert_t = 0.0
+	dk3._begin_attack(dk3._attack_by_id("overhead"))
+	lich.target = p
+	lich.notice(p)
+	lich._alert_t = 0.0
+	lich._begin_attack(lich._attack_by_id("fireball"))
+	await _wait(0.9)
+	_shot("fx_10_enemy_telegraphs")
+	await _wait(0.75)
+	_shot("fx_11_lich_fireball")
+	await _wait(1.5)
+	reset.call()
+	# 9) Momon: Sprungangriff
+	p.set_style("momon")
+	for i in 3:
+		spawn.call("skeleton", base + fwd * 6.0 + side * (i - 1) * 1.4)
+	frame.call(0.6)
+	await _wait(0.8)
+	p.toggle_lock()
+	p.cast("leap")
+	await _wait(0.62)
+	_shot("fx_12_leap_air")
+	await _wait(0.33)
+	_shot("fx_13_leap_land")
+	await _wait(1.2)
+	p.set_style("ainz")
+	reset.call()
+	# 10) Superrang: Fallen Down (Aufbau und Einschlag)
+	for i in 4:
+		spawn.call("soldier", base + fwd * 14.0 + side * (i - 1.5) * 2.0)
+	p.cam_distance = 9.0
+	p.cam_pitch = -0.3
+	frame.call(0.45)
+	await _wait(0.8)
+	p.toggle_lock()
+	p.cast("fallen_down")
+	await _wait(3.0)
+	_shot("fx_14_super_charge")
+	await _wait(1.12)
+	_shot("fx_15_super_blast")
+	await _wait(0.6)
+	_shot("fx_16_super_after")
+	await _wait(1.5)
+	reset.call()
+	# 11) Bogenschützen schießen
+	p.cam_distance = 6.0
+	p.cam_pitch = -0.2
+	for i in 2:
+		var a: Enemy3D = spawn.call("skeleton_archer", base + fwd * 11.0 + side * (i * 2 - 1) * 2.5, true)
+		a.notice(p)
+		a._alert_t = 0.0
+		a._cooldown = 0.0
+	frame.call(0.3)
+	await _wait(1.25)
+	_shot("fx_17_archers")
+	await _wait(1.0)
+	reset.call()
+
+
+## Gefechtsprobe: Ainz kämpft automatisch gegen die Begegnungen eines Ortes (BATTLELOC, Standard katze).
+## Misst Bildrate, gleichzeitige Angreifer, Fernkampf-Treffer und fotografiert alle 1,5 s.
+func _battle_test(w: Node) -> void:
+	var where := OS.get_environment("BATTLELOC")
+	await w.load_location(where if where != "" else "katze")
+	await _wait(1.0)
+	var p: Player3D = w.player
+	p.max_hp = 99999.0
+	p.hp = p.max_hp
+	p.max_mana = 9999.0
+	if OS.get_environment("NOFX") != "":
+		CombatFX.enabled = false
+	if OS.get_environment("NOAI") != "":
+		for e in w.enemies:
+			e.target = null
+	print("Ruhe vor dem Kampf: FPS %d" % Engine.get_frames_per_second())
+	await _wait(2.0)
+	print("Ruhe vor dem Kampf: FPS %d · Zeichenaufrufe %d" % [Engine.get_frames_per_second(), Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME)])
+	# alle Gegner in die Nähe holen (wie eine anrückende Gruppe)
+	var c: Vector3 = p.global_position + (Basis(Vector3.UP, p.cam_yaw) * Vector3(0, 0, -1)) * 10.0
+	var i := 0
+	for e in w.enemies:
+		var a := TAU * i / maxf(1.0, w.enemies.size())
+		var at := c + Vector3(cos(a), 0, sin(a)) * randf_range(3.0, 7.0)
+		var g := CombatFX._ground_below(w.level, at + Vector3.UP * 5.0)
+		e.global_position = (g if g != Vector3.INF else at) + Vector3.UP * 0.2
+		e.home = e.global_position
+		i += 1
+	print("GEFECHT: %d Gegner" % w.enemies.size())
+	var fps_min := 999.0
+	var fps_sum := 0.0
+	var frames := 0
+	var most := 0
+	var shots := 0
+	var t := 0.0
+	var next_shot := 1.5
+	var next_act := 0.0
+	var hp0 := p.hp
+	while t < 14.0:
+		await get_tree().process_frame
+		var dt := get_process_delta_time() / maxf(Engine.time_scale, 0.05)
+		t += dt
+		if t > 1.0:
+			fps_min = minf(fps_min, Engine.get_frames_per_second())
+			fps_sum += Engine.get_frames_per_second()
+			frames += 1
+			var ft := get_process_delta_time() / maxf(Engine.time_scale, 0.05)
+			if ft > 0.05 and OS.get_environment("SPIKES") != "":
+				print("SPITZE %.0f ms bei t=%.2f · Prozess %.1f ms · Physik %.1f ms · Partikel %d · Marken %d · Decals %d · Lichter %d · Texte %d · Zeitmaß %.2f" % [ft * 1000.0, t,
+					Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0,
+					w.level.find_children("*", "GPUParticles3D", true, false).size(), w.level.find_children("*", "GroundMark", true, false).size(),
+					w.level.find_children("*", "Decal", true, false).size(), w.level.find_children("*", "OmniLight3D", true, false).size(),
+					w.level.find_children("*", "Label3D", true, false).size(), Engine.time_scale])
+		var n := 0
+		for e in w.enemies:
+			if is_instance_valid(e) and e.state == Fighter.S.ATTACK and e.phase != "recovery":
+				n += 1
+		most = maxi(most, n)
+		next_act -= dt
+		if next_act <= 0.0:
+			next_act = 0.55
+			if p.lock == null or not is_instance_valid(p.lock):
+				p.toggle_lock()
+			var k := int(t * 10.0) % 9
+			if k == 0:
+				p.cast("fireball")
+			elif k == 3:
+				p.cast("chain_lightning")
+			elif k == 6:
+				p.cast("shockwave")
+			else:
+				p.request("light")
+		if int(t) != int(t - dt) and OS.get_environment("SPIKES") != "":
+			print("SEKUNDE %d · FPS %d · Partikel %d · Lichter %d · Zeichenaufrufe %d · Objekte %d" % [int(t), Engine.get_frames_per_second(),
+				w.level.find_children("*", "GPUParticles3D", true, false).size(), w.level.find_children("*", "OmniLight3D", true, false).size(),
+				Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME)])
+		if t >= next_shot and shots < 8 and OS.get_environment("NOSHOT") == "":
+			next_shot += 1.5
+			_shot("battle_%d" % shots)
+			shots += 1
+	var alive := 0
+	for e in w.enemies:
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD:
+			alive += 1
+	print("GEFECHT: FPS min %.0f, Mittel %.0f · gleichzeitige Angreifer max %d · Schaden an Ainz %.0f · Gegner übrig %d" % [fps_min, fps_sum / maxf(1, frames), most, hp0 - p.hp, alive])
 
 
 func _wait(t: float) -> void:

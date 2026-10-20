@@ -65,11 +65,16 @@
     },
     "spells": [
      "fireball",
+     "chain_lightning",
      "shockwave",
      "shield",
      "hold",
      "grasp_heart"
-    ]
+    ],
+    "crit": 0.06,
+    "material": "undead_lord",
+    "height": 1.95,
+    "super": "fallen_down"
    },
    "momon": {
     "name": "Momon – der Dunkle Held",
@@ -134,8 +139,12 @@
     },
     "spells": [
      "leap",
-     "whirl"
-    ]
+     "whirl",
+     "sword_throw"
+    ],
+    "crit": 0.12,
+    "material": "armor",
+    "height": 2.0
    },
    "g_shalltear": {
     "name": "Shalltear Bloodfallen",
@@ -205,7 +214,10 @@
      "blood_frenzy",
      "purify_lance",
      "vamp_dash"
-    ]
+    ],
+    "crit": 0.15,
+    "material": "flesh",
+    "height": 1.55
    },
    "g_cocytus": {
     "name": "Cocytus",
@@ -276,7 +288,10 @@
      "frost_aura",
      "glacier_leap",
      "stillness"
-    ]
+    ],
+    "crit": 0.1,
+    "material": "ice",
+    "height": 2.5
    },
    "g_demiurge": {
     "name": "Demiurge – Jaldabaoth",
@@ -334,7 +349,10 @@
      "hellfire_wall",
      "command",
      "demon_shield"
-    ]
+    ],
+    "crit": 0.08,
+    "material": "flesh",
+    "height": 1.9
    },
    "g_sebas": {
     "name": "Sebas Tian",
@@ -404,7 +422,10 @@
      "whirlwind_kick",
      "iron_skin",
      "flash_step"
-    ]
+    ],
+    "crit": 0.18,
+    "material": "flesh",
+    "height": 1.9
    },
    "g_aura": {
     "name": "Aura Bella Fiora",
@@ -474,7 +495,10 @@
      "beast_call",
      "paralyze_breath",
      "forest_dash"
-    ]
+    ],
+    "crit": 0.12,
+    "material": "flesh",
+    "height": 1.4
    }
   }
  },
@@ -496,12 +520,14 @@
    },
    "stagger": 20,
    "color": "#ff7a2a",
-   "desc": "Schneller Feuerball – entzündet das Ziel."
+   "desc": "Schneller Feuerball – entzündet das Ziel.",
+   "homing": 2.5,
+   "sound": "fire_launch"
   },
   "shockwave": {
    "name": "Druckwelle",
    "icon": "◎",
-   "key": "2",
+   "key": "3",
    "cost": 20,
    "cost_type": "mana",
    "cooldown": 3.0,
@@ -514,12 +540,13 @@
    "stagger": 90,
    "knockback": 9,
    "color": "#b98cff",
-   "desc": "Schleudert Gegner zurück und bricht ihre Deckung (wie Aard)."
+   "desc": "Schleudert Gegner zurück und bricht jede Deckung (wie Aard).",
+   "guard_mult": 8.0
   },
   "shield": {
    "name": "Größere Magische Schutzbarriere",
    "icon": "⛨",
-   "key": "3",
+   "key": "4",
    "cost": 25,
    "cost_type": "mana",
    "cooldown": 8.0,
@@ -532,7 +559,7 @@
   "hold": {
    "name": "Lähmung",
    "icon": "✧",
-   "key": "4",
+   "key": "5",
    "cost": 22,
    "cost_type": "mana",
    "cooldown": 6.0,
@@ -599,7 +626,8 @@
    "stagger": 60,
    "knockback": 4,
    "color": "#d4af37",
-   "desc": "Beide Großschwerter kreisen – trifft alles ringsum."
+   "desc": "Beide Großschwerter kreisen – trifft alles ringsum.",
+   "fx": "steel"
   },
   "blood_lance": {
    "name": "Blutlanze",
@@ -615,7 +643,9 @@
    "speed": 26,
    "stagger": 30,
    "color": "#ff2a4f",
-   "desc": "Eine Lanze aus geronnenem Blut."
+   "desc": "Eine Lanze aus geronnenem Blut.",
+   "fx": "blood",
+   "sound": "blood_launch"
   },
   "blood_frenzy": {
    "name": "Blutrausch",
@@ -841,7 +871,8 @@
    "stagger": 70,
    "knockback": 5,
    "color": "#e8e0c8",
-   "desc": "Ein Tritt, der alles ringsum fortschleudert."
+   "desc": "Ein Tritt, der alles ringsum fortschleudert.",
+   "fx": "steel"
   },
   "iron_skin": {
    "name": "Eiserne Haut",
@@ -888,7 +919,11 @@
    "speed": 30,
    "stagger": 20,
    "color": "#d8f070",
-   "desc": "Aura schießt mit tödlicher Präzision."
+   "desc": "Aura schießt mit tödlicher Präzision.",
+   "fx": "arrow",
+   "count": 3,
+   "spread": 12,
+   "sound": "arrow_shot"
   },
   "beast_call": {
    "name": "Ruf der Bestien",
@@ -906,7 +941,8 @@
    "stagger": 80,
    "knockback": 6,
    "color": "#8ad860",
-   "desc": "Fenrir und die Bestien des Dschungels stürmen heran."
+   "desc": "Fenrir und die Bestien des Dschungels stürmen heran.",
+   "fx": "steel"
   },
   "paralyze_breath": {
    "name": "Lähmender Atem",
@@ -942,6 +978,68 @@
    "knockback": 3,
    "color": "#a0e070",
    "desc": "Flink wie ein Raubtier mitten unter die Feinde."
+  },
+  "chain_lightning": {
+   "name": "Kettendrachenblitz",
+   "icon": "↯",
+   "key": "2",
+   "cost": 26,
+   "cost_type": "mana",
+   "cooldown": 4.0,
+   "cast": 0.35,
+   "kind": "chain",
+   "range": 16,
+   "jump": 7.5,
+   "chains": 4,
+   "damage": 34,
+   "type": "lightning",
+   "status": {
+    "stun": 0.35
+   },
+   "stagger": 35,
+   "color": "#8fc8ff",
+   "desc": "Maximierter Kettendrachenblitz: springt von Feind zu Feind – bis zu fünf Ziele, jedes etwas schwächer."
+  },
+  "fallen_down": {
+   "name": "Fallen Down",
+   "icon": "☀",
+   "key": "Y",
+   "cost": 0,
+   "cost_type": "mana",
+   "cooldown": 90.0,
+   "cast": 4.0,
+   "kind": "super",
+   "range": 30,
+   "radius": 9.0,
+   "outer": 15.0,
+   "outer_mult": 0.3,
+   "damage": 420,
+   "type": "holy",
+   "stagger": 400,
+   "knockback": 10,
+   "color": "#fff2b0",
+   "super": true,
+   "desc": "Superrang-Magie: Eine Säule aus vernichtendem Licht fällt vom Himmel. Lange Beschwörung, nicht zu unterbrechen."
+  },
+  "sword_throw": {
+   "name": "Schwertwurf",
+   "icon": "⚔",
+   "key": "3",
+   "cost": 25,
+   "cost_type": "stamina",
+   "cooldown": 4.5,
+   "cast": 0.35,
+   "kind": "projectile",
+   "fx": "sword",
+   "speed": 26,
+   "damage": 44,
+   "type": "physical",
+   "stagger": 70,
+   "knockback": 4,
+   "homing": 1.5,
+   "color": "#d4af37",
+   "sound": "whirl",
+   "desc": "Momon schleudert ein Großschwert – es kreist durch die Luft und zerschmettert Rüstungen."
   }
  },
  "enemies": {
@@ -968,7 +1066,9 @@
      "damage": 14,
      "range": 1.9,
      "stagger": 20,
-     "arc": 100
+     "arc": 100,
+     "next": "lunge",
+     "next_chance": 0.3
     },
     {
      "id": "lunge",
@@ -982,7 +1082,10 @@
      "stagger": 25,
      "arc": 60
     }
-   ]
+   ],
+   "ai": "grunt",
+   "material": "bone",
+   "height": 1.85
   },
   "death_knight": {
    "name": "Todesritter",
@@ -1008,7 +1111,10 @@
      "damage": 30,
      "range": 2.6,
      "stagger": 60,
-     "arc": 140
+     "arc": 140,
+     "armor": true,
+     "next": "bash",
+     "next_chance": 0.45
     },
     {
      "id": "bash",
@@ -1033,9 +1139,14 @@
      "stagger": 120,
      "arc": 50,
      "unblockable": true,
-     "lunge": 2.0
+     "lunge": 2.0,
+     "armor": true
     }
-   ]
+   ],
+   "ai": "brute",
+   "material": "dark_armor",
+   "undying": true,
+   "height": 2.3
   },
   "soldier": {
    "name": "Ritter der Schrift",
@@ -1057,7 +1168,9 @@
      "damage": 15,
      "range": 2.0,
      "stagger": 25,
-     "arc": 110
+     "arc": 110,
+     "next": "thrust",
+     "next_chance": 0.4
     },
     {
      "id": "thrust",
@@ -1071,7 +1184,9 @@
      "stagger": 30,
      "arc": 50
     }
-   ]
+   ],
+   "ai": "duelist",
+   "material": "armor"
   },
   "wolf": {
    "name": "Waldwolf",
@@ -1111,7 +1226,10 @@
      "arc": 60,
      "unblockable": true
     }
-   ]
+   ],
+   "ai": "beast",
+   "material": "beast",
+   "height": 1.05
   },
   "angel": {
    "name": "Engel der Herrschaft",
@@ -1139,7 +1257,8 @@
      "range": 2.6,
      "stagger": 50,
      "arc": 140,
-     "type": "holy"
+     "type": "holy",
+     "armor": true
     },
     {
      "id": "judgement",
@@ -1148,13 +1267,21 @@
      "active": 0.3,
      "recovery": 1.3,
      "damage": 45,
-     "range": 3.5,
+     "range": 14,
      "stagger": 120,
      "arc": 360,
      "unblockable": true,
-     "type": "holy"
+     "type": "holy",
+     "kind": "aoe",
+     "radius": 3.2,
+     "fx": "holy",
+     "color": "#fff0b0",
+     "cooldown": 6
     }
-   ]
+   ],
+   "ai": "brute",
+   "material": "holy",
+   "height": 2.6
   },
   "golem": {
    "name": "Übungsgolem",
@@ -1189,9 +1316,13 @@
      "range": 3.0,
      "stagger": 60,
      "arc": 360,
-     "unblockable": true
+     "unblockable": true,
+     "armor": true
     }
-   ]
+   ],
+   "ai": "brute",
+   "material": "stone",
+   "height": 2.6
   },
   "lizard": {
    "name": "Echsenkrieger",
@@ -1214,7 +1345,8 @@
      "range": 2.8,
      "lunge": 2.0,
      "stagger": 25,
-     "arc": 60
+     "arc": 60,
+     "next": "tail"
     },
     {
      "id": "tail",
@@ -1227,7 +1359,9 @@
      "stagger": 50,
      "arc": 180
     }
-   ]
+   ],
+   "ai": "duelist",
+   "material": "beast"
   },
   "quagoa": {
    "name": "Quagoa",
@@ -1264,7 +1398,10 @@
      "arc": 60,
      "unblockable": true
     }
-   ]
+   ],
+   "ai": "beast",
+   "material": "beast",
+   "height": 1.3
   },
   "elf": {
    "name": "Elfenkrieger",
@@ -1300,7 +1437,9 @@
      "stagger": 30,
      "arc": 60
     }
-   ]
+   ],
+   "ai": "skirmisher",
+   "material": "flesh"
   },
   "zaryusu": {
    "name": "Zaryusu Shasha",
@@ -1340,6 +1479,56 @@
      "stagger": 30,
      "arc": 50
     }
+   ],
+   "ai": "boss",
+   "boss": true,
+   "material": "beast",
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Frostschmerz – erwache!",
+     "speed": 1.15,
+     "cd": 0.8,
+     "color": "#9fe0ff",
+     "add": [
+      {
+       "id": "frost_slash",
+       "name": "Frostschmerz",
+       "windup": 0.8,
+       "active": 0.2,
+       "recovery": 0.7,
+       "damage": 38,
+       "range": 3.0,
+       "arc": 170,
+       "type": "ice",
+       "status": {
+        "chill": 3.0
+       },
+       "stagger": 50,
+       "color": "#9fe0ff"
+      },
+      {
+       "id": "frost_burst",
+       "name": "Eisiger Sturm",
+       "kind": "aoe",
+       "fx": "ice",
+       "type": "ice",
+       "radius": 3.0,
+       "windup": 1.2,
+       "active": 0.2,
+       "recovery": 0.9,
+       "damage": 30,
+       "range": 12,
+       "unblockable": true,
+       "status": {
+        "chill": 3.0
+       },
+       "stagger": 60,
+       "color": "#9fe0ff",
+       "cooldown": 8
+      }
+     ]
+    }
    ]
   },
   "mercenary": {
@@ -1376,7 +1565,9 @@
      "stagger": 30,
      "arc": 50
     }
-   ]
+   ],
+   "ai": "grunt",
+   "material": "flesh"
   },
   "brain": {
    "name": "Brain Unglaus",
@@ -1412,6 +1603,36 @@
      "lunge": 2.5,
      "stagger": 30,
      "arc": 50
+    }
+   ],
+   "ai": "boss",
+   "boss": true,
+   "material": "flesh",
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Domäne … Augenblicksschnitt!",
+     "speed": 1.2,
+     "cd": 0.75,
+     "add": [
+      {
+       "id": "god_flash",
+       "name": "Augenblicksschnitt",
+       "windup": 0.38,
+       "active": 0.12,
+       "recovery": 0.9,
+       "damage": 44,
+       "range": 4.5,
+       "lunge": 6.0,
+       "arc": 60,
+       "unblockable": true,
+       "stagger": 80,
+       "fx": {
+        "slash": "thrust"
+       },
+       "cooldown": 4
+      }
+     ]
     }
    ]
   },
@@ -1449,7 +1670,9 @@
      "stagger": 30,
      "arc": 50
     }
-   ]
+   ],
+   "ai": "duelist",
+   "material": "armor"
   },
   "gagaran": {
    "name": "Gagaran von den Blauen Rosen",
@@ -1485,6 +1708,34 @@
      "lunge": 2.5,
      "stagger": 30,
      "arc": 50
+    }
+   ],
+   "ai": "boss",
+   "boss": true,
+   "material": "armor",
+   "phases": [
+    {
+     "at": 0.45,
+     "say": "Ultimative Kraft!",
+     "speed": 1.1,
+     "cd": 0.8,
+     "add": [
+      {
+       "id": "quake",
+       "name": "Erdbebenhammer",
+       "windup": 1.2,
+       "active": 0.25,
+       "recovery": 1.1,
+       "damage": 40,
+       "range": 3.6,
+       "arc": 360,
+       "unblockable": true,
+       "armor": true,
+       "stagger": 110,
+       "knockback": 7,
+       "cooldown": 6
+      }
+     ]
     }
    ]
   },
@@ -1522,7 +1773,9 @@
      "stagger": 30,
      "arc": 50
     }
-   ]
+   ],
+   "ai": "grunt",
+   "material": "flesh"
   },
   "succulent": {
    "name": "Succulent der Illusionist",
@@ -1538,26 +1791,59 @@
    "attacks": [
     {
      "id": "slash",
-     "name": "Schwerthieb",
-     "windup": 0.47,
-     "active": 0.16,
+     "name": "Trugklinge",
+     "windup": 0.45,
+     "active": 0.15,
      "recovery": 0.6,
-     "damage": 26,
+     "damage": 22,
      "range": 2.0,
-     "stagger": 25,
-     "arc": 110
+     "arc": 110,
+     "stagger": 25
     },
     {
-     "id": "thrust",
-     "name": "Stich",
-     "windup": 0.59,
-     "active": 0.18,
+     "id": "phantom",
+     "name": "Phantomstrahl",
+     "kind": "projectile",
+     "fx": "dark",
+     "type": "negative",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 24,
+     "range": 20,
+     "speed": 20,
+     "homing": 1.4,
+     "stagger": 25,
+     "color": "#c080ff"
+    },
+    {
+     "id": "mirror",
+     "name": "Spiegelbilder",
+     "kind": "summon",
+     "summon": "illusion",
+     "count": 3,
+     "max": 3,
+     "windup": 1.2,
+     "active": 0.2,
      "recovery": 0.8,
-     "damage": 34,
-     "range": 2.6,
-     "lunge": 2.5,
-     "stagger": 30,
-     "arc": 50
+     "range": 30,
+     "cooldown": 14,
+     "color": "#c080ff"
+    }
+   ],
+   "ai": "caster",
+   "boss": true,
+   "material": "flesh",
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Welches von uns ist das echte?",
+     "summon": [
+      "illusion",
+      3
+     ],
+     "cd": 0.8,
+     "color": "#c080ff"
     }
    ]
   },
@@ -1598,6 +1884,481 @@
      "lunge": 4.5,
      "stagger": 30,
      "arc": 60
+    }
+   ],
+   "ai": "boss",
+   "boss": true,
+   "material": "flesh",
+   "phases": [
+    {
+     "at": 0.55,
+     "say": "Der Wald selbst kämpft für mich!",
+     "speed": 1.15,
+     "cd": 0.8,
+     "add": [
+      {
+       "id": "thorns",
+       "name": "Zorn des Waldes",
+       "kind": "aoe",
+       "fx": "steel",
+       "radius": 3.4,
+       "windup": 1.3,
+       "active": 0.2,
+       "recovery": 0.9,
+       "damage": 36,
+       "range": 14,
+       "unblockable": true,
+       "stagger": 70,
+       "color": "#8ad860",
+       "cooldown": 7
+      }
+     ]
+    }
+   ]
+  },
+  "skeleton_archer": {
+   "name": "Skelettschütze",
+   "hp": 50,
+   "armor": 5,
+   "speed": 3.4,
+   "poise": 20,
+   "aggro": 20,
+   "model": "skeleton",
+   "weapon": "bow",
+   "ai": "archer",
+   "material": "bone",
+   "color": "#d8d2c0",
+   "gold": 5,
+   "resist": {
+    "fire": 1.2
+   },
+   "attacks": [
+    {
+     "id": "arrow",
+     "name": "Knochenpfeil",
+     "kind": "projectile",
+     "fx": "arrow",
+     "windup": 0.85,
+     "active": 0.05,
+     "recovery": 0.7,
+     "damage": 12,
+     "range": 22,
+     "speed": 30,
+     "stagger": 12
+    },
+    {
+     "id": "bash",
+     "name": "Bogenhieb",
+     "windup": 0.5,
+     "active": 0.14,
+     "recovery": 0.6,
+     "damage": 8,
+     "range": 1.8,
+     "arc": 100,
+     "stagger": 15
+    }
+   ]
+  },
+  "elder_lich": {
+   "name": "Ältester Leichnam",
+   "hp": 240,
+   "armor": 15,
+   "speed": 2.8,
+   "poise": 60,
+   "aggro": 20,
+   "model": "skeleton",
+   "scale": 1.12,
+   "tint": "#7a40c0",
+   "weapon": "staff",
+   "ai": "caster",
+   "elite": true,
+   "material": "undead_lord",
+   "color": "#b070ff",
+   "gold": 35,
+   "resist": {
+    "negative": 0.3,
+    "holy": 1.5,
+    "fire": 1.2
+   },
+   "barks": {
+    "alert": [
+     "Lebende … oder nicht? Gleichgültig.",
+     "Erhebt euch, Diener!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "dark_bolt",
+     "name": "Negativer Strahl",
+     "kind": "projectile",
+     "fx": "dark",
+     "type": "negative",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 20,
+     "range": 20,
+     "speed": 18,
+     "homing": 1.2,
+     "stagger": 25,
+     "color": "#b070ff"
+    },
+    {
+     "id": "fireball",
+     "name": "Feuerball",
+     "kind": "aoe",
+     "fx": "fire",
+     "type": "fire",
+     "radius": 3.0,
+     "windup": 1.4,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 34,
+     "range": 18,
+     "unblockable": true,
+     "status": {
+      "burn": 3.0
+     },
+     "stagger": 70,
+     "color": "#ff7a2a",
+     "cooldown": 7
+    },
+    {
+     "id": "raise",
+     "name": "Untote erheben",
+     "kind": "summon",
+     "summon": "skeleton",
+     "count": 2,
+     "max": 3,
+     "windup": 1.6,
+     "active": 0.2,
+     "recovery": 1.0,
+     "range": 30,
+     "cooldown": 16,
+     "color": "#b070ff"
+    },
+    {
+     "id": "touch",
+     "name": "Eisige Berührung",
+     "windup": 0.55,
+     "active": 0.15,
+     "recovery": 0.7,
+     "damage": 14,
+     "range": 1.9,
+     "arc": 100,
+     "type": "negative",
+     "status": {
+      "chill": 2.0
+     },
+     "stagger": 20
+    }
+   ]
+  },
+  "sunlit_caster": {
+   "name": "Magier der Sonnenschrift",
+   "hp": 120,
+   "armor": 15,
+   "speed": 3.6,
+   "poise": 35,
+   "aggro": 20,
+   "model": "soldier",
+   "weapon": "staff",
+   "ai": "caster",
+   "material": "flesh",
+   "color": "#e8d8a0",
+   "gold": 18,
+   "resist": {
+    "holy": 0.5
+   },
+   "attacks": [
+    {
+     "id": "holy_bolt",
+     "name": "Lichtgeschoss",
+     "kind": "projectile",
+     "fx": "holy",
+     "type": "holy",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 18,
+     "range": 20,
+     "speed": 22,
+     "stagger": 22,
+     "color": "#fff0b0"
+    },
+    {
+     "id": "summon_angel",
+     "name": "Engel beschwören",
+     "kind": "summon",
+     "summon": "angel_flame",
+     "count": 1,
+     "max": 1,
+     "windup": 1.5,
+     "active": 0.2,
+     "recovery": 1.0,
+     "range": 30,
+     "cooldown": 18,
+     "color": "#fff0b0"
+    },
+    {
+     "id": "smite",
+     "name": "Göttliches Urteil",
+     "kind": "aoe",
+     "fx": "holy",
+     "type": "holy",
+     "radius": 2.6,
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 28,
+     "range": 16,
+     "unblockable": true,
+     "stagger": 60,
+     "color": "#fff0b0",
+     "cooldown": 8
+    }
+   ]
+  },
+  "angel_flame": {
+   "name": "Flammenerzengel",
+   "hp": 90,
+   "armor": 20,
+   "speed": 3.8,
+   "poise": 40,
+   "aggro": 30,
+   "model": "angel",
+   "color": "#ffd890",
+   "gold": 4,
+   "material": "holy",
+   "ai": "grunt",
+   "resist": {
+    "negative": 1.4
+   },
+   "attacks": [
+    {
+     "id": "flame_sword",
+     "name": "Flammenschwert",
+     "windup": 0.6,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 16,
+     "range": 2.4,
+     "arc": 120,
+     "type": "fire",
+     "stagger": 25,
+     "color": "#ffb060"
+    }
+   ]
+  },
+  "scripture_archer": {
+   "name": "Schütze der Schrift",
+   "hp": 80,
+   "armor": 20,
+   "speed": 3.8,
+   "poise": 30,
+   "aggro": 22,
+   "model": "soldier",
+   "weapon": "bow",
+   "ai": "archer",
+   "material": "armor",
+   "color": "#c8d0e8",
+   "gold": 10,
+   "attacks": [
+    {
+     "id": "arrow",
+     "name": "Gesegneter Pfeil",
+     "kind": "projectile",
+     "fx": "arrow",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 15,
+     "range": 24,
+     "speed": 32,
+     "stagger": 15
+    },
+    {
+     "id": "volley",
+     "name": "Pfeilsalve",
+     "kind": "projectile",
+     "fx": "arrow",
+     "count": 3,
+     "spread": 14,
+     "windup": 1.1,
+     "active": 0.05,
+     "recovery": 0.9,
+     "damage": 11,
+     "range": 20,
+     "speed": 30,
+     "stagger": 12,
+     "cooldown": 6
+    },
+    {
+     "id": "kick",
+     "name": "Tritt",
+     "windup": 0.4,
+     "active": 0.12,
+     "recovery": 0.5,
+     "damage": 8,
+     "range": 1.7,
+     "arc": 90,
+     "stagger": 25,
+     "knockback": 4
+    }
+   ]
+  },
+  "elf_archer": {
+   "name": "Elfenschützin",
+   "hp": 70,
+   "armor": 10,
+   "speed": 4.6,
+   "poise": 25,
+   "aggro": 22,
+   "model": "soldier",
+   "weapon": "bow",
+   "ai": "archer",
+   "material": "flesh",
+   "color": "#7ad890",
+   "gold": 10,
+   "attacks": [
+    {
+     "id": "arrow",
+     "name": "Elfenpfeil",
+     "kind": "projectile",
+     "fx": "arrow",
+     "windup": 0.7,
+     "active": 0.05,
+     "recovery": 0.55,
+     "damage": 14,
+     "range": 26,
+     "speed": 34,
+     "stagger": 14
+    },
+    {
+     "id": "volley",
+     "name": "Pfeilregen",
+     "kind": "projectile",
+     "fx": "arrow",
+     "count": 4,
+     "spread": 18,
+     "windup": 1.0,
+     "active": 0.05,
+     "recovery": 0.8,
+     "damage": 9,
+     "range": 20,
+     "speed": 32,
+     "stagger": 10,
+     "cooldown": 5
+    }
+   ]
+  },
+  "bandit_archer": {
+   "name": "Söldner-Schütze",
+   "hp": 75,
+   "armor": 15,
+   "speed": 3.9,
+   "poise": 30,
+   "aggro": 20,
+   "model": "soldier",
+   "weapon": "bow",
+   "ai": "archer",
+   "material": "flesh",
+   "color": "#6a5a4a",
+   "gold": 8,
+   "attacks": [
+    {
+     "id": "arrow",
+     "name": "Armbrustbolzen",
+     "kind": "projectile",
+     "fx": "arrow",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.7,
+     "damage": 16,
+     "range": 22,
+     "speed": 34,
+     "stagger": 18
+    }
+   ]
+  },
+  "lizard_shaman": {
+   "name": "Echsenschamane",
+   "hp": 95,
+   "armor": 15,
+   "speed": 3.6,
+   "poise": 30,
+   "aggro": 18,
+   "model": "soldier",
+   "weapon": "staff",
+   "ai": "caster",
+   "material": "beast",
+   "color": "#4f7a5a",
+   "gold": 12,
+   "attacks": [
+    {
+     "id": "water_bolt",
+     "name": "Sumpfgeschoss",
+     "kind": "projectile",
+     "fx": "ice",
+     "type": "ice",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 16,
+     "range": 18,
+     "speed": 20,
+     "status": {
+      "chill": 2.0
+     },
+     "stagger": 20,
+     "color": "#8fd0c0"
+    },
+    {
+     "id": "mire",
+     "name": "Morastfalle",
+     "kind": "aoe",
+     "fx": "ice",
+     "type": "ice",
+     "radius": 2.8,
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 24,
+     "range": 14,
+     "unblockable": true,
+     "status": {
+      "chill": 3.0
+     },
+     "stagger": 50,
+     "color": "#8fd0c0",
+     "cooldown": 8
+    }
+   ]
+  },
+  "illusion": {
+   "name": "Trugbild",
+   "hp": 1,
+   "armor": 0,
+   "speed": 4.6,
+   "poise": 1,
+   "aggro": 30,
+   "model": "soldier",
+   "color": "#7a4a8a",
+   "tint": "#c080ff",
+   "gold": 0,
+   "material": "holy",
+   "ai": "skirmisher",
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Trughieb",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 6,
+     "range": 2.0,
+     "arc": 110,
+     "stagger": 10
     }
    ]
   }

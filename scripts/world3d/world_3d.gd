@@ -47,7 +47,9 @@ func _ready() -> void:
 	player.feedback.connect(_on_feedback)
 	player.style_changed.connect(func(_s): _rebuild_spell_bar())
 	player.damaged.connect(_on_player_damaged)
+	player.struck.connect(_on_player_struck)
 	player.died.connect(func(_f): _on_player_died())
+	Enemy3D.spawner = spawn_enemy
 	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
@@ -74,6 +76,8 @@ func load_location(id: String, fade: bool = false) -> void:
 	enemies.clear()
 	_focus = null
 	player.lock = null
+	CombatDirector.reset()
+	CombatFX.reset_time()
 	quest_world.clear()
 	if level:
 		# alten Ort erst vollständig freigeben, dann den neuen bauen (halbiert den Speicher-Spitzenwert)
@@ -98,6 +102,11 @@ func load_location(id: String, fade: bool = false) -> void:
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
+	Audio.set_space(String(loc.get("kind", "")))
+	# Kampfeffekte einmal zeigen (unsichtbar), damit der erste Treffer nicht ruckelt
+	await get_tree().process_frame
+	if is_instance_valid(level):
+		CombatFX.prewarm(level, player.camera)
 	if not Game.state.has("world3d"):
 		Game.state["world3d"] = {}
 	Game.state.world3d["loc"] = id
@@ -671,21 +680,19 @@ func spawn_enemy(id: String, pos: Vector3) -> Enemy3D:
 	level.add_child(e)
 	e.add_to_group("enemies")
 	enemies.append(e)
-	e.damaged.connect(_on_enemy_damaged)
 	e.defeated.connect(_on_enemy_defeated)
+	e.telegraphed.connect(func(en: Enemy3D, a: Dictionary): hud.indicators.warn(en, float(a.get("windup", 0.5)), bool(a.get("unblockable", false))))
 	return e
 
 
-func _on_enemy_damaged(f: Fighter, amount: int, kind: String) -> void:
-	var col: Color = {"fire": Color(1, 0.6, 0.2), "negative": Color(0.75, 0.4, 1.0), "holy": Color(1, 0.95, 0.6)}.get(kind, Color(1, 1, 1))
-	var crit := amount >= 40
-	_float_text(f.global_position + Vector3(randf_range(-0.4, 0.4), 2.4, 0), str(amount) + ("!" if crit else ""),
-		col.lerp(Palette.GOLD_BRIGHT, 0.35) if crit else col, 60 if crit else 44)
-
-
 func _on_player_damaged(_f: Fighter, amount: int, _kind: String) -> void:
-	_float_text(player.global_position + Vector3(0, 2.4, 0), "−%d" % amount, Color(1, 0.3, 0.3), 40)
 	hud_vignette.color.a = clampf(0.15 + amount / 120.0, 0.0, 0.5)
+
+
+## Treffer auf Ainz: Richtungsbogen zur Quelle (auch bei Block).
+func _on_player_struck(_f: Fighter, res: String, info: Dictionary, dealt: float) -> void:
+	if res in ["hit", "kill", "block", "guardbreak", "shield"] and info.has("_src"):
+		hud.indicators.hit_from(info._src, 0.6 + clampf(dealt / 40.0, 0.0, 0.8))
 
 
 func _on_enemy_defeated(e: Enemy3D) -> void:
@@ -694,7 +701,16 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 	var gold := int(e.data.get("gold", 0))
 	if gold > 0:
 		Game.apply_effects({"res": {"gold": gold}})
-		_float_text(e.global_position + Vector3(0, 3.0, 0), "+%d Gold" % gold, Palette.GOLD_BRIGHT, 40)
+		CombatFX.float_text(level, e.global_position + Vector3(0, e.body_height + 1.0, 0), "+%d Gold" % gold, Palette.GOLD_BRIGHT, 40)
+	# Siegmoment: Elite, Boss oder der letzte Gegner im Kampf → kurze Zeitlupe
+	var last := CombatDirector.engaged(player).is_empty()
+	if e.data.get("boss", false) or e.data.get("elite", false):
+		CombatFX.slowmo(0.28, 0.55)
+		CombatFX.shake(0.3)
+		CombatFX.sound("kill_big", e.global_position + Vector3.UP, 1.0)
+	elif last:
+		CombatFX.slowmo(0.4, 0.32)
+		CombatFX.sound("kill_big", e.global_position + Vector3.UP, 0.8)
 	Progress.bump("enemies_slain")
 	if e.data.get("elite", false):
 		Progress.roll_loot("battle", "Bezwungen: " + e.display_name)
@@ -736,30 +752,13 @@ func _on_feedback(text: String, color: Color) -> void:
 	tw.tween_property(hud_feedback, "modulate:a", 0.0, 0.5)
 
 
+func _exit_tree() -> void:
+	CombatFX.reset_time()
+	CombatDirector.reset()
+
+
 func _float_text(at: Vector3, text: String, col: Color, size: int) -> void:
-	# Schadenszahl: springt groß auf, schrumpft auf Normalgröße und steigt in leichtem Bogen davon
-	var l := Label3D.new()
-	l.text = text
-	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	l.font = NazarickTheme.display_font(800)
-	l.font_size = size
-	l.outline_size = 12
-	l.modulate = col
-	l.outline_modulate = Color(col.darkened(0.85), 0.9)
-	l.pixel_size = 0.006
-	l.no_depth_test = true
-	l.render_priority = 10
-	level.add_child(l)
-	l.global_position = at
-	var big := size >= 50
-	l.scale = Vector3.ONE * (1.9 if big else 1.4)
-	var side := Vector3(randf_range(-0.7, 0.7), 0, randf_range(-0.3, 0.3))
-	var tw := l.create_tween().set_parallel(true)
-	tw.tween_property(l, "scale", Vector3.ONE, 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "global_position", at + Vector3(0, 1.4, 0) + side, 1.0).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(l, "modulate:a", 0.0, 0.5).set_delay(0.55)
-	tw.tween_property(l, "outline_modulate:a", 0.0, 0.5).set_delay(0.55)
-	tw.chain().tween_callback(l.queue_free)
+	CombatFX.float_text(level, at, text, col, size)
 
 
 func _rebuild_spell_bar() -> void:
@@ -823,14 +822,16 @@ func _lead_battle(uid: String) -> void:
 func _battle_roster(b: Dictionary) -> Array:
 	var name := String(b.enemy_name).to_lower()
 	if "engel" in name or "theokratie" in name or "schrift" in name:
-		return ["angel", "soldier", "soldier"]
+		return ["angel", "soldier", "scripture_archer", "soldier", "sunlit_caster", "scripture_archer"]
 	if "elf" in name:
-		return ["elf"]
+		return ["elf", "elf_archer", "elf", "elf_archer"]
 	if "untot" in name or "katze" in name:
-		return ["death_knight", "skeleton", "skeleton"]
+		return ["death_knight", "skeleton", "skeleton_archer", "skeleton", "elder_lich", "skeleton_archer"]
 	if "quagoa" in name or "frost" in name:
 		return ["quagoa"]
-	return ["soldier", "soldier", "death_knight"]
+	if "echsen" in name or "sumpf" in name:
+		return ["lizard", "lizard", "lizard_shaman"]
+	return ["soldier", "soldier", "bandit_archer", "death_knight", "bandit_archer"]
 
 
 func _check_battle_end() -> void:
@@ -861,7 +862,7 @@ func start_tutorial() -> void:
 		["demiurge", "Am [b]Kriegsrat[/b] (links) liegen die Auftragstafel, die Karte des Kriegstisches und die Diplomatie. Befehle an uns Wächter erteilt Ihr dort – oder jederzeit mit [b]J[/b]."],
 		["albedo", "Mein [b]Pult[/b] (rechts) birgt Verwaltung, Ausbau, Schatzkammer und meine Wochenziele für Euch. Der [b]Thron[/b] lässt die Zeit verstreichen – sie fließt aber auch von selbst."],
 		["cocytus", "Das [b]Gate[/b] am Ende der Halle führt in jede erkundete Region. Dort lauern Feinde: [b]linke Maustaste[/b] leichter Schlag, [b]rechte[/b] schwerer, [b]Leertaste[/b] ausweichen, [b]F[/b] blocken – im rechten Moment pariert. [b]Q[/b] fixiert ein Ziel."],
-		["shalltear", "Und Zauber, ~arinsu! [b]1–4[/b] und [b]R[/b] wirken Eure Magie, mit [b]X[/b] werdet Ihr zu Momon mit zwei Großschwertern. Und wenn Ihr mich lobt statt diese gehörnte Kuh – umso besser!"],
+		["shalltear", "Und Zauber, ~arinsu! [b]1–5[/b] und [b]R[/b] wirken Eure Magie, [b]%s[/b] entfesselt Superrang-Magie, mit [b]X[/b] werdet Ihr zu Momon mit zwei Großschwertern. Und wenn Ihr mich lobt statt diese gehörnte Kuh – umso besser!" % Player3D.key_label("spell_super")],
 	]
 	_tutorial_step(steps, 0)
 

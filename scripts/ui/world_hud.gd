@@ -39,6 +39,12 @@ var state_label := Label.new()
 var bars: Dictionary = {}
 var spell_row := HBoxContainer.new()
 var slots: Array[SpellSlot] = []
+var indicators := CombatIndicators.new()
+var boss_box := VBoxContainer.new()
+var boss_name := Label.new()
+var boss_bar := HudBar.new(Palette.CRIMSON, 16.0, 560.0)
+var boss_poise := HudBar.new(Color(1.0, 0.8, 0.3), 5.0, 520.0)
+var _boss: Node
 var toast_box := VBoxContainer.new()
 var _portrait_id := ""
 var _fade := 1.0
@@ -51,6 +57,8 @@ func _init() -> void:
 
 func setup(w: Node) -> void:
 	world = w
+	indicators.player = w.player
+	add_child(indicators)
 	_build_top()
 	_build_right()
 	_build_bottom()
@@ -108,6 +116,23 @@ func _build_top() -> void:
 	target.add_child(target_info)
 	target.visible = false
 	add_child(target)
+	# Bossrahmen (großer Balken unter dem Kompass, solange ein Boss kämpft)
+	boss_box.set_anchors_and_offsets_preset(Control.PRESET_CENTER_TOP)
+	boss_box.offset_left = -290
+	boss_box.offset_right = 290
+	boss_box.offset_top = 60
+	boss_box.add_theme_constant_override("separation", 3)
+	boss_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	boss_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_outlined(boss_name, 22, Palette.GOLD_BRIGHT, NazarickTheme.display_font(800), 7)
+	boss_bar.ticks = 100.0
+	boss_poise.show_text = false
+	boss_poise.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	boss_box.add_child(boss_name)
+	boss_box.add_child(boss_bar)
+	boss_box.add_child(boss_poise)
+	boss_box.visible = false
+	add_child(boss_box)
 	# Ort und Datum
 	var lv := VBoxContainer.new()
 	lv.position = Vector2(22, 14)
@@ -278,7 +303,7 @@ func _build_misc() -> void:
 	help_text.text = "[color=#d4af37][b]STEUERUNG[/b][/color]  [color=#8f86a3][i]F1 ein/aus[/i][/color]\n" + \
 		"[color=#f5d77a]WASD[/color] gehen · [color=#f5d77a]Shift[/color] rennen · Maus Kamera\n" + \
 		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
-		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–4, R[/color] Zauber · [color=#f5d77a]X[/color] Momon\n" + \
+		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
 		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche\n" + \
 		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
 		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
@@ -407,10 +432,18 @@ func rebuild_spells(player: Node) -> void:
 	for c in spell_row.get_children():
 		c.queue_free()
 	slots.clear()
-	var keys := ["1", "2", "3", "4", "R"]
 	var sp: Array = player.spells()
-	for i in sp.size():
-		var s := SpellSlot.new(sp[i], Content.combat.spells[sp[i]], keys[i])
+	for i in mini(sp.size(), 6):
+		var s := SpellSlot.new(sp[i], Content.combat.spells[sp[i]], Player3D.key_label(Player3D.SPELL_ACTIONS[i]))
+		spell_row.add_child(s)
+		slots.append(s)
+	var sup: String = player.super_spell()
+	if sup != "" and Content.combat.spells.has(sup):
+		var gap := Control.new()
+		gap.custom_minimum_size.x = 14
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		spell_row.add_child(gap)
+		var s := SpellSlot.new(sup, Content.combat.spells[sup], Player3D.key_label("spell_super"), true)
 		spell_row.add_child(s)
 		slots.append(s)
 
@@ -449,10 +482,24 @@ func tick(delta: float, blocked: bool) -> void:
 		var sd: Dictionary = Content.combat.spells[s.spell_id]
 		var pool: float = p.mana if sd.get("cost_type", "mana") == "mana" else p.stamina
 		s.update(float(p.cooldowns.get(s.spell_id, 0.0)), pool >= float(sd.get("cost", 0)))
+	# Boss im Kampf: großer Balken oben
+	var boss: Node = null
+	for e in CombatDirector.engaged(p):
+		if e.data.get("boss", false) and e.global_position.distance_to(p.global_position) < 40.0:
+			boss = e
+			break
+	if boss != _boss:
+		_boss = boss
+		if boss:
+			boss_name.text = "◆  " + String(boss.display_name).to_upper() + "  ◆"
+	boss_box.visible = boss != null
+	if boss:
+		boss_bar.set_values(boss.hp, boss.max_hp)
+		boss_poise.set_values(boss.poise, boss.max_poise)
 	# Ziel
 	var lk = p.lock
 	if lk != null and is_instance_valid(lk) and lk.state != Fighter.S.DEAD:
-		target.visible = true
+		target.visible = lk != _boss
 		var elite: bool = lk.get("data") is Dictionary and lk.data.get("elite", false)
 		target_name.text = ("◆ " if elite else "") + lk.display_name
 		target_name.add_theme_color_override("font_color", Palette.GOLD_BRIGHT if elite else Color(1, 0.72, 0.7))
