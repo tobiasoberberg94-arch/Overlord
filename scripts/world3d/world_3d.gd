@@ -57,6 +57,7 @@ func _ready() -> void:
 	Enemy3D.spawner = spawn_enemy
 	Enemy3D.ally_spawner = spawn_ally
 	Progress.grimoire_changed.connect(_rebuild_spell_bar)
+	Progress.souls_changed.connect(_on_souls_hint)
 	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
@@ -770,6 +771,14 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 	if enemies.is_empty() and not e.data.get("respawn", false) and story == null:
 		toast("Die Gegend ist gesäubert.", Palette.SUCCESS)
 	_refresh_hud()
+
+
+## Einmaliger Hinweis, sobald die Seelen für die erste Aufwertung reichen.
+func _on_souls_hint(total: int, gained: int) -> void:
+	if gained <= 0 or Game.has_flag("hint_grimoire") or total < int(Progress.gcfg().get("rank_cost", {}).get("2", 120)):
+		return
+	Game.set_flag("hint_grimoire")
+	toast("❖ Genug Seelen für eine Aufwertung – öffnet das Zauberbuch [B].", Color(0.78, 0.6, 1.0))
 
 
 ## Beute eines Elite-Gegners oder Bosses: Artefakt für die Schatzkammer und/oder ein Ring für Ainz – als leuchtender

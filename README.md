@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.0.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.3.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
