@@ -82,7 +82,6 @@ func _enemy(id: String, at: Vector3) -> Enemy3D:
 	var en := Enemy3D.create(id)
 	en.position = at
 	add_child(en)
-	en.add_to_group("enemies")
 	en.face_towards(player.global_position)
 	return en
 

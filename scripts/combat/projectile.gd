@@ -28,7 +28,7 @@ static func spawn(parent: Node, from: Fighter, pos: Vector3, dir: Vector3, speed
 	p.color = col
 	p.element = el if el != "" else "fire"
 	p.collision_layer = 0
-	p.collision_mask = 1 | (Hitbox.LAYER_ENEMY_HURT if from.is_player else Hitbox.LAYER_PLAYER_HURT)
+	p.collision_mask = 1 | (Hitbox.LAYER_ENEMY_HURT if from.team == 0 else Hitbox.LAYER_PLAYER_HURT)
 	p.monitoring = true
 	p.monitorable = false
 	var cs := CollisionShape3D.new()
@@ -79,7 +79,7 @@ func _orient() -> void:
 func _on_area(a: Area3D) -> void:
 	if _done:
 		return
-	if a is Hurtbox and is_instance_valid(a.fighter) and a.fighter != source and a.fighter.state != Fighter.S.DEAD:
+	if a is Hurtbox and is_instance_valid(a.fighter) and a.fighter != source and a.fighter.state != Fighter.S.DEAD and (source == null or not is_instance_valid(source) or a.fighter.team != source.team):
 		a.fighter.take_hit(info, self)
 		_burst()
 

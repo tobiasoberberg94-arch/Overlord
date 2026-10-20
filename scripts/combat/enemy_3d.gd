@@ -47,10 +47,13 @@ const BARKS := {
 }
 
 static var spawner: Callable           ## world_3d.spawn_enemy (für Beschwörungen)
+static var hold := false               ## Filmszene: alle Kämpfer ruhen (keine KI, Angriffe brechen ab, Animation läuft)
 
 var type_id := ""
 var data: Dictionary = {}
+var ally := false                      ## kämpft für Nazarick (Todesritter, Wächter in Szenen-Einsätzen)
 var target: Fighter
+var _retarget := 0.0
 var home := Vector3.ZERO
 var aggro := 14.0
 var arch: Dictionary = {}
@@ -87,21 +90,25 @@ var _fx_time := 0.0
 var _bark_time := 0.0
 var _tele_col := Color.WHITE
 var _tele_a := 0.0
+var yielded := false                   ## hat aufgegeben (Story): kniet, kämpft nicht mehr, ist unverwundbar
+var _emitters: Array = []
 
 
 class AoeSource extends Node3D:
 	var source: Fighter
 
 
-static func create(id: String) -> Enemy3D:
+static func create(id: String, ally: bool = false) -> Enemy3D:
 	var e := Enemy3D.new()
 	e.type_id = id
 	e.data = Content.combat.enemies[id]
+	e.ally = ally or String(e.data.get("team", "")) == "ally"
 	return e
 
 
 func _ready() -> void:
-	setup_combat(false)
+	setup_combat(false, 0 if ally else 1)
+	add_to_group("allies" if ally else "enemies")
 	display_name = data.name
 	max_hp = float(data.hp)
 	hp = max_hp
@@ -122,6 +129,7 @@ func _ready() -> void:
 	body_height = float(data.get("height", DEFAULT_HEIGHT.get(model, 1.9)))
 	body_radius = 0.8 if model == "golem" else 0.5
 	undying = bool(data.get("undying", false))
+	crit_chance = float(data.get("crit", 0.0))
 	var col := CollisionShape3D.new()
 	var cap := CapsuleShape3D.new()
 	cap.radius = 0.5 if model != "golem" else 0.8
@@ -131,7 +139,11 @@ func _ready() -> void:
 	add_child(col)
 	var c := Color(data.get("color", "#cccccc"))
 	var weapon := String(data.get("weapon", ""))
-	rig = CharacterRig.create(model, func(r): ProcModel.enemy(r, model, c, weapon))
+	if data.has("figure"):
+		var fig := String(data.figure)
+		rig = CharacterRig.create(String(data.get("model", fig)), func(r): ProcModel.figure(r, fig))
+	else:
+		rig = CharacterRig.create(model, func(r): ProcModel.enemy(r, model, c, weapon))
 	add_child(rig)
 	if rig.has_model and weapon != "":
 		ProcModel.attach_weapon(rig, weapon, c)
@@ -139,7 +151,27 @@ func _ready() -> void:
 		rig.scale = Vector3.ONE * float(data.scale)
 	if data.has("tint"):
 		rig.glow(Color(data.tint), 0.12)
+	# Dauereffekte (Flammenleib eines Elementars, Blutnebel …): [art, farbe, höhe (Anteil der Körpergröße)]
+	for em in data.get("emit", []):
+		var pe := CombatFX.emitter(self, String(em[0]), Color(String(em[1])))
+		if pe:
+			pe.position = Vector3.UP * body_height * (float(em[2]) if em.size() > 2 else 0.5)
+			_emitters.append(pe)
+	if data.has("light"):
+		var lc: Array = data.light
+		var ol := OmniLight3D.new()
+		ol.light_color = Color(String(lc[0]))
+		ol.light_energy = float(lc[1]) if lc.size() > 1 else 2.0
+		ol.omni_range = float(lc[2]) if lc.size() > 2 else 7.0
+		ol.shadow_enabled = false
+		ol.position = Vector3.UP * body_height * 0.6
+		add_child(ol)
+		_emitters.append(ol)
 	_build_bars()
+	if rig.has_model:
+		rig.play("idle")
+		if rig.anim:
+			rig.anim.advance(0.0)
 	facing = Vector3.BACK
 	_strafe_dir = 1.0 if randf() < 0.5 else -1.0
 	_cooldown = randf_range(0.8, 1.8)
@@ -169,7 +201,7 @@ func _build_bars() -> void:
 	var fg := QuadMesh.new()
 	fg.size = Vector2(1.16, 0.07)
 	var m_fg := StandardMaterial3D.new()
-	m_fg.albedo_color = Color(0.9, 0.15, 0.2)
+	m_fg.albedo_color = Color(0.25, 0.85, 0.4) if ally else Color(0.9, 0.15, 0.2)
 	m_fg.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	m_fg.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
 	m_fg.billboard_keep_scale = true
@@ -232,6 +264,29 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector3.ZERO
 		_pose(delta)
 		return
+	if hold:
+		if state in [S.ATTACK, S.BLOCK, S.DODGE, S.STAGGER, S.CAST]:
+			set_state(S.IDLE)
+		if _mark and is_instance_valid(_mark):
+			_mark.release()
+			_mark = null
+		velocity.x = 0.0
+		velocity.z = 0.0
+		velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
+		move_with_steps(delta)
+		# alle blicken zum Geschehen: Feinde zu ihrem Ziel (meist Ainz), Verbündete zu ihrem Gegner
+		if target and is_instance_valid(target) and target.state != S.DEAD and not yielded:
+			face_towards(target.global_position, 5.0 * delta)
+		_pose(delta)
+		return
+	if yielded:
+		invulnerable = true
+		velocity.x = 0.0
+		velocity.z = 0.0
+		velocity.y = -0.5 if is_on_floor() else velocity.y - 18.0 * delta
+		move_with_steps(delta)
+		_pose(delta)
+		return
 	_react_cd -= delta
 	for k in _attack_cds.keys():
 		_attack_cds[k] = float(_attack_cds[k]) - delta
@@ -268,6 +323,30 @@ func notice(t: Fighter = null) -> void:
 	CombatDirector.alarm(target, 12.0, global_position)
 
 
+## Aufgeben (Story): Waffe sinkt, auf die Knie, keine Angriffe mehr – die Entscheidung liegt bei Ainz.
+func surrender(text: String = "Gibt auf") -> void:
+	if state == S.DEAD or yielded:
+		return
+	yielded = true
+	if _mark and is_instance_valid(_mark):
+		_mark.release()
+	_mark = null
+	_disengage()
+	hitbox.deactivate()
+	status.clear()
+	_clear_status_fx()
+	set_state(S.IDLE)
+	invulnerable = true
+	attack = {}
+	phase = ""
+	if rig:
+		rig.glow(Color.WHITE, 0.0)
+		rig.set_bend(0.3, 0.0)
+		rig.set_kneel(1.0)
+	_show_fx(text, Color(0.92, 0.88, 0.75), 2.4)
+	CombatFX.sound("block", global_position + Vector3.UP, 0.6)
+
+
 func _disengage() -> void:
 	engaged = false
 	_drop_token()
@@ -284,7 +363,42 @@ func _hook_target() -> void:
 		target.spell_cast.connect(_on_spell_threat)
 
 
+## Gegner der eigenen Seite: Verbündete jagen Feinde, Feinde wählen zwischen Ainz und seinen Verbündeten.
+func _choose_target(delta: float) -> void:
+	_retarget -= delta
+	var valid := target != null and is_instance_valid(target) and target.state != S.DEAD
+	if valid and _retarget > 0.0:
+		return
+	_retarget = randf_range(1.0, 1.8)
+	var best: Fighter = target if valid else null
+	var best_d := INF if not valid else global_position.distance_to(target.global_position) * 0.8
+	var pool: Array = get_tree().get_nodes_in_group("enemies" if ally else "allies")
+	if not ally:
+		pool = pool + [Actor3D.player] if Actor3D.player is Fighter else pool
+	for o in pool:
+		var f := o as Fighter
+		if f == null or f == self or f.state == S.DEAD or not f.is_inside_tree():
+			continue
+		var d := global_position.distance_to(f.global_position)
+		if f.is_player:
+			d *= 0.85                      # Ainz bleibt das Hauptziel
+		if d < best_d:
+			best_d = d
+			best = f
+	if best != target and best != null:
+		if target and is_instance_valid(target):
+			_drop_token()
+			CombatDirector.disengage(self)
+			engaged = false
+			_hooked = false
+		target = best
+	elif best == null and not valid:
+		target = null
+
+
 func _ai(delta: float) -> void:
+	if ally or get_tree().get_nodes_in_group("allies").size() > 0:
+		_choose_target(delta)
 	if target == null or not is_instance_valid(target) or target.state == S.DEAD:
 		if engaged:
 			_disengage()
@@ -327,11 +441,33 @@ func _ai(delta: float) -> void:
 
 
 func _idle(delta: float) -> void:
+	if ally and Actor3D.player is Fighter and is_instance_valid(Actor3D.player):
+		_follow(delta, Actor3D.player)
+		return
 	var back := home - global_position
 	back.y = 0.0
 	_move(back.normalized() if back.length() > 1.0 else Vector3.ZERO, delta, 0.5)
 	if back.length() > 1.0:
 		face_towards(home, 4.0 * delta)
+
+
+## Verbündete ohne Gegner bleiben bei Ainz: seitlich hinter ihm, laufen nach, wenn er sich entfernt.
+func _follow(delta: float, p: Fighter) -> void:
+	var side := 1.0 if get_instance_id() % 2 == 0 else -1.0
+	var f := p.facing
+	f.y = 0.0
+	f = f.normalized() if f.length() > 0.01 else Vector3.FORWARD
+	var spot := p.global_position - f * 2.6 + f.cross(Vector3.UP) * side * 2.4
+	home = spot
+	var to := spot - global_position
+	to.y = 0.0
+	var d := to.length()
+	if d > 1.2:
+		_move(to.normalized(), delta, 1.0 if d > 6.0 else 0.6)
+		face_towards(spot, 6.0 * delta)
+	else:
+		_move(Vector3.ZERO, delta)
+		face_towards(global_position + f, 3.0 * delta)
 
 
 func _melee_ai(delta: float, to: Vector3, dist: float) -> void:
@@ -526,12 +662,17 @@ func _on_windup() -> void:
 	var red: bool = attack.get("unblockable", false)
 	var k := String(attack.get("kind", "melee"))
 	var col := Color(1, 0.12, 0.1) if red else Color(1, 0.6, 0.15)
+	if ally:
+		col = Color(0.35, 0.8, 1.0)        # Verbündete: blau – keine Gefahr für Ainz
 	var w := float(attack.windup)
 	var lvl := get_parent()
 	_tele_col = col
 	_tele_a = 0.32 if red else 0.2
+	if ally:
+		_tele_a = 0.12
 	rig.glow(col, _tele_a)
-	_show_fx("‼" if red else "!", Color(1, 0.2, 0.2) if red else Color(1, 0.7, 0.2), w)
+	if not ally:
+		_show_fx("‼" if red else "!", Color(1, 0.2, 0.2) if red else Color(1, 0.7, 0.2), w)
 	match k:
 		"aoe":
 			var lead := Vector3(target.velocity.x, 0, target.velocity.z) * minf(w * 0.35, 0.5)
@@ -561,7 +702,7 @@ func _on_windup() -> void:
 	# Aufblitzen kurz vor dem Treffer: jetzt blocken = Parade, rot = jetzt ausweichen
 	var glint_at := maxf(0.05, w - 0.3)
 	get_tree().create_timer(glint_at, false).timeout.connect(func():
-		if is_instance_valid(self) and state == S.ATTACK and phase == "windup" and is_inside_tree():
+		if is_instance_valid(self) and state == S.ATTACK and phase == "windup" and is_inside_tree() and not ally:
 			var head := global_position + Vector3.UP * (body_height * 0.88) + facing * 0.2
 			CombatFX.burst(get_parent(), "flash", head, col, Vector3.UP, 0.55)
 			CombatFX.sound("telegraph_red" if red else "telegraph", head, 0.55, 0.03))
@@ -591,6 +732,8 @@ func _on_attack_active() -> void:
 
 
 func _shoot() -> void:
+	if target == null or not is_instance_valid(target):
+		return
 	var lvl := get_parent()
 	var el := String(attack.get("fx", SpellFX.ELEMENT_OF_TYPE.get(String(attack.get("type", "physical")), "arrow")))
 	var col := Color(attack.get("color", "#e8d8b0"))
@@ -611,7 +754,7 @@ func _shoot() -> void:
 		if float(attack.get("homing", 0.0)) > 0.0:
 			p.homing = target
 			p.turn = float(attack.homing)
-	CombatFX.sound("arrow_shot" if el == "arrow" else el + "_launch", origin, 0.75)
+	CombatFX.sound({"arrow": "arrow_shot", "lightning": "lightning", "steel": "swing_light", "sword": "swing_heavy"}.get(el, el + "_launch"), origin, 0.75)
 
 
 ## Flächenangriff am markierten Ort: Lichtsäule, Feuerball, Schattenimplosion oder Eisdornen – dann Schaden.
@@ -638,6 +781,14 @@ func _aoe_strike() -> void:
 				var a := TAU * i / 7.0
 				SpellFX.ice_spike(lvl, _aoe_at + Vector3(cos(a), 0, sin(a)) * r * randf_range(0.2, 0.75), randf_range(0.9, 1.6), col, i * 0.02)
 			CombatFX.sound("ice_shatter", _aoe_at + Vector3.UP, 1.0)
+		"lightning":
+			for i in 3:
+				var top := _aoe_at + Vector3(randf_range(-1.5, 1.5), 14.0, randf_range(-1.5, 1.5))
+				SpellFX.bolt(lvl, top, _aoe_at + Vector3(randf_range(-r, r) * 0.4, 0.2, randf_range(-r, r) * 0.4), col, 0.35, 0.4)
+			CombatFX.burst(lvl, "sparks", _aoe_at + Vector3.UP * 0.3, col, Vector3.UP, 1.6)
+			CombatFX.flash(lvl, _aoe_at + Vector3.UP * 2.0, col, 6.0, r * 3.0, 0.3)
+			CombatFX.decal(lvl, _aoe_at, "scorch", r * 1.4, 12.0, Color(0.7, 0.8, 1.0), 1.5)
+			CombatFX.sound("lightning", _aoe_at + Vector3.UP, 1.1)
 		_:
 			CombatFX.burst(lvl, "dust_ring", _aoe_at + Vector3.UP * 0.1, Color(0.56, 0.52, 0.46), Vector3.UP, 1.4)
 			CombatFX.burst(lvl, "stone", _aoe_at + Vector3.UP * 0.3, Color(0.5, 0.47, 0.43), Vector3.UP, 1.4)
@@ -650,12 +801,26 @@ func _aoe_strike() -> void:
 	lvl.add_child(src)
 	src.global_position = _aoe_at
 	var info := _attack_info(attack)
-	for f in [target]:
+	for f in _opponents():
 		if f and is_instance_valid(f) and f.state != S.DEAD:
 			var d := Vector2(f.global_position.x - _aoe_at.x, f.global_position.z - _aoe_at.z).length()
 			if d <= r:
 				f.take_hit(info, src)
 	src.queue_free()
+
+
+## Alle Kämpfer der Gegenseite (für Flächenangriffe).
+func _opponents() -> Array:
+	var out: Array = []
+	if ally:
+		out = get_tree().get_nodes_in_group("enemies")
+	else:
+		out = get_tree().get_nodes_in_group("allies")
+		if Actor3D.player is Fighter:
+			out.append(Actor3D.player)
+		elif target:
+			out.append(target)
+	return out
 
 
 func _summon() -> void:
@@ -676,7 +841,7 @@ func _summon() -> void:
 		get_tree().create_timer(0.35 + i * 0.12, false).timeout.connect(func():
 			if not is_instance_valid(self) or not is_instance_valid(lvl):
 				return
-			var e: Enemy3D = spawner.call(id, at + Vector3.UP * 0.1) if spawner.is_valid() else _spawn_direct(id, at + Vector3.UP * 0.1)
+			var e: Enemy3D = _spawn_direct(id, at + Vector3.UP * 0.1) if ally or not spawner.is_valid() else spawner.call(id, at + Vector3.UP * 0.1)
 			if e:
 				_summons.append(e)
 				e.notice(target)
@@ -686,11 +851,10 @@ func _summon() -> void:
 
 
 func _spawn_direct(id: String, at: Vector3) -> Enemy3D:
-	var e := Enemy3D.create(id)
+	var e := Enemy3D.create(id, ally)
 	e.position = at
 	e.target = target
 	get_parent().add_child(e)
-	e.add_to_group("enemies")
 	return e
 
 
@@ -860,6 +1024,15 @@ func _on_state(s: int) -> void:
 		CombatDirector.disengage(self)
 		CombatFX.sound("bone_collapse" if fx_material in ["bone", "undead_lord"] else "death_body", global_position + Vector3.UP, 0.9)
 		_bark("death")
+		remove_from_group("enemies")
+		remove_from_group("allies")
+		for pe in _emitters:
+			if pe is GPUParticles3D:
+				CombatFX.stop(pe)
+			elif is_instance_valid(pe):
+				var tw := (pe as Node).create_tween()
+				tw.tween_property(pe, "light_energy", 0.0, 1.2)
+		_emitters.clear()
 		defeated.emit(self)
 
 
@@ -891,8 +1064,8 @@ func _pose(delta: float) -> void:
 	if state == S.ATTACK and phase == "windup" and _tele_a > 0.0:
 		rig.glow(_tele_col, _tele_a * (0.65 + 0.35 * sin(state_time * 18.0)))
 	rig.rotation.y = atan2(facing.x, facing.z)
-	# Lebensbalken und Haltung
-	var show := hp < max_hp and state != S.DEAD
+	# Lebensbalken und Haltung (nicht in Filmszenen)
+	var show := hp < max_hp and state != S.DEAD and not hold
 	_hpbar.visible = show
 	_hpbar_bg.visible = show
 	if _poisebar:
@@ -901,7 +1074,7 @@ func _pose(delta: float) -> void:
 	# Namensschild nur für das fixierte Ziel und für Elite-Gegner in der Nähe (kein Schilderwald)
 	var locked: bool = target != null and is_instance_valid(target) and target.get("lock") == self
 	var near: bool = target != null and is_instance_valid(target) and global_position.distance_to(target.global_position) < 14.0
-	_label.visible = state != S.DEAD and (locked or (data.get("elite", false) and near))
+	_label.visible = state != S.DEAD and not hold and (locked or (data.get("elite", false) and near))
 	_hpbar.scale.x = maxf(0.001, hp / max_hp)
 	if state == S.DEAD:
 		if state_time > 1.9 and not _dissolve:
@@ -935,6 +1108,13 @@ func _death_dissolve() -> void:
 		"stone":
 			CombatFX.burst(lvl, "stone", at, Color(0.55, 0.52, 0.48), Vector3.UP, 1.6)
 			CombatFX.burst(lvl, "dust_puff", at, Color(0.6, 0.57, 0.52), Vector3.UP, 2.0)
+		"fire":
+			CombatFX.burst(lvl, "embers", at + Vector3.UP * 0.6, Color(1.0, 0.5, 0.15), Vector3.UP, 3.0)
+			CombatFX.burst(lvl, "flame_puff", at + Vector3.UP * 0.8, Color(1.0, 0.55, 0.2), Vector3.UP, 2.0)
+			CombatFX.burst(lvl, "smoke", at + Vector3.UP, Color(0.16, 0.13, 0.12), Vector3.UP, 1.6, Color(1.0, 0.35, 0.05, 0.6))
+		"plate":
+			CombatFX.burst(lvl, "sparks_big", at + Vector3.UP * 0.8, Color(0.9, 0.95, 1.0), Vector3.UP, 1.4)
+			CombatFX.burst(lvl, "motes", at + Vector3.UP * 0.8, Color(0.75, 0.9, 1.0), Vector3.UP, 2.0)
 		_:
 			CombatFX.burst(lvl, "dust_puff", at, Color(0.45, 0.42, 0.4), Vector3.UP, 1.4)
 			CombatFX.burst(lvl, "wisps", at + Vector3.UP * 0.3, Color(0.3, 0.3, 0.32), Vector3.UP, 0.8)

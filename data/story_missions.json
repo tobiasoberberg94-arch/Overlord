@@ -1,0 +1,6240 @@
+{
+ "_info": "Spielbare Story-Momente: ersetzen die Entscheidung einer Story-Depesche durch einen Einsatz in 3D (siehe scripts/story/story_mission.gd).",
+ "missions": {
+  "sm_loyalty": {
+   "title": "Der Treueschwur der Wächter",
+   "event": "ev_loyalty",
+   "plays": [
+    "c0",
+    "c1",
+    "c2",
+    "c3"
+   ],
+   "result_key": "c",
+   "label": "⚔ Selbst erleben: die Versammlung im Amphitheater (3D)",
+   "loc": "jungle",
+   "stage": {
+    "pos": [
+     0,
+     0
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    6
+   ],
+   "end_at": [
+    0,
+    6
+   ],
+   "music": "throne",
+   "steps": [
+    {
+     "scene": [
+      {
+       "player": {
+        "at": [
+         0,
+         6
+        ],
+        "face": [
+         0,
+         -10
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": [
+         -8,
+         -9
+        ],
+        "face": [
+         0,
+         6
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": [
+         9,
+         -10
+        ],
+        "face": [
+         0,
+         6
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0,
+         10,
+         26
+        ],
+        "look": [
+         0,
+         1.5,
+         0
+        ],
+        "dur": 0,
+        "fov": 60
+       }
+      },
+      {
+       "title": [
+        "Der Treueschwur der Wächter",
+        "Amphitheater · Sechste Ebene"
+       ],
+       "dur": 3.2
+      },
+      {
+       "fade": 0,
+       "dur": 1.6
+      },
+      {
+       "cam": {
+        "at": [
+         4,
+         3.2,
+         15
+        ],
+        "look": [
+         0,
+         1.4,
+         4
+        ],
+        "dur": 6.0
+       }
+      },
+      {
+       "think": "Die NPCs bewegen sich. Sie sprechen. Und Nazarick steht nicht mehr im Giftsumpf … sondern irgendwo."
+      },
+      {
+       "move": {
+        "id": "aura",
+        "to": [
+         -1.8,
+         3.6
+        ],
+        "wait": false,
+        "run": true,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -4.5,
+         1.7,
+         7.5
+        ],
+        "look": "actor:aura",
+        "dur": 1.6
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "{lord}! Willkommen in meinem Reich, der sechsten Ebene!"
+       ]
+      },
+      {
+       "move": {
+        "id": "mare",
+        "to": [
+         1.7,
+         3.4
+        ],
+        "wait": false,
+        "dur": 5.0,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         4.0,
+         1.5,
+         6.5
+        ],
+        "look": "actor:mare",
+        "dur": 1.4
+       }
+      },
+      {
+       "say": [
+        "mare",
+        "W-willkommen, {lord} … verzeiht, dass wir Euch nicht schon am Eingang empfangen haben …"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -1.4,
+         1.9,
+         2.2
+        ],
+        "look": "player",
+        "dur": 1.2,
+        "fov": 48
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Aura. Mare. Ich möchte etwas überprüfen – ob meine Magie in dieser Lage noch so wirkt wie früher."
+       ]
+      },
+      {
+       "think": "Wenn ich mich hier nicht verteidigen kann, ist alles andere bedeutungslos. Also … der Stab der Gilde."
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich werde einen Urfeuer-Elementar beschwören."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -2.6,
+         1.3,
+         5.6
+        ],
+        "look": "actor:aura",
+        "dur": 0.8
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Wirklich?! Dürfen wir gegen ihn kämpfen, {lord}? Bitte, bitte!"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "…Gemeinsam mit mir. Zeigt mir, was ihr könnt."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0,
+         3.2,
+         5
+        ],
+        "look": [
+         0,
+         1.6,
+         -12
+        ],
+        "dur": 1.6
+       }
+      },
+      {
+       "anim": {
+        "id": "player",
+        "play": "cast"
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": [
+         0,
+         -12
+        ],
+        "radius": 3.6,
+        "color": "#ff7a2a",
+        "dur": 3.2,
+        "design": "b",
+        "spin": 1.6
+       }
+      },
+      {
+       "sound": {
+        "name": "cast_big",
+        "at": [
+         0,
+         1,
+         -12
+        ]
+       }
+      },
+      {
+       "wait": 1.2
+      },
+      {
+       "ally": [
+        "aura_ally",
+        [
+         -1.8,
+         3.6
+        ]
+       ]
+      },
+      {
+       "remove": "aura"
+      },
+      {
+       "ally": [
+        "mare_ally",
+        [
+         1.7,
+         3.4
+        ]
+       ]
+      },
+      {
+       "remove": "mare"
+      }
+     ]
+    },
+    {
+     "objective": "Prüft Eure Magie am Urfeuer-Elementar",
+     "boss": "fire_elemental",
+     "at": [
+      0,
+      -12
+     ],
+     "intro": [
+      {
+       "cam": {
+        "at": [
+         0,
+         2.2,
+         -1
+        ],
+        "look": [
+         0,
+         2.4,
+         -12
+        ],
+        "dur": 0,
+        "fov": 55
+       }
+      },
+      {
+       "fx": {
+        "kind": "explosion",
+        "at": [
+         0,
+         -12
+        ],
+        "radius": 3.2,
+        "el": "fire",
+        "color": "#ff6a1a"
+       }
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 0.7
+       }
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "at": [
+         0,
+         2,
+         -12
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         1.5,
+         1.0,
+         -4
+        ],
+        "look": "enemy:fire_elemental",
+        "dur": 2.4,
+        "fov": 46
+       }
+      },
+      {
+       "wait": 0.6
+      },
+      {
+       "say": [
+        "aura",
+        "Wahnsinn … der ist ja riesig! Los, Mare!"
+       ]
+      },
+      {
+       "say": [
+        "mare",
+        "J-ja! Ich gebe mein Bestes!"
+       ]
+      }
+     ]
+    },
+    {
+     "scene": [
+      {
+       "cam": {
+        "at": [
+         3.5,
+         1.7,
+         9
+        ],
+        "look": [
+         0,
+         1.2,
+         2
+        ],
+        "dur": 0,
+        "fov": 52
+       }
+      },
+      {
+       "player": {
+        "at": [
+         0,
+         -4
+        ],
+        "face": [
+         0,
+         6
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": "ally:aura_ally",
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": "ally:mare_ally",
+        "face": "player"
+       }
+      },
+      {
+       "dismiss": "aura_ally"
+      },
+      {
+       "dismiss": "mare_ally"
+      },
+      {
+       "move": {
+        "id": "aura",
+        "to": [
+         -1.6,
+         1.8
+        ],
+        "wait": false,
+        "dur": 2.0,
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "mare",
+        "to": [
+         1.4,
+         2.0
+        ],
+        "wait": false,
+        "dur": 2.2,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         2.8,
+         1.6,
+         6.0
+        ],
+        "look": [
+         -0.2,
+         1.1,
+         2.0
+        ],
+        "dur": 1.4
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Habt Ihr das gesehen, Mare? {lord} hat ihn einfach so zerlegt!"
+       ]
+      },
+      {
+       "say": [
+        "mare",
+        "D-das war unglaublich …"
+       ]
+      },
+      {
+       "fx": {
+        "kind": "gate",
+        "at": [
+         -6.5,
+         -0.5
+        ],
+        "dur": 3.6,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -2.5,
+         1.7,
+         4.8
+        ],
+        "look": [
+         -6.5,
+         1.5,
+         -0.5
+        ],
+        "dur": 1.0
+       }
+      },
+      {
+       "wait": 0.8
+      },
+      {
+       "actor": {
+        "id": "shalltear",
+        "at": [
+         -6.5,
+         -0.5
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "shalltear",
+        "to": [
+         -2.4,
+         -2.6
+        ],
+        "wait": false,
+        "dur": 2.8,
+        "face": "player"
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "Oh, mein Herr … mein einziger Gebieter, den ich niemals besitzen kann. Ich bin gekommen, ~arinsu!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -0.4,
+         1.4,
+         4.6
+        ],
+        "look": "actor:aura",
+        "dur": 0.8
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Shalltear! Benutz hier drin doch nicht einfach ein Gate! Laufen hättest du auch können!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -1.0,
+         1.6,
+         -0.2
+        ],
+        "look": "actor:shalltear",
+        "dur": 0.8
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "Oh? Hat die Zwergin etwas gesagt? Ich höre nur Gezwitscher, ~arinsu."
+       ]
+      },
+      {
+       "actor": {
+        "id": "cocytus",
+        "at": [
+         11,
+         -7
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "fx": {
+        "kind": "ring",
+        "at": [
+         11,
+         -7
+        ],
+        "radius": 3.5,
+        "color": "#9fe0ff",
+        "dur": 1.2
+       }
+      },
+      {
+       "fx": {
+        "kind": "smoke",
+        "at": [
+         11,
+         -7
+        ],
+        "color": "#cfe8ff",
+        "amount": 2.5
+       }
+      },
+      {
+       "sound": {
+        "name": "ice_shatter",
+        "at": [
+         11,
+         1,
+         -7
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         6.5,
+         1.9,
+         -1.5
+        ],
+        "look": "actor:cocytus",
+        "dur": 1.4
+       }
+      },
+      {
+       "move": {
+        "id": "cocytus",
+        "to": [
+         3.8,
+         -1.8
+        ],
+        "wait": false,
+        "dur": 3.6,
+        "face": "player"
+       }
+      },
+      {
+       "say": [
+        "cocytus",
+        "Ihr. Habt. Gerufen. Der. Wächter. Der. Fünften. Ebene. Ist. Hier."
+       ]
+      },
+      {
+       "actor": {
+        "id": "demiurge",
+        "at": [
+         -2.5,
+         15
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         -0.5,
+         15.5
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "sebas",
+        "at": [
+         2.5,
+         16
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "demiurge",
+        "to": [
+         2.6,
+         0.6
+        ],
+        "wait": false,
+        "dur": 6.0,
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "albedo",
+        "to": [
+         0.0,
+         -1.0
+        ],
+        "wait": false,
+        "dur": 6.0,
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "sebas",
+        "to": [
+         4.6,
+         0.4
+        ],
+        "wait": false,
+        "dur": 6.4,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0.5,
+         1.7,
+         6.5
+        ],
+        "look": [
+         0,
+         1.4,
+         13
+        ],
+        "dur": 1.2
+       }
+      },
+      {
+       "say": [
+        "demiurge",
+        "Wie es scheint, sind wir die Letzten. Verzeiht unsere Verspätung, {lord}."
+       ]
+      },
+      {
+       "say": [
+        "albedo",
+        "Sebas kehrt eben erst von draußen zurück. Er bringt Neuigkeiten."
+       ]
+      },
+      {
+       "wait": 3.2
+      },
+      {
+       "cam": {
+        "at": [
+         0,
+         4.5,
+         10
+        ],
+        "look": [
+         0,
+         1.0,
+         -2.5
+        ],
+        "dur": 0,
+        "fov": 55
+       }
+      },
+      {
+       "actor": {
+        "id": "shalltear",
+        "at": [
+         -4.8,
+         0.6
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "cocytus",
+        "at": [
+         -3.0,
+         1.9
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": [
+         -1.1,
+         2.5
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": [
+         0.9,
+         2.5
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "demiurge",
+        "at": [
+         2.9,
+         1.9
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "sebas",
+        "at": [
+         4.8,
+         0.6
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         0,
+         -1.5
+        ],
+        "face": [
+         0,
+         -4
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0,
+         2.6,
+         7.5
+        ],
+        "look": [
+         0,
+         1.1,
+         -3
+        ],
+        "dur": 7.0
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Wächter der Ebenen – erweist dem Höchsten Wesen eure Treue!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -3.19,
+         1.15,
+         -0.18
+        ],
+        "look": [
+         -4.8,
+         1.0,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "Shalltear Bloodfallen, Wächterin der ersten, zweiten und dritten Ebene. Ich knie vor Euch."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -1.74,
+         1.7,
+         0.63
+        ],
+        "look": [
+         -3.0,
+         1.55,
+         1.9
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "cocytus",
+        "Cocytus. Wächter. Der. Fünften. Ebene. Ich. Knie. Vor. Euch."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -0.27,
+         1.0,
+         0.92
+        ],
+        "look": [
+         -1.1,
+         0.85,
+         2.5
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Aura Bella Fiora, Wächterin der sechsten Ebene. Ich knie vor Euch!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         1.13,
+         1.15,
+         0.15
+        ],
+        "look": [
+         0.9,
+         1.0,
+         2.5
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "mare",
+        "M-Mare Bello Fiore, ebenfalls Wächter der sechsten Ebene. Ich k-knie vor Euch."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         2.64,
+         1.2,
+         0.13
+        ],
+        "look": [
+         2.9,
+         1.05,
+         1.9
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "demiurge",
+        "Demiurge, Wächter der siebten Ebene. Ich knie vor Euch."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         3.52,
+         1.45,
+         -1.39
+        ],
+        "look": [
+         4.8,
+         1.3,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "sebas",
+        "Sebas Tian, Haushofmeister der neunten Ebene. Ich knie vor Euch."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.55,
+         1.2,
+         -3.2
+        ],
+        "look": [
+         0,
+         1.05,
+         -1.5
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Albedo, Hüterin aller Wächter. Wir sind vollzählig versammelt und erwarten Eure Befehle, Höchstes Wesen."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         1.3,
+         1.6,
+         -2.3
+        ],
+        "look": "player",
+        "dur": 2.0,
+        "fov": 42
+       }
+      },
+      {
+       "think": "Was ist das für ein Druck … Sie erwarten wirklich, dass ich ein Herrscher bin. Bloß nichts Falsches sagen."
+      },
+      {
+       "say": [
+        "ainz",
+        "Erhebt die Häupter. … Sebas, berichte, was du draußen gesehen hast."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         3.52,
+         1.45,
+         -1.39
+        ],
+        "look": [
+         4.8,
+         1.3,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "sebas",
+        "Rings um Nazarick erstreckt sich Grasland, so weit das Auge reicht. Kein Sumpf mehr, keine Siedlung, kein Feind – und keine Spur der anderen Höchsten Wesen."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         1.3,
+         1.6,
+         -2.3
+        ],
+        "look": "player",
+        "dur": 0,
+        "fov": 42
+       }
+      },
+      {
+       "think": "Grasland … Das Grab lag in einem Giftsumpf. Wir sind wirklich woanders. Und die anderen … sind nicht hier."
+      },
+      {
+       "cam": {
+        "orbit": [
+         0,
+         -4
+        ],
+        "radius": 2.8,
+        "height": 0.7,
+        "from": 150,
+        "to": 205,
+        "dur": 7.0,
+        "look_h": 1.5,
+        "fov": 50
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich habe eine Frage an euch alle. Was für ein Wesen bin ich in euren Augen?"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -3.19,
+         1.15,
+         -0.18
+        ],
+        "look": [
+         -4.8,
+         1.0,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "Die Schönheit selbst. Das vollkommenste Wesen, das existiert."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -1.74,
+         1.7,
+         0.63
+        ],
+        "look": [
+         -3.0,
+         1.55,
+         1.9
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "cocytus",
+        "Ein. Wesen. Stärker. Als. Alle. Wächter. Wahrlich. Der. Herrscher. Des. Großen. Grabes."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -0.1,
+         1.05,
+         0.5
+        ],
+        "look": [
+         -0.1,
+         0.85,
+         2.5
+        ],
+        "dur": 0,
+        "fov": 46
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Gütig und rücksichtsvoll!"
+       ]
+      },
+      {
+       "say": [
+        "mare",
+        "S-sehr gütig …"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         2.64,
+         1.2,
+         0.13
+        ],
+        "look": [
+         2.9,
+         1.05,
+         1.9
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "demiurge",
+        "Ein Herrscher von entschlossener Weisheit und unergründlicher Tiefe. Ich wage nicht einmal, Eure Pläne zu erahnen."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         3.52,
+         1.45,
+         -1.39
+        ],
+        "look": [
+         4.8,
+         1.3,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "sebas",
+        "Das Höchste Wesen, das uns bis zuletzt nicht verlassen hat. Ein gütiger Herr."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.55,
+         1.2,
+         -3.2
+        ],
+        "look": [
+         0,
+         1.05,
+         -1.5
+        ],
+        "dur": 0,
+        "fov": 40
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Der Höchste der Höchsten. Und … der Mann, den ich liebe."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -3.99,
+         1.15,
+         -1.01
+        ],
+        "look": [
+         -4.8,
+         1.0,
+         0.6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#ff2a4f",
+        "alpha": 0.16,
+        "dur": 0.5
+       }
+      },
+      {
+       "sound": "telegraph_red"
+      },
+      {
+       "wait": 0.9
+      },
+      {
+       "cam": {
+        "at": [
+         1.3,
+         1.6,
+         -2.3
+        ],
+        "look": "player",
+        "dur": 0,
+        "fov": 42
+       }
+      },
+      {
+       "think": "»…ist in Momonga verliebt.« Das habe ich geschrieben. Eine einzige Zeile, kurz bevor der Server abgeschaltet wurde."
+      },
+      {
+       "choice": {
+        "prompt": "Was antwortest du den Wächtern?",
+        "key": "c",
+        "options": [
+         {
+          "text": "»Ich erwarte von euch allen Großes.«",
+          "value": "c0",
+          "variant": "primary",
+          "then": [
+           {
+            "cam": {
+             "at": [
+              0,
+              2.6,
+              7.5
+             ],
+             "look": [
+              0,
+              1.1,
+              -3
+             ],
+             "dur": 0,
+             "fov": 55
+            }
+           },
+           {
+            "say": [
+             "ainz",
+             "Ich verstehe. Ich habe eure Worte vernommen. Fahrt fort, eure Pflichten zu erfüllen – ich erwarte von euch allen Großes."
+            ]
+           },
+           {
+            "say": [
+             "albedo",
+             "Jawohl, {lord}!"
+            ]
+           },
+           {
+            "fx": {
+             "kind": "flash",
+             "color": "#ffd36a",
+             "alpha": 0.12,
+             "dur": 0.6
+            }
+           }
+          ]
+         },
+         {
+          "text": "Albedo zunicken – ihre Worte nicht korrigieren",
+          "value": "c1",
+          "variant": "warning",
+          "then": [
+           {
+            "think": "…Ich nicke einfach. Was soll ich auch sagen?"
+           },
+           {
+            "cam": {
+             "at": [
+              0.55,
+              1.2,
+              -3.2
+             ],
+             "look": [
+              0,
+              1.05,
+              -1.5
+             ],
+             "dur": 0,
+             "fov": 40
+            }
+           },
+           {
+            "say": [
+             "albedo",
+             "Ah … {lord} …!"
+            ]
+           },
+           {
+            "fx": {
+             "kind": "flash",
+             "color": "#ff7ad0",
+             "alpha": 0.14,
+             "dur": 0.6
+            }
+           }
+          ]
+         },
+         {
+          "text": "Shalltear als Erste loben",
+          "value": "c2",
+          "variant": "danger",
+          "then": [
+           {
+            "cam": {
+             "at": [
+              1.3,
+              1.6,
+              -2.3
+             ],
+             "look": "player",
+             "dur": 0,
+             "fov": 42
+            }
+           },
+           {
+            "say": [
+             "ainz",
+             "Shalltear. Deine Worte … haben mich gefreut."
+            ]
+           },
+           {
+            "cam": {
+             "at": [
+              -3.19,
+              1.15,
+              -0.18
+             ],
+             "look": [
+              -4.8,
+              1.0,
+              0.6
+             ],
+             "dur": 0,
+             "fov": 44
+            }
+           },
+           {
+            "say": [
+             "shalltear",
+             "Oh … oh, mein Herr …!"
+            ]
+           }
+          ]
+         },
+         {
+          "text": "(Innerlich) Schuld fühlen – und schweigen",
+          "value": "c3",
+          "variant": "default",
+          "then": [
+           {
+            "think": "Ich sollte es ihr sagen. … Aber nicht heute."
+           },
+           {
+            "say": [
+             "ainz",
+             "…Ich danke euch. Für eure Treue."
+            ]
+           },
+           {
+            "cam": {
+             "at": [
+              0.55,
+              1.2,
+              -3.2
+             ],
+             "look": [
+              0,
+              1.05,
+              -1.5
+             ],
+             "dur": 0,
+             "fov": 44
+            }
+           },
+           {
+            "say": [
+             "albedo",
+             "Es ist uns die größte Ehre, {lord}."
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0,
+         3.4,
+         9.5
+        ],
+        "look": [
+         0,
+         1.0,
+         -3
+        ],
+        "dur": 0,
+        "fov": 55
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Fahrt fort mit euren Pflichten. Ich ziehe mich zurück."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": [
+         0,
+         -4
+        ]
+       }
+      },
+      {
+       "player": {
+        "visible": false
+       }
+      },
+      {
+       "wait": 1.4
+      },
+      {
+       "pose": {
+        "id": "shalltear",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "cocytus",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "aura",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "mare",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "demiurge",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "sebas",
+        "pose": "stand"
+       }
+      },
+      {
+       "pose": {
+        "id": "albedo",
+        "pose": "stand"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         6.0,
+         2.0,
+         5.5
+        ],
+        "look": [
+         0,
+         1.3,
+         0.8
+        ],
+        "dur": 0,
+        "fov": 50
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Habt ihr es gespürt? Diese Präsenz … ich konnte nicht einmal den Kopf heben."
+       ]
+      },
+      {
+       "say": [
+        "demiurge",
+        "Eine Aura, die selbst uns Wächter erdrückt. Wahrlich der Herrscher, dem zu dienen wir erschaffen wurden."
+       ]
+      },
+      {
+       "say": [
+        "cocytus",
+        "Er. Ist. Geblieben. Als. Alle. Anderen. Gingen."
+       ]
+      },
+      {
+       "say": [
+        "shalltear",
+        "Ah … ich glaube, ich muss mich … kurz umziehen, ~arinsu."
+       ]
+      },
+      {
+       "say": [
+        "aura",
+        "Häh?! Shalltear, was soll das denn heißen?!"
+       ]
+      },
+      {
+       "fade": 1,
+       "dur": 1.4
+      }
+     ]
+    }
+   ]
+  },
+  "sm_carne": {
+   "title": "Rauch über Carne",
+   "event": "ev_carne",
+   "plays": [
+    "c0"
+   ],
+   "replace": true,
+   "result_key": "c",
+   "loc": "carne",
+   "hide_folk": true,
+   "stage": {
+    "pos": [
+     -1,
+     30
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    8
+   ],
+   "end_at": [
+    0,
+    6
+   ],
+   "music": "tension",
+   "steps": [
+    {
+     "scene": [
+      {
+       "player": {
+        "visible": false,
+        "at": [
+         -1.5,
+         1.2
+        ]
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         13,
+         -12
+        ],
+        "size": 1.2
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         -13,
+         -18
+        ],
+        "size": 1.0
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         19,
+         -32
+        ],
+        "size": 1.3
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         -9,
+         -44
+        ],
+        "size": 1.1
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         9,
+         -54
+        ],
+        "size": 1.2
+       }
+      },
+      {
+       "fx": {
+        "kind": "blaze",
+        "at": [
+         -22,
+         -30
+        ],
+        "size": 0.9
+       }
+      },
+      {
+       "actor": {
+        "id": "enri",
+        "at": [
+         2.5,
+         -17
+        ],
+        "face": [
+         0,
+         4
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "nemu",
+        "at": [
+         3.4,
+         -17.6
+        ],
+        "face": [
+         0,
+         4
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "knight1",
+        "at": [
+         5,
+         -24
+        ],
+        "face": [
+         0,
+         4
+        ],
+        "figure": "carne_knight"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         2,
+         7,
+         14
+        ],
+        "look": [
+         3,
+         3,
+         -30
+        ],
+        "dur": 0,
+        "fov": 58
+       }
+      },
+      {
+       "title": [
+        "Rauch über Carne",
+        "Dorf Carne · am Rand des Waldes von Tob"
+       ],
+       "dur": 3.0
+      },
+      {
+       "fade": 0,
+       "dur": 1.4
+      },
+      {
+       "sound": {
+        "name": "fire_wall",
+        "at": [
+         13,
+         1,
+         -12
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         1,
+         4,
+         8
+        ],
+        "look": [
+         2,
+         2,
+         -20
+        ],
+        "dur": 5.0
+       }
+      },
+      {
+       "move": {
+        "id": "enri",
+        "to": [
+         0.6,
+         -1.2
+        ],
+        "wait": false,
+        "dur": 5.0,
+        "run": true
+       }
+      },
+      {
+       "move": {
+        "id": "nemu",
+        "to": [
+         1.6,
+         -1.6
+        ],
+        "wait": false,
+        "dur": 5.0,
+        "run": true
+       }
+      },
+      {
+       "say": [
+        "enri",
+        "Schneller, Nemu! Lauf! Dreh dich nicht um!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -4,
+         1.5,
+         3
+        ],
+        "look": "actor:enri",
+        "dur": 2.0
+       }
+      },
+      {
+       "move": {
+        "id": "knight1",
+        "to": [
+         2.0,
+         -3.8
+        ],
+        "wait": true,
+        "dur": 4.4,
+        "run": true
+       }
+      },
+      {
+       "sound": {
+        "name": "swing_heavy",
+        "at": "actor:knight1"
+       }
+      },
+      {
+       "fx": {
+        "kind": "blood",
+        "at": [
+         0.6,
+         -1.2
+        ]
+       }
+      },
+      {
+       "sound": {
+        "name": "hit_flesh",
+        "at": "actor:enri"
+       }
+      },
+      {
+       "pose": {
+        "id": "enri",
+        "pose": "kneel"
+       }
+      },
+      {
+       "pose": {
+        "id": "nemu",
+        "pose": "kneel"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -2.2,
+         1.0,
+         1.2
+        ],
+        "look": [
+         1.0,
+         0.9,
+         -2.0
+        ],
+        "dur": 0,
+        "fov": 48
+       }
+      },
+      {
+       "say": [
+        "enri",
+        "Ah …! Nemu … lauf … bitte lauf …!"
+       ]
+      },
+      {
+       "say": [
+        "nemu",
+        "Enri! Nein! Ich lass dich nicht allein!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.2,
+         1.8,
+         -0.4
+        ],
+        "look": "actor:knight1",
+        "dur": 0.6,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "knight1",
+        "Keine Zeugen. So lautet der Befehl."
+       ]
+      },
+      {
+       "pose": {
+        "id": "knight1",
+        "pose": "battle"
+       }
+      },
+      {
+       "fx": {
+        "kind": "gate",
+        "at": [
+         -1.5,
+         1.2
+        ],
+        "dur": 2.4,
+        "face": [
+         2.0,
+         -3.8
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         3.4,
+         1.3,
+         -4.6
+        ],
+        "look": [
+         -1.5,
+         1.6,
+         1.2
+        ],
+        "dur": 0.8,
+        "fov": 50
+       }
+      },
+      {
+       "say": [
+        "knight1",
+        "W-was ist das …?!"
+       ]
+      },
+      {
+       "player": {
+        "at": [
+         -1.5,
+         1.2
+        ],
+        "face": [
+         2.0,
+         -3.8
+        ],
+        "visible": true
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0.4,
+         0.55,
+         -1.6
+        ],
+        "look": "player",
+        "dur": 1.6,
+        "fov": 40
+       }
+      },
+      {
+       "wait": 0.4
+      },
+      {
+       "think": "Ich fühle … nichts. Weder Mitleid noch Abscheu. Als würde ich Insekten beobachten."
+      },
+      {
+       "think": "Aber Touch Me hätte geholfen. »Wer in Not ist, dem zu helfen, ist selbstverständlich.«"
+      },
+      {
+       "say": [
+        "ainz",
+        "Grasp Heart."
+       ]
+      },
+      {
+       "anim": {
+        "id": "player",
+        "play": "cast"
+       }
+      },
+      {
+       "fx": {
+        "kind": "heart",
+        "from": [
+         -1.0,
+         1.55,
+         0.5
+        ],
+        "to": "actor:knight1",
+        "dur": 1.3
+       }
+      },
+      {
+       "cam": {
+        "two": [
+         "player",
+         "actor:knight1"
+        ],
+        "dur": 1.2,
+        "fov": 46,
+        "dist": 3.8,
+        "side": 1.0,
+        "h": 1.6
+       }
+      },
+      {
+       "wait": 1.9
+      },
+      {
+       "pose": {
+        "id": "knight1",
+        "pose": "fall"
+       }
+      },
+      {
+       "wait": 1.0
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "actor:knight1"
+        ],
+        "dur": 0,
+        "fov": 42,
+        "dist": 2.1,
+        "h": 1.7,
+        "angle": 50
+       }
+      },
+      {
+       "think": "…Wirklich nichts. Als hätte ich eine Fliege zerdrückt. Dieser Körper ist nicht mehr menschlich."
+      },
+      {
+       "actor": {
+        "id": "knight2",
+        "at": [
+         7,
+         -18
+        ],
+        "face": "player",
+        "figure": "carne_knight"
+       }
+      },
+      {
+       "move": {
+        "id": "knight2",
+        "to": [
+         3.8,
+         -7.5
+        ],
+        "wait": false,
+        "dur": 3.0,
+        "run": true,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "actor:knight2"
+        ],
+        "dur": 1.0,
+        "fov": 48,
+        "back": 2.0,
+        "side": 1.2,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "knight2",
+        "Ein Magier?! Du da – stirb!"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Ihr wagt es, euch Kindern mit dem Schwert zu nähern? Dann seid ihr wohl bereit, selbst zu sterben."
+       ]
+      },
+      {
+       "anim": {
+        "id": "player",
+        "play": "cast"
+       }
+      },
+      {
+       "fx": {
+        "kind": "lightning",
+        "from": [
+         -1.0,
+         1.6,
+         0.6
+        ],
+        "to": "actor:knight2",
+        "bolts": 3,
+        "color": "#a8d8ff"
+       }
+      },
+      {
+       "pose": {
+        "id": "knight2",
+        "pose": "fall_back"
+       }
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 0.4
+       }
+      },
+      {
+       "wait": 1.0
+      },
+      {
+       "say": [
+        "ainz",
+        "Drachenblitz. Hm … schwächer, als ich dachte. Oder diese Ritter sind schlicht erbärmlich."
+       ]
+      },
+      {
+       "cam": {
+        "two": [
+         "player",
+         "actor:knight1"
+        ],
+        "dur": 1.0,
+        "fov": 50,
+        "dist": 4.2,
+        "side": -1.0,
+        "h": 2.0
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Erschaffe Mittleren Untoten: Todesritter."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "summon",
+        "at": [
+         2.0,
+         -3.8
+        ],
+        "color": "#8a3aff"
+       }
+      },
+      {
+       "remove": "knight1"
+      },
+      {
+       "actor": {
+        "id": "death_knight",
+        "at": [
+         2.0,
+         -3.8
+        ],
+        "face": "player",
+        "rise": true,
+        "rise_dur": 1.8
+       }
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "at": [
+         2.0,
+         2.0,
+         -3.8
+        ]
+       }
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 0.5
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         0.5,
+         1.2,
+         0.2
+        ],
+        "look": "actor:death_knight",
+        "dur": 2.0,
+        "fov": 44
+       }
+      },
+      {
+       "wait": 1.6
+      },
+      {
+       "say": [
+        "ainz",
+        "Todesritter. Vernichte die Ritter, die dieses Dorf überfallen."
+       ]
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "at": [
+         2.0,
+         2.0,
+         -3.8
+        ],
+        "vol": 0.8
+       }
+      },
+      {
+       "move": {
+        "id": "death_knight",
+        "to": [
+         8,
+         -22
+        ],
+        "wait": false,
+        "dur": 4.5,
+        "run": true
+       }
+      },
+      {
+       "fx": {
+        "kind": "gate",
+        "at": [
+         -5.2,
+         3.6
+        ],
+        "dur": 2.6,
+        "face": "actor:enri"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -0.4,
+         1.8,
+         4.6
+        ],
+        "look": [
+         -4.4,
+         1.5,
+         2.6
+        ],
+        "dur": 1.0,
+        "fov": 50
+       }
+      },
+      {
+       "wait": 0.8
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         -5.2,
+         3.6
+        ],
+        "face": "actor:enri"
+       }
+      },
+      {
+       "move": {
+        "id": "albedo",
+        "to": [
+         -2.7,
+         0.4
+        ],
+        "wait": false,
+        "dur": 2.4,
+        "face": "actor:enri"
+       }
+      },
+      {
+       "wait": 1.2
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:albedo",
+         "player"
+        ],
+        "dur": 1.0,
+        "fov": 46,
+        "dist": 2.3,
+        "h": 1.7,
+        "angle": 40
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Verzeiht meine Verspätung, {lord}. Ich musste erst meine Rüstung anlegen."
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Nein, du kommst gerade recht."
+       ]
+      },
+      {
+       "say": [
+        "albedo",
+        "Und diese niederen Lebensformen … soll ich sie für Euch beseitigen?"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         1.6,
+         0.9,
+         1.2
+        ],
+        "look": [
+         0.6,
+         0.85,
+         -1.2
+        ],
+        "dur": 0.6
+       }
+      },
+      {
+       "say": [
+        "enri",
+        "…!"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Nein. Wir sind gekommen, um dieses Dorf zu retten."
+       ]
+      },
+      {
+       "say": [
+        "albedo",
+        "Wie Ihr befehlt."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -2.6,
+         1.4,
+         -0.8
+        ],
+        "look": [
+         0.4,
+         1.0,
+         -1.0
+        ],
+        "dur": 1.0
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Trink das. Es ist ein Heiltrank."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "heal",
+        "at": [
+         0.6,
+         -1.2
+        ]
+       }
+      },
+      {
+       "pose": {
+        "id": "enri",
+        "pose": "stand"
+       }
+      },
+      {
+       "say": [
+        "enri",
+        "Die Wunde … sie ist weg! Ein … roter Trank?"
+       ]
+      },
+      {
+       "think": "Sie starrt ihn an, als hätte sie noch nie einen gesehen. Sind Heiltränke in dieser Welt etwa anders?"
+      },
+      {
+       "say": [
+        "ainz",
+        "Antilife Cocoon."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "dome",
+        "at": [
+         1.1,
+         -1.4
+        ],
+        "radius": 2.0,
+        "color": "#7dffb0",
+        "dur": 8.0
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Bleibt in diesem Schutzkreis, dann kann euch niemand etwas anhaben. Und nehmt diese zwei Hörner. Blast hinein, wenn ihr je in Not geratet."
+       ]
+      },
+      {
+       "pose": {
+        "id": "nemu",
+        "pose": "stand"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -0.4,
+         1.0,
+         1.0
+        ],
+        "look": [
+         1.6,
+         0.8,
+         -1.6
+        ],
+        "dur": 0.8
+       }
+      },
+      {
+       "say": [
+        "nemu",
+        "D-danke …!"
+       ]
+      },
+      {
+       "say": [
+        "enri",
+        "Darf … darf ich Euren Namen erfahren? Damit wir wissen, wem wir unser Leben verdanken."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -3.1,
+         1.6,
+         0.6
+        ],
+        "look": "player",
+        "dur": 1.2,
+        "fov": 42
+       }
+      },
+      {
+       "think": "Momonga … nein. Wenn meine Freunde in dieser Welt sind, soll sie ein Name erreichen, den sie kennen."
+      },
+      {
+       "say": [
+        "ainz",
+        "Ainz Ooal Gown. Merkt euch diesen Namen."
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Albedo – ins Dorf."
+       ]
+      },
+      {
+       "ally": [
+        "albedo_ally",
+        [
+         -2.6,
+         0.6
+        ]
+       ]
+      },
+      {
+       "remove": "albedo"
+      },
+      {
+       "remove": "death_knight"
+      },
+      {
+       "ally": [
+        "death_knight_ally",
+        [
+         7,
+         -20
+        ]
+       ]
+      }
+     ]
+    },
+    {
+     "set": {
+      "c": "c0"
+     }
+    },
+    {
+     "stage": {
+      "pos": [
+       3,
+       -5
+      ],
+      "yaw": 0
+     },
+     "objective": "Eilt auf den Dorfplatz",
+     "goto": [
+      0,
+      13
+     ],
+     "radius": 5
+    },
+    {
+     "objective": "Vertreibt die Ritter aus Carne",
+     "wave": [
+      [
+       "carne_knight",
+       3,
+       [
+        0,
+        -4
+       ]
+      ],
+      [
+       "carne_archer",
+       2,
+       [
+        -7,
+        -10
+       ]
+      ]
+     ]
+    },
+    {
+     "objective": "Vertreibt die Ritter aus Carne",
+     "wave": [
+      [
+       "carne_knight",
+       2,
+       [
+        10,
+        -2
+       ]
+      ],
+      [
+       "carne_knight",
+       2,
+       [
+        -10,
+        -2
+       ]
+      ],
+      [
+       "carne_archer",
+       1,
+       [
+        0,
+        -15
+       ]
+      ]
+     ]
+    },
+    {
+     "objective": "Stellt den Ritterhauptmann",
+     "boss": "carne_captain",
+     "at": [
+      0,
+      -12
+     ],
+     "adds": [
+      [
+       "carne_knight",
+       2,
+       [
+        3,
+        -9
+       ]
+      ]
+     ],
+     "yield_at": 0.15,
+     "yield_text": "Gnade!",
+     "intro": [
+      {
+       "cam": {
+        "near": [
+         "enemy:carne_captain",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.6,
+        "h": 1.7
+       }
+      },
+      {
+       "say": [
+        "carne_captain",
+        "Was steht ihr da herum?! Das ist nur ein Magier und eine Frau! Tötet sie – ich bin Belius, ich bin zu Höherem bestimmt!"
+       ]
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "enemy:carne_captain"
+        ],
+        "dur": 0.8,
+        "fov": 48
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Zu Höherem bestimmt? Dann zeig es mir."
+       ]
+      }
+     ]
+    },
+    {
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:carne_captain",
+        "dist": 3.4
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:carne_captain",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.4,
+        "h": 1.2,
+        "look_h": 1.0
+       }
+      },
+      {
+       "say": [
+        "carne_captain",
+        "Wartet! Gnade! Ich … ich gebe euch Gold! Zweihundert Goldmünzen! Nein – fünfhundert! Mein Vater ist Adliger, er zahlt jeden Preis!"
+       ]
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "at": "enemy:carne_captain"
+       }
+      },
+      {
+       "cam": {
+        "two": [
+         "enemy:carne_captain",
+         "ally:death_knight_ally"
+        ],
+        "dur": 0.5,
+        "fov": 50,
+        "dist": 5.0,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "carne_captain",
+        "Nein … nein, bleib weg! Halt ihn auf! Ich befehle es dir!"
+       ]
+      },
+      {
+       "sound": {
+        "name": "swing_heavy",
+        "at": "enemy:carne_captain"
+       }
+      },
+      {
+       "fx": {
+        "kind": "blood",
+        "at": "enemy:carne_captain"
+       }
+      },
+      {
+       "call": "kill_boss"
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 0.4
+       }
+      },
+      {
+       "wait": 1.4
+      },
+      {
+       "say": [
+        "ainz",
+        "Genug, Todesritter."
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "enemy:carne_knight"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 2.4,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Ihr anderen: Ich lasse euch am Leben. Kehrt zu eurem Herrn zurück und richtet ihm aus – wer in diesem Land noch einmal Unruhe stiftet, dem bringe ich den Tod persönlich."
+       ]
+      },
+      {
+       "folk": true
+      },
+      {
+       "actor": {
+        "id": "enri",
+        "at": [
+         -7,
+         9
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "nemu",
+        "at": [
+         -6.2,
+         9.6
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "enri",
+        "to": [
+         -2.2,
+         3.0
+        ],
+        "wait": false,
+        "dur": 3.0,
+        "face": "player"
+       }
+      },
+      {
+       "move": {
+        "id": "nemu",
+        "to": [
+         -1.2,
+         3.4
+        ],
+        "wait": false,
+        "dur": 3.0,
+        "face": "player"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         -4.5,
+         1.6,
+         0.5
+        ],
+        "look": "actor:enri",
+        "dur": 1.6,
+        "fov": 48
+       }
+      },
+      {
+       "wait": 1.8
+      },
+      {
+       "say": [
+        "enri",
+        "Ainz Ooal Gown-sama … das Dorf … Ihr habt das Dorf gerettet!"
+       ]
+      },
+      {
+       "say": [
+        "nemu",
+        "Danke, danke, danke!"
+       ]
+      },
+      {
+       "pose": {
+        "id": "enri",
+        "pose": "bow"
+       }
+      },
+      {
+       "pose": {
+        "id": "nemu",
+        "pose": "bow"
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich verlange nichts. Nun – vielleicht ein paar Auskünfte über diese Gegend."
+       ]
+      },
+      {
+       "fade": 1,
+       "dur": 1.2
+      }
+     ]
+    }
+   ]
+  },
+  "sm_nigun": {
+   "title": "Die Sonnenlicht-Schrift",
+   "event": "ev_nigun",
+   "plays": [
+    "c0",
+    "c1"
+   ],
+   "result_key": "c",
+   "label": "⚔ Selbst erleben: die Schlacht um Carne (3D)",
+   "loc": "carne",
+   "mood": "dusk",
+   "hide_folk": true,
+   "stage": {
+    "pos": [
+     3,
+     5
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    2
+   ],
+   "end_at": [
+    0,
+    -4
+   ],
+   "music": "tension",
+   "steps": [
+    {
+     "objective": "Bezwingt die Sonnenlicht-Schrift",
+     "boss": "nigun",
+     "at": [
+      0,
+      -16
+     ],
+     "adds": [
+      [
+       "angel_flame",
+       1,
+       [
+        -2.6,
+        -8.4
+       ]
+      ],
+      [
+       "angel_flame",
+       1,
+       [
+        2.4,
+        -8.8
+       ]
+      ],
+      [
+       "angel_flame",
+       1,
+       [
+        0.4,
+        -10.4
+       ]
+      ],
+      [
+       "sunlit_caster",
+       1,
+       [
+        -3.8,
+        -17.4
+       ]
+      ],
+      [
+       "sunlit_caster",
+       1,
+       [
+        3.8,
+        -17.2
+       ]
+      ]
+     ],
+     "yield_at": 0.08,
+     "yield_text": "Gnade!",
+     "intro": [
+      {
+       "player": {
+        "visible": false,
+        "at": [
+         0,
+         -6
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "gazef",
+        "at": [
+         0,
+         -6
+        ],
+        "face": [
+         0,
+         -16
+        ],
+        "pose": "kneel"
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         6,
+         4,
+         -2
+        ],
+        "look": [
+         0,
+         1.5,
+         -11
+        ],
+        "dur": 0,
+        "fov": 56
+       }
+      },
+      {
+       "title": [
+        "Die Sonnenlicht-Schrift",
+        "Dorf Carne · Abenddämmerung"
+       ],
+       "dur": 3.0
+      },
+      {
+       "fade": 0,
+       "dur": 1.4
+      },
+      {
+       "cam": {
+        "at": [
+         4,
+         2.4,
+         -4
+        ],
+        "look": [
+         0,
+         1.2,
+         -9
+        ],
+        "dur": 6.0
+       }
+      },
+      {
+       "say": [
+        "nigun",
+        "Gib auf, Stronoff. Dein Tod ist der Wille der Götter. Niemand wird kommen, um dich zu retten."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         -1.6,
+         0.9,
+         -4.4
+        ],
+        "look": [
+         0,
+         1.05,
+         -6
+        ],
+        "dur": 0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "gazef",
+        "Ich bin … Gazef Stronoff … Kriegerhauptmann des Königreichs. Solange ich atme … rührt ihr dieses Dorf nicht an!"
+       ]
+      },
+      {
+       "pose": {
+        "id": "gazef",
+        "pose": "stand"
+       }
+      },
+      {
+       "say": [
+        "gazef",
+        "Hört ihr mich?! Ich werde nicht vor euch knien!"
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:nigun",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 3.0,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "nigun",
+        "Narr. Engel – macht ein Ende mit ihm."
+       ]
+      },
+      {
+       "sound": {
+        "name": "telegraph_red",
+        "at": [
+         0,
+         1.5,
+         -8
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         2.5,
+         1.4,
+         -3.5
+        ],
+        "look": [
+         0,
+         1.2,
+         -6.5
+        ],
+        "dur": 0.6,
+        "fov": 48
+       }
+      },
+      {
+       "wait": 0.6
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": [
+         0,
+         -6
+        ],
+        "color": "#9f4dff"
+       }
+      },
+      {
+       "remove": "gazef"
+      },
+      {
+       "player": {
+        "at": [
+         0,
+         -6
+        ],
+        "face": [
+         0,
+         -16
+        ],
+        "visible": true
+       }
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": [
+         1.6,
+         -5.2
+        ],
+        "color": "#9f4dff"
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         1.6,
+         -5.2
+        ],
+        "face": [
+         0,
+         -16
+        ]
+       }
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 0.4
+       }
+      },
+      {
+       "wait": 1.0
+      },
+      {
+       "cam": {
+        "at": [
+         0.9,
+         1.7,
+         -9.2
+        ],
+        "look": "player",
+        "dur": 1.2,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "nigun",
+        "Was …?! Wo ist Stronoff? Wer bist du?!"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich bin Ainz Ooal Gown. Gazef Stronoff habe ich an einen sicheren Ort gebracht – mit einem kleinen Tausch."
+       ]
+      },
+      {
+       "think": "Engel der Flamme … Stufe 20, vielleicht. Wenn das ihre Stärke ist, ist diese Welt schwächer, als ich dachte."
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich mache euch ein Angebot. Legt eure Waffen nieder und ergebt euch – dann gewähre ich euch einen schmerzlosen Tod."
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:nigun",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 3.0,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "nigun",
+        "Ha … Hahaha! Ein einzelner Magier will uns ein Angebot machen? Engel – tötet ihn!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         3.0,
+         1.6,
+         -4.0
+        ],
+        "look": "actor:albedo",
+        "dur": 0.5
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Diese Würmer … wagen es, {lord} zu verspotten?"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Albedo. Bleib an meiner Seite – und lass niemanden zu mir durch."
+       ]
+      },
+      {
+       "ally": [
+        "albedo_ally",
+        [
+         1.6,
+         -5.2
+        ]
+       ]
+      },
+      {
+       "remove": "albedo"
+      }
+     ],
+     "scenes": [
+      {
+       "hp": 0.6,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:nigun",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 46,
+          "dist": 3.0,
+          "h": 1.8
+         }
+        },
+        {
+         "say": [
+          "nigun",
+          "Engel der Prinzipalität – erscheine und bewache mich!"
+         ]
+        },
+        {
+         "fx": {
+          "kind": "holy",
+          "at": "enemy:nigun",
+          "radius": 1.6,
+          "color": "#fff0b0",
+          "hold": 0.5
+         }
+        },
+        {
+         "spawn": {
+          "id": "principality",
+          "count": 1,
+          "near": "enemy:nigun"
+         }
+        },
+        {
+         "fx": {
+          "kind": "flash",
+          "color": "#fff6d0",
+          "alpha": 0.35,
+          "dur": 0.5
+         }
+        },
+        {
+         "cam": {
+          "near": [
+           "enemy:principality",
+           "player"
+          ],
+          "dur": 0.8,
+          "fov": 50,
+          "dist": 4.6,
+          "h": 2.2,
+          "angle": 30
+         }
+        },
+        {
+         "think": "Prinzipalität … Stufe 30, mit Mühe. Ich fange an, mich zu langweilen."
+        }
+       ]
+      },
+      {
+       "hp": 0.3,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:nigun",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 44,
+          "dist": 3.0,
+          "h": 1.8
+         }
+        },
+        {
+         "say": [
+          "nigun",
+          "Unmöglich … Wer bist du?! Gut – dann seht her! Dies ist die höchste Beschwörung der Menschheit!"
+         ]
+        },
+        {
+         "fx": {
+          "kind": "flash",
+          "color": "#ffffff",
+          "alpha": 0.7,
+          "dur": 0.8
+         }
+        },
+        {
+         "fx": {
+          "kind": "holy",
+          "at": {
+           "ref": "enemy:nigun",
+           "away": "player",
+           "dist": 5.5
+          },
+          "radius": 3.0,
+          "color": "#fff6d0",
+          "hold": 1.2
+         }
+        },
+        {
+         "sound": {
+          "name": "super_charge",
+          "at": {
+           "ref": "enemy:nigun",
+           "away": "player",
+           "dist": 5.5
+          }
+         }
+        },
+        {
+         "actor": {
+          "id": "dominion",
+          "at": {
+           "ref": "enemy:nigun",
+           "away": "player",
+           "dist": 5.5
+          },
+          "face": "player",
+          "figure": "dominion",
+          "scale": 1.9,
+          "rise": true,
+          "label_h": 4.4
+         }
+        },
+        {
+         "cam": {
+          "ots": [
+           "player",
+           "actor:dominion"
+          ],
+          "dur": 2.4,
+          "fov": 56,
+          "back": 2.2,
+          "side": 1.5,
+          "h": 1.0,
+          "look_h": 3.6
+         }
+        },
+        {
+         "wait": 1.0
+        },
+        {
+         "say": [
+          "nigun",
+          "Der Engel der Herrschaft! Ein Wesen, das einst einen Dämonenkönig vernichtet hat! Ergib dich!"
+         ]
+        },
+        {
+         "cam": {
+          "near": [
+           "player",
+           "actor:dominion"
+          ],
+          "dur": 0,
+          "fov": 42,
+          "dist": 2.2,
+          "h": 1.6
+         }
+        },
+        {
+         "think": "Ein Engel der Herrschaft. Stufe 40, vielleicht."
+        },
+        {
+         "think": "Und zum ersten Mal in dieser Welt …"
+        },
+        {
+         "say": [
+          "ainz",
+          "Hahaha … HAHAHA! Das ist eure höchste Beschwörung? Das? Ich habe mich ganz umsonst gesorgt!"
+         ]
+        },
+        {
+         "say": [
+          "nigun",
+          "Heiliges Urteil – vernichte ihn!"
+         ]
+        },
+        {
+         "fx": {
+          "kind": "holy",
+          "at": "player",
+          "radius": 2.4,
+          "color": "#fff0b0",
+          "hold": 1.0
+         }
+        },
+        {
+         "fx": {
+          "kind": "flash",
+          "color": "#ffffff",
+          "alpha": 0.6,
+          "dur": 0.7
+         }
+        },
+        {
+         "fx": {
+          "kind": "shake",
+          "amount": 0.7
+         }
+        },
+        {
+         "wait": 1.4
+        },
+        {
+         "cam": {
+          "near": [
+           "player",
+           "actor:dominion"
+          ],
+          "dur": 0,
+          "fov": 40,
+          "dist": 2.0,
+          "h": 1.6
+         }
+        },
+        {
+         "say": [
+          "ainz",
+          "…Das also ist Schmerz. Interessant. Ich hatte beinahe vergessen, wie er sich anfühlt."
+         ]
+        },
+        {
+         "cam": {
+          "near": [
+           "ally:albedo_ally",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 46,
+          "dist": 2.2,
+          "h": 1.6
+         }
+        },
+        {
+         "say": [
+          "albedo",
+          "Ihr wagt es … {lord} zu verletzen?! Ihr niederen Kreaturen!"
+         ]
+        },
+        {
+         "say": [
+          "ainz",
+          "Albedo. Es genügt."
+         ]
+        },
+        {
+         "cam": {
+          "ots": [
+           "player",
+           "actor:dominion"
+          ],
+          "dur": 1.0,
+          "fov": 60,
+          "back": 3.4,
+          "side": 1.6,
+          "h": 2.0,
+          "look_h": 3.6
+         }
+        },
+        {
+         "say": [
+          "ainz",
+          "Schwarzes Loch."
+         ]
+        },
+        {
+         "anim": {
+          "id": "player",
+          "play": "cast"
+         }
+        },
+        {
+         "fx": {
+          "kind": "blackhole",
+          "at": "actor:dominion",
+          "h": 3.6,
+          "radius": 4.0,
+          "swallow": "dominion"
+         }
+        },
+        {
+         "wait": 2.4
+        },
+        {
+         "call": "kill",
+         "args": {
+          "ids": [
+           "angel_flame",
+           "principality"
+          ]
+         }
+        },
+        {
+         "cam": {
+          "near": [
+           "enemy:nigun",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 46,
+          "dist": 3.0,
+          "h": 1.8
+         }
+        },
+        {
+         "say": [
+          "nigun",
+          "Ein Engel der Herrschaft … mit einem einzigen Zauber …? Was … was bist du?!"
+         ]
+        },
+        {
+         "say": [
+          "ainz",
+          "Ich sagte es bereits. Ainz Ooal Gown."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:nigun",
+        "dist": 3.6
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:nigun",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.6,
+        "h": 1.2,
+        "look_h": 1.0
+       }
+      },
+      {
+       "say": [
+        "nigun",
+        "Wartet! Wartet doch! Ich gebe Euch alles, was Ihr wollt – Gold, Wissen, Magie! Die Theokratie würde jeden Preis für mich zahlen!"
+       ]
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#fff6d0",
+        "alpha": 0.3,
+        "dur": 0.4
+       }
+      },
+      {
+       "sound": "shield_break"
+      },
+      {
+       "cam": {
+        "at": [
+         0.5,
+         1.0,
+         -3.0
+        ],
+        "look": [
+         0,
+         14,
+         -12
+        ],
+        "dur": 1.2,
+        "fov": 58
+       }
+      },
+      {
+       "wait": 0.8
+      },
+      {
+       "think": "Ein Beobachtungszauber, zerbrochen an meiner Abwehr. Jemand hat zugesehen. Gut – dann haben sie jetzt etwas zu erzählen."
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "enemy:nigun"
+        ],
+        "dur": 0,
+        "fov": 42,
+        "dist": 2.2,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Ich habe dir vorhin ein Angebot gemacht. Du hast es ausgeschlagen."
+       ]
+      },
+      {
+       "choice": {
+        "prompt": "Was geschieht mit Nigun und seinen Männern?",
+        "key": "c",
+        "options": [
+         {
+          "text": "»Negative Burst.« – Vernichtet sie alle",
+          "value": "c0",
+          "variant": "danger",
+          "then": [
+           {
+            "cam": {
+             "ots": [
+              "player",
+              "enemy:nigun"
+             ],
+             "dur": 0,
+             "fov": 60,
+             "back": 4.0,
+             "h": 3.5
+            }
+           },
+           {
+            "say": [
+             "ainz",
+             "Negative Burst."
+            ]
+           },
+           {
+            "anim": {
+             "id": "player",
+             "play": "cast"
+            }
+           },
+           {
+            "fx": {
+             "kind": "negative",
+             "at": "player",
+             "radius": 16
+            }
+           },
+           {
+            "call": "kill_boss"
+           },
+           {
+            "call": "kill",
+            "args": {
+             "ids": [
+              "sunlit_caster"
+             ]
+            }
+           },
+           {
+            "wait": 2.0
+           },
+           {
+            "think": "Keine Reue. Nicht einmal ein Hauch davon."
+           }
+          ]
+         },
+         {
+          "text": "Nigun lebend fangen – für Verhöre in Nazarick",
+          "value": "c1",
+          "variant": "primary",
+          "then": [
+           {
+            "cam": {
+             "near": [
+              "ally:albedo_ally",
+              "player"
+             ],
+             "dur": 0,
+             "fov": 46,
+             "dist": 2.2,
+             "h": 1.6
+            }
+           },
+           {
+            "say": [
+             "albedo",
+             "Ein weiser Entschluss, {lord}. Ich bringe ihn persönlich in die Kerker."
+            ]
+           },
+           {
+            "fx": {
+             "kind": "gate",
+             "at": "enemy:nigun",
+             "dur": 3.0,
+             "face": "player"
+            }
+           },
+           {
+            "say": [
+             "nigun",
+             "Nein … nein, nicht …!"
+            ]
+           },
+           {
+            "call": "remove_boss"
+           },
+           {
+            "wait": 1.4
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "fade": 1,
+       "dur": 1.2
+      }
+     ]
+    }
+   ]
+  },
+  "sm_erantel": {
+   "title": "Die Nacht der Untoten",
+   "event": "ev_erantel",
+   "plays": [
+    "c0",
+    "c1"
+   ],
+   "result_key": "c",
+   "label": "⚔ Selbst erleben: Momon und Nabe auf dem Friedhof (3D)",
+   "loc": "erantel_friedhof",
+   "stage": {
+    "pos": [
+     0,
+     30
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    9
+   ],
+   "end_at": [
+    0,
+    6
+   ],
+   "music": "battle",
+   "steps": [
+    {
+     "objective": "Bahnt Euch einen Weg durch die Untoten",
+     "wave": [
+      [
+       "skeleton",
+       1,
+       [
+        -2,
+        -6
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        1.5,
+        -7
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        -0.5,
+        -9.5
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        3.5,
+        -10
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        -4,
+        -11
+       ]
+      ],
+      [
+       "skeleton_archer",
+       1,
+       [
+        -6,
+        -15
+       ]
+      ],
+      [
+       "skeleton_archer",
+       1,
+       [
+        6,
+        -15
+       ]
+      ]
+     ],
+     "intro": [
+      {
+       "player": {
+        "style": "momon",
+        "at": [
+         0,
+         9
+        ],
+        "face": [
+         0,
+         -10
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "narberal",
+        "at": [
+         1.9,
+         9.8
+        ],
+        "face": [
+         0,
+         -10
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         5,
+         3.5,
+         16
+        ],
+        "look": [
+         0,
+         1.6,
+         -4
+        ],
+        "dur": 0,
+        "fov": 56
+       }
+      },
+      {
+       "title": [
+        "Die Nacht der Untoten",
+        "E-Rantel · Friedhof"
+       ],
+       "dur": 3.0
+      },
+      {
+       "fade": 0,
+       "dur": 1.4
+      },
+      {
+       "cam": {
+        "at": [
+         3,
+         2.2,
+         12
+        ],
+        "look": [
+         0,
+         1.5,
+         -6
+        ],
+        "dur": 6.0
+       }
+      },
+      {
+       "sound": {
+        "name": "bone_collapse",
+        "at": [
+         0,
+         1,
+         -8
+        ]
+       }
+      },
+      {
+       "say": [
+        "narberal",
+        "Momon-san. Der Friedhof ist voller Untoter. Es heißt, es seien Tausende."
+       ]
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Und irgendwo dahinter versteckt sich der Kult, der Nfirea entführt hat."
+       ]
+      },
+      {
+       "think": "Untote … meine eigene Art, gewissermaßen. Nur ohne Verstand. Und ohne Geschmack."
+      },
+      {
+       "cam": {
+        "at": [
+         -1.6,
+         1.7,
+         7.4
+        ],
+        "look": "actor:narberal",
+        "dur": 0.8,
+        "fov": 46
+       }
+      },
+      {
+       "say": [
+        "narberal",
+        "Soll ich sie mit einem einzigen Zauber auslöschen, Momon-sa… -san?"
+       ]
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Nabe. Wir sind Abenteurer – also kämpfen wir wie Abenteurer. … Und lass das ›-sama‹."
+       ]
+      },
+      {
+       "say": [
+        "narberal",
+        "Jawohl. Verzeiht, Momon-san."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.8,
+         1.7,
+         5.5
+        ],
+        "look": [
+         0,
+         1.6,
+         9
+        ],
+        "dur": 1.0,
+        "fov": 44
+       }
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Gehen wir. Bleib hinter mir."
+       ]
+      },
+      {
+       "ally": [
+        "narberal_ally",
+        [
+         1.9,
+         9.8
+        ]
+       ]
+      },
+      {
+       "remove": "narberal"
+      }
+     ]
+    },
+    {
+     "objective": "Vernichtet den Ältesten Leichnam",
+     "wave": [
+      [
+       "skeleton",
+       4,
+       [
+        5,
+        -16
+       ]
+      ],
+      [
+       "skeleton",
+       3,
+       [
+        -5,
+        -16
+       ]
+      ],
+      [
+       "elder_lich",
+       1,
+       [
+        0,
+        -24
+       ]
+      ]
+     ],
+     "intro": [
+      {
+       "cam": {
+        "near": [
+         "enemy:elder_lich",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 3.2,
+        "h": 2.0
+       }
+      },
+      {
+       "say": [
+        "elder_lich",
+        "Lebende … oder nicht? Gleichgültig. Erhebt euch, meine Diener!"
+       ]
+      },
+      {
+       "cam": {
+        "two": [
+         "player",
+         "ally:narberal_ally"
+        ],
+        "dur": 0,
+        "fov": 48,
+        "dist": 3.6,
+        "side": 1.0,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "narberal",
+        "Ein Ältester Leichnam, Momon-san. Er beherrscht Feuerbälle."
+       ]
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Dann sorgen wir dafür, dass er keine Gelegenheit dazu bekommt."
+       ]
+      }
+     ]
+    },
+    {
+     "stage": {
+      "pos": [
+       0,
+       -30
+      ],
+      "yaw": 0
+     },
+     "objective": "Dringt zum Mausoleum vor",
+     "goto": [
+      0,
+      4
+     ],
+     "radius": 4
+    },
+    {
+     "objective": "Besiegt Clementine",
+     "boss": "clementine",
+     "at": [
+      0,
+      -6
+     ],
+     "adds": [
+      [
+       "khajit",
+       1,
+       [
+        3.5,
+        -12
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        -3,
+        -10
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        -5,
+        -12
+       ]
+      ],
+      [
+       "skeleton",
+       1,
+       [
+        6,
+        -9
+       ]
+      ]
+     ],
+     "yield_at": 0.06,
+     "yield_text": "Das … kann nicht …",
+     "intro": [
+      {
+       "actor": {
+        "id": "nfirea",
+        "at": [
+         0,
+         -17
+        ],
+        "face": [
+         0,
+         4
+        ]
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": [
+         0,
+         -17
+        ],
+        "radius": 2.6,
+        "color": "#b070ff",
+        "dur": 90,
+        "design": "b",
+        "spin": 0.5
+       }
+      },
+      {
+       "player": {
+        "at": [
+         0,
+         4
+        ],
+        "face": [
+         0,
+         -6
+        ]
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:clementine",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 3.0,
+        "h": 1.7
+       }
+      },
+      {
+       "say": [
+        "clementine",
+        "Na, Großer? Da bist du ja endlich. Ich hab mich schon gelangweilt."
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:khajit",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 3.0,
+        "h": 1.7
+       }
+      },
+      {
+       "say": [
+        "khajit",
+        "Clementine. Hör auf zu spielen. Das Ritual ist fast vollendet – E-Rantel wird ein Reich des Todes!"
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.5,
+         1.6,
+         -13.0
+        ],
+        "look": "actor:nfirea",
+        "dur": 1.0,
+        "fov": 44
+       }
+      },
+      {
+       "think": "Nfirea … er trägt eine Krone. Seine Augen sind leer. Ein Gegenstand, der ihn zwingt, Zauber zu wirken?"
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:clementine",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 2.6,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "clementine",
+        "Na? Willst du spielen? Ich verspreche dir, ich mach’s nicht schnell."
+       ]
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "enemy:clementine"
+        ],
+        "dur": 0,
+        "fov": 48
+       }
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Nabe. Kümmere dich um den Glatzkopf. Die Frau übernehme ich."
+       ]
+      },
+      {
+       "say": [
+        "narberal",
+        "Jawohl, Momon-san."
+       ]
+      }
+     ],
+     "scenes": [
+      {
+       "hp": 0.55,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:clementine",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 44,
+          "dist": 2.6,
+          "h": 1.6
+         }
+        },
+        {
+         "say": [
+          "clementine",
+          "Hah … Nicht schlecht, Großer. Aber jetzt wird’s ernst. Fähigkeitsschub! Fließende Beschleunigung!"
+         ]
+        },
+        {
+         "fx": {
+          "kind": "ring",
+          "at": "enemy:clementine",
+          "radius": 3.0,
+          "color": "#ff6a4a",
+          "dur": 0.6
+         }
+        },
+        {
+         "sound": {
+          "name": "tech_charge",
+          "at": "enemy:clementine"
+         }
+        },
+        {
+         "cam": {
+          "ots": [
+           "enemy:clementine",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 46
+         }
+        },
+        {
+         "say": [
+          "ainz_momon",
+          "…Kampfkünste. Die Fertigkeiten der Krieger dieser Welt. Zeig mir mehr."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:clementine",
+        "dist": 3.4
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:clementine",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 2.4,
+        "h": 1.2,
+        "look_h": 1.0
+       }
+      },
+      {
+       "say": [
+        "clementine",
+        "Das … kann nicht sein … Ich war in der Schwarzen Schrift … Ich bin stärker als … als alle …"
+       ]
+      },
+      {
+       "if_alive": {
+        "ref": "enemy:khajit",
+        "then": [
+         {
+          "cam": {
+           "near": [
+            "enemy:khajit",
+            "ally:narberal_ally"
+           ],
+           "dur": 0,
+           "fov": 46,
+           "dist": 3.0,
+           "h": 1.4,
+           "look_h": 1.0
+          }
+         },
+         {
+          "say": [
+           "khajit",
+           "Clementine?! Unmöglich … Todesperle – gib mir Kraft …!"
+          ]
+         },
+         {
+          "cam": {
+           "ots": [
+            "ally:narberal_ally",
+            "enemy:khajit"
+           ],
+           "dur": 0,
+           "fov": 50
+          }
+         },
+         {
+          "say": [
+           "narberal",
+           "Kettendrachenblitz."
+          ]
+         },
+         {
+          "fx": {
+           "kind": "lightning",
+           "from": "ally:narberal_ally",
+           "to": "enemy:khajit",
+           "bolts": 4,
+           "color": "#8fc8ff"
+          }
+         },
+         {
+          "call": "kill",
+          "args": {
+           "id": "khajit"
+          }
+         },
+         {
+          "wait": 1.2
+         },
+         {
+          "say": [
+           "narberal",
+           "Die Laus ist erledigt, Momon-san."
+          ]
+         }
+        ],
+        "else": [
+         {
+          "say": [
+           "narberal",
+           "Der Glatzkopf ist erledigt, Momon-san. Nur noch diese Frau."
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "player": {
+        "near": "enemy:clementine",
+        "dist": 1.6
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "enemy:clementine"
+        ],
+        "dur": 0,
+        "fov": 42,
+        "dist": 2.2,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Du wolltest doch spielen."
+       ]
+      },
+      {
+       "sound": {
+        "name": "block",
+        "at": "player"
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:clementine",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 2.4,
+        "h": 1.2,
+        "look_h": 1.0
+       }
+      },
+      {
+       "say": [
+        "clementine",
+        "Hä …? Du legst deine Schwerter weg? Willst du dich etwa ergeben, Großer?"
+       ]
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "Ich zeige dir etwas, das nur wenige je gesehen haben."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": "player",
+        "color": "#9f4dff"
+       }
+      },
+      {
+       "player": {
+        "style": "ainz"
+       }
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#2a0040",
+        "alpha": 0.6,
+        "dur": 0.7
+       }
+      },
+      {
+       "sound": {
+        "name": "dark_impact",
+        "at": "player"
+       }
+      },
+      {
+       "wait": 0.8
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "enemy:clementine"
+        ],
+        "dur": 0,
+        "fov": 40,
+        "dist": 2.0,
+        "h": 1.6
+       }
+      },
+      {
+       "say": [
+        "clementine",
+        "W-was … was bist du?! Ein … Untoter?!"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Ainz Ooal Gown. Und ich habe die ganze Zeit nur mit dir gespielt."
+       ]
+      },
+      {
+       "choice": {
+        "prompt": "Wie endet die Nacht der Untoten?",
+        "key": "c",
+        "options": [
+         {
+          "text": "Clementine ›umarmen‹ und Nfirea der Stadt zurückgeben",
+          "value": "c0",
+          "variant": "primary",
+          "then": [
+           {
+            "cam": {
+             "two": [
+              "player",
+              "enemy:clementine"
+             ],
+             "dur": 0,
+             "fov": 46,
+             "dist": 3.2,
+             "h": 1.5
+            }
+           },
+           {
+            "say": [
+             "ainz",
+             "Komm her."
+            ]
+           },
+           {
+            "sound": {
+             "name": "bone_collapse",
+             "at": "enemy:clementine"
+            }
+           },
+           {
+            "fx": {
+             "kind": "shake",
+             "amount": 0.35
+            }
+           },
+           {
+            "wait": 0.6
+           },
+           {
+            "sound": {
+             "name": "hit_bone",
+             "at": "enemy:clementine"
+            }
+           },
+           {
+            "call": "kill_boss"
+           },
+           {
+            "wait": 1.6
+           },
+           {
+            "say": [
+             "narberal",
+             "Nfirea Bareare lebt, Ainz-sama. Die Krone hat ihn nur geschwächt."
+            ]
+           }
+          ]
+         },
+         {
+          "text": "Nfirea heimlich nach Nazarick bringen",
+          "value": "c1",
+          "variant": "danger",
+          "then": [
+           {
+            "say": [
+             "ainz",
+             "Narberal. Beende es."
+            ]
+           },
+           {
+            "fx": {
+             "kind": "lightning",
+             "from": "ally:narberal_ally",
+             "to": "enemy:clementine",
+             "bolts": 3
+            }
+           },
+           {
+            "call": "kill_boss"
+           },
+           {
+            "wait": 1.2
+           },
+           {
+            "say": [
+             "ainz",
+             "Und öffne ein Gate. Der Junge kommt mit uns. Sein Talent ist zu wertvoll für diese Stadt."
+            ]
+           },
+           {
+            "fx": {
+             "kind": "gate",
+             "at": [
+              1.6,
+              -16
+             ],
+             "dur": 3.0,
+             "face": "player"
+            }
+           },
+           {
+            "say": [
+             "narberal",
+             "Wie Ihr befehlt, Ainz-sama."
+            ]
+           },
+           {
+            "remove": "nfirea"
+           },
+           {
+            "wait": 1.0
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": "player"
+       }
+      },
+      {
+       "player": {
+        "style": "momon"
+       }
+      },
+      {
+       "say": [
+        "ainz_momon",
+        "…Und nun wieder Momon. Gehen wir, Nabe. Die Stadt wartet auf ihre Helden."
+       ]
+      },
+      {
+       "fade": 1,
+       "dur": 1.2
+      }
+     ]
+    }
+   ]
+  },
+  "sm_shalltear": {
+   "title": "Overlord gegen Wahren Vampir",
+   "event": "ev_shalltear_duel",
+   "plays": [
+    "c0",
+    "c1"
+   ],
+   "result_key": "c",
+   "label": "⚔ Selbst erleben: das Duell gegen Shalltear (3D)",
+   "loc": "tob_wald",
+   "mood": "night",
+   "stage": {
+    "pos": [
+     2,
+     -44
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    3
+   ],
+   "end_at": [
+    0,
+    3
+   ],
+   "music": "battle",
+   "steps": [
+    {
+     "objective": "Besiegt Shalltear Bloodfallen",
+     "boss": "shalltear_boss",
+     "at": [
+      0,
+      -8
+     ],
+     "yield_at": 0.05,
+     "yield_text": "…",
+     "intro": [
+      {
+       "player": {
+        "at": [
+         0,
+         3
+        ],
+        "face": [
+         0,
+         -8
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         -4.5,
+         8
+        ],
+        "face": [
+         0,
+         -8
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": [
+         3.8,
+         8.5
+        ],
+        "face": [
+         0,
+         -8
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": [
+         5.0,
+         9.2
+        ],
+        "face": [
+         0,
+         -8
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         6,
+         3.0,
+         10
+        ],
+        "look": [
+         0,
+         1.5,
+         -6
+        ],
+        "dur": 0,
+        "fov": 55
+       }
+      },
+      {
+       "title": [
+        "Overlord gegen Wahren Vampir",
+        "Wald von Tob · Mitternacht"
+       ],
+       "dur": 3.0
+      },
+      {
+       "fade": 0,
+       "dur": 1.6
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:shalltear_boss",
+         "player"
+        ],
+        "dur": 5.0,
+        "fov": 44,
+        "dist": 3.2,
+        "h": 1.6
+       }
+      },
+      {
+       "think": "Da steht sie. Reglos. Ihre Augen … rot und leer. Jemand hat sie mit einem Weltgegenstand unterworfen."
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:albedo",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.4,
+        "h": 1.6,
+        "angle": 25
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "{lord}, ich flehe Euch an. Lasst mich an Eurer Stelle gehen. Wenn Euch etwas zustößt …"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Nein. Ich kenne jede ihrer Fähigkeiten. Peroroncino hat sie mir stundenlang erklärt."
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:aura",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.2,
+        "h": 1.2,
+        "angle": 25,
+        "look_h": 1.05
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "Aber … sie ist im Kampf die Stärkste von uns allen!"
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:mare",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.4,
+        "h": 1.3,
+        "angle": -25,
+        "look_h": 1.15
+       }
+      },
+      {
+       "say": [
+        "mare",
+        "B-bitte passt auf Euch auf, {lord} …"
+       ]
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "enemy:shalltear_boss"
+        ],
+        "dur": 0,
+        "fov": 48,
+        "back": 2.4,
+        "side": 0.9,
+        "h": 1.9
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Wenn ich falle, kehrt ihr nach Nazarick zurück. Das ist ein Befehl."
+       ]
+      },
+      {
+       "anim": {
+        "id": "player",
+        "play": "cast"
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": "player",
+        "radius": 1.8,
+        "color": "#9f4dff",
+        "dur": 2.5,
+        "design": "a",
+        "spin": 2.0
+       }
+      },
+      {
+       "sound": {
+        "name": "cast_big",
+        "at": "player"
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": "player",
+        "radius": 2.6,
+        "color": "#ffd36a",
+        "dur": 2.5,
+        "design": "b",
+        "spin": -1.5
+       }
+      },
+      {
+       "wait": 1.4
+      },
+      {
+       "say": [
+        "ainz",
+        "Schutz vor Heiligem. Schutz vor Blutentzug. Wahrer Blick. … Gut. Fangen wir an."
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:shalltear_boss",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 40,
+        "dist": 2.4,
+        "h": 1.4
+       }
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#ff2030",
+        "alpha": 0.25,
+        "dur": 0.5
+       }
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "at": "enemy:shalltear_boss",
+        "vol": 0.7
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "…Wer wagt es …?"
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Shalltear Bloodfallen. Ich bin gekommen, um dich zu töten."
+       ]
+      },
+      {
+       "say": [
+        "shalltear",
+        "Dann komm, ~arinsu. Ich werde dein Blut kosten."
+       ]
+      }
+     ],
+     "scenes": [
+      {
+       "hp": 0.62,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:shalltear_boss",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 44,
+          "dist": 2.6,
+          "h": 1.5
+         }
+        },
+        {
+         "say": [
+          "shalltear",
+          "Einherjar! Mein Abbild – zerfetze ihn!"
+         ]
+        },
+        {
+         "spawn": {
+          "id": "shalltear_clone",
+          "count": 1,
+          "near": "enemy:shalltear_boss"
+         }
+        },
+        {
+         "fx": {
+          "kind": "flash",
+          "color": "#ffffff",
+          "alpha": 0.3,
+          "dur": 0.4
+         }
+        },
+        {
+         "cam": {
+          "two": [
+           "player",
+           "enemy:shalltear_clone"
+          ],
+          "dur": 0,
+          "fov": 50,
+          "dist": 4.5,
+          "h": 1.8
+         }
+        },
+        {
+         "think": "Einherjar – ein Abbild mit all ihren Fertigkeiten, aber ohne ihre Ausrüstung. Peroroncino, du hast wirklich an alles gedacht."
+        }
+       ]
+      },
+      {
+       "hp": 0.3,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:shalltear_boss",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 44,
+          "dist": 2.6,
+          "h": 1.5
+         }
+        },
+        {
+         "say": [
+          "shalltear",
+          "Ahh … Blut … ich will mehr Blut!"
+         ]
+        },
+        {
+         "fx": {
+          "kind": "flash",
+          "color": "#8a0010",
+          "alpha": 0.35,
+          "dur": 0.6
+         }
+        },
+        {
+         "fx": {
+          "kind": "ring",
+          "at": "enemy:shalltear_boss",
+          "radius": 4.0,
+          "color": "#ff2040",
+          "dur": 0.8
+         }
+        },
+        {
+         "sound": {
+          "name": "roar",
+          "at": "enemy:shalltear_boss"
+         }
+        },
+        {
+         "cam": {
+          "ots": [
+           "enemy:shalltear_boss",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 46
+         }
+        },
+        {
+         "think": "Blutrausch. Ab jetzt wird sie schneller – und rücksichtsloser. Genau, wie ich es geplant habe."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:shalltear_boss",
+        "dist": 3.4
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:shalltear_boss",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 42,
+        "dist": 2.2,
+        "h": 1.1,
+        "look_h": 1.0
+       }
+      },
+      {
+       "say": [
+        "shalltear",
+        "Eure … Herrlichkeit …?"
+       ]
+      },
+      {
+       "think": "Für einen Herzschlag ist sie zurück. Aber der Bann des Weltgegenstands hält sie fest. Es gibt nur einen Weg."
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "enemy:shalltear_boss"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "look_h": 1.0
+       }
+      },
+      {
+       "choice": {
+        "prompt": "Wie beendest du den Kampf?",
+        "key": "c",
+        "options": [
+         {
+          "text": "Superrang-Magie: »Fallen Down« (−150 Gold)",
+          "value": "c0",
+          "variant": "danger",
+          "then": [
+           {
+            "say": [
+             "ainz",
+             "Superrang-Magie … Fallen Down."
+            ]
+           },
+           {
+            "cam": {
+             "ots": [
+              "player",
+              "enemy:shalltear_boss"
+             ],
+             "dur": 0,
+             "fov": 60,
+             "back": 6.0,
+             "h": 5.0,
+             "look_h": 1.0
+            }
+           },
+           {
+            "fx": {
+             "kind": "circle",
+             "at": "enemy:shalltear_boss",
+             "radius": 6.0,
+             "color": "#fff0b0",
+             "dur": 3.0,
+             "design": "a",
+             "spin": 1.0
+            }
+           },
+           {
+            "sound": {
+             "name": "super_charge",
+             "at": "player"
+            }
+           },
+           {
+            "wait": 1.6
+           },
+           {
+            "fx": {
+             "kind": "holy",
+             "at": "enemy:shalltear_boss",
+             "radius": 4.5,
+             "color": "#fff6d0",
+             "hold": 1.4
+            }
+           },
+           {
+            "fx": {
+             "kind": "flash",
+             "color": "#ffffff",
+             "alpha": 0.85,
+             "dur": 1.2
+            }
+           },
+           {
+            "sound": {
+             "name": "super_blast",
+             "at": "enemy:shalltear_boss"
+            }
+           },
+           {
+            "fx": {
+             "kind": "shake",
+             "amount": 0.9
+            }
+           },
+           {
+            "call": "kill_boss"
+           },
+           {
+            "wait": 2.4
+           }
+          ]
+         },
+         {
+          "text": "Mit Taktik und ihren eigenen Schwächen gewinnen",
+          "value": "c1",
+          "variant": "primary",
+          "then": [
+           {
+            "think": "Die Falle, die Peroroncino selbst einst ersonnen hat."
+           },
+           {
+            "anim": {
+             "id": "player",
+             "play": "cast"
+            }
+           },
+           {
+            "fx": {
+             "kind": "lightning",
+             "from": "player",
+             "to": "enemy:shalltear_boss",
+             "bolts": 3,
+             "color": "#a8d8ff"
+            }
+           },
+           {
+            "fx": {
+             "kind": "explosion",
+             "at": "enemy:shalltear_boss",
+             "radius": 2.4,
+             "el": "fire",
+             "color": "#ff8a3a"
+            }
+           },
+           {
+            "call": "kill_boss"
+           },
+           {
+            "wait": 2.0
+           }
+          ]
+         }
+        ]
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         1.6,
+         1.5,
+         1.0
+        ],
+        "look": [
+         0.6,
+         1.2,
+         8.0
+        ],
+        "dur": 0,
+        "fov": 48
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         -1.6,
+         4.5
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": [
+         1.4,
+         4.8
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": [
+         2.6,
+         5.4
+        ],
+        "face": "player"
+       }
+      },
+      {
+       "say": [
+        "aura",
+        "{lord}! Ihr … Ihr habt es geschafft!"
+       ]
+      },
+      {
+       "say": [
+        "albedo",
+        "Ihr lebt … dem Höchsten sei Dank, Ihr lebt …"
+       ]
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "actor:albedo"
+        ],
+        "dur": 0,
+        "fov": 42,
+        "dist": 2.2,
+        "h": 1.6
+       }
+      },
+      {
+       "think": "Und jetzt holen wir sie zurück. Koste es, was es wolle."
+      },
+      {
+       "fade": 1,
+       "dur": 1.4
+      }
+     ]
+    }
+   ]
+  },
+  "sm_platinum": {
+   "title": "Das Gleichgewicht der Welt",
+   "event": "ev_platinum_dragon",
+   "plays": [
+    "c0",
+    "c1",
+    "c2"
+   ],
+   "result_key": "c",
+   "label": "⚔ Selbst erleben: die Begegnung im Nebel (3D)",
+   "loc": "katze",
+   "mood": "fog_night",
+   "stage": {
+    "pos": [
+     -4,
+     72
+    ],
+    "yaw": 0
+   },
+   "player_at": [
+    0,
+    0
+   ],
+   "end_at": [
+    0,
+    2
+   ],
+   "music": "tension",
+   "steps": [
+    {
+     "scene": [
+      {
+       "player": {
+        "at": [
+         0,
+         0
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "albedo",
+        "at": [
+         -1.6,
+         2.2
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "shalltear",
+        "at": [
+         -3.6,
+         3.0
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "demiurge",
+        "at": [
+         1.6,
+         2.4
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "cocytus",
+        "at": [
+         3.8,
+         3.2
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "aura",
+        "at": [
+         -5.4,
+         4.2
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "mare",
+        "at": [
+         5.6,
+         4.4
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "sebas",
+        "at": [
+         0.2,
+         4.2
+        ],
+        "face": [
+         0,
+         -11
+        ]
+       }
+      },
+      {
+       "actor": {
+        "id": "platinum_dragon",
+        "at": [
+         0,
+         -11
+        ],
+        "face": [
+         0,
+         0
+        ],
+        "label_h": 2.8
+       }
+      },
+      {
+       "cam": {
+        "at": [
+         7,
+         2.5,
+         6
+        ],
+        "look": [
+         0,
+         1.6,
+         -6
+        ],
+        "dur": 0,
+        "fov": 55
+       }
+      },
+      {
+       "title": [
+        "Das Gleichgewicht der Welt",
+        "Katze-Ebene · Mitternacht"
+       ],
+       "dur": 3.2
+      },
+      {
+       "fade": 0,
+       "dur": 1.8
+      },
+      {
+       "cam": {
+        "at": [
+         -2.0,
+         1.4,
+         -4.5
+        ],
+        "look": "actor:platinum_dragon",
+        "dur": 6.0,
+        "fov": 42
+       }
+      },
+      {
+       "say": [
+        "platinum_dragon",
+        "Du bist ein Spieler. Wie die Sechs Götter. Wie die Acht Gierkönige."
+       ]
+      },
+      {
+       "say": [
+        "platinum_dragon",
+        "Sie alle haben diese Welt verändert – und sie beinahe zerstört. Sag mir, Herrscher des Grabes: Was willst du?"
+       ]
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "actor:platinum_dragon"
+        ],
+        "dur": 0,
+        "fov": 46
+       }
+      },
+      {
+       "think": "Eine leere Rüstung, gelenkt aus weiter Ferne. Ein Drachenlord. Er weiß, was ich bin – und was Spieler anrichten können."
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:albedo",
+         "actor:platinum_dragon"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.3,
+        "h": 1.6,
+        "angle": 30
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Ein Wort von Euch, {lord}, und wir zerschmettern dieses Blech."
+       ]
+      },
+      {
+       "say": [
+        "ainz",
+        "Ruhig, Albedo."
+       ]
+      },
+      {
+       "cam": {
+        "at": [
+         0.7,
+         1.6,
+         -2.8
+        ],
+        "look": "player",
+        "dur": 0,
+        "fov": 42
+       }
+      },
+      {
+       "choice": {
+        "prompt": "Was willst du, Ainz Ooal Gown?",
+        "key": "c",
+        "options": [
+         {
+          "text": "»Frieden. Und eine Welt, in der meine Kinder sicher sind.«",
+          "value": "c0",
+          "variant": "primary",
+          "then": [
+           {
+            "say": [
+             "ainz",
+             "Frieden. Und eine Welt, in der meine Kinder sicher sind."
+            ]
+           },
+           {
+            "cam": {
+             "at": [
+              -2.0,
+              1.4,
+              -4.5
+             ],
+             "look": "actor:platinum_dragon",
+             "dur": 0,
+             "fov": 42
+            }
+           },
+           {
+            "wait": 1.6
+           },
+           {
+            "move": {
+             "id": "platinum_dragon",
+             "to": [
+              0,
+              -34
+             ],
+             "wait": false,
+             "dur": 9.0
+            }
+           },
+           {
+            "cam": {
+             "at": [
+              0,
+              2.0,
+              2.5
+             ],
+             "look": [
+              0,
+              1.6,
+              -22
+             ],
+             "dur": 6.0,
+             "fov": 50
+            }
+           },
+           {
+            "wait": 4.0
+           },
+           {
+            "think": "Kinder. Ich habe sie meine Kinder genannt. … Und ich habe es ernst gemeint."
+           },
+           {
+            "remove": "platinum_dragon"
+           }
+          ]
+         },
+         {
+          "text": "»Ich werde es dir zeigen.« (Weltgegenstand einsetzen)",
+          "value": "c1",
+          "variant": "danger",
+          "then": [
+           {
+            "say": [
+             "ainz",
+             "Ich werde es dir zeigen."
+            ]
+           },
+           {
+            "say": [
+             "platinum_dragon",
+             "So sei es. Dann prüfe ich, ob du diese Welt verdienst – oder sie dich."
+            ]
+           }
+          ]
+         },
+         {
+          "text": "»Die Welt gehört Nazarick.«",
+          "value": "c2",
+          "variant": "danger",
+          "then": [
+           {
+            "say": [
+             "ainz",
+             "Die Welt gehört Nazarick."
+            ]
+           },
+           {
+            "say": [
+             "platinum_dragon",
+             "Dann zeig mir, was diese Welt erwartet."
+            ]
+           }
+          ]
+         }
+        ]
+       }
+      }
+     ]
+    },
+    {
+     "only_if": {
+      "key": "c",
+      "in": [
+       "c1"
+      ]
+     },
+     "objective": "Bezwingt die Platinrüstung",
+     "boss": "platinum_armor",
+     "at": [
+      0,
+      -11
+     ],
+     "yield_at": 0.06,
+     "yield_text": "…",
+     "intro": [
+      {
+       "remove": "platinum_dragon"
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:platinum_armor",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 3.4,
+        "h": 1.8
+       }
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#cfe6ff",
+        "alpha": 0.3,
+        "dur": 0.5
+       }
+      },
+      {
+       "sound": {
+        "name": "tech_charge",
+        "at": "enemy:platinum_armor"
+       }
+      },
+      {
+       "cam": {
+        "two": [
+         "actor:albedo",
+         "actor:cocytus"
+        ],
+        "dur": 0,
+        "fov": 50,
+        "dist": 4.2,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Endlich! Cocytus – an meine Seite!"
+       ]
+      },
+      {
+       "say": [
+        "cocytus",
+        "Für. Den. Herrscher."
+       ]
+      },
+      {
+       "ally": [
+        "albedo_ally",
+        [
+         -1.6,
+         2.2
+        ]
+       ]
+      },
+      {
+       "remove": "albedo"
+      },
+      {
+       "ally": [
+        "cocytus_ally",
+        [
+         3.8,
+         3.2
+        ]
+       ]
+      },
+      {
+       "remove": "cocytus"
+      },
+      {
+       "pose": {
+        "id": "shalltear",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "demiurge",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "aura",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "mare",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "sebas",
+        "pose": "battle"
+       }
+      }
+     ],
+     "scenes": [
+      {
+       "hp": 0.5,
+       "steps": [
+        {
+         "cam": {
+          "near": [
+           "enemy:platinum_armor",
+           "player"
+          ],
+          "dur": 0,
+          "fov": 44,
+          "dist": 3.0,
+          "h": 1.8
+         }
+        },
+        {
+         "say": [
+          "platinum_dragon",
+          "Du bist stark. Stärker als die Gierkönige? Das werden wir sehen."
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "only_if": {
+      "key": "c",
+      "in": [
+       "c2"
+      ]
+     },
+     "objective": "Haltet der Platinrüstung stand",
+     "boss": "platinum_armor",
+     "at": [
+      0,
+      -11
+     ],
+     "yield_at": 0.5,
+     "yield_text": "Genug.",
+     "intro": [
+      {
+       "remove": "platinum_dragon"
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:platinum_armor",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 3.4,
+        "h": 1.8
+       }
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#cfe6ff",
+        "alpha": 0.3,
+        "dur": 0.5
+       }
+      },
+      {
+       "sound": {
+        "name": "tech_charge",
+        "at": "enemy:platinum_armor"
+       }
+      },
+      {
+       "cam": {
+        "two": [
+         "actor:albedo",
+         "actor:cocytus"
+        ],
+        "dur": 0,
+        "fov": 50,
+        "dist": 4.2,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "albedo",
+        "Endlich! Cocytus – an meine Seite!"
+       ]
+      },
+      {
+       "say": [
+        "cocytus",
+        "Für. Den. Herrscher."
+       ]
+      },
+      {
+       "ally": [
+        "albedo_ally",
+        [
+         -1.6,
+         2.2
+        ]
+       ]
+      },
+      {
+       "remove": "albedo"
+      },
+      {
+       "ally": [
+        "cocytus_ally",
+        [
+         3.8,
+         3.2
+        ]
+       ]
+      },
+      {
+       "remove": "cocytus"
+      },
+      {
+       "pose": {
+        "id": "shalltear",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "demiurge",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "aura",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "mare",
+        "pose": "battle"
+       }
+      },
+      {
+       "pose": {
+        "id": "sebas",
+        "pose": "battle"
+       }
+      }
+     ]
+    },
+    {
+     "only_if": {
+      "key": "c",
+      "in": [
+       "c1"
+      ]
+     },
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:platinum_armor",
+        "dist": 4.0
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:platinum_armor",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 3.0,
+        "h": 1.4,
+        "look_h": 1.2
+       }
+      },
+      {
+       "say": [
+        "platinum_dragon",
+        "Diese Macht … Du bist wie sie. Nein – du bist mehr als sie."
+       ]
+      },
+      {
+       "cam": {
+        "ots": [
+         "player",
+         "enemy:platinum_armor"
+        ],
+        "dur": 0,
+        "fov": 50
+       }
+      },
+      {
+       "say": [
+        "ainz",
+        "Erwache."
+       ]
+      },
+      {
+       "anim": {
+        "id": "player",
+        "play": "cast"
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": "player",
+        "radius": 4.5,
+        "color": "#ffd36a",
+        "dur": 3.0,
+        "design": "a",
+        "spin": 2.5
+       }
+      },
+      {
+       "fx": {
+        "kind": "circle",
+        "at": "enemy:platinum_armor",
+        "radius": 3.5,
+        "color": "#9f4dff",
+        "dur": 3.0,
+        "design": "b",
+        "spin": -3.0
+       }
+      },
+      {
+       "sound": {
+        "name": "super_charge",
+        "at": "player"
+       }
+      },
+      {
+       "wait": 1.8
+      },
+      {
+       "fx": {
+        "kind": "flash",
+        "color": "#ffffff",
+        "alpha": 0.9,
+        "dur": 1.4
+       }
+      },
+      {
+       "fx": {
+        "kind": "negative",
+        "at": "enemy:platinum_armor",
+        "radius": 10
+       }
+      },
+      {
+       "sound": {
+        "name": "super_blast",
+        "at": "enemy:platinum_armor"
+       }
+      },
+      {
+       "call": "kill_boss"
+      },
+      {
+       "fx": {
+        "kind": "shake",
+        "amount": 1.0
+       }
+      },
+      {
+       "wait": 2.2
+      },
+      {
+       "sound": {
+        "name": "roar",
+        "vol": 0.4
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:demiurge",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.4,
+        "h": 1.6,
+        "angle": 25
+       }
+      },
+      {
+       "say": [
+        "demiurge",
+        "Wundervoll, {lord}. Ganz und gar wundervoll."
+       ]
+      },
+      {
+       "fade": 1,
+       "dur": 1.4
+      }
+     ]
+    },
+    {
+     "only_if": {
+      "key": "c",
+      "in": [
+       "c2"
+      ]
+     },
+     "scene": [
+      {
+       "player": {
+        "near": "enemy:platinum_armor",
+        "dist": 4.0
+       }
+      },
+      {
+       "cam": {
+        "near": [
+         "enemy:platinum_armor",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 3.0,
+        "h": 1.8
+       }
+      },
+      {
+       "say": [
+        "platinum_dragon",
+        "Genug. Ich habe gesehen, was ich sehen musste."
+       ]
+      },
+      {
+       "fx": {
+        "kind": "teleport",
+        "at": "enemy:platinum_armor",
+        "color": "#cfe6ff"
+       }
+      },
+      {
+       "call": "remove_boss"
+      },
+      {
+       "wait": 1.2
+      },
+      {
+       "cam": {
+        "near": [
+         "player",
+         "actor:demiurge"
+        ],
+        "dur": 0,
+        "fov": 44,
+        "dist": 2.2,
+        "h": 1.6,
+        "angle": -30
+       }
+      },
+      {
+       "think": "Er zieht sich zurück. Nicht aus Schwäche – er hat seine Antwort."
+      },
+      {
+       "cam": {
+        "near": [
+         "actor:demiurge",
+         "player"
+        ],
+        "dur": 0,
+        "fov": 46,
+        "dist": 2.4,
+        "h": 1.6,
+        "angle": 25
+       }
+      },
+      {
+       "say": [
+        "demiurge",
+        "Wie Ihr es wünscht, {lord}. Nazarick ist bereit."
+       ]
+      },
+      {
+       "fade": 1,
+       "dur": 1.4
+      }
+     ]
+    },
+    {
+     "only_if": {
+      "key": "c",
+      "in": [
+       "c0"
+      ]
+     },
+     "scene": [
+      {
+       "fade": 1,
+       "dur": 1.4
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -337,10 +337,15 @@ func refresh() -> void:
 	for k in res_labels:
 		(res_labels[k] as Label).text = str(int(s.resources.get(k, 0)))
 	var pend := Game.pending().size()
-	dispatch_badge.visible = pend > 0
+	dispatch_badge.visible = pend > 0 and not (world and world.story != null)
 	dispatch_label.text = "✉  %d Depesche%s  [Enter]" % [pend, "n" if pend != 1 else ""]
 	# Tracker: Kapitelziel, Bedrohungen, ein offenes Wochenziel
 	var lines := PackedStringArray()
+	var sm = world.story if world else null
+	if sm != null and is_instance_valid(sm):
+		lines.append("[color=#ffd36a][b]⚜ %s[/b][/color]" % String(sm.def.get("title", "")))
+		if String(sm.objective) != "":
+			lines.append("[color=#ebe2cc]%s[/color]%s" % [sm.objective, ("  [color=#8f86a3](%s)[/color]" % sm.objective_sub) if String(sm.objective_sub) != "" else ""])
 	var tq: Dictionary = Quests.by_id.get(Quests.tracked, {})
 	if not tq.is_empty() and Quests.is_active(tq.id):
 		lines.append("[color=#f5d77a][b]%s[/b][/color]  ◉" % tq.title)
@@ -512,6 +517,12 @@ func tick(delta: float, blocked: bool) -> void:
 func _markers() -> Array:
 	var out: Array = []
 	var a: Dictionary = world.anchors
+	var sm = world.story
+	if sm != null and is_instance_valid(sm) and sm.marker != Vector3.INF:
+		out.append({"pos": sm.marker, "glyph": "⚜", "color": Palette.GOLD_BRIGHT, "label": String(sm.objective), "big": true})
+	for al in world.allies:
+		if is_instance_valid(al) and al.state != Fighter.S.DEAD:
+			out.append({"pos": al.global_position, "glyph": "◆", "color": Color(0.4, 1.0, 0.55), "label": al.display_name})
 	if a.has("gate"):
 		out.append({"pos": a.gate, "glyph": "◈", "color": Palette.VIOLET_GLOW.lightened(0.2), "label": "Gate", "big": true})
 	for act in world.actors:

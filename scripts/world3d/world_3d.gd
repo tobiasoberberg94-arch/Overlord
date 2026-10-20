@@ -35,6 +35,11 @@ var _busy := false
 var _last_autosave := 0
 var _spinners: Array = []
 var _flickers: Array = []
+var allies: Array = []
+var story: StoryMission                ## laufender Story-Einsatz
+var cinematic := false                 ## Filmszene läuft (Eingabe gesperrt, Kampf ruht, HUD aus)
+var suppress_encounters := false
+var _cine_ui: CinematicUI
 
 
 func _ready() -> void:
@@ -74,6 +79,7 @@ func load_location(id: String, fade: bool = false) -> void:
 		await _fade(1.0, 0.35)
 	actors.clear()
 	enemies.clear()
+	allies.clear()
 	_focus = null
 	player.lock = null
 	CombatDirector.reset()
@@ -112,7 +118,8 @@ func load_location(id: String, fade: bool = false) -> void:
 	Game.state.world3d["loc"] = id
 	Audio.play_music(loc.get("music", "throne"))
 	hud.set_location(loc.name)
-	_show_banner(loc.name, loc.get("desc", ""))
+	if story == null:
+		_show_banner(loc.name, loc.get("desc", ""))
 	if fade:
 		await _fade(0.0, 0.5)
 
@@ -255,20 +262,27 @@ func _add_actor(a: Actor3D, pos: Vector3) -> void:
 # =====================================================================
 
 func _process(delta: float) -> void:
-	var blocked := overlay_layer.get_child_count() > 0 or _busy
+	var blocked := overlay_layer.get_child_count() > 0 or _busy or cinematic
 	player.input_enabled = not blocked
-	# Während ein Fenster offen ist, steht der Kampf still
+	# Während ein Fenster offen ist, steht der Kampf still. In Filmszenen ruhen die Kämpfer nur
+	# (atmen, Flammen lodern weiter, niemand greift an), und Namensschilder verschwinden.
+	var freeze := blocked and not cinematic
+	Enemy3D.hold = cinematic
+	Actor3D.hide_labels = cinematic
 	for e in enemies:
 		if is_instance_valid(e):
-			e.process_mode = Node.PROCESS_MODE_DISABLED if blocked else Node.PROCESS_MODE_INHERIT
+			e.process_mode = Node.PROCESS_MODE_DISABLED if freeze else Node.PROCESS_MODE_INHERIT
+	for a in allies:
+		if is_instance_valid(a):
+			a.process_mode = Node.PROCESS_MODE_DISABLED if freeze else Node.PROCESS_MODE_INHERIT
 	if blocked:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_update_focus()
 	_animate(delta)
 	_update_combat_hud(blocked)
-	# Echtzeit: Tage vergehen, solange niemand wartet
-	if not blocked and _time_running and Game.pending().is_empty():
+	# Echtzeit: Tage vergehen, solange niemand wartet (nicht während eines Story-Einsatzes)
+	if not blocked and _time_running and Game.pending().is_empty() and story == null:
 		_day_timer += delta
 		if _day_timer >= DAY_SECONDS:
 			_day_timer = 0.0
@@ -288,6 +302,8 @@ func _animate(delta: float) -> void:
 
 
 func _update_focus() -> void:
+	if _focus and not is_instance_valid(_focus):
+		_focus = null                      # (eine Szene hat die Figur entfernt)
 	var best: Actor3D = null
 	var best_d := INF
 	for a in actors:
@@ -313,7 +329,7 @@ func _update_focus() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if overlay_layer.get_child_count() > 0 or _busy:
+	if overlay_layer.get_child_count() > 0 or _busy or cinematic:
 		return
 	if event.is_action_pressed("interact") and _pickup_focus and is_instance_valid(_pickup_focus) and 			(_focus == null or player.global_position.distance_to(_pickup_focus.global_position) < player.global_position.distance_to(_focus.global_position)):
 		quest_world.collect(_pickup_focus)
@@ -327,7 +343,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_ESCAPE: _pause_menu()
-		KEY_J: _open(QuestJournal.new())
+		KEY_J:
+			var qj := QuestJournal.new()
+			qj.replay_requested.connect(func(mid: String): replay_story(mid))
+			_open(qj)
 		KEY_K: _open(MissionBoard.new(loc.get("region", "")))
 		KEY_M: _open_map()
 		KEY_P: _open(DiplomacyView.new())
@@ -513,7 +532,7 @@ func _advance(days: int, show_veil: bool = true) -> void:
 
 
 func _open_next_dispatch(force: bool = false) -> void:
-	if overlay_layer.get_child_count() > 0:
+	if overlay_layer.get_child_count() > 0 or story != null or cinematic:
 		return
 	var pending := Game.pending()
 	if pending.is_empty():
@@ -529,7 +548,25 @@ func _open_next_dispatch(force: bool = false) -> void:
 	if battle_uid != "" and Game.state.battles.has(battle_uid) and not _has_option(d, "lead"):
 		# Ainz kann jede Schlacht persönlich anführen – sie wird dann in 3D ausgetragen
 		d.options.push_front({"key": "lead", "label": "⚔ Persönlich in die Schlacht ziehen (3D-Kampf)", "variant": "primary", "effects": {}, "reaction": "Ihr erhebt Euch vom Thron. Das Gate öffnet sich zum Schlachtfeld …"})
-	var dlg: Overlay = DispatchDialog.new(d)
+	# Story-Momente lassen sich selbst erleben: passende Antwort(en) starten einen Einsatz in 3D
+	var ev_id: String = String(d.get("context", {}).get("event_id", ""))
+	var sm := StoryMission.for_event(ev_id) if ev_id != "" else []
+	var has_play := false
+	for o in d.options:
+		has_play = has_play or o.has("play")
+	if not sm.is_empty() and not has_play and not Game.has_flag("story_" + String(sm[0])):
+		var mdef: Dictionary = sm[1]
+		var plays: Array = mdef.get("plays", ["c0"])
+		if mdef.get("replace", false) and plays.size() == 1:
+			for o in d.options:
+				if o.key == plays[0]:
+					o["play"] = sm[0]
+					o["label"] = String(o.label) + "  ⚔ (selbst erleben)"
+					o["variant"] = "primary"
+		else:
+			d.options.push_front({"key": "play", "play": sm[0], "label": String(mdef.get("label", "⚔ Selbst erleben (3D)")), "variant": "primary", "effects": {}, "reaction": ""})
+	var dlg: DispatchDialog = DispatchDialog.new(d)
+	dlg.play_requested.connect(func(mid: String): _start_story(mid, String(d.uid)))
 	dlg.closed.connect(func():
 		await get_tree().create_timer(0.15).timeout
 		if battle_uid != "" and Game.state.battles.has(battle_uid):
@@ -663,6 +700,8 @@ func _fade(to: float, t: float) -> void:
 # =====================================================================
 
 func _spawn_encounters() -> void:
+	if suppress_encounters:
+		return
 	for enc in loc.get("encounters", []):
 		if not Game.check(enc.get("requires", {})):
 			continue
@@ -678,7 +717,6 @@ func spawn_enemy(id: String, pos: Vector3) -> Enemy3D:
 	e.position = pos
 	e.target = player
 	level.add_child(e)
-	e.add_to_group("enemies")
 	enemies.append(e)
 	e.defeated.connect(_on_enemy_defeated)
 	e.telegraphed.connect(func(en: Enemy3D, a: Dictionary): hud.indicators.warn(en, float(a.get("windup", 0.5)), bool(a.get("unblockable", false))))
@@ -697,9 +735,11 @@ func _on_player_struck(_f: Fighter, res: String, info: Dictionary, dealt: float)
 
 func _on_enemy_defeated(e: Enemy3D) -> void:
 	enemies.erase(e)
-	quest_world.on_enemy_defeated(e)
-	var gold := int(e.data.get("gold", 0))
-	if gold > 0:
+	var memory := story != null and story.replay        # Erinnerungen bringen keinen Lohn
+	if not memory:
+		quest_world.on_enemy_defeated(e)
+	var gold := 0 if memory else int(e.data.get("gold", 0))
+	if gold > 0 and not e.ally:
 		Game.apply_effects({"res": {"gold": gold}})
 		CombatFX.float_text(level, e.global_position + Vector3(0, e.body_height + 1.0, 0), "+%d Gold" % gold, Palette.GOLD_BRIGHT, 40)
 	# Siegmoment: Elite, Boss oder der letzte Gegner im Kampf → kurze Zeitlupe
@@ -712,8 +752,11 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 		CombatFX.slowmo(0.4, 0.32)
 		CombatFX.sound("kill_big", e.global_position + Vector3.UP, 0.8)
 	Progress.bump("enemies_slain")
-	if e.data.get("elite", false):
-		Progress.roll_loot("battle", "Bezwungen: " + e.display_name)
+	if e.data.get("elite", false) and not e.data.get("noloot", false) and not memory:
+		if story != null:
+			story.loot.append(e.display_name)
+		else:
+			Progress.roll_loot("battle", "Bezwungen: " + e.display_name)
 		Game.log_msg("%s bezwingt %s." % [Game.state.lord_name, e.display_name], "mission")
 	if e.data.get("respawn", false):
 		var id := e.type_id
@@ -722,20 +765,29 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 			if is_instance_valid(level) and loc.get("encounters", []).size() > 0:
 				spawn_enemy(id, home))
 	_check_battle_end.call_deferred()
-	if enemies.is_empty() and not e.data.get("respawn", false):
+	if enemies.is_empty() and not e.data.get("respawn", false) and story == null:
 		toast("Die Gegend ist gesäubert.", Palette.SUCCESS)
 	_refresh_hud()
 
 
 func _on_player_died() -> void:
 	_busy = true
+	var memory := story != null and story.replay
+	if story != null:
+		var title: String = String(story.def.get("title", ""))
+		story.abort()
+		if memory:
+			toast("Die Erinnerung an „%s“ verblasst." % title, Palette.VIOLET_GLOW)
+		else:
+			toast("„%s“ gescheitert – die Depesche wartet. Versucht es erneut oder entscheidet anders." % title, Palette.DANGER)
 	if not _battle.is_empty():
 		Military.resolve_battle(_battle.uid, "overlord_fallen")
 		_battle = {}
 	await get_tree().create_timer(1.8).timeout
-	_show_banner("Ainz zieht sich zurück", "Ein Overlord stirbt nicht – doch die Niederlage schmerzt Nazarick.")
-	Game.apply_effects({"res": {"morale": -4}})
-	Game.log_msg("Ainz musste sich aus %s nach Nazarick zurückziehen." % loc.name, "warning")
+	if not memory:
+		_show_banner("Ainz zieht sich zurück", "Ein Overlord stirbt nicht – doch die Niederlage schmerzt Nazarick.")
+		Game.apply_effects({"res": {"morale": -4}})
+		Game.log_msg("Ainz musste sich aus %s nach Nazarick zurückziehen." % loc.name, "warning")
 	await _fade(1.0, 0.6)
 	player.revive()
 	_busy = false
@@ -753,6 +805,8 @@ func _on_feedback(text: String, color: Color) -> void:
 
 
 func _exit_tree() -> void:
+	Enemy3D.hold = false
+	Actor3D.hide_labels = false
 	CombatFX.reset_time()
 	CombatDirector.reset()
 
@@ -777,6 +831,73 @@ func in_combat() -> bool:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(player.global_position) < e.aggro * 1.3:
 			return true
 	return false
+
+
+# =====================================================================
+#  Story-Einsätze und Filmszenen
+# =====================================================================
+
+func cinematic_ui() -> CinematicUI:
+	if _cine_ui == null or not is_instance_valid(_cine_ui):
+		_cine_ui = CinematicUI.new()
+		_cine_ui.visible = false
+		ui_root.add_child(_cine_ui)
+		ui_root.move_child(_cine_ui, overlay_layer.get_index())
+	return _cine_ui
+
+
+func _start_story(mid: String, uid: String) -> void:
+	if story != null:
+		return
+	await get_tree().create_timer(0.2).timeout
+	var m := StoryMission.new(self, mid, uid)
+	m.start()
+
+
+## Ende eines Einsatzes: Depesche mit der erspielten Wahl beantworten, Reaktion zeigen, feiern.
+func story_finished(m: StoryMission, key: String) -> void:
+	var d := Game.get_dispatch(m.dispatch_uid)
+	var title: String = String(m.def.get("title", "Story"))
+	if d.is_empty():
+		return
+	var found := false
+	for o in d.options:
+		found = found or String(o.key) == key
+	if not found:
+		for o in d.options:
+			if not o.has("play"):
+				key = String(o.key)
+				break
+	var res := Game.respond(m.dispatch_uid, key)
+	_refresh_hud()
+	for n in m.loot:
+		Progress.roll_loot("battle", "Bezwungen: " + String(n))
+	Progress.celebrate.emit({"kind": "achievement", "title": "Kapitel-Moment", "text": title, "sub": "Selbst erlebt", "icon": "⚜", "color": Palette.GOLD_BRIGHT})
+	var reaction: String = res.get("reaction", "")
+	if reaction != "":
+		var cid: String = String(d.get("char_id", ""))
+		_open(ChoiceMenu.new(title, reaction, [{"text": "Fortfahren", "action": func(): _open_next_dispatch(true), "style": "ButtonPrimary"}], 820, cid if cid != "" else "ainz"))
+	else:
+		_open_next_dispatch(true)
+
+
+## Erinnerung: einen erlebten Story-Einsatz erneut spielen – ohne Folgen, danach zurück an den Ausgangsort.
+func replay_story(mid: String) -> void:
+	if story != null:
+		return
+	await get_tree().create_timer(0.3).timeout
+	var m := StoryMission.new(self, mid, "")
+	m.replay = true
+	m.return_loc = String(loc.get("id", "throne"))
+	m.start()
+
+
+func spawn_ally(id: String, pos: Vector3) -> Enemy3D:
+	var e := Enemy3D.create(id, true)
+	e.position = pos
+	level.add_child(e)
+	allies.append(e)
+	return e
 
 
 func _has_option(d: Dictionary, key: String) -> bool:

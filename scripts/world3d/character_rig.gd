@@ -52,6 +52,14 @@ var _hr_angle := 0.0
 var _hr_vel := 0.0
 var _anchors := {}
 var _torso_base := Vector3.ZERO
+var _model: Node3D                     ## Wurzel des .glb-Modells (für Absenken beim Knien)
+var _model_y := 0.0
+var kneel := 0.0                       ## Knien (Szenen): 0 = stehen, 1 = auf einem Knie
+var _kneel_cur := 0.0
+var bend := 0.0                        ## Verbeugen/Knien (Szenen): Neigung nach vorn …
+var sink := 0.0                        ## … und Absenken des Körpers
+var _bend_cur := 0.0
+var _sink_cur := 0.0
 
 
 ## Erzeugt das Rig: Modell, falls vorhanden, sonst baut fallback(rig) die Ersatzfigur.
@@ -62,6 +70,8 @@ static func create(id: String, fallback: Callable) -> CharacterRig:
 	if m:
 		r.has_model = true
 		r.add_child(m)
+		r._model = m
+		r._model_y = m.position.y
 		r._find_animations(m)
 	elif fallback.is_valid():
 		fallback.call(r)
@@ -207,14 +217,35 @@ func _process(delta: float) -> void:
 		if absf(_hr_angle) < 0.0005 and absf(_hr_vel) < 0.01:
 			_hr_angle = 0.0
 			_hr_vel = 0.0
+	# Verbeugen/Knien weich ein- und ausblenden
+	if absf(_bend_cur - bend) > 0.0005 or absf(_sink_cur - sink) > 0.0005 or absf(_kneel_cur - kneel) > 0.0005:
+		_bend_cur = move_toward(_bend_cur, bend, delta * 1.6)
+		_sink_cur = move_toward(_sink_cur, sink, delta * 1.2)
+		_kneel_cur = move_toward(_kneel_cur, kneel, delta * 2.2)
+		if _model:
+			_model.position.y = _model_y - _sink_cur
 	if _hr:
 		_hr.axis = _hr_axis
 		_hr.angle = _hr_angle
+		_hr.bend = _bend_cur
+		_hr.kneel = _kneel_cur
+		_hr.bend_axis = Vector3.UP.cross(global_basis.z.normalized()).normalized()
 	if _flash_time > 0.0:
 		_flash_time -= delta
 		_flash_mat.albedo_color.a = _flash_a * maxf(0.0, _flash_time / maxf(_flash_len, 0.01))
 		if _flash_time <= 0.0:
 			_set_overlay(_overlay if _glow_on else null)
+
+
+## Szenen: nach vorn neigen (Bogenmaß) und absenken (Meter) – Verbeugung.
+func set_bend(angle: float, down: float) -> void:
+	bend = angle
+	sink = down
+
+
+## Szenen: auf ein Knie gehen (1) oder aufstehen (0) – mit gebeugten Beinen, nicht nur abgesenkt.
+func set_kneel(k: float) -> void:
+	kneel = clampf(k, 0.0, 1.0)
 
 
 ## Zurückzucken vom Treffer weg: dir = Schlagrichtung (Welt), strength ≈ 0.3 (leicht) … 1.5 (schwer).
@@ -344,9 +375,9 @@ func _pose_proc(state: int, phase: String, p: float, move_ratio: float, attack_k
 	var b_rot := Vector3.ZERO
 	var b_y := sin(_t * 1.6) * 0.015 + absf(walk) * 0.05
 	if leg_l:
-		leg_l.rotation.x = walk * 0.7
+		leg_l.rotation.x = lerpf(walk * 0.7, -0.9, _kneel_cur)
 	if leg_r:
-		leg_r.rotation.x = -walk * 0.7
+		leg_r.rotation.x = lerpf(-walk * 0.7, 0.45, _kneel_cur)
 	var heavy := attack_kind == "heavy"
 	match state:
 		Fighter.S.ATTACK:
@@ -405,6 +436,6 @@ func _pose_proc(state: int, phase: String, p: float, move_ratio: float, attack_k
 		var flinch := Vector3.ZERO
 		if absf(_hr_angle) > 0.0005:
 			flinch = (global_basis.orthonormalized().inverse() * _hr_axis).normalized() * _hr_angle * 0.9
-		torso.rotation = _torso_base + flinch
+		torso.rotation = _torso_base + flinch + Vector3(_bend_cur, 0, 0)
 	body.rotation.x = b_rot.x if state in [Fighter.S.DODGE, Fighter.S.DEAD] else lerpf(body.rotation.x, 0.0, 0.3)
-	body.position.y = body_base + b_y
+	body.position.y = body_base + b_y - _sink_cur - body_base * 0.4 * _kneel_cur

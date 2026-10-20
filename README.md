@@ -101,6 +101,27 @@ Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Mode
 
 ---
 
+## Story-Einsätze: die großen Momente selbst erleben
+
+Sechs Schlüsselmomente der Geschichte lassen sich statt per Depesche **selbst in 3D spielen** – mit Filmszenen (Letterbox, Kamerafahrten, Untertitel mit Porträt, Ainz' Gedanken), Verbündeten an Ainz' Seite und Bossen mit Zwischenszenen. Erscheint die Depesche, bietet sie *„⚔ Selbst erleben“* an; die im Einsatz getroffene Entscheidung wird wie eine Antwort in der Depesche gewertet.
+
+| Moment | Ort | Was passiert |
+|---|---|---|
+| **Der Treueschwur der Wächter** | Amphitheater, 6. Ebene | Magietest mit Aura und Mare gegen einen Urfeuer-Elementar; die Wächter treffen ein (Shalltear per Gate, Cocytus im Frosthauch), knien nieder – und beantworten die Frage, wer Ainz für sie ist. |
+| **Rauch über Carne** | Dorf Carne (brennend) | Enri und Nemu auf der Flucht, das Gate, Herzgriff und Drachenblitz, ein Todesritter erhebt sich, Albedo kommt nach; Kampf um den Dorfplatz gegen die Ritter und ihren feigen Hauptmann Belius. |
+| **Die Sonnenlicht-Schrift** | Carne, Abenddämmerung | Gazef wird ausgetauscht, Nigun beschwört Engel, die Prinzipalität und schließlich den Engel der Herrschaft – Heiliges Urteil, „Das also ist Schmerz“, Schwarzes Loch. Am Ende: Negative Burst oder Gefangennahme. |
+| **Die Nacht der Untoten** | Friedhof von E-Rantel | Als Momon mit Nabe durch die Untotenflut, ein Ältester Leichnam, Khajit und Clementine am Mausoleum; Kettendrachenblitz, die Enthüllung – und Nfireas Schicksal. |
+| **Overlord gegen Wahren Vampir** | Wald von Tob, Mitternacht | Das Duell gegen die beherrschte Shalltear mit Einherjar-Abbild und Blutrausch; beendet mit Fallen Down (kostet 150 Gold) oder List. |
+| **Das Gleichgewicht der Welt** | Katze-Ebene, Nebel bei Nacht | Die Platinrüstung stellt die Frage nach Ainz' Absicht: Frieden – oder ein Kampf gegen schwebende Klingen an der Seite von Albedo und Cocytus. |
+
+- **Technik** (`scripts/story/`): `story_mission.gd` (Ablauf: Szenen, Wellen, Bosse mit Einführung, Schwellen-Szenen und Aufgeben, Wegpunkte, Verbündete), `cutscene.gd` (Kamera relativ zu Figuren mit Sichtprüfung, Figuren stellen/gehen/knien/stürzen/aus dem Boden steigen, Effekte, Entscheidungen), `story_fx.gd` (Gate, Großbrand, Schutzkuppel, Schwarzes Loch, Tageszeit-Stimmungen), `scripts/ui/cinematic_ui.gd` (Letterbox, Untertitel, Entscheidungen, `Esc` überspringt).
+- **Inhalte**: `data/story_missions.json` – Schritte und Szenen als Daten, Gegner und Verbündete in `data/combat.json`, neue Figuren in `data/figures.json`.
+- **Verbündete** kämpfen eigenständig, folgen Ainz und kündigen ihre Angriffe in Blau an; Bosse können **aufgeben** (knien nieder), Untote ihres Gefolges zerfallen, Lebende ergeben sich.
+- **Kapitel-Momente** im Questbuch [`J`]: erlebte (oder ohne Euch entschiedene) Momente lassen sich als **Erinnerung** erneut spielen – ohne Lohn und ohne Folgen für das Reich.
+- Scheitert Ainz in einem Einsatz, wartet die Depesche weiter: erneut versuchen oder anders entscheiden.
+
+---
+
 ## 3D-Modelle (.glb) einbinden
 
 Das Spiel nutzt **echte 3D-Modelle**, sobald sie vorhanden sind – sonst automatisch die prozeduralen Ersatzfiguren und -gebäude. Auch die Portraits in Dialogen und Menüs werden aus dem jeweiligen Modell gerendert.
@@ -218,9 +239,13 @@ scripts/
     combat_director.gd     Gruppenregie: Angriffsrechte, Kreisplätze, Alarm
     combat_fx.gd           Treffergefühl: Partikel, Trefferstopp, Zeitlupe, Kamera, Zahlen, Raumklang
     spell_fx.gd            Inszenierung der Zauber (Geschosse, Explosionen, Blitze, Herzgriff, Superrang)
-    slash_fx.gd            Hiebspuren · ground_mark.gd Bodenwarnungen und Magiekreise · hit_react.gd Zurückzucken
+    slash_fx.gd            Hiebspuren · ground_mark.gd Bodenwarnungen und Magiekreise · hit_react.gd Zurückzucken, Verbeugen, Knien
     projectile.gd          Geschosse (Lenkung, Pfeilflug)
     save_system.gd         JSON-Speichern/Laden (3 Slots)
+  story/
+    story_mission.gd       spielbare Story-Momente: Szenen, Wellen, Bosse (Einführung, Schwellen, Aufgeben), Verbündete
+    cutscene.gd            Filmszenen: Kamera relativ zu Figuren, Figuren, Effekte, Entscheidungen
+    story_fx.gd            Gate, Großbrand, Schutzkuppel, Schwarzes Loch, Tageszeit-Stimmungen
   scenes/                  Skripte der Szenen
   ui/
     palette.gd             zentrale Farbpalette
@@ -241,6 +266,7 @@ data/
   missions.json            Aufträge (Haupt, Neben, Vorschläge)
   events.json              Story-, Zufalls- und Rivalitätsereignisse + Eigeninitiativen
   story.json               Kapitel und Befehlsarten
+  story_missions.json      spielbare Story-Einsätze (Schritte und Szenen als Daten)
   regions.json, factions.json, systems.json   Strategie-Ebene
   progression.json         Ränge, Artefakte, Ebenen, Wochenziele, Errungenschaften
   locations.json           begehbare 3D-Orte, Story-Figuren, Begegnungen
@@ -318,6 +344,8 @@ godot --headless --path . res://tools/sim_test.tscn
 # 3D-Rauchtest: Titel, alle Orte, Kampf, Audienz, Kriegstisch, persönliche Schlacht; Screenshots nach tools/screenshots3d/
 godot --path . res://tools/world3d_test.tscn     # LOC=<ort> | combat | title | gallery (alle Figuren + Portraits)
 godot --headless --path . res://tools/combat_test.tscn   # Kampfsystem + .glb-Laden
+# Story-Einsatz automatisch durchspielen (Szenen, Kämpfe, Entscheidung; Screenshots alle n Zeilen)
+LOC=story STORY=sm_carne STORYCHOICE=0 STORYSHOTS=3 godot --path . res://tools/world3d_test.tscn   # STORYDISPATCH=1 | STORYREPLAY=1
 ```
 
 ---

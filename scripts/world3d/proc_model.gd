@@ -227,8 +227,23 @@ static func _humanoid(r: CharacterRig, kind: String, color: Color, weapon: Strin
 		halo.inner_radius = 0.18
 		halo.outer_radius = 0.23
 		B3.mesh(torso, halo, Vector3(0, 1.28, 0) * sc, B3.mat(Color(1, 0.9, 0.5), 1, 0, Color(1, 0.85, 0.4), 4))
+		# Flügel aus gefächerten Schwungfedern (außen länger) und Deckfedern am Ansatz, leicht nach hinten gelegt
+		var wing_mat := B3.mat(Color(1, 0.98, 0.93), 0.55, 0.0, Color(1, 0.93, 0.75), 0.9)
+		var cover_mat := B3.mat(Color(1, 0.96, 0.88), 0.6, 0.0, Color(1, 0.9, 0.7), 0.6)
 		for s in [-1.0, 1.0]:
-			B3.box(torso, Vector3(1.3, 0.9, 0.05) * sc, Vector3(0.7 * s, 0.7, -0.3) * sc, B3.mat(Color(1, 1, 1, 0.9), 0.4, 0, Color(1, 0.95, 0.8), 0.6), false, Vector3(0, 20 * s, 25 * s))
+			var wing := Node3D.new()
+			wing.position = Vector3(0.15 * s, 0.66, -0.2) * sc
+			wing.rotation_degrees = Vector3(-6, 30 * s, 0)
+			torso.add_child(wing)
+			for i in 7:
+				var t := i / 6.0
+				var flen := lerpf(0.5, 1.3, sin(t * PI * 0.5)) * sc
+				var feather := Node3D.new()
+				feather.rotation_degrees.z = lerpf(-40.0, 58.0, t) * s
+				wing.add_child(feather)
+				B3.box(feather, Vector3(flen, 0.12 * sc * (1.0 - t * 0.35), 0.025 * sc), Vector3(flen * 0.5 * s, 0, -0.008 * i * sc), wing_mat, false)
+			B3.box(wing, Vector3(0.5, 0.34, 0.05) * sc, Vector3(0.27 * s, 0.1, 0.02) * sc, cover_mat, false, Vector3(0, 0, 24 * s))
+			B3.box(wing, Vector3(0.36, 0.22, 0.06) * sc, Vector3(0.18 * s, 0.3, 0.03) * sc, cover_mat, false, Vector3(0, 0, 48 * s))
 	for leg in [p.leg_l, p.leg_r]:
 		_limb(leg, 0.95 * sc, 0.09 * sc * thin, main)
 	for arm in [p.arm_r, p.arm_l]:
@@ -341,7 +356,8 @@ static func figure(r: CharacterRig, cid: String) -> void:
 		momon(r)
 		return
 	if special.begins_with("enemy:"):
-		enemy(r, special.substr(6), Color(f.get("color", "#888888")))
+		var parts := special.split(":")
+		enemy(r, parts[1], Color(f.get("color", "#888888")), parts[2] if parts.size() > 2 else "")
 		return
 	match special:
 		"cocytus": _cocytus(r, Color(f.color))
@@ -379,6 +395,10 @@ static func _person(r: CharacterRig, f: Dictionary) -> void:
 	B3.box(torso, Vector3(0.12, 0.5, 0.02) * sc, Vector3(0, 0.38, 0.135) * sc, trim, false)
 	if f.get("apron", false):
 		B3.box(torso, Vector3(0.3, 0.4, 0.02) * sc, Vector3(0, 0.3, 0.14) * sc, B3.mat(Color(0.96, 0.96, 0.96), 0.8), false)
+	if f.has("cape"):
+		B3.box(torso, Vector3(0.5, 1.05, 0.03) * sc, Vector3(0, 0.05, -0.17) * sc, B3.mat(_c(f.cape), 0.75), false, Vector3(-8, 0, 0))
+	if f.has("tabard"):
+		B3.box(torso, Vector3(0.3, 0.75, 0.02) * sc, Vector3(0, 0.12, 0.142) * sc, B3.mat(_c(f.tabard), 0.7), false)
 	for s in [-1.0, 1.0]:
 		B3.sphere(torso, 0.1 * sc, Vector3(0.25 * s, 0.6, 0) * sc, B3.mat(Color(0.6, 0.6, 0.65), 0.3, 0.8) if armored else top)
 	# Hals & Kopf
@@ -399,7 +419,15 @@ static func _person(r: CharacterRig, f: Dictionary) -> void:
 		B3.box(head, Vector3(0.2, 0.012, 0.012) * sc, Vector3(0, 0.02, 0.135) * sc, gm, false)
 	if f.has("beard"):
 		B3.box(head, Vector3(0.16, 0.08, 0.06) * sc, Vector3(0, -0.1, 0.09) * sc, B3.mat(_c(f.beard), 0.8), false)
-	_hair(head, hair, String(hair_spec[1]), sc)
+	if f.has("helmet"):
+		# Topfhelm mit Sehschlitz und Kamm (Ritter) – die Haare verschwinden darunter
+		var hm := B3.mat(_c(f.helmet), 0.3, 0.85)
+		B3.sphere(head, 0.168 * sc, Vector3(0, 0.03, 0) * sc, hm, Vector3(1.0, 1.1, 1.06))
+		B3.cyl(head, 0.172 * sc, 0.16 * sc, 0.1 * sc, Vector3(0, -0.07, 0) * sc, hm, false, 14)
+		B3.box(head, Vector3(0.21, 0.024, 0.03) * sc, Vector3(0, 0.025, 0.165) * sc, B3.mat(Color(0.02, 0.02, 0.03), 0.9), false)
+		B3.box(head, Vector3(0.035, 0.11, 0.24) * sc, Vector3(0, 0.2, -0.02) * sc, B3.mat(_c(f.get("plume", f.helmet)), 0.7), false)
+	elif String(hair_spec[1]) != "bald":
+		_hair(head, hair, String(hair_spec[1]), sc)
 	if f.has("horns"):
 		var hm := B3.mat(_c(f.horns), 0.4)
 		for s in [-1.0, 1.0]:
@@ -491,6 +519,15 @@ static func _hand_weapon(r: CharacterRig, arm: Node3D, spec: Array, sc: float) -
 			B3.mesh(w, tm, Vector3(0, 0, 0.1), m, Vector3(0, 0, 90), Vector3(1, 1, 0.5))
 		"gun":
 			B3.box(w, Vector3(0.08, 0.12, 0.45) * sc, Vector3(0, 0, 0.2) * sc, m, false)
+		"orb":
+			# Todesperle (Khajit): schwarze Kugel mit violettem Schimmer
+			B3.sphere(w, 0.1 * sc, Vector3(0, 0.02, 0.1) * sc, B3.mat(Color(0.05, 0.02, 0.08), 0.15, 0.6, _c(spec[1]), 2.2))
+		"sword_shield":
+			B3.box(w, Vector3(0.06, 0.9, 0.02) * sc, Vector3(0, 0.45, 0.05) * sc, m, false, Vector3(70, 0, 0))
+			var lw := Node3D.new()
+			lw.position = Vector3(-0.42, 0.0, 0.1) * sc
+			w.add_child(lw)
+			B3.box(lw, Vector3(0.04, 0.55, 0.4) * sc, Vector3.ZERO, B3.mat(_c(spec[1]).darkened(0.25), 0.4, 0.7), false)
 
 
 static func _cocytus(r: CharacterRig, col: Color) -> void:

@@ -1290,5 +1290,47 @@
   "color": "#8a9a8a",
   "accent": "#3a4a3a",
   "npc": true
+ },
+ "nemu": {
+  "name": "Nemu Emmot",
+  "title": "Enris kleine Schwester",
+  "color": "#d8a070",
+  "accent": "#6a4a2a",
+  "npc": true
+ },
+ "khajit": {
+  "name": "Khajit Dale Badantel",
+  "title": "Einer der Zwölf vom Kult Zurrernorn",
+  "color": "#9f4dff",
+  "accent": "#2a1a3a",
+  "npc": true
+ },
+ "carne_knight": {
+  "name": "Ritter",
+  "title": "Angreifer in Kaiserrüstung",
+  "color": "#9aa0aa",
+  "accent": "#3a1a1a",
+  "npc": true
+ },
+ "carne_captain": {
+  "name": "Belius",
+  "title": "Ritterhauptmann",
+  "color": "#c8a050",
+  "accent": "#3a1a1a",
+  "npc": true
+ },
+ "elder_lich": {
+  "name": "Ältester Leichnam",
+  "title": "Untoter Zauberer",
+  "color": "#b070ff",
+  "accent": "#1a0a2a",
+  "npc": true
+ },
+ "dominion": {
+  "name": "Engel der Herrschaft",
+  "title": "Höchste Beschwörung der Menschheit",
+  "color": "#fff6d0",
+  "accent": "#5a4a2a",
+  "npc": true
  }
 }

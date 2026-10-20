@@ -47,7 +47,6 @@ func _enemy(id: String, dist: float = 1.6, ai: bool = false) -> Enemy3D:
 	var e := Enemy3D.create(id)
 	e.position = player.global_position + Vector3(0, 0, -dist)
 	add_child(e)
-	e.add_to_group("enemies")
 	e.target = player if ai else null
 	e.face_towards(player.global_position)
 	return e

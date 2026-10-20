@@ -48,7 +48,7 @@ func _physics_process(_delta: float) -> void:
 		return
 	position = fighter.facing * _offset + Vector3.UP
 	for a in get_overlapping_areas():
-		if a is Hurtbox and not a in _hit and is_instance_valid(a.fighter) and a.fighter != fighter:
+		if a is Hurtbox and not a in _hit and is_instance_valid(a.fighter) and a.fighter != fighter and a.fighter.team != fighter.team:
 			if arc < 360.0 and not fighter.is_facing(a.fighter.global_position, arc):
 				continue
 			_hit.append(a)

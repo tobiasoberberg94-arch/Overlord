@@ -63,6 +63,40 @@ func _ready() -> void:
 		await _battle_test(w)
 		get_tree().quit()
 		return
+	if only == "story":
+		await _story_test(w)
+		get_tree().quit()
+		return
+	if only == "anchors":
+		# Ankerpunkte und Draufsicht je Ort (für das Einrichten von Szenen-Bühnen)
+		for lid in OS.get_environment("ANCHORLOCS").split(",", false):
+			await w.load_location(lid)
+			await _wait(1.2)
+			var a: Dictionary = w.anchors
+			var keys := PackedStringArray()
+			for k in a:
+				var v: Variant = a[k]
+				keys.append("%s=%s" % [k, (v as Vector3).snapped(Vector3(0.1, 0.1, 0.1)) if v is Vector3 else (str((v as Array).size()) + " Plätze" if v is Array else str(v))])
+			print("ANKER %s: %s" % [lid, ", ".join(keys)])
+			var cam := Camera3D.new()
+			cam.far = 3000.0
+			cam.fov = 60.0
+			w.add_child(cam)
+			var sp: Vector3 = a.spawn
+			var yaw: float = a.get("yaw", 0.0)
+			var fwd := Basis(Vector3.UP, yaw) * Vector3(0, 0, -1)
+			cam.look_at_from_position(sp - fwd * 4.0 + Vector3.UP * 34.0, sp + fwd * 14.0)
+			cam.current = true
+			for c in w.find_children("*", "CanvasLayer", true, false):
+				(c as CanvasLayer).visible = false
+			await _wait(1.5)
+			_shot("anchor_%s" % lid)
+			cam.queue_free()
+			w.player.camera.current = true
+			for c in w.find_children("*", "CanvasLayer", true, false):
+				(c as CanvasLayer).visible = true
+		get_tree().quit()
+		return
 	for l in Content.locations:
 		if only != "" and l.id != only and not (only == "ui" and l.id == "throne"):
 			continue
@@ -230,10 +264,13 @@ func _ready() -> void:
 		await _wait(2.5)
 		assert(w._battle.get("uid", "") == buid, "Persönliche Schlacht sollte laufen")
 		_shot("battle_personal")
-		for e in w._battle.enemies:
-			if is_instance_valid(e):
-				e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
-		await _wait(1.0)
+		# zweimal: Todesritter überstehen den ersten tödlichen Treffer
+		for k in 2:
+			for e in w._battle.enemies:
+				if is_instance_valid(e) and e.state != Fighter.S.DEAD:
+					e.take_hit({"amount": 9999.0, "type": "physical"}, w.player)
+			await _wait(0.4)
+		await _wait(0.6)
 		assert(not Game.state.battles.has(buid), "Schlacht sollte entschieden sein")
 		print("Persönliche Schlacht OK: ", Military.last_result.get("won", false))
 		await w.load_location("throne")
@@ -710,6 +747,150 @@ func _battle_test(w: Node) -> void:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD:
 			alive += 1
 	print("GEFECHT: FPS min %.0f, Mittel %.0f · gleichzeitige Angreifer max %d · Schaden an Ainz %.0f · Gegner übrig %d" % [fps_min, fps_sum / maxf(1, frames), most, hp0 - p.hp, alive])
+
+
+## Story-Einsatz automatisch durchspielen: STORY=sm_… (STORYCHOICE=Index der Antwort, STORYSHOTS=jede n-te Zeile).
+## Ainz ist unverwundbar, die Gegner verlieren laufend Leben (als kämpfte er), Wegpunkte werden angesprungen.
+func _story_test(w: Node) -> void:
+	var mid := OS.get_environment("STORY")
+	var pick := int(OS.get_environment("STORYCHOICE")) if OS.get_environment("STORYCHOICE") != "" else 0
+	var every := int(OS.get_environment("STORYSHOTS")) if OS.get_environment("STORYSHOTS") != "" else 4
+	if DisplayServer.get_name() != "headless":
+		get_window().size = Vector2i(1720, 720)
+	var defs := StoryMission.load_all()
+	assert(defs.has(mid), "Unbekannter Einsatz " + mid)
+	var d: Dictionary = defs[mid]
+	Game.state.resources["gold"] = 9000
+	Game.state.resources["power"] = 90
+	Game.queue_event(String(d.event))
+	await _wait(0.5)
+	for c in w.overlay_layer.get_children():
+		c.queue_free()
+	var disp: Dictionary = Game.pending().back()
+	var uid := String(disp.uid)
+	if OS.get_environment("STORYREPLAY") != "":
+		# Erinnerung: als „erlebt“ markieren, Questbuch öffnen, Reiter Kapitel-Momente zeigen, Erinnerung starten
+		Game.set_flag("story_" + mid)
+		var qj := QuestJournal.new()
+		qj.replay_requested.connect(func(id: String): w.replay_story(id))
+		w._open(qj)
+		await _wait(0.6)
+		var tabs: TabContainer = qj.find_children("*", "TabContainer", true, false)[0]
+		tabs.current_tab = tabs.get_tab_count() - 1
+		await _wait(0.8)
+		_shot("story_%s_questbuch" % mid)
+		var gold0 := int(Game.state.resources.get("gold", 0))
+		qj.replay_requested.emit(mid)
+		qj.close()
+		uid = ""
+		await _wait(0.5)
+		print("STORY Erinnerung gestartet, Gold vorher ", gold0)
+	elif OS.get_environment("STORYDISPATCH") != "":
+		# wie im Spiel: Depesche öffnen, „selbst erleben“ wählen
+		w._open_next_dispatch(true)
+		await _wait(1.2)
+		var dlg: DispatchDialog = null
+		for c in w.overlay_layer.get_children():
+			if c is DispatchDialog:
+				dlg = c
+		assert(dlg != null, "Depesche sollte offen sein")
+		_shot("story_%s_depesche" % mid)
+		var key := ""
+		for o in dlg.dispatch.options:
+			if o.has("play"):
+				key = String(o.key)
+		print("STORY Depesche: ", " | ".join(dlg.dispatch.options.map(func(o): return String(o.label))))
+		assert(key != "", "Option ‚selbst erleben‘ fehlt")
+		dlg._choose(key)
+	else:
+		w._start_story(mid, uid)
+	await _wait(0.5)
+	var p: Player3D = w.player
+	var t := 0.0
+	var lines := 0
+	var shots := 0
+	var hit_t := 0.0
+	var fight_shot := 0.0
+	var started := false
+	var errors := 0
+	var stuck := 0.0
+	while t < float(OS.get_environment("STORYTIME") if OS.get_environment("STORYTIME") != "" else "900"):
+		await _wait(0.2)
+		t += 0.2
+		p.hp = p.max_hp
+		p.mana = p.max_mana
+		var ui: CinematicUI = w._cine_ui
+		if w.story != null:
+			started = true
+		if ui and is_instance_valid(ui) and ui.visible and w.cinematic:
+			stuck = stuck + 0.2 if not (ui._choosing or ui._waiting) else 0.0
+			if stuck > 40.0:
+				print("STORY %s: FEHLER – Szene hängt (Skriptfehler?)" % mid)
+				return
+			if ui._choosing:
+				await _wait(1.2)
+				_shot("story_%s_%02d_wahl" % [mid, shots])
+				shots += 1
+				var n := 0
+				for c in ui._choice_box.get_children():
+					if c is Button:
+						n += 1
+				var idx := clampi(pick, 0, n - 1)
+				# gesperrte Antworten überspringen
+				var bi := 0
+				for c in ui._choice_box.get_children():
+					if c is Button:
+						if bi == idx and (c as Button).disabled:
+							idx = (idx + 1) % n
+						bi += 1
+				print("STORY Wahl: ", idx, " von ", n)
+				ui.chosen.emit(idx)
+			elif ui._waiting:
+				await _wait(0.9)
+				if lines % every == 0:
+					_shot("story_%s_%02d" % [mid, shots])
+					shots += 1
+				lines += 1
+				if OS.get_environment("STORYDEBUG") != "":
+					var parts := PackedStringArray()
+					for ac in w.actors:
+						if is_instance_valid(ac) and ac.scripted and ac.rig:
+							parts.append("%s:%s k%.2f/%.2f model%s by%.2f" % [ac.id, ac.scripted_pose, ac.rig.kneel, ac.rig._kneel_cur, ac.rig.has_model, (ac.rig.parts.body.position.y if ac.rig.parts.has("body") else -1.0)])
+					print("STORYDBG ", lines, " ", " | ".join(parts))
+				ui.advanced.emit()
+			continue
+		if w.story != null and not w.cinematic:
+			var m: StoryMission = w.story
+			if m.marker != Vector3.INF:
+				p.global_position = m.marker + Vector3(0.5, 0.3, 0.5)
+				continue
+			hit_t += 0.2
+			fight_shot += 0.2
+			if fight_shot >= 3.0:
+				fight_shot = 0.0
+				_shot("story_%s_%02d_kampf" % [mid, shots])
+				shots += 1
+			if hit_t >= 0.4:
+				hit_t = 0.0
+				var best: Enemy3D = null
+				var bd := INF
+				for e in w.enemies:
+					if is_instance_valid(e) and e.state != Fighter.S.DEAD and not e.yielded:
+						var dd := p.global_position.distance_to(e.global_position)
+						if dd < bd:
+							bd = dd
+							best = e
+				if best:
+					best.take_hit({"amount": best.max_hp * 0.07 + 12.0, "type": "physical", "stagger": 8}, p)
+		elif started and w.story == null:
+			break
+	await _wait(2.5)
+	_shot("story_%s_%02d_ende" % [mid, shots])
+	var answered := Game.get_dispatch(uid).is_empty() if uid != "" else true
+	var flag := Game.has_flag("story_" + mid)
+	if not answered or not flag:
+		errors += 1
+	print("STORY %s: %s – Zeilen %d, Zeit %.0f s, beantwortet %s, Flag %s, Ergebnis %s" % [mid, "OK" if errors == 0 else "FEHLER", lines, t, answered, flag, (Game.state.flags as Array).filter(func(k): return String(k).begins_with("story_") or k in ["loyalty_sworn", "carne_saved", "nigun_resolved", "nigun_captured", "erantel_saved", "nfirea_taken", "shalltear_defeated", "ending_peace", "ending_power", "ending_conquest"])])
 
 
 func _wait(t: float) -> void:

@@ -1,7 +1,9 @@
 class_name QuestJournal
 extends Overlay
 ## Questbuch [J]: laufende und erledigte Abenteuer mit Schritten und Lohn, Verfolgen im HUD,
-## dazu der Beutel mit gesammelten Materialien.
+## der Beutel mit gesammelten Materialien und die Kapitel-Momente (spielbare Story-Einsätze, als Erinnerung wiederholbar).
+
+signal replay_requested(mission_id: String)
 
 var _list := VBoxContainer.new()
 var _detail := VBoxContainer.new()
@@ -33,6 +35,7 @@ func _init() -> void:
 	ds.add_child(_detail)
 	page.add_child(ds)
 	tabs.add_child(_bag_page())
+	tabs.add_child(_story_page())
 	_sel = Quests.tracked
 	_rebuild()
 
@@ -149,6 +152,66 @@ func _show(qid: String) -> void:
 		b.disabled = Quests.tracked == qid
 		b.pressed.connect(func(): Quests.tracked = qid; Quests.changed.emit(); _rebuild())
 		_detail.add_child(b)
+
+
+## Große Augenblicke der Geschichte: erlebt (als Erinnerung wiederholbar), wartend (in einer Depesche) oder verborgen.
+func _story_page() -> Control:
+	var sc := ScrollContainer.new()
+	sc.name = "Kapitel-Momente"
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var vb := VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_theme_constant_override("separation", 10)
+	sc.add_child(vb)
+	var intro := Label.new()
+	intro.text = "Die großen Augenblicke der Geschichte – selbst erlebt in 3D. Erlebte und entschiedene Momente kehren als Erinnerung wieder: frei spielbar, ohne Folgen für das Reich."
+	intro.theme_type_variation = "MutedLabel"
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(intro)
+	var waiting_ev := {}
+	for d in Game.pending():
+		waiting_ev[String(d.get("context", {}).get("event_id", ""))] = true
+	var fired: Dictionary = Game.state.get("fired", {})
+	var all := StoryMission.load_all()
+	var n := 0
+	for mid in all:
+		var m: Dictionary = all[mid]
+		n += 1
+		var ev := String(m.get("event", ""))
+		var played := Game.has_flag("story_" + String(mid))
+		var waiting := waiting_ev.has(ev)
+		var decided := fired.has(ev) and not waiting and not played
+		var known := played or waiting or decided
+		var panel := PanelContainer.new()
+		panel.theme_type_variation = "PanelDim"
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 16)
+		panel.add_child(row)
+		var num := Label.new()
+		num.text = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII"][mini(n - 1, 7)]
+		num.theme_type_variation = "GoldLabel"
+		num.custom_minimum_size.x = 44
+		num.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		row.add_child(num)
+		var t := RichTextLabel.new()
+		t.bbcode_enabled = true
+		t.fit_content = true
+		t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var where: String = String(Content.location_by_id.get(String(m.get("loc", "")), {}).get("name", ""))
+		var status := "[color=#6fdc8c]✔ Selbst erlebt[/color]" if played else ("[color=#ffd36a]✉ Wartet in einer Depesche – [Enter] öffnet sie[/color]" if waiting else ("[color=#8f86a3]Entschieden, ohne dabei zu sein[/color]" if decided else "[color=#5a5468]Noch nicht geschehen[/color]"))
+		t.text = ("[b]%s[/b]   [color=#8f86a3]%s[/color]\n%s" % [String(m.get("title", mid)), where, status]) if known else ("[b][color=#5a5468]? ? ?[/color][/b]\n%s" % status)
+		row.add_child(t)
+		if played or decided:
+			var b := Button.new()
+			b.text = "▶ Als Erinnerung erleben"
+			b.theme_type_variation = "ButtonPrimary" if played else "Button"
+			var id := String(mid)
+			b.pressed.connect(func():
+				replay_requested.emit(id)
+				close())
+			row.add_child(b)
+		vb.add_child(panel)
+	return sc
 
 
 func _bag_page() -> Control:

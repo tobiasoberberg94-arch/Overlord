@@ -117,6 +117,14 @@ static func projectile_look(p: Node3D, el: String, col: Color) -> void:
 			orb.set_instance_shader_parameter("energy", 4.0)
 			_trail(p, "trail_motes", col)
 			_light(p, Vector3.ZERO, col, 3.0, 6.0)
+		"lightning":
+			var orb := _mesh(p, _sphere(), _orb_mat("soft"), Vector3.ZERO, Vector3.ONE * 0.3)
+			orb.set_instance_shader_parameter("core_col", Color(0.95, 0.98, 1.0))
+			orb.set_instance_shader_parameter("rim_col", col)
+			orb.set_instance_shader_parameter("energy", 5.0)
+			_trail(p, "trail_motes", col)
+			_trail(p, "sparks", col)
+			_light(p, Vector3.ZERO, col, 3.0, 6.0)
 		"arrow":
 			_arrow(p)
 			_trail(p, "trail_motes", Color(col, 0.35))
@@ -181,6 +189,14 @@ static func projectile_burst(parent: Node, at: Vector3, el: String, col: Color, 
 			GroundMark.ring(parent, at - Vector3(0, 1.0, 0), 2.4, col, 0.5)
 			CombatFX.sound("holy_impact", at, 0.9)
 			CombatFX.shake(0.2 * power, at)
+		"lightning":
+			for i in 2:
+				bolt(parent, at + Vector3(randf_range(-0.8, 0.8), randf_range(1.6, 2.6), randf_range(-0.8, 0.8)), at, col, 0.14, 0.22)
+			CombatFX.burst(parent, "sparks", at, col, Vector3.UP, 1.4)
+			CombatFX.burst(parent, "flash", at, col)
+			CombatFX.flash(parent, at, col, 4.0, 6.0, 0.25)
+			CombatFX.sound("lightning", at, 0.8)
+			CombatFX.shake(0.15 * power, at)
 		"arrow":
 			CombatFX.burst(parent, "dust_puff", at, Color(0.6, 0.55, 0.48), Vector3.UP, 0.5)
 			CombatFX.sound("arrow_hit", at, 0.8)

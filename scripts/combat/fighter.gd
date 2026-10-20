@@ -30,11 +30,13 @@ var max_poise := 40.0
 var poise := 40.0
 var move_speed := 4.0
 var is_player := false
+var team := 1                          ## 0 = Nazarick (Ainz und Verbündete), 1 = Feinde
 var body_height := 1.85                ## für Trefferpunkt, Zahlen, Effekte
 var body_radius := 0.45
 var fx_material := "flesh"             ## Stoff für Treffereffekte (CombatFX.MATERIALS)
 var crit_chance := 0.0                 ## Chance auf kritische Treffer (×1,6)
 var undying := false                   ## überlebt den ersten tödlichen Treffer mit 1 LP (Todesritter)
+var hp_floor := 0.0                    ## tiefer fällt das Leben nicht (Story-Bosse, die vorher aufgeben)
 var _undying_used := false
 var _freeze := 0.0
 var _status_fx := {}
@@ -61,16 +63,17 @@ var mana_regen := 0.0
 var _burn_tick := 0.0
 
 
-func setup_combat(is_pl: bool) -> void:
+func setup_combat(is_pl: bool, team_id: int = -1) -> void:
 	is_player = is_pl
+	team = team_id if team_id >= 0 else (0 if is_pl else 1)
 	collision_layer = 2
 	collision_mask = 1 | 2
 	floor_max_angle = deg_to_rad(50.0)
 	floor_snap_length = 0.35
 	floor_constant_speed = true
-	hurtbox = Hurtbox.new(self, is_pl)
+	hurtbox = Hurtbox.new(self, team == 0)
 	add_child(hurtbox)
-	hitbox = Hitbox.new(self, not is_pl)
+	hitbox = Hitbox.new(self, team == 1)
 	add_child(hitbox)
 
 
@@ -368,7 +371,7 @@ func _apply_damage(amount: float, info: Dictionary, src: Vector3, show_number: b
 	if state == S.ATTACK and phase == "recovery":
 		mult *= 1.25    # Wer nach einem Fehlschlag offen steht, nimmt mehr Schaden (Konter)
 	var dmg := maxf(0.0, amount * mult)
-	hp = maxf(0.0, hp - dmg)
+	hp = maxf(hp_floor, hp - dmg)
 	var kb := float(info.get("knockback", 0.0))
 	if kb > 0.0:
 		var dir := (global_position - src)
@@ -430,7 +433,7 @@ func _tick_status(delta: float) -> void:
 		_burn_tick += delta
 		if _burn_tick >= 0.5:
 			_burn_tick = 0.0
-			hp = maxf(0.0, hp - 4.0)
+			hp = maxf(hp_floor, hp - 4.0)
 			damaged.emit(self, 4, "fire")
 			CombatFX.float_text(get_parent(), global_position + Vector3(randf_range(-0.3, 0.3), body_height + 0.3, 0), "4", Color(1.0, 0.55, 0.2), 30)
 			if hp <= 0.0:

@@ -23,6 +23,8 @@ const MATERIALS := {
 	"stone": {"fx": [["stone", 1.0], ["dust_puff", 1.2]], "sound": "hit_stone", "tint": Color(0.55, 0.52, 0.48), "flash": Color(1.0, 0.95, 0.85)},
 	"holy": {"fx": [["motes", 1.0], ["sparks", 0.5]], "sound": "hit_holy", "tint": Color(1.0, 0.88, 0.5), "flash": Color(1.0, 0.9, 0.55)},
 	"ice": {"fx": [["ice_shards", 0.8], ["frost_mist", 0.7], ["sparks", 0.3]], "sound": "hit_ice", "tint": Color(0.7, 0.9, 1.0), "flash": Color(0.7, 0.9, 1.0)},
+	"fire": {"fx": [["embers", 1.3], ["flame_puff", 1.0], ["sparks", 0.5]], "sound": "hit_stone", "tint": Color(1.0, 0.5, 0.15), "flash": Color(1.0, 0.65, 0.3)},
+	"plate": {"fx": [["sparks", 1.2], ["sparks_big", 0.35]], "sound": "hit_armor", "tint": Color(0.85, 0.9, 1.0), "flash": Color(0.9, 0.95, 1.0)},
 	"undead_lord": {"fx": [["bone", 0.6], ["motes", 0.7]], "sound": "hit_bone", "tint": Color(0.7, 0.45, 1.0), "flash": Color(0.85, 0.6, 1.0)},
 }
 ## Schadensart → Zusatzeffekt und Farbe der Zahl
@@ -652,6 +654,26 @@ static func _preset(kind: String) -> Dictionary:
 			return {"amount": 36, "life": 1.4, "draw": "glow", "loop": true, "spread": 20.0, "vel": [0.4, 1.2], "grav": Vector3(0, 0.6, 0),
 				"damp": [0.5, 1.0], "scale": [0.04, 0.1], "shape": "ring", "ring": [0.55, 0.35],
 				"ramp": [[0.0, Color(0.5, 0, 0, 0)], [0.2, Color(2.2, 0.4, 0, 1)], [1.0, Color(0.8, 0, 0, 0)]]}
+		"blaze":
+			return {"amount": 64, "life": 1.15, "draw": "flame", "loop": true, "spread": 18.0, "vel": [1.0, 2.6], "grav": Vector3(0, 2.4, 0),
+				"damp": [0.4, 0.9], "scale": [0.7, 1.5], "scale_curve": [[0.0, 0.7], [0.3, 1.0], [1.0, 0.15]], "spin": true, "shape": "box", "box": Vector3(1.4, 0.5, 1.4),
+				"ramp": [[0.0, Color(2.6, 0.85, 0, 1)], [0.3, Color(1.9, 0.2, 0, 0.9)], [1.0, Color(0.4, 0, 0, 0)]]}
+		"smoke_column":
+			return {"amount": 34, "life": 7.0, "draw": "smoke", "loop": true, "spread": 10.0, "vel": [1.8, 3.0], "grav": Vector3(0.35, 0.2, 0.12),
+				"damp": [0.05, 0.12], "scale": [1.4, 2.4], "scale_curve": [[0.0, 0.45], [1.0, 3.4]], "spin": true, "spin_vel": [-15.0, 15.0], "shape": "sphere", "radius": 1.0,
+				"ramp": [[0.0, Color(1, 0, 0, 0.0)], [0.07, Color(1, 0.1, 0, 0.7)], [0.5, Color(0.9, 0.7, 0, 0.5)], [1.0, Color(0.8, 1, 0, 0)]]}
+		"ash":
+			return {"amount": 26, "life": 3.2, "draw": "glow", "loop": true, "spread": 35.0, "vel": [1.2, 3.4], "grav": Vector3(0.2, 0.7, 0),
+				"damp": [0.2, 0.6], "scale": [0.04, 0.09], "turb": [1.6, 1.0], "shape": "box", "box": Vector3(1.4, 0.4, 1.4),
+				"ramp": [[0.0, Color(3.0, 0.7, 0, 1)], [0.5, Color(1.8, 0.15, 0, 0.8)], [1.0, Color(0.5, 0, 0, 0)]]}
+		"elemental_fire":
+			return {"amount": 80, "life": 0.85, "draw": "flame", "loop": true, "spread": 25.0, "vel": [0.8, 2.0], "grav": Vector3(0, 2.8, 0),
+				"damp": [0.4, 0.9], "scale": [0.5, 1.15], "scale_curve": [[0.0, 0.8], [0.3, 1.0], [1.0, 0.1]], "spin": true, "shape": "box", "box": Vector3(0.85, 0.75, 0.55),
+				"ramp": [[0.0, Color(2.8, 0.9, 0, 1)], [0.3, Color(1.9, 0.2, 0, 0.9)], [1.0, Color(0.4, 0, 0, 0)]]}
+		"body_fire":
+			return {"amount": 48, "life": 0.75, "draw": "flame", "loop": true, "spread": 25.0, "vel": [0.6, 1.7], "grav": Vector3(0, 2.6, 0),
+				"damp": [0.5, 1.0], "scale": [0.32, 0.7], "scale_curve": [[0.0, 0.9], [1.0, 0.1]], "spin": true, "shape": "box", "box": Vector3(0.45, 0.85, 0.45),
+				"ramp": [[0.0, Color(2.6, 0.85, 0, 1)], [0.35, Color(1.7, 0.15, 0, 0.85)], [1.0, Color(0.4, 0, 0, 0)]]}
 		"burning":
 			return {"amount": 30, "life": 0.6, "draw": "flame", "loop": true, "spread": 25.0, "vel": [0.5, 1.4], "grav": Vector3(0, 2.0, 0),
 				"damp": [0.5, 1.0], "scale": [0.18, 0.4], "scale_curve": [[0.0, 0.9], [1.0, 0.1]], "spin": true, "shape": "box", "box": Vector3(0.3, 0.6, 0.3),

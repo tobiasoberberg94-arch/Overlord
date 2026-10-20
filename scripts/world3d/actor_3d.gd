@@ -30,6 +30,9 @@ var _walking := false
 var _look: HeadLook
 var _look_w := 0.0
 var _mark: Label3D
+static var hide_labels := false   ## Filmszene: keine Namensschilder
+var scripted := false          ## von einer Szene gesteuert: kein Schlendern, kein Zuwenden
+var scripted_pose := "stand"   ## stand · walk · run · kneel · bow · battle · cast · anim:<key>
 const WALK_SPEED := 1.05
 
 
@@ -136,6 +139,8 @@ func _process(delta: float) -> void:
 		var a := clampf((d - 3.0) / 2.5, 0.0, 1.0) * clampf((15.0 - d) / 4.0, 0.0, 1.0)
 		if _name.font_size > 44:
 			a = maxf(a, 0.0 if d < 3.0 else 1.0)
+		if hide_labels or scripted:
+			a = 0.0                        # Filmszene oder Szenenfigur: keine Namensschilder im Bild
 		_name.modulate.a = a
 		_name.outline_modulate.a = 0.85 * a
 	if _mark and _mark.visible:
@@ -146,6 +151,9 @@ func _process(delta: float) -> void:
 
 
 func _behave(delta: float) -> void:
+	if scripted:
+		_behave_scripted()
+		return
 	var near := false
 	var dp := 99.0
 	if player and is_instance_valid(player):
@@ -188,6 +196,34 @@ func _behave(delta: float) -> void:
 			rig.play("walk", 0.85)
 		else:
 			rig.play("block" if mood == "battle" else "idle")
+
+
+func _behave_scripted() -> void:
+	if _look:
+		_look.weight = 0.0
+	if rig == null:
+		return
+	var p := scripted_pose
+	if not rig.has_model:
+		var st := Fighter.S.IDLE
+		var mv := 0.0
+		match p:
+			"walk": mv = 0.4
+			"run": mv = 1.0
+			"battle": st = Fighter.S.BLOCK
+			"cast": st = Fighter.S.CAST
+		rig.pose(st, "", 0.0, mv)
+		return
+	match p:
+		"walk": rig.play("walk", 0.9)
+		"run": rig.play("run", 1.0)
+		"battle": rig.play("block")
+		"cast": rig.play("cast")
+		_:
+			if p.begins_with("anim:"):
+				rig.play(p.substr(5))
+			else:
+				rig.play("idle")
 
 
 ## Ziel in der Nähe des Heimatpunkts, nur wenn der Weg frei ist und dort Boden liegt.

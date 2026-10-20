@@ -14,6 +14,8 @@ const TIER_COLORS := {
 	"partial": Color("f2b43c"), "failure": Color("ff4a5a"),
 }
 
+signal play_requested(mission_id: String)
+
 var dispatch: Dictionary
 var text := RichTextLabel.new()
 var options_box := VBoxContainer.new()
@@ -256,6 +258,11 @@ func _show_battle_result(r: Dictionary) -> void:
 
 
 func _choose(key: String) -> void:
+	for o in dispatch.options:
+		if o.key == key and o.has("play"):
+			play_requested.emit(String(o.play))
+			close()
+			return
 	var is_battle: bool = dispatch.kind == "battle"
 	var result := Game.respond(dispatch.uid, key)
 	if key in ["praise", "reward", "approve"]:

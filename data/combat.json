@@ -2148,7 +2148,8 @@
      "stagger": 25,
      "color": "#ffb060"
     }
-   ]
+   ],
+   "bound": true
   },
   "scripture_archer": {
    "name": "Schütze der Schrift",
@@ -2359,6 +2360,1317 @@
      "range": 2.0,
      "arc": 110,
      "stagger": 10
+    }
+   ]
+  },
+  "aura_ally": {
+   "name": "Aura Bella Fiora",
+   "team": "ally",
+   "figure": "aura",
+   "hp": 520,
+   "armor": 30,
+   "speed": 5.6,
+   "poise": 90,
+   "aggro": 60,
+   "ai": "skirmisher",
+   "material": "flesh",
+   "height": 1.3,
+   "color": "#ffb52e",
+   "attacks": [
+    {
+     "id": "whip",
+     "name": "Peitschenhieb",
+     "windup": 0.4,
+     "active": 0.14,
+     "recovery": 0.5,
+     "damage": 18,
+     "range": 3.8,
+     "arc": 100,
+     "stagger": 25
+    },
+    {
+     "id": "whip_spin",
+     "name": "Peitschenwirbel",
+     "windup": 0.55,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 22,
+     "range": 4.0,
+     "arc": 300,
+     "stagger": 30
+    },
+    {
+     "id": "volley",
+     "name": "Pfeilsalve",
+     "windup": 0.75,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 24,
+     "kind": "projectile",
+     "fx": "arrow",
+     "count": 3,
+     "spread": 16,
+     "speed": 34,
+     "stagger": 12,
+     "cooldown": 3
+    }
+   ]
+  },
+  "mare_ally": {
+   "name": "Mare Bello Fiore",
+   "team": "ally",
+   "figure": "mare",
+   "hp": 480,
+   "armor": 25,
+   "speed": 4.6,
+   "poise": 70,
+   "aggro": 60,
+   "ai": "caster",
+   "material": "flesh",
+   "height": 1.3,
+   "color": "#7ed957",
+   "attacks": [
+    {
+     "id": "staff",
+     "name": "Stabschlag",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 2.0,
+     "arc": 110,
+     "stagger": 20
+    },
+    {
+     "id": "earth_surge",
+     "name": "Erdwoge",
+     "windup": 1.0,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 32,
+     "range": 18,
+     "kind": "aoe",
+     "fx": "steel",
+     "radius": 3.2,
+     "stagger": 60,
+     "color": "#a8e070",
+     "cooldown": 5
+    },
+    {
+     "id": "thorns",
+     "name": "Dornenranke",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 18,
+     "range": 20,
+     "kind": "projectile",
+     "fx": "holy",
+     "type": "physical",
+     "speed": 24,
+     "homing": 1.0,
+     "stagger": 15,
+     "color": "#9be070"
+    }
+   ]
+  },
+  "death_knight_ally": {
+   "name": "Todesritter",
+   "team": "ally",
+   "model": "death_knight",
+   "hp": 760,
+   "armor": 45,
+   "speed": 3.6,
+   "poise": 140,
+   "aggro": 60,
+   "color": "#6a3aa8",
+   "resist": {
+    "negative": 0.5
+   },
+   "ai": "brute",
+   "material": "dark_armor",
+   "undying": true,
+   "height": 2.3,
+   "attacks": [
+    {
+     "id": "cleave",
+     "name": "Flamberge-Spaltung",
+     "windup": 0.9,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 34,
+     "range": 2.7,
+     "stagger": 70,
+     "arc": 150,
+     "armor": true,
+     "next": "bash",
+     "next_chance": 0.45
+    },
+    {
+     "id": "bash",
+     "name": "Schildstoß",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 1.9,
+     "stagger": 90,
+     "arc": 90,
+     "knockback": 6
+    },
+    {
+     "id": "overhead",
+     "name": "Todesurteil",
+     "windup": 1.2,
+     "active": 0.25,
+     "recovery": 1.1,
+     "damage": 52,
+     "range": 2.9,
+     "stagger": 130,
+     "arc": 60,
+     "lunge": 2.0,
+     "armor": true
+    }
+   ]
+  },
+  "albedo_ally": {
+   "name": "Albedo",
+   "team": "ally",
+   "figure": "albedo",
+   "hp": 1400,
+   "armor": 70,
+   "speed": 5.2,
+   "poise": 300,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "armor",
+   "height": 1.9,
+   "color": "#f1e6ff",
+   "crit": 0.1,
+   "attacks": [
+    {
+     "id": "sweep",
+     "name": "Hellebardenschwung",
+     "windup": 0.55,
+     "active": 0.2,
+     "recovery": 0.6,
+     "damage": 30,
+     "range": 3.2,
+     "arc": 200,
+     "stagger": 50,
+     "next": "thrust",
+     "next_chance": 0.5
+    },
+    {
+     "id": "thrust",
+     "name": "Durchbohrender Stoß",
+     "windup": 0.6,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 36,
+     "range": 3.4,
+     "arc": 60,
+     "lunge": 3.5,
+     "stagger": 60
+    },
+    {
+     "id": "wave",
+     "name": "Schwarze Woge",
+     "windup": 0.9,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 40,
+     "range": 12,
+     "kind": "aoe",
+     "fx": "dark",
+     "type": "negative",
+     "radius": 3.0,
+     "stagger": 80,
+     "color": "#9f4dff",
+     "cooldown": 6
+    }
+   ]
+  },
+  "narberal_ally": {
+   "name": "Narberal Gamma",
+   "team": "ally",
+   "figure": "narberal",
+   "hp": 520,
+   "armor": 25,
+   "speed": 5.0,
+   "poise": 80,
+   "aggro": 60,
+   "ai": "caster",
+   "material": "flesh",
+   "height": 1.8,
+   "color": "#6fb3ff",
+   "attacks": [
+    {
+     "id": "sword",
+     "name": "Schwerthieb",
+     "windup": 0.45,
+     "active": 0.15,
+     "recovery": 0.55,
+     "damage": 16,
+     "range": 2.0,
+     "arc": 110,
+     "stagger": 20
+    },
+    {
+     "id": "lightning",
+     "name": "Blitzschlag",
+     "windup": 0.7,
+     "active": 0.05,
+     "recovery": 0.5,
+     "damage": 22,
+     "range": 26,
+     "kind": "projectile",
+     "fx": "lightning",
+     "type": "lightning",
+     "speed": 40,
+     "stagger": 20,
+     "color": "#8fc8ff"
+    },
+    {
+     "id": "chain_dragon",
+     "name": "Kettendrachenblitz",
+     "windup": 1.1,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 42,
+     "range": 18,
+     "kind": "aoe",
+     "fx": "lightning",
+     "type": "lightning",
+     "radius": 3.2,
+     "stagger": 70,
+     "color": "#8fc8ff",
+     "cooldown": 7
+    }
+   ]
+  },
+  "cocytus_ally": {
+   "name": "Cocytus",
+   "team": "ally",
+   "figure": "cocytus",
+   "hp": 1600,
+   "armor": 80,
+   "speed": 4.6,
+   "poise": 320,
+   "aggro": 60,
+   "ai": "brute",
+   "material": "ice",
+   "height": 2.5,
+   "color": "#8ee6ff",
+   "resist": {
+    "ice": 0.2
+   },
+   "attacks": [
+    {
+     "id": "halberd",
+     "name": "Hellebarde",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.7,
+     "damage": 30,
+     "range": 3.4,
+     "arc": 160,
+     "stagger": 60,
+     "next": "katana",
+     "next_chance": 0.5
+    },
+    {
+     "id": "katana",
+     "name": "Zanbatō-Schnitt",
+     "windup": 0.5,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 28,
+     "range": 3.0,
+     "arc": 140,
+     "stagger": 55
+    },
+    {
+     "id": "frost",
+     "name": "Frostspaltung",
+     "windup": 1.0,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 44,
+     "range": 12,
+     "kind": "aoe",
+     "fx": "ice",
+     "type": "ice",
+     "radius": 3.2,
+     "status": {
+      "chill": 2.5
+     },
+     "stagger": 90,
+     "color": "#9fe0ff",
+     "cooldown": 6
+    }
+   ]
+  },
+  "fire_elemental": {
+   "name": "Urfeuer-Elementar",
+   "hp": 950,
+   "armor": 25,
+   "speed": 3.0,
+   "poise": 240,
+   "aggro": 60,
+   "model": "golem",
+   "color": "#ff7a2a",
+   "tint": "#ff6a1a",
+   "scale": 1.25,
+   "height": 3.1,
+   "gold": 0,
+   "elite": true,
+   "boss": true,
+   "ai": "boss",
+   "material": "fire",
+   "resist": {
+    "fire": 0.15,
+    "ice": 1.6
+   },
+   "noloot": true,
+   "emit": [
+    [
+     "elemental_fire",
+     "#ff7a2a",
+     0.3
+    ],
+    [
+     "elemental_fire",
+     "#ffb04a",
+     0.72
+    ],
+    [
+     "ash",
+     "#ff8a3a",
+     0.5
+    ]
+   ],
+   "light": [
+    "#ff7a2a",
+    3.6,
+    12.0
+   ],
+   "barks": {
+    "alert": [
+     "*Ein Brausen wie aus einem Hochofen*"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "flame_fist",
+     "name": "Flammenfaust",
+     "windup": 0.8,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 24,
+     "range": 3.0,
+     "arc": 140,
+     "type": "fire",
+     "status": {
+      "burn": 2.0
+     },
+     "stagger": 50,
+     "armor": true,
+     "color": "#ff9a4a",
+     "next": "flame_sweep",
+     "next_chance": 0.4
+    },
+    {
+     "id": "flame_sweep",
+     "name": "Glutschwung",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 20,
+     "range": 3.2,
+     "arc": 220,
+     "type": "fire",
+     "stagger": 40,
+     "color": "#ff9a4a"
+    },
+    {
+     "id": "fire_spit",
+     "name": "Feuerspeien",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.8,
+     "damage": 20,
+     "range": 22,
+     "kind": "projectile",
+     "fx": "fire",
+     "type": "fire",
+     "speed": 16,
+     "homing": 0.6,
+     "stagger": 25,
+     "color": "#ff8a3a",
+     "cooldown": 4
+    },
+    {
+     "id": "eruption",
+     "name": "Eruption",
+     "windup": 1.4,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 34,
+     "range": 18,
+     "kind": "aoe",
+     "fx": "fire",
+     "type": "fire",
+     "radius": 3.4,
+     "unblockable": true,
+     "status": {
+      "burn": 3.0
+     },
+     "stagger": 70,
+     "color": "#ff7a2a",
+     "cooldown": 7
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "*Die Flammen schlagen bis zur Kuppel*",
+     "speed": 1.15,
+     "cd": 0.8,
+     "color": "#ffb04a",
+     "add": [
+      {
+       "id": "inferno",
+       "name": "Feuersturm",
+       "windup": 1.6,
+       "active": 0.25,
+       "recovery": 1.2,
+       "damage": 38,
+       "range": 4.5,
+       "kind": "aoe",
+       "fx": "fire",
+       "type": "fire",
+       "radius": 5.0,
+       "unblockable": true,
+       "status": {
+        "burn": 3.0
+       },
+       "stagger": 90,
+       "knockback": 6,
+       "color": "#ffb04a",
+       "cooldown": 9
+      }
+     ]
+    }
+   ]
+  },
+  "carne_knight": {
+   "name": "Ritter in Kaiserrüstung",
+   "figure": "carne_knight",
+   "hp": 120,
+   "armor": 30,
+   "speed": 4.0,
+   "poise": 50,
+   "aggro": 24,
+   "ai": "duelist",
+   "material": "armor",
+   "color": "#9aa0aa",
+   "gold": 8,
+   "barks": {
+    "alert": [
+     "Für den Kaiser! … Tötet sie alle!",
+     "Ein Magier! Umzingelt ihn!",
+     "Keine Zeugen!"
+    ],
+    "hurt": [
+     "Was ist das für ein Monster?!"
+    ],
+    "death": [
+     "Gnade …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schwerthieb",
+     "windup": 0.55,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 15,
+     "range": 2.0,
+     "stagger": 25,
+     "arc": 110,
+     "next": "thrust",
+     "next_chance": 0.4
+    },
+    {
+     "id": "thrust",
+     "name": "Stich",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 20,
+     "range": 2.6,
+     "lunge": 2.5,
+     "stagger": 30,
+     "arc": 50
+    }
+   ]
+  },
+  "carne_archer": {
+   "name": "Armbrustschütze",
+   "figure": "carne_archer",
+   "hp": 85,
+   "armor": 20,
+   "speed": 3.8,
+   "poise": 30,
+   "aggro": 26,
+   "ai": "archer",
+   "material": "armor",
+   "color": "#9aa0aa",
+   "gold": 6,
+   "barks": {
+    "alert": [
+     "Bolzen auflegen!",
+     "Schießt ihn nieder!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "bolt",
+     "name": "Armbrustbolzen",
+     "windup": 0.85,
+     "active": 0.05,
+     "recovery": 0.7,
+     "damage": 16,
+     "range": 24,
+     "kind": "projectile",
+     "fx": "arrow",
+     "speed": 36,
+     "stagger": 15
+    },
+    {
+     "id": "kick",
+     "name": "Tritt",
+     "windup": 0.4,
+     "active": 0.12,
+     "recovery": 0.5,
+     "damage": 8,
+     "range": 1.7,
+     "arc": 90,
+     "stagger": 25,
+     "knockback": 4
+    }
+   ]
+  },
+  "carne_captain": {
+   "name": "Ritterhauptmann Belius",
+   "figure": "carne_captain",
+   "hp": 560,
+   "armor": 40,
+   "speed": 4.2,
+   "poise": 100,
+   "aggro": 30,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "armor",
+   "color": "#c8a050",
+   "gold": 60,
+   "barks": {
+    "alert": [
+     "Ich bin zu Höherem bestimmt!",
+     "Wer mich anrührt, stirbt!"
+    ],
+    "hurt": [
+     "Mein Blut! Das ist mein Blut!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schwerthieb",
+     "windup": 0.5,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 22,
+     "range": 2.1,
+     "stagger": 30,
+     "arc": 120,
+     "next": "shield",
+     "next_chance": 0.4
+    },
+    {
+     "id": "shield",
+     "name": "Schildstoß",
+     "windup": 0.45,
+     "active": 0.14,
+     "recovery": 0.6,
+     "damage": 12,
+     "range": 1.8,
+     "stagger": 70,
+     "arc": 90,
+     "knockback": 6
+    },
+    {
+     "id": "lunge",
+     "name": "Ausfall",
+     "windup": 0.75,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 32,
+     "range": 3.4,
+     "lunge": 4.0,
+     "stagger": 40,
+     "arc": 50
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Zurück! Schützt mich, ihr Nichtsnutze!",
+     "speed": 1.1,
+     "cd": 0.85,
+     "summon": [
+      "carne_knight",
+      2
+     ],
+     "color": "#c8a050"
+    }
+   ]
+  },
+  "nigun": {
+   "name": "Nigun Grid Luin",
+   "figure": "nigun",
+   "hp": 1100,
+   "armor": 30,
+   "speed": 3.8,
+   "poise": 90,
+   "aggro": 40,
+   "ai": "caster",
+   "boss": true,
+   "elite": true,
+   "material": "flesh",
+   "color": "#f0ece0",
+   "gold": 80,
+   "resist": {
+    "holy": 0.5
+   },
+   "barks": {
+    "alert": [
+     "Ein Magier wagt es?",
+     "Engel – vernichtet ihn!"
+    ],
+    "hurt": [
+     "Unmöglich … meine Engel …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "holy_bolt",
+     "name": "Lichtgeschoss",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 20,
+     "range": 22,
+     "kind": "projectile",
+     "fx": "holy",
+     "type": "holy",
+     "speed": 24,
+     "homing": 1.0,
+     "stagger": 22,
+     "color": "#fff0b0"
+    },
+    {
+     "id": "smite",
+     "name": "Göttliches Urteil",
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 32,
+     "range": 18,
+     "kind": "aoe",
+     "fx": "holy",
+     "type": "holy",
+     "radius": 2.8,
+     "unblockable": true,
+     "stagger": 60,
+     "color": "#fff0b0",
+     "cooldown": 7
+    },
+    {
+     "id": "summon",
+     "name": "Engel beschwören",
+     "windup": 1.5,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "angel_flame",
+     "count": 2,
+     "max": 3,
+     "cooldown": 16,
+     "color": "#fff0b0"
+    },
+    {
+     "id": "staff",
+     "name": "Stabstoß",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 2.0,
+     "arc": 100,
+     "stagger": 25
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.45,
+     "say": "Ich bin der Führer der Sonnenlicht-Schrift!",
+     "speed": 1.1,
+     "cd": 0.85,
+     "add": [
+      {
+       "id": "lances",
+       "name": "Lichtlanzen",
+       "windup": 1.0,
+       "active": 0.05,
+       "recovery": 0.8,
+       "damage": 16,
+       "range": 22,
+       "kind": "projectile",
+       "fx": "holy",
+       "type": "holy",
+       "count": 3,
+       "spread": 24,
+       "speed": 26,
+       "stagger": 20,
+       "color": "#fff6d0",
+       "cooldown": 5
+      }
+     ]
+    }
+   ]
+  },
+  "principality": {
+   "name": "Engel der Prinzipalität",
+   "model": "angel",
+   "bound": true,
+   "hp": 420,
+   "armor": 40,
+   "speed": 2.6,
+   "poise": 160,
+   "aggro": 40,
+   "color": "#fff6d0",
+   "material": "holy",
+   "ai": "brute",
+   "scale": 1.15,
+   "height": 2.7,
+   "gold": 0,
+   "resist": {
+    "negative": 1.4
+   },
+   "attacks": [
+    {
+     "id": "mace",
+     "name": "Wächterzepter",
+     "windup": 0.9,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 24,
+     "range": 2.7,
+     "arc": 140,
+     "type": "holy",
+     "stagger": 50,
+     "armor": true
+    },
+    {
+     "id": "judgement",
+     "name": "Urteil der Wacht",
+     "windup": 1.5,
+     "active": 0.25,
+     "recovery": 1.2,
+     "damage": 34,
+     "range": 12,
+     "kind": "aoe",
+     "fx": "holy",
+     "type": "holy",
+     "radius": 3.0,
+     "unblockable": true,
+     "stagger": 90,
+     "color": "#fff0b0",
+     "cooldown": 8
+    }
+   ]
+  },
+  "clementine": {
+   "name": "Clementine",
+   "figure": "clementine",
+   "hp": 1000,
+   "armor": 25,
+   "speed": 6.2,
+   "poise": 120,
+   "aggro": 40,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "flesh",
+   "crit": 0.12,
+   "color": "#d84a4a",
+   "gold": 90,
+   "barks": {
+    "alert": [
+     "Na, Großer? Willst du spielen?"
+    ],
+    "hurt": [
+     "Hah! Das hat gekitzelt!",
+     "Du bist ja richtig gut!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "stiletto",
+     "name": "Stilettstich",
+     "windup": 0.3,
+     "active": 0.12,
+     "recovery": 0.45,
+     "damage": 18,
+     "range": 2.2,
+     "arc": 60,
+     "stagger": 20,
+     "next": "stiletto2",
+     "next_chance": 0.7
+    },
+    {
+     "id": "stiletto2",
+     "name": "Doppelstich",
+     "windup": 0.25,
+     "active": 0.12,
+     "recovery": 0.5,
+     "damage": 16,
+     "range": 2.2,
+     "arc": 70,
+     "stagger": 20
+    },
+    {
+     "id": "flow",
+     "name": "Fließende Beschleunigung",
+     "windup": 0.5,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 30,
+     "range": 4.5,
+     "lunge": 6.0,
+     "arc": 50,
+     "stagger": 40,
+     "unblockable": true,
+     "cooldown": 4
+    },
+    {
+     "id": "spell_stab",
+     "name": "Zauberstilett",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 26,
+     "range": 2.4,
+     "arc": 60,
+     "type": "fire",
+     "status": {
+      "burn": 2.0
+     },
+     "stagger": 40,
+     "color": "#ff8a3a",
+     "cooldown": 6
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Ab jetzt wird’s ernst!",
+     "speed": 1.25,
+     "cd": 0.7,
+     "add": [
+      {
+       "id": "whirl",
+       "name": "Klingenwirbel",
+       "windup": 0.6,
+       "active": 0.25,
+       "recovery": 0.8,
+       "damage": 28,
+       "range": 2.6,
+       "arc": 360,
+       "stagger": 50,
+       "cooldown": 5
+      }
+     ]
+    }
+   ]
+  },
+  "khajit": {
+   "name": "Khajit Dale Badantel",
+   "figure": "khajit",
+   "hp": 600,
+   "armor": 15,
+   "speed": 3.2,
+   "poise": 60,
+   "aggro": 40,
+   "ai": "caster",
+   "elite": true,
+   "material": "flesh",
+   "color": "#7a40c0",
+   "gold": 50,
+   "resist": {
+    "negative": 0.5
+   },
+   "barks": {
+    "alert": [
+     "Die Todesperle hungert!",
+     "Erhebt euch, Diener!"
+    ],
+    "hurt": [
+     "Clementine, du Närrin – hilf mir!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "dark_bolt",
+     "name": "Negativer Strahl",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 18,
+     "range": 20,
+     "kind": "projectile",
+     "fx": "dark",
+     "type": "negative",
+     "speed": 18,
+     "homing": 1.2,
+     "stagger": 25,
+     "color": "#b070ff"
+    },
+    {
+     "id": "raise",
+     "name": "Untote erheben",
+     "windup": 1.6,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "skeleton",
+     "count": 2,
+     "max": 4,
+     "cooldown": 12,
+     "color": "#b070ff"
+    },
+    {
+     "id": "orb",
+     "name": "Macht der Todesperle",
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 30,
+     "range": 16,
+     "kind": "aoe",
+     "fx": "dark",
+     "type": "negative",
+     "radius": 3.2,
+     "unblockable": true,
+     "stagger": 60,
+     "color": "#9f4dff",
+     "cooldown": 8
+    }
+   ]
+  },
+  "shalltear_boss": {
+   "name": "Shalltear Bloodfallen",
+   "figure": "shalltear",
+   "hp": 2400,
+   "armor": 50,
+   "speed": 6.0,
+   "poise": 260,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "flesh",
+   "crit": 0.1,
+   "color": "#c0283c",
+   "gold": 0,
+   "height": 1.7,
+   "resist": {
+    "negative": 0.3,
+    "holy": 1.5,
+    "fire": 1.2
+   },
+   "barks": {
+    "alert": [
+     "Ich werde dein Blut kosten!"
+    ],
+    "hurt": [
+     "Ahh … du kämpfst gut, ~arinsu!",
+     "Mehr! Gib mir mehr!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "lance",
+     "name": "Spuit Lance",
+     "windup": 0.6,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 30,
+     "range": 3.4,
+     "arc": 70,
+     "lunge": 4.0,
+     "stagger": 40,
+     "next": "sweep",
+     "next_chance": 0.5
+    },
+    {
+     "id": "sweep",
+     "name": "Lanzenwirbel",
+     "windup": 0.55,
+     "active": 0.22,
+     "recovery": 0.8,
+     "damage": 28,
+     "range": 3.2,
+     "arc": 300,
+     "stagger": 50
+    },
+    {
+     "id": "dash",
+     "name": "Blutsturm",
+     "windup": 0.7,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 38,
+     "range": 5.0,
+     "lunge": 7.0,
+     "arc": 50,
+     "unblockable": true,
+     "stagger": 70,
+     "cooldown": 5
+    },
+    {
+     "id": "blood_lance",
+     "name": "Blutlanze",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 24,
+     "range": 22,
+     "kind": "projectile",
+     "fx": "blood",
+     "type": "physical",
+     "speed": 30,
+     "homing": 0.8,
+     "stagger": 25,
+     "color": "#ff2040",
+     "cooldown": 3
+    },
+    {
+     "id": "purify",
+     "name": "Läuterungslanze",
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 54,
+     "range": 20,
+     "kind": "aoe",
+     "fx": "holy",
+     "type": "holy",
+     "radius": 2.8,
+     "unblockable": true,
+     "stagger": 100,
+     "color": "#fff0b0",
+     "cooldown": 9
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.3,
+     "say": "Blut! Mehr Blut!",
+     "speed": 1.25,
+     "cd": 0.7,
+     "color": "#ff2040",
+     "add": [
+      {
+       "id": "frenzy",
+       "name": "Blutrausch",
+       "windup": 0.5,
+       "active": 0.25,
+       "recovery": 0.7,
+       "damage": 34,
+       "range": 3.0,
+       "arc": 360,
+       "stagger": 60,
+       "cooldown": 4
+      }
+     ]
+    }
+   ]
+  },
+  "shalltear_clone": {
+   "name": "Einherjar",
+   "figure": "shalltear",
+   "hp": 650,
+   "armor": 30,
+   "speed": 5.6,
+   "poise": 120,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "holy",
+   "tint": "#f4f4ff",
+   "color": "#f4f4ff",
+   "gold": 0,
+   "height": 1.7,
+   "bound": true,
+   "attacks": [
+    {
+     "id": "lance",
+     "name": "Lanzenstoß",
+     "windup": 0.55,
+     "active": 0.16,
+     "recovery": 0.7,
+     "damage": 22,
+     "range": 3.2,
+     "arc": 70,
+     "lunge": 3.5,
+     "stagger": 30
+    },
+    {
+     "id": "sweep",
+     "name": "Lanzenwirbel",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 20,
+     "range": 3.0,
+     "arc": 280,
+     "stagger": 35
+    }
+   ]
+  },
+  "platinum_armor": {
+   "name": "Platinrüstung",
+   "figure": "platinum_dragon",
+   "hp": 3000,
+   "armor": 80,
+   "speed": 4.8,
+   "poise": 400,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "plate",
+   "color": "#d8e4ec",
+   "gold": 0,
+   "height": 2.3,
+   "resist": {
+    "physical": 0.75,
+    "negative": 0.8
+   },
+   "barks": {
+    "alert": [
+     "Zeig mir, was du bist."
+    ],
+    "hurt": [
+     "Diese Kraft …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "blade",
+     "name": "Klingenhieb",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.7,
+     "damage": 32,
+     "range": 3.0,
+     "arc": 140,
+     "stagger": 60,
+     "next": "whirl",
+     "next_chance": 0.4
+    },
+    {
+     "id": "whirl",
+     "name": "Klingenwirbel",
+     "windup": 0.9,
+     "active": 0.25,
+     "recovery": 0.9,
+     "damage": 40,
+     "range": 3.4,
+     "arc": 360,
+     "stagger": 80,
+     "armor": true
+    },
+    {
+     "id": "swords",
+     "name": "Schwebende Klingen",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.8,
+     "damage": 22,
+     "range": 24,
+     "kind": "projectile",
+     "fx": "sword",
+     "count": 4,
+     "spread": 40,
+     "speed": 26,
+     "stagger": 30,
+     "color": "#dfe8ff",
+     "cooldown": 4
+    },
+    {
+     "id": "shock",
+     "name": "Platin-Schockwelle",
+     "windup": 1.3,
+     "active": 0.25,
+     "recovery": 1.1,
+     "damage": 46,
+     "range": 14,
+     "kind": "aoe",
+     "fx": "holy",
+     "type": "holy",
+     "radius": 4.0,
+     "unblockable": true,
+     "stagger": 110,
+     "knockback": 7,
+     "color": "#cfe6ff",
+     "cooldown": 8
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Dann zeige ich dir meine Klingen.",
+     "speed": 1.15,
+     "cd": 0.8,
+     "add": [
+      {
+       "id": "rain",
+       "name": "Klingenregen",
+       "windup": 1.1,
+       "active": 0.05,
+       "recovery": 0.9,
+       "damage": 18,
+       "range": 24,
+       "kind": "projectile",
+       "fx": "sword",
+       "count": 7,
+       "spread": 90,
+       "speed": 24,
+       "stagger": 25,
+       "color": "#dfe8ff",
+       "cooldown": 6
+      }
+     ]
     }
    ]
   }
