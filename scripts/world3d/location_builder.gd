@@ -58,6 +58,9 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	ModelLib.add_collision(scene)
 	if HORIZON.has(loc.get("kind", "")) and loc.get("kind", "") != "glacier":
 		PhProps.swap_rocks(scene, loc.get("kind", ""))
+	if OS.get_environment("NO_PH") == "":
+		PhProps.swap_props(scene)
+		PhProps.spawn_markers(scene)
 	_grass_on = _grass_field(loc, scene)
 	_horizon(loc, scene)
 	if not _grass_on:
@@ -69,8 +72,10 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	_ground_blend(scene, loc.get("kind", ""))
 	_soft_cutouts(scene)
 	_foliage_materials(scene)
+	BuildingLook.apply(scene, loc)
 	_wall_occluders(scene)
 	_special_surfaces(scene)
+	_auto_instance(scene)
 	var spin: Array = scene.find_children("spin_*", "Node3D", true, false)
 	if not spin.is_empty():
 		var sp := Spinner.new()
@@ -117,7 +122,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 
 ## Bäume mit drei Detailstufen (lod0 = Original, lod1/lod2 = ausgedünnte Blattkarten, tools/pipeline/loc_kit.py
 ## make_lod) als MultiMesh-Kacheln mit Sichtweiten; Kollision nur am Stamm (Zylinder).
-const TREE_LODS := [[0.0, 20.0], [20.0, 60.0], [60.0, 900.0]]
+const TREE_LODS := [[0.0, 22.0], [22.0, 70.0], [70.0, 900.0]]
 const BUSH_LODS := [[0.0, 18.0], [18.0, 45.0], [45.0, 85.0]]
 const FLOWER_LODS := [[0.0, 10.0], [10.0, 25.0], [25.0, 50.0]]
 
@@ -184,32 +189,11 @@ static func _wind_mesh(mesh: Mesh, amount: float) -> Mesh:
 	return m
 
 
-static var _tex_avg: Dictionary = {}
-
-## Mittlere Farbe einer Textur (nur deckende Pixel), zwischengespeichert.
+## Mittlere Farbe einer Textur (nur deckende Pixel, data/tex_stats.json).
 static func _texture_avg(t: Texture2D) -> Color:
 	if t == null:
 		return Color(0.5, 0.5, 0.5)
-	var k := t.get_rid().get_id()
-	if _tex_avg.has(k):
-		return _tex_avg[k]
-	var img := t.get_image()
-	var acc := Color(0, 0, 0, 0)
-	if img:
-		if img.is_compressed():
-			img.decompress()
-		img.resize(24, 24, Image.INTERPOLATE_BILINEAR)
-		var n := 0
-		for y in 24:
-			for x in 24:
-				var c := img.get_pixel(x, y)
-				if c.a > 0.5:
-					acc += c
-					n += 1
-		if n > 0:
-			acc /= n
-	_tex_avg[k] = acc
-	return acc
+	return TexStats.color(t)
 
 
 static func _wind_material(mat: BaseMaterial3D, amount: float, height: float = 6.0) -> Material:
@@ -275,6 +259,12 @@ static func _special_surfaces(scene: Node3D) -> void:
 			var sh: String = "snow" if nm.contains("snowground") else ("frost_overlay" if nm.begins_with("frost_") else "ice")
 			var sm2 := ShaderMaterial.new()
 			sm2.shader = load("res://assets/shaders/%s.gdshader" % sh)
+			if sh == "snow":
+				var sd := "res://assets/textures/terrain/snow_02/snow_02_"
+				sm2.set_shader_parameter("snow_diff", load(sd + "diff.jpg"))
+				sm2.set_shader_parameter("snow_nor", load(sd + "nor.jpg"))
+				sm2.set_shader_parameter("snow_rough", load(sd + "rough.jpg"))
+				sm2.set_shader_parameter("has_tex", true)
 			if sh == "frost_overlay":
 				mi.material_overlay = sm2
 			else:
@@ -284,6 +274,17 @@ static func _special_surfaces(scene: Node3D) -> void:
 		if nm.begins_with("water") or nm.contains("nocol_water"):
 			var wm := ShaderMaterial.new()
 			wm.shader = load("res://assets/shaders/water.gdshader")
+			if nm.contains("river"):
+				# Stadtfluss: klarer, dunkler, spiegelnd – kaum Entengrütze
+				wm.set_shader_parameter("algae_amount", 0.12)
+				wm.set_shader_parameter("shallow", Color(0.1, 0.13, 0.11))
+				wm.set_shader_parameter("deep", Color(0.015, 0.03, 0.035))
+				wm.set_shader_parameter("murk", 1.1)
+			if nm.contains("creek"):
+				# Waldbach unter Baumkronen: kaum Himmel im Wasser, dunkler, klar bis auf den Grund
+				wm.set_shader_parameter("reflect", 0.35)
+				wm.set_shader_parameter("shallow", Color(0.09, 0.11, 0.07))
+				wm.set_shader_parameter("murk", 0.8)
 			for i in mi.mesh.get_surface_count():
 				mi.set_surface_override_material(i, wm)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
@@ -303,6 +304,98 @@ static func _special_surfaces(scene: Node3D) -> void:
 				mi.set_surface_override_material(i, sm)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mi.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
+
+
+## Gleiche Meshes (Häuser, Zäune, Fässer, Fotoscans …) je Kachel zu MultiMeshes zusammenfassen: tausende
+## Einzelobjekte kosten sonst je einen Draw Call – mal drei (Tiefen-, Schatten-, Farbpass). Die Knoten bleiben
+## (Kollision, Verdecker als Kinder), nur ihr Mesh wandert in die Gruppe. Kleinkram blendet in der Ferne aus.
+static var _inst_mesh_cache: Dictionary = {}
+
+static func _auto_instance(scene: Node3D) -> void:
+	if OS.get_environment("NO_INSTANCE") != "":
+		return
+	const TILE := 48.0
+	var inv := scene.global_transform.affine_inverse()
+	var groups := {}
+	for n in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		if mi.mesh == null or not mi.is_visible_in_tree() or mi.material_override != null or mi.material_overlay != null:
+			continue
+		if mi.skin != null or mi.get_child_count() > 0 and mi.get_children().any(func(c): return c is Skeleton3D):
+			continue
+		var nm := String(mi.name).to_lower()
+		if nm.begins_with("ground") or nm.begins_with("water") or nm.begins_with("spin_") or nm.contains("lava") 				or nm.contains("goldpile") or nm.begins_with("nocol_mm"):
+			continue
+		var key := str(mi.mesh.get_rid().get_id())
+		for si in mi.mesh.get_surface_count():
+			var om := mi.get_surface_override_material(si)
+			key += "|" + (str(om.get_rid().get_id()) if om else "-")
+		var p := mi.global_position
+		key += "@%d_%d" % [floori(p.x / TILE), floori(p.z / TILE)]
+		if not groups.has(key):
+			groups[key] = []
+		groups[key].append(mi)
+	var made := 0
+	var moved := 0
+	for key in groups:
+		var list: Array = groups[key]
+		if list.size() < 3:
+			continue
+		var first := list[0] as MeshInstance3D
+		var mkey := String(key).get_slice("@", 0)
+		var mesh: Mesh = _inst_mesh_cache.get(mkey)
+		if mesh == null:
+			mesh = first.mesh
+			var over := false
+			for si in mesh.get_surface_count():
+				if first.get_surface_override_material(si) != null:
+					over = true
+			if over:
+				mesh = first.mesh.duplicate()
+				for si in mesh.get_surface_count():
+					var om := first.get_surface_override_material(si)
+					if om:
+						mesh.surface_set_material(si, om)
+			_inst_mesh_cache[mkey] = mesh
+		var mm := MultiMesh.new()
+		mm.transform_format = MultiMesh.TRANSFORM_3D
+		mm.mesh = mesh
+		mm.instance_count = list.size()
+		for k in list.size():
+			mm.set_instance_transform(k, inv * (list[k] as MeshInstance3D).global_transform)
+		var mmi := MultiMeshInstance3D.new()
+		mmi.name = "inst_" + String(first.name).get_slice("_", 0) + "_" + String(first.name).get_slice("_", 1)
+		mmi.multimesh = mm
+		mmi.cast_shadow = first.cast_shadow
+		mmi.gi_mode = first.gi_mode
+		var big := mesh.get_aabb().size.length() * first.global_transform.basis.get_scale().x
+		if big < 1.5:
+			mmi.visibility_range_end = 70.0
+			mmi.visibility_range_end_margin = 10.0
+			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		elif big < 5.0:
+			mmi.visibility_range_end = 150.0
+			mmi.visibility_range_end_margin = 20.0
+			mmi.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
+		scene.add_child(mmi)
+		for m in list:
+			(m as MeshInstance3D).mesh = null
+		made += 1
+		moved += list.size()
+	_inst_mesh_cache.clear()
+	print("Instanzgruppen: %d (%d Objekte)" % [made, moved])
+	if OS.get_environment("INST_DEBUG") != "":
+		var rest := {}
+		for n in scene.find_children("*", "GeometryInstance3D", true, false):
+			var gi := n as GeometryInstance3D
+			if gi is MeshInstance3D and (gi as MeshInstance3D).mesh == null:
+				continue
+			var k := gi.get_class() + ":" + String(gi.name).rstrip("0123456789").get_slice("_", 0) + "_" + String(gi.name).get_slice("_", 1)
+			rest[k] = rest.get(k, 0) + 1
+		var ks := rest.keys()
+		ks.sort_custom(func(a, b): return rest[a] > rest[b])
+		for k in ks.slice(0, 25):
+			print("  REST ", k, " ", rest[k])
 
 
 ## Wände als Verdecker (Occlusion Culling): was hinter Mauern liegt, wird nicht gezeichnet.
@@ -359,7 +452,7 @@ static func _ground_blend(scene: Node3D, kind: String = "") -> void:
 		if not layers.is_empty():
 			var gt: Dictionary = GRASS_TINT.get(kind, {})
 			var gc: Color = (gt.get("lush_col", Color(0.11, 0.22, 0.045)) as Color).lerp(gt.get("tip_col", Color(0.2, 0.3, 0.07)), 0.45)
-			var tm := _terrain_material(layers, masked, gc)
+			var tm := _terrain_material(layers, masked, gc, masked and _has_dirt_mask(mesh))
 			for i in mesh.get_surface_count():
 				mi.set_surface_override_material(i, tm)
 			continue
@@ -379,27 +472,29 @@ static func _ground_blend(scene: Node3D, kind: String = "") -> void:
 			mi.set_surface_override_material(i, sm)
 
 
-## Fotoscan-Böden je Ortsart (assets/textures/terrain/<name>, Poly Haven CC0): [base, alt, path, rock, alt_amount]
+## Fotoscan-Böden je Ortsart (assets/textures/terrain/<name>, Poly Haven CC0):
+## [base, alt, path (Rot-Maske: Pflaster/Weg), rock, alt_amount, far_mix, dirt (Grün-Maske: Höfe, Gassen)]
 const TERRAIN := {
-	"grassland": ["forrest_ground_01", "leafy_grass", "grass_path_2", "rock_face", 0.35, 0.75],
-	"village": ["forrest_ground_01", "leafy_grass", "grass_path_2", "rock_face", 0.35, 0.7],
-	"wall": ["forrest_ground_01", "withered_grass", "grass_path_2", "rock_face", 0.35, 0.65],
-	"city": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
-	"palace": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
-	"cathedral": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "rock_face", 0.3, 0.6],
-	"forest": ["forrest_ground_01", "forest_leaves_02", "forest_ground_04", "mossy_rock", 0.45, 0.3],
-	"jungle": ["leaves_forest_ground", "forrest_ground_01", "forest_ground_04", "mossy_rock", 0.45, 0.35],
-	"swamp": ["brown_mud_leaves_01", "sparse_grass", "mud_forest", "mossy_rock", 0.5, 0.35],
-	"cemetery": ["withered_grass", "dirt", "gravel_road", "rock_face", 0.45, 0.4],
-	"battlefield": ["brown_mud_leaves_01", "withered_grass", "mud_forest", "rock_face", 0.45, 0.35],
-	"mountain": ["rocky_terrain_02", "forrest_ground_01", "rocky_trail", "cliff_side", 0.45, 0.3],
-	"peaks": ["rocky_terrain_02", "withered_grass", "rocky_trail", "cliff_side", 0.4, 0.2],
+	"grassland": ["forrest_ground_01", "leafy_grass", "grass_path_2", "mossy_rock", 0.35, 0.75, "stony_dirt_path"],
+	"village": ["forrest_ground_01", "leafy_grass", "grass_path_2", "mossy_rock", 0.35, 0.7, "stony_dirt_path"],
+	"wall": ["forrest_ground_01", "withered_grass", "mossy_cobblestone", "mossy_rock", 0.35, 0.65, "dirt"],
+	"city": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "mossy_rock", 0.3, 0.6, "dirt"],
+	"palace": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "mossy_rock", 0.3, 0.6, "dirt"],
+	"cathedral": ["forrest_ground_01", "sparse_grass", "mossy_cobblestone", "mossy_rock", 0.3, 0.6, "dirt"],
+	"forest": ["forrest_ground_01", "forest_leaves_02", "forest_ground_04", "mossy_rock", 0.45, 0.3, "forest_ground_04"],
+	"jungle": ["leaves_forest_ground", "forrest_ground_01", "forest_ground_04", "mossy_rock", 0.45, 0.35, "forest_ground_04"],
+	"swamp": ["brown_mud_leaves_01", "sparse_grass", "mud_forest", "mossy_rock", 0.5, 0.35, "mud_forest"],
+	"cemetery": ["withered_grass", "dirt", "gravel_road", "mossy_rock", 0.45, 0.4, "dirt"],
+	"battlefield": ["brown_mud_leaves_01", "withered_grass", "mud_forest", "rock_face", 0.45, 0.35, "mud_forest"],
+	"mountain": ["rocky_terrain_02", "forrest_ground_01", "rocky_trail", "rock_face_03", 0.45, 0.3, "rocky_trail", Color(0.78, 0.86, 1.0)],
+	"peaks": ["rocky_terrain_02", "withered_grass", "rocky_trail", "dark_rock_02", 0.4, 0.2, "rocky_trail", Color(1.5, 1.5, 1.55)],
+	"lava": ["dark_rock_02", "rock_face", "stony_dirt_path", "dark_rock_02", 0.3, 0.0, "stony_dirt_path"],
 }
 static var _terrain_cache: Dictionary = {}
 
 
-static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Color(0.11, 0.2, 0.05)) -> ShaderMaterial:
-	var key := str(layers) + str(masked)
+static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Color(0.11, 0.2, 0.05), dirt := false) -> ShaderMaterial:
+	var key := str(layers) + str(masked) + str(dirt)
 	if _terrain_cache.has(key):
 		return _terrain_cache[key]
 	var sm := ShaderMaterial.new()
@@ -413,12 +508,33 @@ static func _terrain_material(layers: Array, masked: bool, grass_col: Color = Co
 			sm.set_shader_parameter(slot[i] + "_rough", load(d + "rough.jpg"))
 		if i == 0:
 			sm.set_shader_parameter("base_ao", load(d + "ao.jpg"))
+	if dirt and layers.size() > 6:
+		var dd := "res://assets/textures/terrain/%s/%s_" % [layers[6], layers[6]]
+		sm.set_shader_parameter("dirt_diff", load(dd + "diff.jpg"))
+		sm.set_shader_parameter("dirt_nor", load(dd + "nor.jpg"))
+		sm.set_shader_parameter("dirt_rough", load(dd + "rough.jpg"))
+		sm.set_shader_parameter("use_dirt", true)
+	if layers.size() > 7:
+		sm.set_shader_parameter("rock_tint", layers[7])
 	sm.set_shader_parameter("alt_amount", float(layers[4]))
 	sm.set_shader_parameter("far_mix", float(layers[5]) if layers.size() > 5 else 0.0)
 	sm.set_shader_parameter("use_mask", masked)
 	sm.set_shader_parameter("far_col", grass_col)
 	_terrain_cache[key] = sm
 	return sm
+
+
+## Trägt die Wegmaske einen eigenen Grün-Kanal (Höfe/Gassen, tools/pipeline/loc_kit.py dirt_fn)?
+## Ältere Modelle haben Rot = Grün.
+static func _has_dirt_mask(mesh: Mesh) -> bool:
+	for si in mesh.get_surface_count():
+		if (mesh.surface_get_format(si) & Mesh.ARRAY_FORMAT_COLOR) == 0:
+			continue
+		var cs: PackedColorArray = mesh.surface_get_arrays(si)[Mesh.ARRAY_COLOR]
+		for i in range(0, cs.size(), 7):
+			if absf(cs[i].g - cs[i].r) > 0.05:
+				return true
+	return false
 
 
 ## Gras, Blumen, Büsche (nocol_mm_<name> + <id>_scatter.json aus tools/pipeline/loc_kit.py) als
@@ -460,7 +576,8 @@ static func _horizon(loc: Dictionary, scene: Node3D) -> void:
 const GRASS_TINT := {
 	"grassland": {},
 	"forest": {"tip_col": Color(0.2, 0.31, 0.075), "lush_col": Color(0.12, 0.23, 0.05), "dry_amount": 0.25, "density": 0.45},
-	"palace": {"density": 0.4}, "cathedral": {"density": 0.4}, "wall": {"density": 0.55},
+	"palace": {"density": 0.4}, "cathedral": {"density": 0.4}, "wall": {"density": 0.55}, "city": {"density": 0.5},
+	"village": {"density": 0.85},
 	"mountain": {"tip_col": Color(0.23, 0.3, 0.1), "lush_col": Color(0.13, 0.22, 0.06), "dry_col": Color(0.36, 0.33, 0.2), "dry_amount": 0.6, "density": 0.45},
 	"peaks": {"tip_col": Color(0.3, 0.3, 0.17), "lush_col": Color(0.17, 0.2, 0.09), "dry_col": Color(0.4, 0.37, 0.25), "dry_amount": 0.8, "density": 0.3},
 	"battlefield": {"tip_col": Color(0.3, 0.29, 0.15), "lush_col": Color(0.18, 0.2, 0.08), "dry_col": Color(0.38, 0.33, 0.19), "dry_amount": 0.85, "density": 0.45},
@@ -642,7 +759,8 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	root.add_child(sun)
 	if preset.has("hdri"):
 		var p2 := preset.duplicate()
-		var sky_by_loc := {"baharuth": "rocky_ridge_puresky", "theokratie": "belfast_sunset_puresky", "drachen": "scythian_tombs_puresky"}
+		var sky_by_loc := {"baharuth": "sunflowers_puresky", "theokratie": "kloofendal_43d_clear_puresky",
+			"re_capital": "kloofendal_38d_partly_cloudy_puresky", "drachen": "scythian_tombs_puresky"}
 		if sky_by_loc.has(String(_loc.get("id", ""))):
 			p2["hdri"] = sky_by_loc[_loc.id]
 		HdriSky.apply(env, sun, p2)
@@ -729,7 +847,7 @@ static func preset(kind: String) -> Dictionary:
 		"tombs": return {"sky": false, "gi": 0.6, "vol_fog": 0.6, "bg": Color(0.01, 0.015, 0.02), "ambient": Color(0.32, 0.36, 0.45), "ambient_energy": 0.85, "fog": Color(0.05, 0.07, 0.09), "fog_density": 0.03, "sun_energy": 0.12, "saturation": 1.08, "contrast": 1.08}
 		"glacier": return {"hdri": "kloofendal_48d_partly_cloudy_puresky", "sky_top": Color(0.28, 0.45, 0.72), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.5, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 1.3, "ambient": Color(0.55, 0.68, 0.9), "ambient_energy": 0.8, "exposure": 0.78, "fog": Color(0.72, 0.82, 0.95), "fog_density": 0.012, "sun": Color(0.85, 0.92, 1.0), "sun_energy": 1.3, "sun_rot": Vector3(-30, 40, 0), "shadow_dist": 120.0, "saturation": 1.05, "contrast": 1.06}
 		"jungle": return {"hdri": "kloofendal_48d_partly_cloudy_puresky", "sky_top": Color(0.2, 0.42, 0.72), "sky_energy": 1.0, "sky_ambient": true, "ambient": Color(0.5, 0.62, 0.45), "ambient_energy": 0.8, "fog": Color(0.42, 0.55, 0.4), "fog_density": 0.009, "vol_fog": 1.4, "sun": Color(1.0, 0.93, 0.75), "sun_energy": 1.6, "sun_rot": Vector3(-48, 30, 0), "shadow_dist": 120.0, "saturation": 1.18, "contrast": 1.05, "exposure": 1.1}
-		"lava": return {"lamp": 0.6, "lamp_range": 12.0, "sky_top": Color(0.15, 0.02, 0.0), "sky_energy": 0.8, "ambient": Color(0.6, 0.25, 0.15), "ambient_energy": 0.7, "fog": Color(0.25, 0.06, 0.02), "fog_density": 0.02, "sun": Color(1.0, 0.5, 0.3), "sun_energy": 0.6}
+		"lava": return {"lamp": 0.9, "lamp_range": 14.0, "sky_top": Color(0.06, 0.012, 0.004), "sky_energy": 0.6, "ambient": Color(0.55, 0.24, 0.15), "ambient_energy": 0.6, "fog": Color(0.2, 0.055, 0.025), "fog_density": 0.016, "vol_fog": 1.0, "gi": 1.15, "sun": Color(1.0, 0.48, 0.28), "sun_energy": 0.55, "exposure": 1.25}
 		"royal": return {"sky": false, "lamp": 0.9, "lamp_range": 9.0, "gi": 1.0, "vol_fog": 0.4, "bg": Color(0.03, 0.02, 0.03), "ambient": Color(0.75, 0.62, 0.5), "ambient_energy": 1.1, "fog": Color(0.12, 0.08, 0.06), "fog_density": 0.008, "sun_energy": 0.25, "saturation": 1.08, "contrast": 1.04}
 		"library": return {"sky": false, "lamp": 0.7, "lamp_range": 10.0, "gi": 0.9, "vol_fog": 0.5, "bg": Color(0.02, 0.015, 0.01), "ambient": Color(0.7, 0.58, 0.42), "ambient_energy": 0.9, "fog": Color(0.1, 0.07, 0.04), "fog_density": 0.012, "sun_energy": 0.15, "saturation": 1.06, "contrast": 1.05}
 		"treasury": return {"sky_top": Color(0.25, 0.32, 0.62), "sky_energy": 1.0, "sky_ambient": true, "lamp": 0.8, "lamp_range": 12.0, "gi": 1.0, "vol_fog": 1.2, "ambient": Color(0.85, 0.7, 0.45), "ambient_energy": 0.8, "fog": Color(0.85, 0.62, 0.35), "fog_density": 0.006, "sun": Color(1.0, 0.78, 0.5), "sun_energy": 1.7, "sun_rot": Vector3(-22, 160, 0), "shadow_dist": 120.0, "saturation": 1.12, "contrast": 1.06, "exposure": 1.0}
@@ -866,24 +984,238 @@ static func _throne(root: Node3D) -> Dictionary:
 
 
 ## Kriegstisch mit Reliefkarte und Spielfiguren.
+## Teppichbahn: flacher Quader, UV über die Oberseite (u quer, v längs).
+static func _carpet_mesh(w: float, l: float) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var h := 0.02
+	var corners := [Vector3(-w / 2, h, -l / 2), Vector3(w / 2, h, -l / 2), Vector3(w / 2, h, l / 2), Vector3(-w / 2, h, l / 2)]
+	var uvs := [Vector2(0, 0), Vector2(1, 0), Vector2(1, 1), Vector2(0, 1)]
+	for i in [0, 1, 2, 0, 2, 3]:
+		st.set_normal(Vector3.UP)
+		st.set_uv(uvs[i])
+		st.add_vertex(corners[i])
+	for side in [[0, 1], [1, 2], [2, 3], [3, 0]]:
+		var a: Vector3 = corners[side[0]]
+		var b: Vector3 = corners[side[1]]
+		var n := (b - a).cross(Vector3.UP).normalized() * -1.0
+		for p in [a, b, b - Vector3(0, h, 0), a, b - Vector3(0, h, 0), a - Vector3(0, h, 0)]:
+			st.set_normal(n)
+			st.set_uv(Vector2(0.02, 0.5))
+			st.add_vertex(p)
+	return st.commit()
+
+
 static func _war_table(root: Node3D, table: Vector3) -> void:
-	B3.box(root, Vector3(3.6, 1.0, 2.4), table + Vector3(0, 0.5, 0), B3.mat(Color(0.12, 0.07, 0.05), 0.6))
-	B3.box(root, Vector3(3.3, 0.04, 2.1), table + Vector3(0, 1.02, 0), B3.noise_mat(Color(0.25, 0.32, 0.18), Color(0.45, 0.42, 0.3), 0.5), false)
-	for i in 6:
-		var p := table + Vector3(_rng.randf_range(-1.4, 1.4), 1.05, _rng.randf_range(-0.85, 0.85))
-		B3.cone(root, 0.18, _rng.randf_range(0.15, 0.35), p, B3.mat(Color(0.5, 0.48, 0.45), 0.8))
-	for i in 4:
-		var p := table + Vector3(_rng.randf_range(-1.3, 1.3), 1.04, _rng.randf_range(-0.8, 0.8))
-		B3.cyl(root, 0.05, 0.06, 0.18, p + Vector3(0, 0.09, 0), B3.mat([Color(0.55, 0.25, 0.95), Color(0.85, 0.1, 0.15)][i % 2], 0.4, 0.5), false, 8)
-	B3.light(root, table + Vector3(0, 3, 0), Color(1, 0.85, 0.6), 1.5, 6)
+	# Schwerer Eichentisch des Kriegsrats: dicke Platte, Zarge, gedrechselte Beine, Querstreben
+	var oak := BuildingLook.photo_material("planks", "wood", Color(0.62, 0.48, 0.36))
+	var dark := BuildingLook.photo_material("wood", "wood", Color(0.45, 0.34, 0.26))
+	var size := Vector2(3.8, 2.4)
+	var top_y := 0.96
+	B3.box(root, Vector3(size.x, 0.1, size.y), table + Vector3(0, top_y - 0.05, 0), oak)
+	B3.box(root, Vector3(size.x + 0.08, 0.04, size.y + 0.08), table + Vector3(0, top_y - 0.1, 0), dark, false)
+	for sx in [-1, 1]:
+		B3.box(root, Vector3(0.08, 0.16, size.y - 0.3), table + Vector3(sx * (size.x / 2 - 0.2), top_y - 0.18, 0), dark, false)
+		B3.box(root, Vector3(size.x - 0.4, 0.16, 0.08), table + Vector3(0, top_y - 0.18, sx * (size.y / 2 - 0.15)), dark, false)
+		for sz in [-1, 1]:
+			var lp := table + Vector3(sx * (size.x / 2 - 0.22), 0, sz * (size.y / 2 - 0.18))
+			B3.cyl(root, 0.08, 0.1, 0.12, lp + Vector3(0, 0.06, 0), dark, false, 12)
+			B3.cyl(root, 0.06, 0.075, 0.42, lp + Vector3(0, 0.33, 0), dark, false, 12)
+			B3.sphere(root, 0.085, lp + Vector3(0, 0.58, 0), dark, Vector3(1, 0.8, 1))
+			B3.cyl(root, 0.075, 0.06, 0.2, lp + Vector3(0, 0.74, 0), dark, false, 12)
+	B3.box(root, Vector3(size.x - 0.5, 0.07, 0.07), table + Vector3(0, 0.22, 0), dark, false)
+	# Karte auf Pergament (prozedural), Ecken mit Bechern/Leuchtern beschwert
+	var map_mat := StandardMaterial3D.new()
+	map_mat.albedo_texture = _parchment_map()
+	map_mat.roughness = 0.92
+	map_mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+	var map := B3.box(root, Vector3(3.3, 0.006, 2.0), table + Vector3(0, top_y + 0.004, 0), map_mat, false)
+	map.rotation.y = deg_to_rad(1.5)
+	# Figuren aus dem Schachspiel (Fotoscan) als Heeresmarken: zwei Farben, Gruppen
+	var pieces: Array = PhProps.variants("chess_set")
+	if pieces.size() > 2:
+		var by_size := pieces.duplicate()
+		by_size.sort_custom(func(a, b): return (a.size as Vector3).length() > (b.size as Vector3).length())
+		by_size.remove_at(0)                                     # Brett
+		for g in 7:
+			var gp := table + Vector3(_rng.randf_range(-1.35, 1.35), top_y + 0.01, _rng.randf_range(-0.75, 0.75))
+			for i in _rng.randi_range(1, 3):
+				var v: Dictionary = by_size[_rng.randi() % by_size.size()]
+				var mi := MeshInstance3D.new()
+				mi.mesh = v.mesh
+				var off := Vector3(_rng.randf_range(-0.12, 0.12), 0, _rng.randf_range(-0.12, 0.12))
+				mi.transform = Transform3D(Basis(Vector3.UP, _rng.randf() * TAU).scaled(Vector3.ONE * 1.7), gp + off) * (v.xf as Transform3D)
+				root.add_child(mi)
+	for c in [Vector3(-1.55, 0, -0.9), Vector3(1.55, 0, 0.9)]:
+		PhProps.attach(root, "brass_candleholders", Transform3D(Basis().scaled(Vector3.ONE * 0.6), table + c + Vector3(0, top_y, 0)))
+		B3.light(root, table + c + Vector3(0, top_y + 0.7, 0), Color(1.0, 0.72, 0.42), 1.1, 5.5).set_meta("flicker", true)
+	PhProps.attach(root, "brass_goblets", Transform3D(Basis(Vector3.UP, 0.4), table + Vector3(1.5, top_y, -0.85)))
+	PhProps.attach(root, "book_encyclopedia_set_01", Transform3D(Basis(Vector3.UP, -0.2), table + Vector3(-1.45, top_y, 0.82)))
+	B3.light(root, table + Vector3(0, 3, 0), Color(1, 0.85, 0.6), 1.2, 6)
 
 
-## Albedos Pult.
+static var _map_tex: ImageTexture
+static var _carpet_tex: ImageTexture
+
+
+## Alte Landkarte auf Pergament: Küsten (Tusche), Meer, Gebirge, Wälder, Flüsse, Grenzen, verbrannte Ränder.
+static func _parchment_map() -> ImageTexture:
+	if _map_tex:
+		return _map_tex
+	var W := 640
+	var H := 388
+	var img := Image.create(W, H, false, Image.FORMAT_RGB8)
+	var land := FastNoiseLite.new()
+	land.seed = 17
+	land.frequency = 0.006
+	land.fractal_octaves = 5
+	var fine := FastNoiseLite.new()
+	fine.seed = 5
+	fine.frequency = 0.08
+	var forest := FastNoiseLite.new()
+	forest.seed = 9
+	forest.frequency = 0.03
+	var border := FastNoiseLite.new()
+	border.seed = 23
+	border.noise_type = FastNoiseLite.TYPE_CELLULAR
+	border.frequency = 0.012
+	border.cellular_return_type = FastNoiseLite.RETURN_DISTANCE2_SUB
+	for y in H:
+		for x in W:
+			var h := land.get_noise_2d(x, y) + 0.12 - 0.35 * pow(absf(float(x) / W - 0.5) * 2.0, 3.0)
+			var g := fine.get_noise_2d(x, y) * 0.5 + 0.5
+			var c := Color(0.8, 0.7, 0.52).lerp(Color(0.7, 0.58, 0.4), g * 0.7)
+			if h < -0.06:
+				c = c.lerp(Color(0.5, 0.55, 0.5), 0.45 + 0.1 * g)                       # Meer
+				if int(y) % 9 == 0 and h > -0.2 and fine.get_noise_2d(x * 3, y) > 0.0:
+					c = c.darkened(0.12)                                                 # Wellenstriche
+			elif h < -0.035:
+				c = Color(0.22, 0.16, 0.1)                                               # Küstenlinie
+			elif h > 0.34:
+				c = c.lerp(Color(0.45, 0.35, 0.24), 0.55)                                # Gebirge
+				if fine.get_noise_2d(x * 2.0, y * 2.0) > 0.35:
+					c = c.darkened(0.35)
+			elif forest.get_noise_2d(x, y) > 0.28:
+				c = c.lerp(Color(0.42, 0.45, 0.28), 0.4)                                 # Wälder
+				if fine.get_noise_2d(x * 2.5, y * 2.5) > 0.4:
+					c = c.darkened(0.25)
+			if h >= -0.035 and absf(border.get_noise_2d(x, y)) < 0.012 and (int(x / 3) + int(y / 3)) % 2 == 0:
+				c = c.lerp(Color(0.55, 0.08, 0.06), 0.8)                                 # Reichsgrenzen (gestrichelt)
+			var ex := minf(x, W - 1 - x) / float(W)
+			var ey := minf(y, H - 1 - y) / float(H)
+			var edge := clampf(minf(ex, ey * float(H) / W) * 14.0 + (g - 0.5) * 0.4, 0.0, 1.0)
+			c = c.lerp(Color(0.2, 0.13, 0.07), (1.0 - edge) * 0.85)
+			img.set_pixel(x, y, c)
+	# Flüsse: von Gebirgen zur Küste (einfacher Abstieg über das Höhenfeld)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 4
+	for r in 9:
+		var p := Vector2(rng.randf_range(40, W - 40), rng.randf_range(40, H - 40))
+		for step in 260:
+			var hx := land.get_noise_2d(p.x, p.y)
+			if hx < -0.04:
+				break
+			var gx := land.get_noise_2d(p.x + 2, p.y) - land.get_noise_2d(p.x - 2, p.y)
+			var gy := land.get_noise_2d(p.x, p.y + 2) - land.get_noise_2d(p.x, p.y - 2)
+			var d := -Vector2(gx, gy).normalized() + Vector2(rng.randf_range(-0.6, 0.6), rng.randf_range(-0.6, 0.6))
+			p += d.normalized() * 1.5
+			if p.x < 2 or p.y < 2 or p.x > W - 3 or p.y > H - 3:
+				break
+			img.set_pixel(int(p.x), int(p.y), Color(0.3, 0.38, 0.45))
+	# Städte: kleine Burgsymbole (Kreise mit Punkt)
+	for t in 11:
+		var q := Vector2i(rng.randi_range(30, W - 30), rng.randi_range(30, H - 30))
+		if land.get_noise_2d(q.x, q.y) < 0.0:
+			continue
+		for a in 24:
+			var ang := a / 24.0 * TAU
+			img.set_pixel(q.x + int(cos(ang) * 4), q.y + int(sin(ang) * 4), Color(0.2, 0.12, 0.08))
+		img.set_pixel(q.x, q.y, Color(0.5, 0.06, 0.05))
+	img.generate_mipmaps()
+	_map_tex = ImageTexture.create_from_image(img)
+	return _map_tex
+
+
+## Teppich des Thronsaals: tiefes Karmesin, Goldborte mit Muster, Rautenfeld in der Mitte, leicht abgetreten.
+static func _carpet_texture() -> ImageTexture:
+	if _carpet_tex:
+		return _carpet_tex
+	var N := 256
+	var img := Image.create(N, N, false, Image.FORMAT_RGB8)
+	var fine := FastNoiseLite.new()
+	fine.seed = 31
+	fine.frequency = 0.15
+	var wear := FastNoiseLite.new()
+	wear.seed = 2
+	wear.frequency = 0.02
+	for y in N:
+		for x in N:
+			var u := float(x) / N
+			var v := float(y) / N
+			var base := Color(0.36, 0.02, 0.05)
+			var e := minf(u, 1.0 - u)
+			var c := base
+			if e < 0.035:
+				c = Color(0.18, 0.01, 0.03)                                   # dunkler Rand
+			elif e < 0.11:
+				c = Color(0.62, 0.43, 0.13)                                   # Goldborte
+				var m := absf(fmod(v * 16.0, 1.0) - 0.5) + absf((e - 0.0725) * 26.0)
+				if m < 0.32:
+					c = Color(0.3, 0.03, 0.06)                                # Muster in der Borte
+			elif e < 0.125:
+				c = Color(0.18, 0.01, 0.03)
+			else:
+				var du := absf((u - 0.5) * 2.0)
+				var dv := absf(fmod(v * 2.0, 1.0) - 0.5) * 2.0
+				var diamond := du * 1.3 + dv
+				if absf(diamond - 0.7) < 0.035 or absf(diamond - 0.45) < 0.02:
+					c = Color(0.62, 0.43, 0.13)
+				elif diamond < 0.45:
+					c = Color(0.26, 0.04, 0.12)                               # Medaillon (Violett-Ton)
+					if absf(fmod(du * 6.0 + dv * 6.0, 1.0) - 0.5) < 0.1:
+						c = Color(0.55, 0.36, 0.12)
+			var n := fine.get_noise_2d(x, y) * 0.5 + 0.5
+			c = c.darkened(0.12 * n) * (1.0 - 0.18 * maxf(0.0, wear.get_noise_2d(x, y * 3.0)))
+			img.set_pixel(x, y, c)
+	img.generate_mipmaps()
+	_carpet_tex = ImageTexture.create_from_image(img)
+	return _carpet_tex
+
+
+## Albedos Pult: Schreibtisch mit Schubladen (Fotoscan), Bücherstapel, Leuchter, Kristallkugel auf Messingschale.
 static func _desk(root: Node3D, desk: Vector3) -> void:
-	B3.box(root, Vector3(2.4, 1.1, 1.2), desk + Vector3(0, 0.55, 0), B3.mat(Color(0.08, 0.04, 0.1), 0.5))
-	B3.box(root, Vector3(2.5, 0.06, 1.3), desk + Vector3(0, 1.12, 0), B3.mat(GOLD, 0.3, 0.9), false)
-	B3.sphere(root, 0.18, desk + Vector3(0.7, 1.3, 0), B3.mat(VIOLET, 0.1, 0.0, VIOLET, 3.0))
-	B3.light(root, desk + Vector3(0, 2.5, 0), Color(0.9, 0.7, 1.0), 1.2, 5)
+	var size := PhProps.attach(root, "WoodenTable_03", Transform3D(Basis().scaled(Vector3.ONE * 1.15), desk))
+	var top_y: float = (size.y if size != Vector3.ZERO else 0.83) * 1.15
+	if size == Vector3.ZERO:
+		B3.box(root, Vector3(1.5, top_y, 0.7), desk + Vector3(0, top_y / 2, 0), BuildingLook.photo_material("wood"))
+	var body := StaticBody3D.new()
+	var cs := CollisionShape3D.new()
+	var shape := BoxShape3D.new()
+	shape.size = Vector3(1.6, top_y, 0.7)
+	cs.shape = shape
+	cs.position = desk + Vector3(0, top_y / 2, 0)
+	body.add_child(cs)
+	root.add_child(body)
+	PhProps.attach(root, "book_encyclopedia_set_01", Transform3D(Basis(Vector3.UP, 0.25).scaled(Vector3.ONE * 0.8), desk + Vector3(-0.45, top_y, -0.05)))
+	PhProps.attach(root, "wooden_candlestick", Transform3D(Basis(), desk + Vector3(0.55, top_y, 0.12)))
+	B3.light(root, desk + Vector3(0.55, top_y + 0.35, 0.12), Color(1.0, 0.7, 0.4), 0.8, 4.0).set_meta("flicker", true)
+	PhProps.attach(root, "brass_pot_01", Transform3D(Basis().scaled(Vector3(0.55, 0.3, 0.55)), desk + Vector3(0.15, top_y, -0.1)))
+	var orb := StandardMaterial3D.new()
+	orb.albedo_color = Color(0.55, 0.3, 0.85, 0.55)
+	orb.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	orb.roughness = 0.05
+	orb.metallic_specular = 1.0
+	orb.emission_enabled = true
+	orb.emission = VIOLET
+	orb.emission_energy_multiplier = 1.4
+	orb.rim_enabled = true
+	orb.rim = 0.6
+	B3.sphere(root, 0.15, desk + Vector3(0.15, top_y + 0.22, -0.1), orb)
+	for i in 5:                                                   # lose Blätter
+		var paper := B3.box(root, Vector3(0.21, 0.002, 0.29), desk + Vector3(_rng.randf_range(-0.2, 0.3), top_y + 0.002 + i * 0.001, _rng.randf_range(0.0, 0.2)),
+			B3.mat(Color(0.86, 0.82, 0.72), 0.9), false)
+		paper.rotation.y = _rng.randf_range(-0.6, 0.6)
+	B3.light(root, desk + Vector3(0, 2.5, 0), Color(0.9, 0.7, 1.0), 0.9, 5)
 
 
 ## Ausstattung eines Ortsmodells über benannte Anker:
@@ -932,10 +1264,14 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 			var end: Vector3 = a.throne
 			var mid := (start + end) / 2.0
 			var length := end.distance_to(start) + 2.0
-			var carpet := B3.box(root, Vector3(3.6, 0.04, length), Vector3(mid.x, 0.03, mid.z), B3.mat(Color(0.45, 0.02, 0.06), 0.9), false)
+			var cm := StandardMaterial3D.new()
+			cm.albedo_texture = _carpet_texture()
+			cm.uv1_scale = Vector3(1.0, length / 3.6, 1.0)
+			cm.uv1_triplanar = false
+			cm.roughness = 0.97
+			cm.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+			var carpet := B3.mesh(root, _carpet_mesh(3.6, length), Vector3(mid.x, 0.035, mid.z), cm)
 			carpet.rotation.y = atan2(end.x - start.x, end.z - start.z)
-			var trim := B3.box(root, Vector3(4.0, 0.03, length), Vector3(mid.x, 0.02, mid.z), B3.mat(GOLD, 0.3, 0.9), false)
-			trim.rotation.y = carpet.rotation.y
 		if a.has("table"):
 			_war_table(root, a.table)
 		if a.has("desk"):

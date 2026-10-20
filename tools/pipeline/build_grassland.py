@@ -7,6 +7,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
+from struct_kit import Structs  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=101)
@@ -15,7 +16,7 @@ kit.lod_names = {"SM_Tree02", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07",
 put, empty, rng = kit.put, kit.empty, kit.rng
 HALF = 140.0
 C = (0.0, 30.0)                 # Mitte der Grabanlage
-W = 32.0                        # halbe Kantenlänge der Ringmauer
+W = 38.0                        # halbe Kantenlänge der Ringmauer
 
 road = kit.spline([(0, -138), (6, -100), (-4, -60), (2, -20), (0, C[1] - W - 2)])
 ring = kit.spline([(C[0] - W + 4, C[1] - W + 4), (C[0] + W - 4, C[1] - W + 4), (C[0] + W - 4, C[1] + W - 4),
@@ -25,74 +26,60 @@ path_fn = kit.roads_mask([(road, 3.0), (ring, 2.6), (axis, 4.0)], HALF)
 kit.terrain(HALF, flat_r=W + 14, hill_h=14.0, tex="Textures_T_LandScapeLayer01_BC.png", normal="Textures_T_LandScapeLayer01_N.png",
             tile=5.0, edge_rise=12.0, res=420, inner_h=0.4, path_tex="Textures_T_LandScapeLayer04_BC.png",
             path_normal="Textures_T_LandScapeLayer04_N.png", path_fn=path_fn)
-kit.occupy(C[0], C[1], W + 4)
 kit.occupy(0, -50, 8)
 
-# --- Ringmauer mit Tor -------------------------------------------------------------------------
+# --- Oberfläche des Großen Grabes: Ringmauer, Torbogen, Gräberfelder, Grüfte, großes Mausoleum ----------------
 cx, cy = C
 gz = kit.ground_fn(cx, cy)
-for side, (x0, y0, x1, y1, inward) in enumerate([(-W, -W, W, -W, (0, 1)), (W, -W, W, W, (-1, 0)), (W, W, -W, W, (0, -1)),
-                                                 (-W, W, -W, -W, (1, 0))]):
-    n = int(2 * W / 5)
-    rot = math.degrees(math.atan2(-inward[0], inward[1]))
-    for k in range(n):
-        x = cx + x0 + (x1 - x0) * (k + 0.5) / n
-        y = cy + y0 + (y1 - y0) * (k + 0.5) / n
-        if side == 0 and abs(x - cx) < 4:
-            continue                                      # Tor
-        put("SM_StoneWall01", x, y, rot=rot + 90, s=1.3, sink=0.2)
-        if rng.random() < 0.25:
-            put(rng.choice(["SM_Foliage_33", "SM_Bush07"]), x + inward[0] * 1.5, y + inward[1] * 1.5, nocol=True)
+sk = Structs(kit)
+sk.plain_wall([(cx - W, cy - W), (cx + W, cy - W), (cx + W, cy + W), (cx - W, cy + W)], height=4.2, T=1.0,
+              gaps=[(cx, cy - W)], gap_w=6.0, closed=True, buttress=7.0)
+sk.gate_pillars(cx, cy - W, 0.0, width=5.2, h=4.8)
+for sx in (-1, 1):                                        # Wächterstatuen am Tor
+    put("SM_statuestair", cx + sx * 6.5, cy - W - 2.5, rot=0, s=0.35)
+# Großes Mausoleum (Abstieg in die Tiefe)
+big = sk.mausoleum(cx, cy + 4.0, 0.0, w=16.0, d=18.0, h=8.0, style="grand", mat="MI_Mausoleum", steps=5)
 for sx in (-1, 1):
-    put("SM_middle_pillar2", cx + sx * 4.5, cy - W, s=0.75)
-    put("SM_statuestair", cx + sx * 7.5, cy - W + 2.5, rot=0, s=0.35)
-
-# --- Friedhof innerhalb der Mauer ----------------------------------------------------------------
-for i in range(-6, 7):
-    for j in range(-5, 6):
-        x, y = cx + i * 4.4 + rng.uniform(-0.6, 0.6), cy + j * 4.8 + rng.uniform(-0.6, 0.6)
-        if abs(x - cx) < 6 or (abs(x - cx) < 15 and abs(y - cy) < 13) or abs(i) > 6:
-            continue
-        put(rng.choice(["SM_tombStone01", "SM_tombstone02"]), x, y, rot=180 + rng.uniform(-10, 10), s=rng.uniform(0.9, 1.15),
-            sink=rng.uniform(0.0, 0.15))
-        if rng.random() < 0.3:
-            put(rng.choice(["SM_Foliage_33", "SM_FlowerPot02", "SM_Foliage_12"]), x + 0.6, y - 0.8, nocol=True)
-for (x, y) in [(cx - 24, cy + 22), (cx + 24, cy + 22), (cx - 24, cy - 20), (cx + 24, cy - 20)]:
-    put("SM_ChurchTree01", x, y, rot=rng.uniform(0, 360), s=1.1)
-
-# --- Zentrales Mausoleum ------------------------------------------------------------------------------
-put("SM_understair02", cx, cy - 9.5, z=gz, rot=0, s=0.9)
-for i in range(-2, 2):
-    for j in range(-2, 2):
-        put("SM_floor", cx + i * 5 + 2.5, cy + j * 5 + 2.5, z=gz + 1.4)
-# Sockel: Mauerblöcke rings um die Plattform, Oberkante = Plattform (nichts schwebt)
-TOP = gz + 1.4
-for k in (-7.5, -2.5, 2.5, 7.5):
-    for sx in (-1, 1):
-        put("SM_middlewall02", cx + sx * 10.3, cy + k, z=TOP - 4.2, rot=90 * sx)
-    put("SM_middlewall02", cx + k, cy + 10.3, z=TOP - 4.2, rot=180)
-for sx in (-1, 1):
-    put("SM_middlewall02", cx + sx * 7.5, cy - 10.3, z=TOP - 4.2, rot=0)
-    put("SM_middlewall02", cx + sx * 4.4, cy - 10.3, z=TOP - 4.2, rot=0)
-# Säulenhalle, Seiten- und Rückwand, flaches Dach mit Gesims
-for sx in (-1, 1):
-    for k in range(4):
-        put("SM_middle_pillar", cx + sx * 9.0, cy - 7 + k * 5, z=TOP, s=0.85)
-    for k in (2.5, 7.5):
-        put("SM_wall02", cx + sx * 10.0, cy + k, z=TOP, rot=90 * sx, sz=1.12)
-    put("SM_smallbraizer01", cx + sx * 4.5, cy - 4.5, z=TOP)
-for k in range(-1, 2):
-    put("SM_wall02", cx + k * 5, cy + 10.0, z=TOP, rot=180, sz=1.12)
-ROOF = TOP + 5.6
-for i in range(-2, 2):
-    for j in range(-2, 2):
-        put("SM_ceiling01", cx + i * 5 + 2.5, cy + j * 5 + 2.5, z=ROOF)
-for k in (-7.5, -2.5, 2.5, 7.5):
-    for sx in (-1, 1):
-        put("SM_updan", cx + sx * 10.2, cy + k, z=ROOF + 0.5, rot=90 * sx)
-        put("SM_updan", cx + k, cy + sx * 10.2, z=ROOF + 0.5, rot=0 if sx < 0 else 180)
-put("SM_statuehuman", cx, cy + 7.5, z=gz + 1.4, rot=180, s=0.5)
-put("SM_GateWall01", cx, cy + 2.0, z=gz + 1.4, rot=0, s=0.9)       # Eingang in die Tiefe (Gate-Portal)
+    for k in range(3):                                    # Engelsstatuen entlang der Achse
+        put("SM_Statue01", cx + sx * 5.5, cy - W + 8 + k * 6.5, rot=-90 * sx, s=1.6)
+    put("SM_smallbraizer01", cx + sx * 4.2, cy - 12.0, z=big["z"] + 0.35 + 0.22 * 5)
+# eisernes Gitter um den Vorplatz des Mausoleums
+fx0, fx1, fy0, fy1 = cx - 13.0, cx + 13.0, cy - 15.5, cy + 17.0
+sk.iron_fence([(fx0, fy0), (fx1, fy0), (fx1, fy1), (fx0, fy1), (fx0, fy0)], h=1.8, gap_at=0, gap_w=6.0)
+# vier Grüfte an den Ecken
+for (dx, dy, st) in [(-23, -21, "dome"), (23, -21, "dome"), (-23, 23, "pyramid"), (23, 23, "pyramid")]:
+    sk.mausoleum(cx + dx, cy + dy, 0.0 if dy < 0 else 180.0, w=6.0, d=7.0, h=4.6, style=st, mat="MI_MausoleumDark",
+                 portico=True)
+# Gräberfelder in den Vierteln
+for qx0, qx1 in ((cx - W + 4, cx - 15), (cx + 15, cx + W - 4)):
+    y = cy - W + 6
+    while y < cy + W - 6:
+        x = qx0 + rng.uniform(0, 1.0)
+        while x < qx1:
+            if kit.free(x, y, 1.3):
+                r = rng.random()
+                if r < 0.35:
+                    sk.cross(x, y + 0.9, rng.uniform(-4, 4), h=rng.uniform(1.0, 1.5),
+                             tilt=rng.uniform(-10, 10) if rng.random() < 0.2 else 0.0)
+                elif r < 0.6:
+                    sk.slab(x, y, rng.uniform(-3, 3))
+                elif r < 0.66:
+                    sk.obelisk(x, y, h=rng.uniform(2.0, 3.2))
+                else:
+                    put(rng.choice(["SM_tombStone01", "SM_tombstone02"]), x, y + 0.9, rot=180 + rng.uniform(-8, 8),
+                        s=rng.uniform(0.9, 1.15), sink=rng.uniform(0.0, 0.2))
+                    kit.occupy(x, y, 1.1)
+            x += rng.uniform(2.2, 3.0)
+        y += rng.uniform(3.6, 4.2)
+for _ in range(14):                                       # tote Bäume zwischen den Gräbern
+    x, y = rng.uniform(cx - W + 5, cx + W - 5), rng.uniform(cy - W + 5, cy + W - 5)
+    if kit.free(x, y, 2.5) and abs(x - cx) > 14:
+        kit.ph(rng.choice(["dead_tree_trunk_02", "dead_tree_trunk"]), x, y, rot=rng.uniform(0, 360))
+        kit.occupy(x, y, 2.0)
+for (x, y) in [(cx - 30, cy + 30), (cx + 30, cy + 30), (cx - 30, cy - 30), (cx + 30, cy - 30)]:
+    put("SM_ChurchTree01", x, y, rot=rng.uniform(0, 360), s=1.0)
+sk.flush("SM_NazarickSurface")
+kit.occupy(C[0], C[1], W + 4)                             # Wald, Wiese und Felsen bleiben draußen
 
 # --- Grasland ringsum ----------------------------------------------------------------------------------
 BIG = ["SM_Tree4", "SM_Tree10", "SM_Tree02", "SM_Tree09", "SM_Tree13", "MW_tree_02", "MW_tree_03", "FV_tree_01"]
@@ -130,12 +117,13 @@ for _ in range(40):
 
 # --- Anker ------------------------------------------------------------------------------------------------
 empty("Spawn", 0.0, cy - W - 8.0, rot=0)
-empty("Gate", cx, cy + 2.0, gz + 1.4)
+empty("Gate", big["door"][0], big["door"][1] - 1.5, big["door"][2])
 for i, a in enumerate([200, 235, 270, 305, 340, 20]):
     r = math.radians(a)
     empty("Slot%d" % (i + 1), cx + math.cos(r) * 6.0, cy - W - 14 + math.sin(r) * 4.0)
 empty("Board", 4.0, cy - W - 10.0)
 for i, sx in enumerate((-1, 1)):
-    empty("Fire_%d" % (i + 1), cx + sx * 4.5, cy - 4.5, gz + 1.4 + 3.9)
+    empty("Fire_%d" % (i + 1), cx + sx * 4.2, cy - 12.0, big["z"] + 0.35 + 0.22 * 5 + 1.2)
+    empty("Violet_%d" % (i + 1), cx + sx * 6.0, cy - 13.5, big["z"] + 3.0)
 kit.finish_materials(metal_keys=("braizer",))
 kit.export()

@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bqjcp41drmgn7"
-path="res://.godot/imported/withered_grass_nor.jpg-85c5d775d3b2317be43aa1ef71acaf40.ctex"
+path.s3tc="res://.godot/imported/withered_grass_nor.jpg-85c5d775d3b2317be43aa1ef71acaf40.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/terrain/withered_grass/withered_grass_nor.jpg"
-dest_files=["res://.godot/imported/withered_grass_nor.jpg-85c5d775d3b2317be43aa1ef71acaf40.ctex"]
+dest_files=["res://.godot/imported/withered_grass_nor.jpg-85c5d775d3b2317be43aa1ef71acaf40.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

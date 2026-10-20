@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://6ci4trtjrtef"
-path="res://.godot/imported/namaqualand_boulder_02_nor_gl_2k.jpg-666c1cab3553d03a481a91ed2bbd63ae.ctex"
+path.s3tc="res://.godot/imported/namaqualand_boulder_02_nor_gl_2k.jpg-666c1cab3553d03a481a91ed2bbd63ae.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/namaqualand_boulder_02/textures/namaqualand_boulder_02_nor_gl_2k.jpg"
-dest_files=["res://.godot/imported/namaqualand_boulder_02_nor_gl_2k.jpg-666c1cab3553d03a481a91ed2bbd63ae.ctex"]
+dest_files=["res://.godot/imported/namaqualand_boulder_02_nor_gl_2k.jpg-666c1cab3553d03a481a91ed2bbd63ae.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dh2bph58848yh"
-path="res://.godot/imported/leaves_forest_ground_diff.jpg-eb18a5d9c53c63df67bd178a66ec91aa.ctex"
+path.s3tc="res://.godot/imported/leaves_forest_ground_diff.jpg-eb18a5d9c53c63df67bd178a66ec91aa.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/terrain/leaves_forest_ground/leaves_forest_ground_diff.jpg"
-dest_files=["res://.godot/imported/leaves_forest_ground_diff.jpg-eb18a5d9c53c63df67bd178a66ec91aa.ctex"]
+dest_files=["res://.godot/imported/leaves_forest_ground_diff.jpg-eb18a5d9c53c63df67bd178a66ec91aa.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

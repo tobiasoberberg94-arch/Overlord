@@ -1,13 +1,14 @@
 # Blender: 6. Ebene – Dschungel & Amphitheater (Maya-Ruinen + Bäume aus Medieval Lake Village)
 #   blender -b -P build_jungle.py -- <JungleKit-Ordner> <ziel.glb>
-# Blender-Y = im Spiel -Z.  Ankunft im Süden (Spawn y=-30), Arena in der Mitte (Golem bei y=+10),
-# Tor im Süden (y=-23), Ränge + Säulen + Mauer ringsum, Pyramide im Norden, Dschungel rundherum.
+# Blender-Y = im Spiel -Z.  Ankunft im Süden vor dem Haupttor, in der Mitte das große Amphitheater (Kolosseum,
+# town_kit.colosseum: Arkaden in drei Geschossen, begehbare Ränge, Sandarena), Pyramide im Norden, Dschungel rundherum.
 import math
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
+from town_kit import Town  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=11)   # volle Originalqualität, Godot erzeugt LOD-Stufen
@@ -15,68 +16,20 @@ kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06",
                  "SM_Tree10", "SM_Tree13", "SM_ChurchTree01", "SM_Spruce1", "SM_TreeType1", "SM_type2Tree",
                  "MW_tree_02", "MW_tree_03", "MW_pine_tree_Var_01", "FV_tree_01", "FV_tree_02"}   # Bäume: Instancing + Detailstufen
 put, empty = kit.put, kit.empty
-R_FLOOR, R_STAIR, R_COL, R_WALL = 12.6, 17.0, 21.6, 23.6
-GATE_A = -90.0                       # Süden (Richtung Spawn)
+HALF = 95.0
+R_ARENA, R_OUT = 18.0, 36.0
+town = Town(kit, HALF)
+TERRAIN = dict(half=HALF, flat_r=46.0, hill_h=11.0, edge_rise=16.0, inner_h=0.0)
+kit.height_field(**TERRAIN)
+approach = kit.spline([(0, -92), (2, -70), (-1, -52), (0, -R_OUT - 2)])
+town.road(approach, 5.0, paved=False)
 
-
-def path_fn(x, y):
-    if abs(x + math.sin(y * 0.2) * 0.6) < 2.6 and -60 < y < -20:
-        return 1.0
-    if math.hypot(x, y) < R_FLOOR + 2.5:
-        return 1.0                   # Sandring um den Arenaboden
-    return 0.0
-
-
-kit.terrain(95.0, flat_r=34.0, hill_h=11.0, tex="Textures_T_LandScapeLayer01_BC.png",
-            normal="Textures_T_LandScapeLayer01_N.png", tile=5.0, edge_rise=16.0, res=300,
-            path_tex="Textures_T_LandScapeLayer05_BC.png", path_normal="Textures_T_LandScapeLayer04_N.png",
-            path_fn=path_fn)
-
-
-def gap(a_deg, half=14.0):
-    d = (a_deg - GATE_A + 180) % 360 - 180
-    return abs(d) < half
-
-
-# --- Arena ------------------------------------------------------------------------------
-put("SM_pyramid_circle", 0, 0, z=-0.15, s=2.5, sz=0.45)
-put("SM_brick_circle", 0, 0, z=0.02, s=3.2, sz=1.0)            # Steinring um die Arena
-
-# Ränge: Stufenblöcke im Kreis (aufsteigend nach außen)
-N = 16
-for i in range(N):
-    a = i * 360.0 / N
-    if gap(a, 16):
-        continue
-    r = math.radians(a)
-    put("SM_stair_brick" if i % 3 else "SM_stiar_crack", math.cos(r) * R_STAIR, math.sin(r) * R_STAIR,
-        z=0.0, rot=a + 90.0, s=1.0)
-# Säulenring
-for i in range(28):
-    a = i * 360.0 / 28
-    if gap(a, 12):
-        continue
-    r = math.radians(a)
-    put("SM_colum_module_001" if i % 2 else "SM_column_ruin_module_body", math.cos(r) * R_COL,
-        math.sin(r) * R_COL, rot=a, s=1.0 if i % 2 else 0.85)
-# Außenmauer
-for i in range(12):
-    a = i * 30.0 + 15.0
-    if gap(a, 20):
-        continue
-    r = math.radians(a)
-    put("SM_top_pattern_wall", math.cos(r) * R_WALL, math.sin(r) * R_WALL, rot=a + 90.0, s=1.05)
-# Tor im Süden: Drachensäulen und Tortürme
-gr = math.radians(GATE_A)
-gx, gy = math.cos(gr) * R_WALL, math.sin(gr) * R_WALL
-for sx in (-1, 1):
-    put("SM_dragon_pillar", gx + sx * 6.0, gy, rot=0 if sx < 0 else 180, s=0.9)
-    put("SM_stone_door_module_2", gx + sx * 9.8, gy + 0.5, rot=0, s=0.75)
-    put("SM_prop_pillar_a001", sx * 3.2, -30.0, s=0.8)          # Säulen am Weg vor dem Tor
-    put("SM_prop_pillar_a001", sx * 3.2, -38.0, s=0.8)
-# Ehrenloge im Norden (Auras Platz) mit Altar
-put("SM_mayan_altar_001", 0, R_FLOOR + 1.0, z=0.0, rot=180, s=1.1)
-put("SM_ruin_face_module_001", 0, R_WALL + 2.0, rot=0, s=1.0)
+# --- Amphitheater ---------------------------------------------------------------------------------
+town.colosseum(0.0, 0.0, R=R_OUT, r_arena=R_ARENA, tiers=3, tier_h=5.6, segs=64, gates=(270.0, 90.0))
+for sx in (-1, 1):                                          # Drachensäulen und Wächtersäulen am Weg vor dem Tor
+    put("SM_dragon_pillar", sx * 6.5, -R_OUT - 5.0, rot=0 if sx < 0 else 180, s=0.85)
+    put("SM_prop_pillar_a001", sx * 4.0, -R_OUT - 14.0, s=0.8)
+    put("SM_prop_pillar_a001", sx * 4.0, -R_OUT - 24.0, s=0.8)
 
 # --- Kulisse --------------------------------------------------------------------------------
 put("SM_pyramid_D_001", 0, 78.0, s=1.15, sink=1.0)
@@ -93,8 +46,8 @@ for (x, y) in [(10, -46), (-12, -52), (24, -20), (-26, -6), (20, 30), (-22, 34)]
     put("SM_prop_stone_006", x, y, rot=kit.rng.uniform(0, 360), s=kit.rng.uniform(0.6, 1.0), sink=0.4)
 
 # --- Dschungel ------------------------------------------------------------------------------
-arena = [(-27, -27, 27, 27)]
-road = [(-4, -62, 4, -20)]
+arena = [(-R_OUT - 4, -R_OUT - 4, R_OUT + 4, R_OUT + 4)]
+road = [(-6, -92, 6, -R_OUT)]
 backdrop = [(-34, 50, 34, 110)]
 avoid = arena + road + backdrop
 trees = ["SM_Tree02", "SM_Tree09", "SM_Tree13", "SM_Tree03", "SM_Tree02"]
@@ -122,7 +75,6 @@ kit.grass((-90, -90, 90, 90), 3000, kind="@flower", avoid=arena + road)
 kit.meadow((-90, -90, 90, 90), ["SM_Bush06", "SM_Foliage_12", "SM_Foliage_27"], 600, avoid=arena + road, s=(1.0, 1.6),
            patch=(["SM_Foliage_33", "SM_Foliage_34", "SM_Foliage_12", "SM_Foliage_27"], 60, 3.0))
 kit.meadow((-90, -90, 90, 90), UNDER, 900, avoid=arena + road, s=(0.9, 1.5))
-kit.grass((-26, -26, 26, 26), 1800, avoid=[(-16, -16, 16, 16)], s=(0.7, 1.1), road_ok=True)   # Gras zwischen den Rängen
 for _ in range(40):                                         # Moosfelsen im Unterholz
     a = kit.rng.uniform(0, math.tau)
     r = kit.rng.uniform(30, 88)
@@ -131,9 +83,15 @@ for _ in range(40):                                         # Moosfelsen im Unte
         put(kit.rng.choice(["SM_Rock01", "SM_Rock03", "SM_MossyGround01"]), x, y, rot=kit.rng.uniform(0, 360),
             s=kit.rng.uniform(0.6, 1.3), sink=0.3)
 
+# --- Gelände ------------------------------------------------------------------------------------
+kit.terrain(HALF, flat_r=TERRAIN["flat_r"], hill_h=TERRAIN["hill_h"], tex="Textures_T_LandScapeLayer01_BC.png",
+            normal="Textures_T_LandScapeLayer01_N.png", tile=5.0, edge_rise=TERRAIN["edge_rise"], res=320,
+            path_tex="Textures_T_LandScapeLayer05_BC.png", path_normal="Textures_T_LandScapeLayer04_N.png",
+            path_fn=town.path_fn, dirt_fn=town.dirt_fn)
+
 # --- Anker --------------------------------------------------------------------------------------
-empty("Spawn", 0, -32.0, rot=0)
-empty("Gate", 0, -40.0)
+empty("Spawn", 0, -R_OUT - 12.0, rot=0)
+empty("Gate", 0, -R_OUT - 20.0)
 empty("Keeper", -2.0, 4.0)
 for i, a in enumerate([120, 145, 170, 190, 215, 240]):
     r = math.radians(a + 90)
@@ -141,7 +99,7 @@ for i, a in enumerate([120, 145, 170, 190, 215, 240]):
 n = 1
 for i in range(8):
     a = math.radians(i * 45 + 22.5)
-    empty("Fire_%d" % n, math.cos(a) * (R_FLOOR + 1.5), math.sin(a) * (R_FLOOR + 1.5), 1.2)
+    empty("Fire_%d" % n, math.cos(a) * (R_ARENA - 1.2), math.sin(a) * (R_ARENA - 1.2), 1.4)
     n += 1
 
 kit.finish_materials(metal_keys=("altar", "dragon"))

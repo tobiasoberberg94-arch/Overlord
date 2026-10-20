@@ -46,3 +46,26 @@ occlusion_culling/use_occlusion_culling=true
 renderer/rendering_method="forward_plus"
 renderer/rendering_method.mobile="gl_compatibility"
 environment/defaults/default_clear_color=Color(0.03, 0.02, 0.05, 1)
+
+[shader_globals]
+
+overlord_ground_h={
+"type": "sampler2D",
+"value": ""
+}
+overlord_ground_rect={
+"type": "vec4",
+"value": Vector4(0, 0, 0, 0)
+}
+overlord_floor_y={
+"type": "float",
+"value": 0.0
+}
+overlord_weather={
+"type": "vec4",
+"value": Vector4(0.3, 0, 0.5, 0.7)
+}
+overlord_roofs={
+"type": "vec4",
+"value": Vector4(0.3, 0.3, 0.25, 0.15)
+}

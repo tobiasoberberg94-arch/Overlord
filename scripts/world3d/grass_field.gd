@@ -61,7 +61,9 @@ func _sample(ground: MeshInstance3D) -> bool:
 		var cs: Variant = arr[Mesh.ARRAY_COLOR]
 		for i in vs.size():
 			verts.append(xf * vs[i])
-			cols.append((cs as PackedColorArray)[i].r if cs is PackedColorArray and (cs as PackedColorArray).size() == vs.size() else 0.0)
+			# Rot = Pflaster/Weg, Grün = festgetretene Erde (Höfe, Gassen): dort wächst kein Gras
+			var cc: Color = (cs as PackedColorArray)[i] if cs is PackedColorArray and (cs as PackedColorArray).size() == vs.size() else Color(0, 0, 0)
+			cols.append(maxf(cc.r, cc.g))
 	if verts.size() < 100:
 		return false
 	var mn := Vector2(INF, INF)

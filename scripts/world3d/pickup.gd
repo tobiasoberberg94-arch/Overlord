@@ -103,34 +103,56 @@ func _ready() -> void:
 			B3.box(_visual, Vector3(0.96, 0.06, 0.62), Vector3(0, 0.5, 0), B3.mat(Palette.GOLD, 0.3, 0.9), false)
 			B3.box(_visual, Vector3(0.12, 0.14, 0.04), Vector3(0, 0.45, 0.29), B3.mat(Palette.GOLD_BRIGHT, 0.3, 0.9), false)
 		"lore":
-			var st := B3.box(_visual, Vector3(0.7, 1.9, 0.28), Vector3(0, 0.95, 0), B3.mat(Color(0.42, 0.42, 0.44), 0.95), true)
-			st.rotation.z = randf_range(-0.08, 0.08)
+			# verwitterter Standstein (Fotoscan) mit schwach leuchtenden Runen
+			var w := PhProps.whole("rock_07")
+			var depth := 0.3
+			if w.is_empty():
+				B3.box(_visual, Vector3(0.7, 1.9, 0.28), Vector3(0, 0.95, 0), B3.mat(Color(0.42, 0.42, 0.44), 0.95), true)
+			else:
+				var sz: Vector3 = w.size
+				var dims := [sz.x, sz.y, sz.z]
+				dims.sort()
+				# längste Achse aufrichten: Stein steht hochkant (≈ 0,8 × 1,8 × 0,45 m)
+				var b := Basis()
+				if sz.x == dims[2]:
+					b = Basis(Vector3.BACK, PI / 2)
+				elif sz.z == dims[2]:
+					b = Basis(Vector3.RIGHT, PI / 2)
+				var rs: Vector3 = (b * sz).abs()
+				var sc := Vector3(0.8 / rs.x, 1.8 / rs.y, 0.45 / rs.z)
+				var t := Transform3D(Basis().scaled(sc) * b, Vector3.ZERO)
+				var a := t * AABB(-sz * 0.5 + Vector3(0, sz.y * 0.5, 0), sz)
+				t.origin = Vector3(-a.get_center().x, -a.position.y - 0.08, -a.get_center().z)
+				PhProps.attach(_visual, "rock_07", t)
+				depth = 0.45
 			for k in 4:
-				B3.box(_visual, Vector3(0.36, 0.06, 0.01), Vector3(randf_range(-0.08, 0.08), 0.6 + k * 0.28, 0.145), B3.mat(c, 0.3, 0.0, c, 3.0), false)
-			B3.box(_visual, Vector3(1.0, 0.25, 0.6), Vector3(0, 0.1, 0), B3.mat(Color(0.35, 0.35, 0.36), 0.95), true)
+				B3.box(_visual, Vector3(0.26, 0.035, 0.01), Vector3(randf_range(-0.06, 0.06), 0.62 + k * 0.22, depth * 0.5 + 0.03), B3.mat(c, 0.3, 0.0, c, 1.4), false)
 		"shrine":
-			B3.box(_visual, Vector3(1.4, 0.9, 0.8), Vector3(0, 0.45, 0), B3.mat(Color(0.75, 0.72, 0.66), 0.8), true)
-			B3.box(_visual, Vector3(1.6, 0.1, 1.0), Vector3(0, 0.95, 0), B3.mat(Color(0.82, 0.78, 0.7), 0.7), false)
-			B3.box(_visual, Vector3(0.2, 1.2, 0.2), Vector3(0, 1.6, -0.25), B3.mat(Color(0.8, 0.76, 0.68), 0.7), false)
-			B3.box(_visual, Vector3(0.7, 0.18, 0.18), Vector3(0, 1.9, -0.25), B3.mat(Color(0.8, 0.76, 0.68), 0.7), false)
-			for k in 5:
-				var cp := Vector3(randf_range(-0.6, 0.6), 1.05, randf_range(-0.35, 0.35))
-				B3.cyl(_visual, 0.03, 0.03, 0.16, cp, B3.mat(Color(0.95, 0.92, 0.85), 0.6), false, 6)
-				B3.sphere(_visual, 0.025, cp + Vector3(0, 0.11, 0), B3.mat(Color(1, 0.7, 0.3), 0.3, 0.0, Color(1, 0.65, 0.25), 6.0))
+			# Heiligenfigur auf Steinsockel, Kerzenleuchter davor
+			B3.box(_visual, Vector3(1.2, 0.7, 0.8), Vector3(0, 0.35, 0), B3.mat(Color(0.5, 0.48, 0.44), 0.9), true)
+			if PhProps.attach(_visual, "gothic_statue", Transform3D(Basis(), Vector3(0, 0.7, -0.05))) == Vector3.ZERO:
+				B3.box(_visual, Vector3(0.2, 1.2, 0.2), Vector3(0, 1.3, -0.25), B3.mat(Color(0.8, 0.76, 0.68), 0.7), false)
+			PhProps.attach(_visual, "brass_candleholders", Transform3D(Basis(), Vector3(-0.42, 0.7, 0.25)))
+			PhProps.attach(_visual, "wooden_candlestick", Transform3D(Basis(), Vector3(0.45, 0.7, 0.28)))
+			for k in 3:
+				var cp := Vector3(randf_range(-0.5, 0.5), 0.72, randf_range(0.1, 0.35))
+				B3.cyl(_visual, 0.025, 0.025, 0.12, cp + Vector3(0, 0.06, 0), B3.mat(Color(0.95, 0.92, 0.85), 0.6), false, 6)
+				B3.sphere(_visual, 0.02, cp + Vector3(0, 0.15, 0), B3.mat(Color(1, 0.7, 0.3), 0.3, 0.0, Color(1, 0.65, 0.25), 5.0))
 		"cache":
-			# Steinhaufen aus Fotoscans (Poly Haven), darunter etwas Moos
+			# Truhe, halb zwischen bemoosten Steinen versteckt (Fotoscans)
+			if PhProps.attach(_visual, "treasure_chest", Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3(0.8, 0.8, 0.8)), Vector3(0, -0.05, 0))) == Vector3.ZERO:
+				B3.box(_visual, Vector3(0.9, 0.5, 0.55), Vector3(0, 0.25, 0), B3.mat(Color(0.32, 0.18, 0.08), 0.75), false)
 			var stones := PhProps.pool(["boulder_01", "namaqualand_boulder_05", "rock_moss_set_02"])
-			for k in 6:
+			for k in 4:
 				if stones.is_empty():
 					break
 				var v: Dictionary = stones[randi() % stones.size()]
 				var vs: Vector3 = v.size
-				var s := 0.55 / maxf(vs.x, maxf(vs.y, vs.z)) * randf_range(0.7, 1.15)
+				var s := 0.6 / maxf(vs.x, maxf(vs.y, vs.z)) * randf_range(0.7, 1.15)
 				var mi := MeshInstance3D.new()
 				mi.mesh = v.mesh
-				var a := float(k) / 6.0 * TAU + randf() * 0.4
-				var pos := Vector3(cos(a) * 0.32, (0.14 if k > 3 else 0.0), sin(a) * 0.32) if k < 5 else Vector3(0, 0.22, 0)
-				mi.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3(s, s, s)), pos) * (v.xf as Transform3D)
+				var a := float(k) / 4.0 * TAU + randf() * 0.5
+				mi.transform = Transform3D(Basis(Vector3.UP, randf() * TAU).scaled(Vector3(s, s, s)), Vector3(cos(a) * 0.62, 0.0, sin(a) * 0.5)) * (v.xf as Transform3D)
 				_visual.add_child(mi)
 		"bag":
 			B3.sphere(_visual, 0.2, Vector3(0, 0.2, 0), B3.mat(Color(0.42, 0.3, 0.16), 0.9), Vector3(1, 0.85, 1))

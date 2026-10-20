@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c24p3kr5w0a8k"
-path="res://.godot/imported/stone_01_arm_2k.jpg-39069f9adef5b077044e912247266217.ctex"
+path.s3tc="res://.godot/imported/stone_01_arm_2k.jpg-39069f9adef5b077044e912247266217.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/stone_01/textures/stone_01_arm_2k.jpg"
-dest_files=["res://.godot/imported/stone_01_arm_2k.jpg-39069f9adef5b077044e912247266217.ctex"]
+dest_files=["res://.godot/imported/stone_01_arm_2k.jpg-39069f9adef5b077044e912247266217.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

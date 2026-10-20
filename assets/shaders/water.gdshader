@@ -8,12 +8,19 @@ uniform vec3 deep : source_color = vec3(0.02, 0.035, 0.02);
 uniform float murk = 1.6;            // wie schnell das Wasser mit der Tiefe trüb wird
 uniform float wave_speed = 0.035;
 uniform float refraction = 0.025;
+uniform float algae_amount = 1.0;    // Algen/Entengrütze (Sumpf 1, Fluss wenig)
+uniform float reflect = 1.0;         // Spiegelung (unter Baumkronen weniger Himmel)
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 
 varying vec3 wpos;
 
-float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+// Hash ohne sin(): bei großen Weltkoordinaten (Flüsse, Seen) sonst blockige Artefakte
+float hash(vec2 p) {
+	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+	p3 += dot(p3, p3.yzx + 33.33);
+	return fract((p3.x + p3.y) * p3.z);
+}
 float vnoise(vec2 p) {
 	vec2 i = floor(p), f = fract(p);
 	vec2 u = f * f * (3.0 - 2.0 * f);
@@ -47,14 +54,14 @@ void fragment() {
 	float foam = (1.0 - smoothstep(0.0, 0.18, water_depth)) * (0.5 + 0.5 * vnoise(p * 6.0 + TIME * 0.3));
 	col = mix(col, vec3(0.42, 0.44, 0.36), foam * 0.45);
 	// Algen/Entengrütze in Flecken: matt, grün – das Wasser spiegelt nur dazwischen
-	float algae = smoothstep(0.52, 0.7, vnoise(p * 0.18) * 0.65 + vnoise(p * 0.9) * 0.35);
+	float algae = smoothstep(0.52, 0.7, vnoise(p * 0.18) * 0.65 + vnoise(p * 0.9) * 0.35) * algae_amount;
 	col = mix(col, vec3(0.09, 0.12, 0.035) * mix(0.8, 1.2, vnoise(p * 3.0)), algae);
 	ALBEDO = col;
 	ROUGHNESS = mix(0.22, 0.85, algae);
 	METALLIC = 0.0;
-	SPECULAR = mix(0.32, 0.1, algae);
+	SPECULAR = mix(0.32, 0.1, algae) * reflect;
 	float fres = pow(1.0 - clamp(dot(NORMAL, VIEW), 0.0, 1.0), 4.0);
 	EMISSION = vec3(0.0);
 	ALPHA = 1.0;
-	RIM = fres * 0.15 * (1.0 - algae);
+	RIM = fres * 0.15 * (1.0 - algae) * reflect;
 }

@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b7407ubogrk2k"
-path="res://.godot/imported/root_cluster_01_diff_2k.jpg-3d03f0c3121d193a1c9a3054360d39bc.ctex"
+path.s3tc="res://.godot/imported/root_cluster_01_diff_2k.jpg-3d03f0c3121d193a1c9a3054360d39bc.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/root_cluster_01/textures/root_cluster_01_diff_2k.jpg"
-dest_files=["res://.godot/imported/root_cluster_01_diff_2k.jpg-3d03f0c3121d193a1c9a3054360d39bc.ctex"]
+dest_files=["res://.godot/imported/root_cluster_01_diff_2k.jpg-3d03f0c3121d193a1c9a3054360d39bc.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

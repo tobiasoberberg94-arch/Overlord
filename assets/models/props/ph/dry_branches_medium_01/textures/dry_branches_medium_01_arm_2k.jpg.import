@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cli2hu5wy28wr"
-path="res://.godot/imported/dry_branches_medium_01_arm_2k.jpg-79d90a03210fe3d3cd388f0f30fba638.ctex"
+path.s3tc="res://.godot/imported/dry_branches_medium_01_arm_2k.jpg-79d90a03210fe3d3cd388f0f30fba638.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/dry_branches_medium_01/textures/dry_branches_medium_01_arm_2k.jpg"
-dest_files=["res://.godot/imported/dry_branches_medium_01_arm_2k.jpg-79d90a03210fe3d3cd388f0f30fba638.ctex"]
+dest_files=["res://.godot/imported/dry_branches_medium_01_arm_2k.jpg-79d90a03210fe3d3cd388f0f30fba638.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

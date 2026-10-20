@@ -15,6 +15,9 @@ uniform sampler2D alt_rough : hint_roughness_r, filter_linear_mipmap_anisotropic
 uniform sampler2D path_diff : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D path_nor : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D path_rough : hint_roughness_r, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D dirt_diff : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D dirt_nor : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
+uniform sampler2D dirt_rough : hint_roughness_r, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_diff : source_color, filter_linear_mipmap_anisotropic, repeat_enable;
 uniform sampler2D rock_nor : hint_normal, filter_linear_mipmap_anisotropic, repeat_enable;
 
@@ -22,6 +25,8 @@ uniform float base_size = 3.2;       // Meter je Texturwiederholung
 uniform float alt_size = 3.6;
 uniform float path_size = 2.6;
 uniform float rock_size = 7.0;
+uniform float dirt_size = 2.9;
+uniform bool use_dirt = false;       // Grün-Kanal der Wegmaske: festgetretene Erde (Höfe, Gassen)
 uniform float alt_amount = 0.45;     // Anteil des zweiten Bodens
 uniform vec3 base_tint : source_color = vec3(1.0);
 uniform vec3 alt_tint : source_color = vec3(1.0);
@@ -38,6 +43,7 @@ uniform float far_end = 70.0;
 varying vec3 wpos;
 varying vec3 wnrm;
 varying float vmask;
+varying float vdirt;
 
 float hash(vec2 p) {
 	vec3 p3 = fract(vec3(p.xyx) * 0.1031);
@@ -60,6 +66,7 @@ void vertex() {
 	wpos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 	wnrm = normalize((MODEL_MATRIX * vec4(NORMAL, 0.0)).xyz);
 	vmask = COLOR.r;
+	vdirt = COLOR.g;
 }
 
 // zweifach gelesen (normal + gedreht/vergrößert), per Rauschen gemischt
@@ -97,6 +104,16 @@ void fragment() {
 		float fw = smoothstep(far_start, far_end, d) * far_mix;
 		float l = dot(col, vec3(0.2126, 0.7152, 0.0722));
 		col = mix(col, far_col * mix(0.75, 1.35, smoothstep(0.05, 0.35, l)) * mix(0.9, 1.1, n_tile), fw * (1.0 - w_alt * 0.5));
+	}
+
+	// Höfe, Gassen, Trampelpfade: festgetretene Erde
+	if (use_dirt) {
+		vec4 dd = two(dirt_diff, p, dirt_size, n_tile);
+		float hd = dot(dd.rgb, vec3(0.33));
+		float w_dirt = smoothstep(0.3, 0.62, vdirt + (fbm(p * 0.42 + 7.0) - 0.5) * 0.5 + (hd - hb) * 0.3);
+		col = mix(col, dd.rgb, w_dirt);
+		nm = mix(nm, texture(dirt_nor, p / dirt_size).rgb, w_dirt);
+		rg = mix(rg, texture(dirt_rough, p / dirt_size).r, w_dirt);
 	}
 
 	// Wege

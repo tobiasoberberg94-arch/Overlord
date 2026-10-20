@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://gk3bk6m8jipu"
-path="res://.godot/imported/gravel_road_rough.jpg-156d89cfcc70829e7fb7baba636edd03.ctex"
+path.s3tc="res://.godot/imported/gravel_road_rough.jpg-156d89cfcc70829e7fb7baba636edd03.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/terrain/gravel_road/gravel_road_rough.jpg"
-dest_files=["res://.godot/imported/gravel_road_rough.jpg-156d89cfcc70829e7fb7baba636edd03.ctex"]
+dest_files=["res://.godot/imported/gravel_road_rough.jpg-156d89cfcc70829e7fb7baba636edd03.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

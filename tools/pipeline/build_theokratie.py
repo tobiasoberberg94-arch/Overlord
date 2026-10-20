@@ -1,118 +1,221 @@
-# Blender: Slane-Theokratie – heilige Hauptstadt: gepflasterter Domplatz mit Säulenalleen und Statuen der
-# Sechs Götter, die große Kathedrale im Norden, Glockentürme, Bürgerhäuser ringsum, Treppe zum Dom.
-#   blender -b -P build_theokratie.py -- <WorldKit-Ordner> <ziel.glb>
+# Blender: Slane-Theokratie – heilige Hauptstadt aus hellem Kalkstein (town_kit).
+#   blender -b -P build_theokratie.py -- <ErantelKit-Ordner> <ziel.glb>
+# Blender-Y = im Spiel -Z.  Südtor → Prozessionsstraße mit Säulen und Standbildern → Platz der Sechs Götter (sechs
+# Tempel im Kreis um das Götterdenkmal) → Domtreppe → Kathedrale (Rotunde mit Glockentürmen) auf der Domterrasse.
+# Klosterviertel im Westen (Kreuzgang, Gärten), Pilgerherbergen und Märkte im Osten.
 import math
 import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
+from town_kit import Town, ROAD, PLAZA, FREE, YARD, HOUSE, RESERVED  # noqa: E402
+from mathutils import noise, Vector  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=6)
-put, empty, rng = kit.put, kit.empty, kit.rng
-HALF = 110.0
-PLAZA = (0.0, 10.0)
-DOME = (0.0, 58.0)
+kit.lod_names = {"SM_Tree02", "SM_Tree03", "SM_Tree4", "SM_Tree05", "SM_Tree06", "SM_Tree07", "SM_Tree08", "SM_Tree09",
+                 "SM_Tree10", "SM_Tree13", "SM_ChurchTree01", "SM_Spruce1", "SM_TreeType1", "SM_type2Tree",
+                 "FV_tree_01", "FV_tree_02"}
+put, rng = kit.put, kit.rng
+HALF = 150.0
+town = Town(kit, HALF)
 
-avenue = kit.spline([(0, -105), (0, -40), (0, PLAZA[1] - 22)])
-cross = kit.spline([(-60, PLAZA[1]), (60, PLAZA[1])])
-square = kit.spline([(PLAZA[0] + math.cos(a) * 18, PLAZA[1] + math.sin(a) * 18) for a in [k / 32 * math.tau for k in range(33)]])
-path_fn = kit.roads_mask([(avenue, 5.0), (cross, 4.0), (square, 18.0), (kit.spline([(0, PLAZA[1] + 18), (0, DOME[1] - 14)]), 6.0)], HALF)
-kit.terrain(HALF, flat_r=80.0, hill_h=6.0, tex="Textures_T_LandScapeLayer01_BC.png", normal="Textures_T_LandScapeLayer01_N.png",
-            tile=5.0, edge_rise=14.0, res=320, inner_h=0.0, path_tex="Texture_T_Cobblestone_BC.png", path_normal="Texture_T_Cobblestone_N.png",
-            path_fn=path_fn)
-kit.occupy(PLAZA[0], PLAZA[1], 22)
-kit.occupy(DOME[0], DOME[1], 30)
-kit.occupy(0, -78, 8)
-lamps = []
+C = (0.0, 6.0)
+RX, RY = 108.0, 106.0
+SIX = (0.0, 10.0)          # Platz der Sechs Götter
+DOM = (0.0, 66.0)          # Kathedrale
+KLOSTER = (-62.0, 30.0)
+PILGER = (58.0, -10.0)
 
-# --- Domplatz: Brunnenring, Statuen der Sechs Götter, Säulen -----------------------------------------------------
-px, py = PLAZA
-put("SM_RoundOrn", px, py, s=1.2)
+
+def wall_r(a):
+    return 1.0 + noise.noise(Vector((math.cos(a) * 1.2, math.sin(a) * 1.2, 3.3))) * 0.06
+
+
+def ring_pt(deg, inset=0.0):
+    a = math.radians(deg)
+    r = wall_r(a)
+    return C[0] + math.cos(a) * (RX * r - inset), C[1] + math.sin(a) * (RY * r - inset)
+
+
+def inside(x, y, shrink=1.0):
+    a = math.atan2(y - C[1], x - C[0])
+    r = wall_r(a)
+    return ((x - C[0]) / (RX * r * shrink)) ** 2 + ((y - C[1]) / (RY * r * shrink)) ** 2 < 1.0
+
+
+def smooth(a, b, v):
+    t = max(0.0, min(1.0, (v - a) / (b - a)))
+    return t * t * (3 - 2 * t)
+
+
+def shape(x, y, h):
+    # Domterrasse: +4 m, nach Süden über eine breite Treppe/Rampe erreichbar
+    d = max(abs(x - DOM[0]) / 40.0, abs(y - (DOM[1] + 4)) / 30.0)
+    return h + 4.0 * (1.0 - smooth(0.85, 1.15, d))
+
+
+TERRAIN = dict(half=HALF, flat_r=114.0, hill_h=8.0, edge_rise=16.0, inner_h=0.2, height_fn=shape)
+kit.height_field(**TERRAIN)
+SG, WG, EG = ring_pt(-90), ring_pt(180), ring_pt(0)
+
+# --- Straßen und Plätze --------------------------------------------------------------------------------------
+proc = kit.spline([(SG[0], SG[1] - 46), (SG[0], SG[1] - 10), SG, (0, -60), (0, -24), SIX, (0, 28), (0, 40)])
+west = kit.spline([(WG[0] - 40, WG[1]), WG, (-70, 12), (-40, 12), SIX])
+east = kit.spline([SIX, (36, 6), PILGER, (82, -4), EG, (EG[0] + 40, EG[1])])
+ring_in = kit.spline([ring_pt(a, 12) for a in range(-80, 280, 10)] + [ring_pt(-80, 12)])
+lanes = [kit.spline(p) for p in [
+    [(0, -60), (-30, -56), (-56, -44), (-78, -30)], [(0, -60), (30, -58), (56, -46), (76, -32)],
+    [(-40, 12), (-44, -10), (-38, -34)], [(36, 6), (40, -20), (34, -40)],
+    [(-40, 12), (-42, 40), (-30, 58)], [(36, 6), (40, 36), (30, 56)],
+    [(-70, 12), (-80, 36), (-70, 58)], [(82, -4), (86, 24), (74, 48)],
+    [(-30, -56), (-24, -80)], [(30, -58), (26, -80)], [(-56, -44), (-70, -66)], [(56, -46), (70, -66)],
+]]
+for line, w in [(proc, 10.0), (west, 7.0), (east, 7.0)]:
+    town.road(line, w)
+town.road(ring_in, 4.5, paved=False)
+for l in lanes:
+    town.road(l, 4.5, paved=True)
+town.plaza(SIX[0], SIX[1], 25.0, ragged=0.3)
+town.plaza(PILGER[0], PILGER[1], 11.0)
+town.reserve(DOM[0], DOM[1] + 6, 80, 56, paved=0.6)                  # Domterrasse (Kalksteinplatten)
+town.reserve(KLOSTER[0], KLOSTER[1], 30, 30, dirt=0.25)
+
+# --- Mauer --------------------------------------------------------------------------------------------------------
+outer = [ring_pt(a) for a in range(0, 360, 3)]
+town.wall(outer, gates=[SG, WG, EG], tower_every=26.0)
+for gx, gy, deg in [(SG[0], SG[1], -90), (WG[0], WG[1], 180), (EG[0], EG[1], 0)]:
+    a = math.radians(deg)
+    tx, ty = -math.sin(a), math.cos(a)
+    for sgn in (-1, 1):
+        put("SM_TowerrType2", gx + tx * sgn * 9.0, gy + ty * sgn * 9.0, s=0.38, rot=deg + 90)
+        ix, iy = gx - math.cos(a) * 4 + tx * sgn * 3.8, gy - math.sin(a) * 4 + ty * sgn * 3.8
+        put("SM_Knight_posed", ix, iy, rot=deg + 90 + 180)
+        put("SM_Spear_low", ix + tx * sgn * 0.5, iy + ty * sgn * 0.5)
+
+# --- Kathedrale: Rotunde mit zwei Glockentürmen, Treppe, Säulen -----------------------------------------------
+put("SM_CastleSep3", DOM[0], DOM[1] + 6, s=2.1)
+for sgn in (-1, 1):
+    put("SM_CastleSep4", DOM[0] + sgn * 21, DOM[1] - 2, s=0.48)
+    put("SM_ChurchSet", DOM[0] + sgn * 30, DOM[1] + 18, rot=-90 * sgn, s=1.1)
+for k in range(7):                                     # Säulenreihe auf der Terrasse
+    for sgn in (-1, 1):
+        put("SM_Collum", DOM[0] + sgn * 9.0, DOM[1] - 20 + k * 4.5, z=kit.ground_fn(DOM[0] + sgn * 9.0, DOM[1] - 20 + k * 4.5) - 0.2, s=1.0)
+for sgn in (-1, 1):
+    put("SM_Statue01", sgn * 6.0, DOM[1] - 26, s=1.8)
+    for k in range(6):                                       # Zypressenallee auf der Terrasse
+        put("SM_Spruce1", sgn * 13.5, DOM[1] - 24 + k * 5.0, rot=rng.uniform(0, 360), s=0.6)
+    for k in range(3):                                       # Heckenparterres
+        for j in range(4):
+            put("SM_Bush07", sgn * (19 + j * 3.2), DOM[1] - 22 + k * 7.0, rot=rng.uniform(0, 360), s=1.0, nocol=True)
+    put("SM_RoundOrn", sgn * 26.0, DOM[1] - 14, s=0.75)       # Brunnenpavillons
+town.road(kit.spline([(0, 36), (0, DOM[1] - 6)]), 8.0)
+
+# --- Platz der Sechs Götter -------------------------------------------------------------------------------------
+# Götterdenkmal in der Mitte; im Kreis sechs Schreine (Rundtempel mit Standbild) in einem Säulenring,
+# dazwischen Zypressen, Hecken und Bänke.
+put("SM_RoundOrn", SIX[0], SIX[1], s=1.3)
+put("SM_Statue01", SIX[0], SIX[1], s=2.8)
 for k in range(6):
     a = math.radians(k * 60 + 30)
-    put("SM_Statue01", px + math.cos(a) * 11, py + math.sin(a) * 11, rot=math.degrees(a) + 90, s=1.9)
-    put("SM_StandLight", px + math.cos(a) * 14, py + math.sin(a) * 14, s=1.3)
-    lamps.append((px + math.cos(a) * 14, py + math.sin(a) * 14, 3.2))
-for y in range(-50, int(py) - 22, 7):
-    for sx in (-1, 1):
-        put("SM_Collum", sx * 7.0, y, z=kit.ground_fn(sx * 7.0, y), s=1.1)
-        if (y // 7) % 2 == 0:
-            put("SM_StandLight", sx * 7.0, y + 3.5, s=1.2)
-            lamps.append((sx * 7.0, y + 3.5, 3.0))
-
-# --- Kathedrale und Glockentürme ------------------------------------------------------------------------------------
-dx, dy = DOME
-put("SM_Build2", dx, dy, rot=180, s=0.7)
-for sx in (-1, 1):
-    put("SM_Build5", dx + sx * 24, dy - 4, rot=180, s=0.55)
-    put("SM_ChurchSet", dx + sx * 38, dy - 10, rot=180 + sx * 20, s=0.9)
-
-# --- Bürgerhäuser an den Straßen ---------------------------------------------------------------------------------------
-HOUSES = ["SM_Build1", "SM_Build3", "SM_Build4", "SM_House", "SM_House3", "SM_Build3"]
-for side in (-1, 1):
-    for k in range(5):                                        # Prachtstraße
-        y = -95 + k * 15
-        put(rng.choice(HOUSES[:3]), side * 22, y, rot=90 * side, s=rng.uniform(0.45, 0.6))
-    for k in range(4):                                        # Querstraße
-        x = side * (32 + k * 16)
-        put(rng.choice(HOUSES), x, py - 12, rot=0, s=rng.uniform(0.45, 0.65))
-        put(rng.choice(HOUSES), x, py + 14, rot=180, s=rng.uniform(0.45, 0.65))
-for side in (-1, 1):                                          # zweite Häuserreihe
-    for k in range(5):
-        y = -92 + k * 15
-        put(rng.choice(HOUSES), side * 40, y, rot=90 * side, s=rng.uniform(0.45, 0.6))
-# Stadtmauer rings um die heilige Stadt (Tor im Süden)
-for k in range(44):
-    a = k / 44 * math.tau
-    x, y = math.cos(a) * 92, math.sin(a) * 92
-    if abs(x) < 9 and y < 0:
+    tx_, ty_ = SIX[0] + math.cos(a) * 30, SIX[1] + math.sin(a) * 30
+    put("SM_RoundOrn", tx_, ty_, s=0.9)
+    put("SM_Statue01", tx_, ty_, rot=math.degrees(a) + 90, s=1.5)
+    put("SM_StandLight", SIX[0] + math.cos(a) * 24.5, SIX[1] + math.sin(a) * 24.5, s=1.3)
+    town.lamps.append((SIX[0] + math.cos(a) * 24.5, SIX[1] + math.sin(a) * 24.5, 3.1))
+    for j in (-1, 1):                                        # Zypressen und Hecken zwischen den Schreinen
+        b = a + math.radians(30) * j * 0.55
+        put("SM_Spruce1", SIX[0] + math.cos(b) * 33, SIX[1] + math.sin(b) * 33, rot=rng.uniform(0, 360), s=0.55)
+        put("SM_Bush07", SIX[0] + math.cos(b) * 29.5, SIX[1] + math.sin(b) * 29.5, rot=rng.uniform(0, 360), s=1.1, nocol=True)
+    kit.ph("painted_wooden_bench", SIX[0] + math.cos(a + 0.25) * 26.5, SIX[1] + math.sin(a + 0.25) * 26.5,
+           rot=math.degrees(a + 0.25) + 90)
+for k in range(48):                                          # Säulenring (Lücken an den Straßen)
+    a = k / 48 * math.tau
+    x, y = SIX[0] + math.cos(a) * 27.0, SIX[1] + math.sin(a) * 27.0
+    if town.at(x, y) == ROAD or min(abs(math.degrees(a) - d) % 360 for d in (90, 270, 0, 180, 360)) < 7:
         continue
-    put("SM_CastleWallV1UvStack", x, y, rot=math.degrees(a) + 90, s=1.25, sink=0.3)
-for sx in (-1, 1):
-    put("SM_TowerSmall", sx * 11, -92, s=0.45)
-for _ in range(16):
-    x, y = rng.uniform(-80, 80), rng.uniform(-80, 80)
-    if kit.free(x, y, 14) and path_fn(x, y) < 0.2 and abs(x) > 30:
-        put(rng.choice(HOUSES), x, y, rot=rng.choice([0, 90, 180, 270]), s=rng.uniform(0.45, 0.65))
-        kit.occupy(x, y, 12)
-for _ in range(30):
-    x, y = rng.uniform(-60, 60), rng.uniform(-90, 40)
-    if path_fn(x, y) > 0.5 and kit.free(x, y, 1.5):
-        kit.clutter(x, y, ["FV_barrel_01", "FV_crate_01", "SM_FlowerPot01", "SM_WoodenBucket01", "FV_bag"], n=(1, 3), r=(0.5, 1.5))
-for _ in range(50):
-    x, y = rng.uniform(-HALF + 5, HALF - 5), rng.uniform(-HALF + 5, HALF - 5)
-    if path_fn(x, y) < 0.2 and kit.free(x, y, 4):
-        put(rng.choice(["SM_ChurchTree01", "SM_Tree02", "SM_Spruce1"]), x, y, rot=rng.uniform(0, 360), s=rng.uniform(1.0, 1.5))
-        kit.occupy(x, y, 3)
-ALL = (-HALF + 2, -HALF + 2, HALF - 2, HALF - 2)
-kit.grass(ALL, 14000, s=(0.8, 1.3))
-kit.grass(ALL, 3000, kind="@flower", s=(0.8, 1.1))
+    put("SM_Collum", x, y, z=kit.ground_fn(x, y) - 0.4, s=0.8)
+town.plaza(SIX[0], SIX[1], 37.0, paved=None, ragged=0.3)          # Gartenring freihalten
+# Prozessionsstraße: Säulenpaare und Statuen
+cum = Town._cum(proc)
+d = 40.0
+while d < cum[-1] - 50:
+    x, y, tx, ty = Town._at(proc, cum, d)
+    if inside(x, y, 0.95) and y < SIX[1] - 28:
+        for sgn in (-1, 1):
+            nx_, ny_ = -ty * sgn, tx * sgn
+            put("SM_Collum", x + nx_ * 4.2, y + ny_ * 4.2, s=1.0)
+            if int(d) % 16 < 8:
+                put("SM_StandLight", x + nx_ * 4.6, y + ny_ * 4.6 + 2.0, s=1.2)
+                town.lamps.append((x + nx_ * 4.6, y + ny_ * 4.6 + 2.0, 2.9))
+    d += 8.0
 
-# --- Markt: Stände im Halbkreis um den Platz ------------------------------------------------------------------------
-for k in range(12):
-    a = math.radians(200 + k * 12)
-    mx, my = 0.0 + math.cos(a) * 25.0, 10.0 + math.sin(a) * 25.0
-    put("SM_Tent_low", mx, my, rot=math.degrees(a) + 90, s=2.2)
-    kit.clutter(mx, my, ["FV_crate_01", "FV_barrel_01", "FV_bag", "FV_bag_02", "SM_WoodenBox02", "SM_FlowerPot02"], n=(2, 4), r=(1.2, 2.6), s=(0.8, 1.0))
-for k in range(4):
-    a = math.radians(200 + k * 40)
-    put("SM_WoodenWagon01", 0.0 + math.cos(a) * (25.0 + 6), 10.0 + math.sin(a) * (25.0 + 6), rot=math.degrees(a), s=1.1)
+# --- Kloster mit Kreuzgang und Garten -----------------------------------------------------------------------------
+kx, ky = KLOSTER
+for sgn in (-1, 1):
+    put("SM_HouseAdd2", kx + sgn * 9, ky, rot=90 * sgn, s=1.0)          # Arkaden des Kreuzgangs
+    put("SM_HouseAdd2", kx, ky + sgn * 9, rot=90 + 90 * sgn, s=1.0)
+put("SM_ChurchSet", kx, ky + 22, rot=180, s=1.0)
+for k in range(8):
+    a = k / 8 * math.tau
+    put("SM_Bush07", kx + math.cos(a) * 3.5, ky + math.sin(a) * 3.5, rot=rng.uniform(0, 360), nocol=True)
+put("SM_ChurchTree01", kx, ky, s=0.9)
 
-# --- Anker -------------------------------------------------------------------------------------------------------------
-empty("Spawn", 0.0, -78.0, rot=0)
-empty("Gate", 0.0, -84.0)
-empty("Board", 5.0, -72.0)
-empty("Keeper", dx, dy - 24, rot=180)
-for i, a in enumerate([200, 235, 270, 305, 340, 20]):
-    r = math.radians(a)
-    empty("Slot%d" % (i + 1), px + math.cos(r) * 7, py - 6 + math.sin(r) * 5)
-for i, (x, y, z) in enumerate(lamps):
-    empty("Lamp_%d" % (i + 1), x, y, z)
-n = 1
-for k in range(0, len(avenue), 12):
-    empty("Walk_%d" % n, avenue[k][0] + 2.5, avenue[k][1])
-    n += 1
-kit.finish_materials(metal_keys=("standlight",))
+# --- Häuser ----------------------------------------------------------------------------------------------------------
+RICH = [("SM_House", 0.64, 3), ("SM_House3", 0.64, 3), ("SM_House4", 0.64, 3), ("SM_House6", 0.64, 3)]
+MID = [("SM_House", 0.62, 3), ("SM_House6", 0.62, 3), ("SM_House3", 0.62, 2), ("FV_house_05", 0.76, 1),
+       ("FV_house_02", 0.76, 1)]
+POOR = [("FV_house_05", 0.72, 2), ("SM_HouseSet01", 1.0, 2), ("SM_StorageSet", 1.0, 1)]
+
+
+def district(x, y):
+    if not inside(x, y, 0.93) or math.hypot(x - SIX[0], y - SIX[1]) < 40:
+        return None
+    if abs(x - DOM[0]) < 46 and y > 34:
+        return None
+    if math.hypot(x - KLOSTER[0], y - KLOSTER[1]) < 22:
+        return None
+    if y > -30:
+        return RICH
+    return MID if inside(x, y, 0.8) else POOR
+
+
+def dress(p):
+    town.dress_front(p)
+
+
+for line, w in [(proc, 10.0), (west, 7.0), (east, 7.0)]:
+    for side in (-1, 1):
+        town.frontage(line, w, side, district, on_place=dress, setback=(0.8, 1.4))
+for l in lanes:
+    for side in (-1, 1):
+        town.frontage(l, 4.5, side, district, on_place=dress, yard_depth=(4, 10))
+for side in (-1, 1):
+    town.frontage(ring_in, 4.5, side, district, on_place=dress, yard_depth=(4, 8))
+town.fill(lambda x, y: inside(x, y, 0.9) and math.hypot(x - SIX[0], y - SIX[1]) > 40 and not (abs(x) < 46 and y > 34),
+          MID + POOR, tries=1000, on_place=dress)
+
+# --- Pilgermarkt, Herbergen -----------------------------------------------------------------------------------------
+town.market(PILGER[0], PILGER[1], r=11.0, rings=(7.0,), n=8, centerpiece=None, statue=("SM_Statue01", 1.4))
+town.tavern((PILGER[0] + 12, PILGER[1] + 10))
+for line, w in [(west, 7.0), (east, 7.0)]:
+    town.lamps_along(line, w, every=17.0)
+
+town.outskirts(lambda x, y: inside(x, y, 1.12),
+               farms=[(-80, -128, 20), (86, -122, -15), (-134, 54, 80), (132, -62, -100), (-70, 132, 160), (80, 130, 200)],
+               fields=[(-42, -132, 26, 16, 12), (46, -136, 24, 14, -8), (-132, 86, 18, 24, 6), (134, -16, 16, 22, -12),
+                       (-30, 140, 28, 12, 4), (40, 142, 22, 12, -6)],
+               trees=1500, keep_clear=[(SG[0], SG[1] - 30, 14)])
+kit.terrain(HALF, flat_r=TERRAIN["flat_r"], hill_h=TERRAIN["hill_h"], tex="Textures_T_LandScapeLayer01_BC.png",
+            normal="Textures_T_LandScapeLayer01_N.png", tile=5.0, edge_rise=TERRAIN["edge_rise"], res=500,
+            inner_h=TERRAIN["inner_h"], path_tex="Texture_T_Cobblestone_BC.png", path_normal="Texture_T_Cobblestone_N.png",
+            path_fn=town.path_fn, dirt_fn=town.dirt_fn, height_fn=shape)
+kit.grass((-HALF + 2, -HALF + 2, HALF - 2, HALF - 2), 24000, s=(0.8, 1.5))
+
+town.anchors(spawn=(SG[0] + 1.0, SG[1] + 10.0, 0), gate=(SG[0], SG[1] - 8.0), board=(SIX[0] + 9.0, SIX[1] - 24.0),
+             keeper=(DOM[0], DOM[1] - 24, 180), slots_center=(SIX[0], SIX[1] - 14),
+             lines=[(proc, 8), (west, 8), (east, 8)] + [(l, 9) for l in lanes], inside=lambda x, y: inside(x, y, 0.95))
+town.save_map(os.path.splitext(dst)[0] + "_map.png")
+kit.finish_materials(metal_keys=("knight", "spear", "standlight"))
 kit.export()

@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://s7ma1aw3kmmh"
-path="res://.godot/imported/forest_ground_04_ao.jpg-9ad5153ef65c1f45b50fca05b1638eac.ctex"
+path.s3tc="res://.godot/imported/forest_ground_04_ao.jpg-9ad5153ef65c1f45b50fca05b1638eac.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/terrain/forest_ground_04/forest_ground_04_ao.jpg"
-dest_files=["res://.godot/imported/forest_ground_04_ao.jpg-9ad5153ef65c1f45b50fca05b1638eac.ctex"]
+dest_files=["res://.godot/imported/forest_ground_04_ao.jpg-9ad5153ef65c1f45b50fca05b1638eac.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

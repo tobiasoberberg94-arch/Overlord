@@ -17,12 +17,17 @@ from mathutils import Matrix, Vector, noise
 
 
 class Kit:
-    def __init__(self, exp_dir, dst, tri_cap=None, max_tex=2048, seed=7):
+    def __init__(self, exp_dir, dst, tri_cap=None, max_tex=2048, seed=7, extra_dirs=()):
+        """extra_dirs: weitere Kit-Ordner (meshes/, textures/, materials.json) – Teile werden zuerst im
+        Hauptordner, dann in den weiteren gesucht."""
         self.exp_dir, self.dst = exp_dir, dst
+        self.dirs = [exp_dir] + [d for d in extra_dirs if d]
         self.tri_cap = tri_cap or {}
         self.max_tex = max_tex
         self.rng = random.Random(seed)
-        self.info = json.load(open(os.path.join(exp_dir, "materials.json"), encoding="utf-8"))["materials"]
+        self.info = {}
+        for d in reversed(self.dirs):                 # Hauptordner gewinnt bei gleichen Materialnamen
+            self.info.update(json.load(open(os.path.join(d, "materials.json"), encoding="utf-8"))["materials"])
         self.tex_dir = os.path.join(exp_dir, "textures")
         self.small_dir = os.path.join(os.path.dirname(dst), "_%s_tex" % os.path.splitext(os.path.basename(dst))[0])
         os.makedirs(self.small_dir, exist_ok=True)
@@ -38,11 +43,16 @@ class Kit:
         self.occupied = []
         self._nocol = []
         self.lod_names = set()     # Bäume: instanziert mit Detailstufen (write_scatter / make_lod)
+        self.keep_mats = set()     # selbst erzeugte Materialien (Marktstände …): finish_materials lässt sie stehen
 
     # --- Bauteile ---------------------------------------------------------------
     def _load(self, name):
         before = set(bpy.data.objects)
-        bpy.ops.import_scene.fbx(filepath=os.path.join(self.exp_dir, "meshes", name + ".fbx"))
+        path = next((os.path.join(d, "meshes", name + ".fbx") for d in self.dirs
+                     if os.path.exists(os.path.join(d, "meshes", name + ".fbx"))), None)
+        if path is None:
+            raise FileNotFoundError("Bauteil fehlt in allen Kits: " + name)
+        bpy.ops.import_scene.fbx(filepath=path)
         new = [o for o in bpy.data.objects if o not in before]
         meshes = [o for o in new if o.type == "MESH"]
         for o in new:
@@ -110,6 +120,18 @@ class Kit:
         self.out.objects.link(o)
         o.matrix_world = Matrix.Translation(loc) @ m
         return o
+
+    def ph(self, model, x, y, z=None, rot=0.0, s=1.0):
+        """Fotoscan von Poly Haven (assets/models/props/ph/<model>) als Markierung – das Spiel setzt das Modell ein."""
+        e = bpy.data.objects.new("ph_%s__%d" % (model, len(self._ph) if hasattr(self, "_ph") else 0), None)
+        if not hasattr(self, "_ph"):
+            self._ph = []
+        self._ph.append(e)
+        e.location = (x, y, self.ground_fn(x, y) if z is None else z)
+        e.rotation_euler.z = math.radians(rot)
+        e.scale = (s, s, s)
+        self.out.objects.link(e)
+        return e
 
     def place(self, name, mw, nocol=False):
         """Instanz mit fertiger Weltmatrix (z. B. aus einer Unreal-Szene) platzieren."""
@@ -352,16 +374,11 @@ class Kit:
         print("OVERLORD zusammengefasst", len(self._nocol), "Kleinobjekte in", len(groups), "Gruppen")
 
     def terrain(self, half, flat_r, hill_h, tex, normal=None, tile=8.0, res=96, edge_rise=0.0,
-                path_tex=None, path_fn=None, tint=None, path_normal=None, inner_h=0.0):
-        """Gelände: innen (Radius flat_r) eben, nach außen sanfte Hügel bis hill_h, Rand steigt um edge_rise."""
-        def h(x, y):
-            r = math.hypot(x, y)
-            t = min(1.0, max(0.0, (r - flat_r) / (half - flat_r)))
-            t = t * t * (3 - 2 * t)
-            n = noise.noise(Vector((x * 0.035, y * 0.035, 0.3))) * 0.5 + 0.5
-            w = noise.noise(Vector((x * 0.06, y * 0.06, 4.1)))
-            return t * (hill_h * n + edge_rise * t) + inner_h * w
-        self.ground_fn = h
+                path_tex=None, path_fn=None, tint=None, path_normal=None, inner_h=0.0, dirt_fn=None, height_fn=None):
+        """Gelände: innen (Radius flat_r) eben, nach außen sanfte Hügel bis hill_h, Rand steigt um edge_rise.
+        dirt_fn: zweite Maske (Höfe, Gassen, Trampelpfade → Grün-Kanal der Wegmaske, im Spiel festgetretene Erde).
+        height_fn(x, y, h): Höhe nachträglich formen (Burghügel, Gräben)."""
+        h = self.height_field(half, flat_r, hill_h, edge_rise, inner_h, height_fn)
         me = bpy.data.meshes.new("ground")
         bm = bmesh.new()
         bmesh.ops.create_grid(bm, x_segments=res, y_segments=res, size=half)
@@ -418,9 +435,24 @@ class Kit:
             ring = [(0, 0)] + [(math.cos(k * math.pi / 4) * 0.9, math.sin(k * math.pi / 4) * 0.9) for k in range(8)]
             for v in me.vertices:
                 m = sum(path_fn(v.co.x + dx, v.co.y + dy) for dx, dy in ring) / len(ring)
-                col.data[v.index].color = (m, m, m, 1.0)
+                g = m if dirt_fn is None else sum(dirt_fn(v.co.x + dx, v.co.y + dy) for dx, dy in ring) / len(ring)
+                col.data[v.index].color = (m, g, 0.0, 1.0)
             me.color_attributes.active_color = col
         return o
+
+    def height_field(self, half, flat_r, hill_h, edge_rise=0.0, inner_h=0.0, height_fn=None):
+        """Höhenfunktion des Geländes (wie terrain()) – vorab setzen, wenn Gebäude vor dem Geländemesh entstehen
+        (Masken für Wege/Höfe stehen erst nach dem Bauen fest)."""
+        def h(x, y):
+            r = math.hypot(x, y)
+            t = min(1.0, max(0.0, (r - flat_r) / (half - flat_r)))
+            t = t * t * (3 - 2 * t)
+            n = noise.noise(Vector((x * 0.035, y * 0.035, 0.3))) * 0.5 + 0.5
+            w = noise.noise(Vector((x * 0.06, y * 0.06, 4.1)))
+            v = t * (hill_h * n + edge_rise * t) + inner_h * w
+            return height_fn(x, y, v) if height_fn else v
+        self.ground_fn = h
+        return h
 
     def heightfield(self, t, tex, normal=None, tile=4.0, sub=1):
         """Gelände aus export_terrain.py (Unreal-Höhenfeld, cm) → Mesh in Blender-Metern; setzt ground_fn."""
@@ -494,7 +526,8 @@ class Kit:
         key = fname + "|" + (opacity or "")
         if key in self._img:
             return self._img[key]
-        src = os.path.join(self.tex_dir, fname)
+        src = next((os.path.join(d, "textures", fname) for d in self.dirs
+                    if os.path.exists(os.path.join(d, "textures", fname))), os.path.join(self.tex_dir, fname))
         if not os.path.exists(src):
             return None
         img = bpy.data.images.load(src)
@@ -505,7 +538,8 @@ class Kit:
         if max(w, h) > m:
             img.scale(max(1, w * m // max(w, h)), max(1, h * m // max(w, h)))
         alpha = False
-        osrc = os.path.join(self.tex_dir, opacity) if opacity else None
+        osrc = next((os.path.join(d, "textures", opacity) for d in self.dirs
+                     if os.path.exists(os.path.join(d, "textures", opacity))), None) if opacity else None
         if not normal and osrc and os.path.exists(osrc):
             mask = bpy.data.images.load(osrc)
             mask.scale(*img.size)
@@ -543,7 +577,7 @@ class Kit:
 
     def finish_materials(self, metal_keys=()):
         for mat in bpy.data.materials:
-            if mat in getattr(self, "_ground_mats", []):
+            if mat in getattr(self, "_ground_mats", []) or mat.name in self.keep_mats:
                 continue
             e = self.info.get(mat.name.split(".")[0], {})
             mat.use_nodes = True

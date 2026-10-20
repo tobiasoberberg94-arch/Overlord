@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cnnbtpmnh2il2"
-path="res://.godot/imported/brown_mud_leaves_01_diff.jpg-3a48d415414a8c1fff562308ddf67ab5.ctex"
+path.s3tc="res://.godot/imported/brown_mud_leaves_01_diff.jpg-3a48d415414a8c1fff562308ddf67ab5.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/textures/terrain/brown_mud_leaves_01/brown_mud_leaves_01_diff.jpg"
-dest_files=["res://.godot/imported/brown_mud_leaves_01_diff.jpg-3a48d415414a8c1fff562308ddf67ab5.ctex"]
+dest_files=["res://.godot/imported/brown_mud_leaves_01_diff.jpg-3a48d415414a8c1fff562308ddf67ab5.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

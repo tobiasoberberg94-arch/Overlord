@@ -9,6 +9,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from loc_kit import Kit  # noqa: E402
+from town_kit import Town  # noqa: E402
 
 exp_dir, dst = [os.path.abspath(a) for a in sys.argv[sys.argv.index("--") + 1:][:2]]
 kit = Kit(exp_dir, dst, seed=21)   # volle Originalqualität, Godot erzeugt LOD-Stufen
@@ -29,7 +30,8 @@ plaza = kit.spline([(PLAZA[0] - 7, PLAZA[1] - 1), (PLAZA[0] - 2, PLAZA[1] + 6), 
                     (PLAZA[0] + 7, PLAZA[1] - 4), (PLAZA[0] - 1, PLAZA[1] - 6), (PLAZA[0] - 7, PLAZA[1] - 1)])
 mill_road = kit.spline([(29, -15), (40, -30), (46, -44), (53, -51)])      # Feldweg zur Windmühle
 path_fn = kit.roads_mask([(main, 4.2), (west, 3.2), (east, 3.0), (north, 2.4), (south_w, 2.4), (plaza, 9.0),
-                          (mill_road, 2.2)], HALF)
+                          (mill_road, 2.2), (kit.spline([(-27, 5), (-31, 28), (-22, 50)]), 2.2),
+                          (kit.spline([(9, 21), (-10, 31), (-30, 31)]), 2.2), (kit.spline([(-2, -17), (-24, -26), (-42, -36)]), 2.2)], HALF)
 kit.terrain(HALF, flat_r=55.0, hill_h=8.0, tex="Textures_T_LandScapeLayer01_BC.png",
             normal="Textures_T_LandScapeLayer01_N.png", tile=5.0, edge_rise=14.0, res=420, inner_h=1.1,
             path_tex="Textures_T_LandScapeLayer04_BC.png", path_normal="Textures_T_LandScapeLayer04_N.png",
@@ -39,10 +41,54 @@ kit.terrain(HALF, flat_r=55.0, hill_h=8.0, tex="Textures_T_LandScapeLayer01_BC.p
 kit.occupy(2, 22, 7)
 kit.occupy(0, 54, 13)
 kit.occupy(-1, -44, 6)
-FIELDS = [(26, -48, 18, 11, 12), (48, -42, 14, 10, -8), (36, -2, 12, 8, 25)]
+FIELDS = [(26, -48, 18, 11, 12), (48, -42, 14, 10, -8), (60, 14, 12, 8, 25)]
 for (fx, fy, fw, fh, fr) in FIELDS:
     kit.occupy(fx, fy, max(fw, fh) * 0.8)
 kit.occupy(-54, -10, 7)
+
+# --- Palisade mit Toren und Wachtürmen (seit den Goblins von Enri) -----------------------------------
+town = Town(kit, HALF)
+PAL = kit.spline([(-46, -50), (-12, -61), (14, -53), (22, -34), (30, -12), (44, 6), (48, 30), (36, 58), (12, 75),
+                  (-18, 73), (-44, 52), (-60, 20), (-63, -14), (-46, -50)], step=2.0)
+
+
+def inside_pal(x, y):
+    """Punkt im Polygon (Strahltest)."""
+    c = False
+    for (ax, ay), (bx, by) in zip(PAL[:-1], PAL[1:]):
+        if (ay > y) != (by > y) and x < ax + (y - ay) * (bx - ax) / (by - ay):
+            c = not c
+    return c
+
+
+gates = []
+for line in (main, west, east, north, mill_road):
+    for (ax, ay), (bx, by) in zip(line[:-1], line[1:]):
+        if inside_pal(ax, ay) != inside_pal(bx, by):
+            gx, gy = (ax + bx) / 2, (ay + by) / 2
+            if all(math.hypot(gx - qx, gy - qy) > 9 for qx, qy in gates):
+                gates.append((gx, gy))
+towers = []
+for (gx, gy) in gates:                                   # je Tor ein Turm innen daneben
+    i = min(range(len(PAL)), key=lambda k: math.hypot(PAL[k][0] - gx, PAL[k][1] - gy))
+    j = min(i + 4, len(PAL) - 1)
+    tx, ty = PAL[j]
+    cx, cy = 0.0, 5.0
+    d = math.hypot(cx - tx, cy - ty) or 1.0
+    towers.append((tx + (cx - tx) / d * 3.0, ty + (cy - ty) / d * 3.0))
+for k in range(0, len(PAL) - 1, 34):                     # weitere Türme rundum
+    tx, ty = PAL[k]
+    if all(math.hypot(tx - qx, ty - qy) > 18 for qx, qy in towers + gates):
+        d = math.hypot(-tx, 5.0 - ty) or 1.0
+        towers.append((tx + (-tx) / d * 3.0, ty + (5.0 - ty) / d * 3.0))
+town.palisade(PAL[:-1], gates=gates, gate_w=5.5, height=3.9, towers=towers, tower_h=7.0)
+for (x, y) in PAL[::2]:
+    kit.occupy(x, y, 1.6)
+for (x, y) in towers:
+    kit.occupy(x, y, 3.0)
+for (gx, gy) in gates:
+    put("SM_StandLight", gx + 2.8, gy + 2.0)
+print("OVERLORD palisade tore", len(gates), "türme", len(towers))
 
 # --- Höfe -----------------------------------------------------------------------------------
 smoke = []
@@ -83,12 +129,16 @@ def yard(hx, hy, rot, rad, name):
 FV = 0.8      # Medieval-Fantasy-Village-Häuser auf Menschenmaß (Tür ~2,2 m)
 H = ["SM_HouseSet01", "SM_HouseSet02", "SM_HouseSet01", "SM_StorageSet",
      ("FV_house_02", FV), ("FV_house_03", FV), ("FV_house_05", FV), ("FV_house_01", FV)]
-kit.along(main, H, spacing=(16, 24), gap=(3.5, 6.5), jitter=14, skip=0.1, on_place=yard, start=70, end=170)
-kit.along(west, H, spacing=(15, 22), gap=(3.5, 6.5), jitter=16, skip=0.15, on_place=yard, start=6)
-kit.along(east, ["SM_StorageSet", "SM_HouseSet01", ("FV_house_05", FV)], spacing=(18, 26), gap=(3.5, 6.5), jitter=12, skip=0.2,
-          on_place=yard, start=6, end=55)
-kit.along(north, ["SM_HouseSet02", "SM_HouseSet01", ("FV_house_04", FV), ("FV_house_02", FV)], spacing=(18, 26), gap=(3.5, 6.5), jitter=15, skip=0.3,
-          on_place=yard, start=6)
+kit.along(main, H, spacing=(11, 16), gap=(3.2, 5.5), jitter=12, skip=0.05, on_place=yard, start=62, end=175)
+kit.along(west, H, spacing=(11, 15), gap=(3.2, 5.5), jitter=14, skip=0.08, on_place=yard, start=6)
+kit.along(east, ["SM_StorageSet", "SM_HouseSet01", ("FV_house_05", FV), ("FV_house_02", FV)], spacing=(12, 17), gap=(3.2, 5.5),
+          jitter=12, skip=0.1, on_place=yard, start=6, end=40)
+kit.along(north, ["SM_HouseSet02", "SM_HouseSet01", ("FV_house_04", FV), ("FV_house_02", FV)], spacing=(12, 17), gap=(3.2, 5.5),
+          jitter=15, skip=0.15, on_place=yard, start=6, end=48)
+lanes = [kit.spline([(-27, 5), (-31, 28), (-22, 50)]), kit.spline([(9, 21), (-10, 31), (-30, 31)]),
+         kit.spline([(-2, -17), (-24, -26), (-42, -36)])]
+for ln in lanes:
+    kit.along(ln, H, spacing=(11, 16), gap=(3.0, 5.0), jitter=16, skip=0.1, on_place=yard)
 
 # Dorfeingang: alter Torbogen am Waldweg
 put("SM_GateWall01", -1.5, -46.0, rot=-12)

@@ -3,25 +3,26 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bbig3wa710p1s"
-path="res://.godot/imported/rock_face_01_nor_gl_2k.jpg-92c282d0efd282c6e8c52409cc739e4e.ctex"
+path.s3tc="res://.godot/imported/rock_face_01_nor_gl_2k.jpg-92c282d0efd282c6e8c52409cc739e4e.s3tc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/rock_face_01/textures/rock_face_01_nor_gl_2k.jpg"
-dest_files=["res://.godot/imported/rock_face_01_nor_gl_2k.jpg-92c282d0efd282c6e8c52409cc739e4e.ctex"]
+dest_files=["res://.godot/imported/rock_face_01_nor_gl_2k.jpg-92c282d0efd282c6e8c52409cc739e4e.s3tc.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
-mipmaps/generate=false
+mipmaps/generate=true
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

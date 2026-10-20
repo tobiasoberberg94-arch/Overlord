@@ -49,6 +49,124 @@ static func pool(names: Array) -> Array:
 	return out
 
 
+# ------------------------------------------------------------------ Markierungen und Requisiten
+
+static var _whole: Dictionary = {}
+
+
+## Ein Fotoscan als Ganzes (Fass = Körper + Deckel + Reifen …): alle Meshes mit Transform, gemeinsam mittig auf
+## den Boden gestellt.   whole("wine_barrel_01") → {parts: [{mesh, xf}], size}
+static func whole(name: String) -> Dictionary:
+	if _whole.has(name):
+		return _whole[name]
+	var out := {}
+	var path := DIR + "%s/%s.gltf" % [name, name]
+	if ResourceLoader.exists(path):
+		var root: Node3D = (load(path) as PackedScene).instantiate()
+		var parts: Array = []
+		var box := AABB()
+		var first := true
+		for n in root.find_children("*", "MeshInstance3D", true, false):
+			var mi := n as MeshInstance3D
+			if mi.mesh == null:
+				continue
+			var nx := _xf_in(mi, root)
+			var a := nx * mi.get_aabb()
+			box = a if first else box.merge(a)
+			first = false
+			parts.append({"mesh": mi.mesh, "xf": nx})
+		root.free()
+		if not parts.is_empty():
+			var c := box.get_center()
+			var shift := Transform3D(Basis(), Vector3(-c.x, -box.position.y, -c.z))
+			for p in parts:
+				p.xf = shift * (p.xf as Transform3D)
+			out = {"parts": parts, "size": box.size}
+	_whole[name] = out
+	return out
+
+
+## Fotoscan unter `parent` einsetzen (Transform relativ zum Elternknoten); Rückgabe Größe (lokal) oder ZERO.
+static func attach(parent: Node3D, name: String, xf := Transform3D.IDENTITY, label := "foto") -> Vector3:
+	var w := whole(name)
+	if w.is_empty():
+		return Vector3.ZERO
+	for p in w.parts:
+		var mi := MeshInstance3D.new()
+		mi.name = label + "_" + name
+		mi.mesh = p.mesh
+		mi.transform = xf * (p.xf as Transform3D)
+		parent.add_child(mi)
+	return w.size
+
+
+## Markierungen „ph_<modell>__<n>“ aus den Ortsmodellen (tools/pipeline/loc_kit.py ph) durch die Fotoscans
+## ersetzen; größere Stücke (Fässer, Kisten, Tische) bekommen eine Kollisionsbox.
+static func spawn_markers(scene: Node3D) -> int:
+	var n := 0
+	var body: StaticBody3D = null
+	for node in scene.find_children("ph_*", "Node3D", true, false):
+		var nm := String(node.name)
+		var model := nm.substr(3).get_slice("__", 0)
+		var size := attach(node as Node3D, model)
+		if size == Vector3.ZERO:
+			continue
+		var ws: Vector3 = size * (node as Node3D).global_transform.basis.get_scale()
+		if maxf(ws.y, maxf(ws.x, ws.z)) > 0.45:
+			if body == null:
+				body = StaticBody3D.new()
+				body.name = "Fotoscan_Kollision"
+				scene.add_child(body)
+			var cs := CollisionShape3D.new()
+			var box := BoxShape3D.new()
+			box.size = size
+			cs.shape = box
+			body.add_child(cs)
+			cs.global_transform = (node as Node3D).global_transform * Transform3D(Basis(), Vector3(0, size.y * 0.5, 0))
+		n += 1
+	return n
+
+
+## Requisiten der Bausätze (stilisiert) → Fotoscans gleicher Höhe: [Namensanfänge, Modelle]
+const PROP_SWAP := [
+	[["sm_woodenbarrel", "fv_barrel_0", "mw_barrel_0"], ["wine_barrel_01", "barrel_03"]],
+	[["fv_barrel_group", "mw_barrel_group"], ["wooden_barrels_01"]],
+	[["sm_woodenbox", "fv_crate_0", "mw_crate_0"], ["wooden_crate_01", "wooden_crate_02"]],
+	[["sm_woodenbucket"], ["wooden_bucket_01", "wooden_bucket_02"]],
+]
+
+
+static func swap_props(scene: Node3D) -> int:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 777
+	var n := 0
+	for node in scene.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		var l := String(mi.name).to_lower()
+		for e in PROP_SWAP:
+			var hit := false
+			for p in e[0]:
+				if l.begins_with(p):
+					hit = true
+					break
+			if not hit:
+				continue
+			var a := mi.get_aabb()
+			var model: String = e[1][rng.randi() % e[1].size()]
+			var w := whole(model)
+			if a.size.y < 0.05 or w.is_empty():
+				break
+			var k: float = a.size.y / maxf((w.size as Vector3).y, 0.01)
+			var base := Vector3(a.get_center().x, a.position.y, a.get_center().z)
+			attach(mi, model, Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(k, k, k)), base))
+			mi.mesh = null
+			n += 1
+			break
+	return n
+
+
 # ------------------------------------------------------------------ Felstausch
 
 const ROCK_SMALL := ["boulder_01", "namaqualand_boulder_02", "namaqualand_boulder_05", "rock_moss_set_01", "rock_moss_set_02"]

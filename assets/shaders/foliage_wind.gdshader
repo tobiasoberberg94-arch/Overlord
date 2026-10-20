@@ -84,7 +84,14 @@ void fragment() {
 		col *= mix(0.85, 1.1, v_rnd) ;
 	}
 	ALBEDO = col;
-	ALPHA = c.a;
+	// Mipmaps mitteln die Blattmaske weich → ferne Blätter fallen unter die Schwelle und Kronen wirken kahl.
+	// Ausgleich je Mipstufe (vgl. Golus, „Anti-aliased Alpha Test“): Deckung bleibt in jeder Entfernung erhalten.
+	float a = c.a;
+	if (leaf > 0.5) {
+		float mip = textureQueryLod(albedo_tex, UV).y;
+		a *= 1.0 + max(mip, 0.0) * 0.32;
+	}
+	ALPHA = a;
 	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	ALPHA_ANTIALIASING_EDGE = 0.3;
 	ROUGHNESS = roughness;
