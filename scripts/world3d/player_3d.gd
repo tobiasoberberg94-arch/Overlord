@@ -62,6 +62,10 @@ var _ghost_t := 0.0
 var _combo_index := 0
 var _releasing := false
 var _mount := Node3D.new()            ## Halter der Kamera am Federarm (der Federarm setzt seine Kinder zurück)
+var _summoned: Array = []             ## beschworene Verbündete (Todesritter)
+var _buff_armor := 0.0
+var _unbreakable := 0.0               ## Momons Unbeugsame Haltung: kein Taumeln
+var _buff_fx: GPUParticles3D
 
 
 func _ready() -> void:
@@ -107,6 +111,8 @@ func _ready() -> void:
 	add_child(_lock_marker)
 	_ensure_actions()
 	CombatFX.player = self
+	if not Progress.grimoire_changed.is_connected(_apply_rings):
+		Progress.grimoire_changed.connect(_apply_rings)
 	var saved: String = Game.state.get("world3d", {}).get("style", "ainz")
 	set_style(saved if saved in ["ainz", "momon"] else "ainz", true)
 
@@ -196,6 +202,7 @@ func set_style(s: String, silent: bool = false) -> void:
 	Game.state.world3d["style"] = s
 	if shield_time > 0.0:
 		_barrier = SpellFX.barrier(self, Color(1.0, 0.82, 0.38))
+	_apply_rings()
 	if not silent:
 		rig.flash(Color(0.6, 0.3, 1.0), 0.5)
 		CombatFX.burst(get_parent(), "motes", global_position + Vector3.UP, Color(0.6, 0.3, 1.0), Vector3.UP, 1.5)
@@ -204,8 +211,12 @@ func set_style(s: String, silent: bool = false) -> void:
 	style_changed.emit(s)
 
 
+## Zauberleiste (6 Tasten): Belegung aus dem Zauberbuch, sonst die Grundzauber des Stils.
 func spells() -> Array:
-	return style_data.get("spells", [])
+	var base: Array = style_data.get("spells", [])
+	if not Game.state.has("progress"):
+		return base
+	return Progress.loadout(style, base)
 
 
 func super_spell() -> String:
@@ -213,7 +224,9 @@ func super_spell() -> String:
 
 
 func spell_ready(id: String) -> bool:
-	var sp: Dictionary = Content.combat.spells[id]
+	if id == "" or not Content.combat.spells.has(id):
+		return false
+	var sp := Progress.effective_spell(id)
 	var pool := mana if sp.cost_type == "mana" else stamina
 	return float(cooldowns.get(id, 0.0)) <= 0.0 and pool >= float(sp.cost)
 
@@ -268,8 +281,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		for i in 6:
 			if event.is_action_pressed(SPELL_ACTIONS[i]):
 				var sp := spells()
-				if i < sp.size():
+				if i < sp.size() and String(sp[i]) != "":
 					cast(sp[i])
+				elif not style.begins_with("g_"):
+					feedback.emit("Taste nicht belegt – Zauberbuch [B]", Color(0.8, 0.8, 0.9))
 
 
 ## Aktionen können auch aus Tests/KI ausgelöst werden.
@@ -316,7 +331,7 @@ func _do_attack(kind: String) -> bool:
 
 
 func _start_dodge() -> void:
-	use_stamina(float(cfg.dodge_stamina))
+	use_stamina(float(cfg.dodge_stamina) * (1.0 - (clampf(Progress.ring_effect("dodge_cost"), 0.0, 0.6) if Game.state.has("progress") else 0.0)))
 	var iv := Input.get_vector("move_left", "move_right", "move_forward", "move_back") if input_enabled else Vector2.ZERO
 	_dodge_dir = Basis(Vector3.UP, cam_yaw) * Vector3(iv.x, 0, iv.y)
 	var stand := _dodge_dir.length() < 0.1
@@ -411,7 +426,7 @@ func cast(id: String) -> bool:
 		return false
 	if not Content.combat.spells.has(id):
 		return false
-	var sp: Dictionary = Content.combat.spells[id]
+	var sp := Progress.effective_spell(id)
 	if float(cooldowns.get(id, 0.0)) > 0.0:
 		feedback.emit("%s lädt noch (%.0f s)" % [sp.name, float(cooldowns[id])], Color(0.8, 0.8, 0.8))
 		return false
@@ -432,8 +447,9 @@ func cast(id: String) -> bool:
 	if rig:
 		match String(sp.kind):
 			"projectile": rig.cast_key = "cast_projectile"
-			"cone": rig.cast_key = "cast_area"
-			"self": rig.cast_key = "cast_self"
+			"cone", "nova", "vortex": rig.cast_key = "cast_area"
+			"self", "buff", "summon_ally": rig.cast_key = "cast_self"
+			"line": rig.cast_key = "cast_heavy"
 			"target", "chain": rig.cast_key = "cast_heavy" if float(sp.get("damage", 0)) >= 100.0 else "cast_target"
 			"super": rig.cast_key = "cast_heavy"
 			_: rig.cast_key = "cast"
@@ -477,8 +493,10 @@ func _cancel_cast() -> void:
 
 
 func stagger(strength: float, src: Vector3) -> void:
-	# Superrang-Magie lässt sich nicht unterbrechen
+	# Superrang-Magie lässt sich nicht unterbrechen, Momons Unbeugsame Haltung auch nicht
 	if state == S.CAST and String(casting.get("kind", "")) == "super":
+		return
+	if _unbreakable > 0.0:
 		return
 	super(strength, src)
 
@@ -488,7 +506,25 @@ func _spell_info(sp: Dictionary) -> Dictionary:
 		"amount": float(sp.get("damage", 0)), "type": sp.get("type", "physical"), "stagger": float(sp.get("stagger", 0)),
 		"knockback": float(sp.get("knockback", 0)), "status": sp.get("status", {}), "name": sp.name, "kind": "spell",
 		"crit_bonus": float(sp.get("crit", 0.0)), "guard_mult": float(sp.get("guard_mult", 1.0)),
+		"unblockable": sp.get("unblockable", false),
 	}
+
+
+## Nahkampf: Ringe (Schaden, Nahkampf) wirken auf jeden Hieb.
+func _attack_info(a: Dictionary) -> Dictionary:
+	var info := super(a)
+	if Game.state.has("progress"):
+		info.amount = float(info.amount) * (1.0 + Progress.ring_effect("dmg_all") + Progress.ring_effect("dmg_melee"))
+	return info
+
+
+## Lebensraub der Ringe: ein Teil des angerichteten Schadens heilt Ainz.
+func on_dealt(dealt: float, _victim: Fighter) -> void:
+	if state == S.DEAD or not Game.state.has("progress"):
+		return
+	var ls := Progress.ring_effect("lifesteal")
+	if ls > 0.0 and hp < max_hp:
+		hp = minf(max_hp, hp + dealt * ls)
 
 
 func _release_spell() -> void:
@@ -518,12 +554,32 @@ func _release_spell() -> void:
 					p.turn = float(sp.get("homing", 2.5))
 			CombatFX.sound(String(sp.get("sound", el + "_launch")), origin, 0.9)
 		"cone":
-			SpellFX.wave(self, sp)
+			_cone(sp, info)
+			for k in range(1, int(sp.get("repeat", 1))):
+				get_tree().create_timer(0.38 * k, false).timeout.connect(func():
+					if is_instance_valid(self) and state != S.DEAD:
+						_cone(sp, info))
+		"nova":
+			var r := float(sp.get("radius", 7.0))
+			StoryFX.negative_burst(lvl, global_position, r, 1.45)   # Kugel bleibt vor der Spielkamera
 			for e in get_tree().get_nodes_in_group("enemies"):
 				var f := e as Fighter
-				if f and f.state != S.DEAD and global_position.distance_to(f.global_position) <= float(sp.range) and is_facing(f.global_position, float(sp.get("arc", 360))):
+				if f and f.state != S.DEAD and global_position.distance_to(f.global_position) <= r:
 					f.take_hit(info, self)
+		"summon_ally":
+			_summon_ally(sp, col)
+		"vortex":
+			_black_hole(sp, info)
+		"line":
+			_reality_slash(sp, info, 0.0)
+			if sp.get("cross", false):
+				get_tree().create_timer(0.22, false).timeout.connect(func():
+					if is_instance_valid(self):
+						_reality_slash(sp, info, PI * 0.5))
+		"buff":
+			_buff(sp, col)
 		"self":
+			shield_charges = int(sp.get("charges", 1))
 			shield_time = float(sp.get("duration", 10))
 			if _barrier and is_instance_valid(_barrier):
 				_barrier.queue_free()
@@ -559,6 +615,16 @@ func _target_spell(sp: Dictionary, t: Fighter, info: Dictionary, col: Color, el:
 			t.add_status(k, float(info.status[k]))
 		var secs := float(info.status.values().max()) if not info.status.is_empty() else 2.0
 		SpellFX.bind(t, col, secs, "b" if el != "dark" else "a")
+		var extra := int(sp.get("extra", 0))
+		if extra > 0:
+			var near: Array = get_tree().get_nodes_in_group("enemies").filter(func(o): return o != t and o is Fighter and o.state != S.DEAD and o.global_position.distance_to(t.global_position) <= float(sp.get("area", 5.0)))
+			near.sort_custom(func(a, b): return a.global_position.distance_to(t.global_position) < b.global_position.distance_to(t.global_position))
+			for i in mini(extra, near.size()):
+				var o: Fighter = near[i]
+				for k in info.status:
+					o.add_status(k, float(info.status[k]))
+				SpellFX.bind(o, col, secs, "b")
+				SpellFX.beam(lvl, chest, o.global_position + Vector3.UP * o.body_height * 0.6, col, 0.08, 0.35)
 		if id == "command":
 			CombatFX.float_text(lvl, chest + Vector3.UP * 1.0, "»Kniet nieder.«", col, 34)
 		return
@@ -613,6 +679,190 @@ func _chain_lightning(sp: Dictionary, info: Dictionary, col: Color) -> void:
 					nxt = f
 		cur = nxt
 	CombatFX.shake(0.25)
+
+
+func _cone(sp: Dictionary, info: Dictionary) -> void:
+	SpellFX.wave(self, sp)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var f := e as Fighter
+		if f and f.state != S.DEAD and global_position.distance_to(f.global_position) <= float(sp.range) and is_facing(f.global_position, float(sp.get("arc", 360))):
+			f.take_hit(info, self)
+
+
+## Erschaffe Untoten: Todesritter erheben sich aus dem Boden und kämpfen eine Weile an Ainz' Seite.
+func _summon_ally(sp: Dictionary, col: Color) -> void:
+	var lvl := get_parent()
+	for old in _summoned:
+		if is_instance_valid(old):
+			_unsummon(old)
+	_summoned.clear()
+	var n := int(sp.get("count", 1))
+	for i in n:
+		var side := (float(i) - (n - 1) * 0.5) * 2.2
+		var at := global_position + facing * 2.6 + facing.cross(Vector3.UP) * side
+		var g := CombatFX._ground_below(lvl, at + Vector3.UP * 2.0)
+		if g != Vector3.INF:
+			at = g
+		StoryFX.summon_undead(lvl, at, col)
+		var e: Enemy3D = Enemy3D.ally_spawner.call(String(sp.summon), at) if Enemy3D.ally_spawner.is_valid() else null
+		if e == null:
+			e = Enemy3D.create(String(sp.summon), true)
+			e.position = at
+			lvl.add_child(e)
+		e.facing = facing
+		if e.rig:
+			e.rig.rotation.y = atan2(facing.x, facing.z)
+			e.rig.position.y = -2.2
+			e.rig.create_tween().tween_property(e.rig, "position:y", 0.0, 1.3).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		_summoned.append(e)
+		get_tree().create_timer(float(sp.get("duration", 40)), false).timeout.connect(func():
+			if is_instance_valid(e):
+				_unsummon(e))
+	CombatFX.sound("roar", global_position + facing * 2.6 + Vector3.UP * 2.0, 0.9)
+	feedback.emit(String(sp.name), col)
+
+
+func _unsummon(e: Enemy3D) -> void:
+	if not is_instance_valid(e):
+		return
+	e.remove_from_group("allies")
+	var lvl := e.get_parent()
+	if lvl:
+		CombatFX.burst(lvl, "wisps", e.global_position + Vector3.UP, Color(0.08, 0.0, 0.12), Vector3.UP, 1.6, Color(0.6, 0.25, 1.0, 0.8))
+	var tw := e.create_tween()
+	tw.tween_property(e, "scale", Vector3(0.05, 1.2, 0.05), 0.5).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.tween_callback(e.queue_free)
+
+
+## Schwarzes Loch: saugt alle Feinde im Umkreis an, dann fällt es in sich zusammen und verschlingt sie.
+func _black_hole(sp: Dictionary, info: Dictionary) -> void:
+	var lvl := get_parent()
+	var center := _super_target(float(sp.get("range", 22)))
+	var r := float(sp.get("radius", 8.0))
+	var dur := float(sp.get("duration", 2.2))
+	var pull := float(sp.get("pull", 7.0))
+	StoryFX.black_hole(lvl, center + Vector3.UP * 1.7, minf(3.2, r * 0.4), maxf(0.3, dur - 0.45))
+	var drv := create_tween()
+	drv.tween_method(func(_k: float):
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var f := e as Fighter
+			if f == null or f.state == S.DEAD:
+				continue
+			var to := center - f.global_position
+			to.y = 0.0
+			var d := to.length()
+			if d <= r and d > 0.6:
+				f.knock = to.normalized() * pull * (0.55 + 0.45 * (1.0 - d / r)), 0.0, 1.0, dur)
+	drv.tween_callback(func():
+		for e in get_tree().get_nodes_in_group("enemies"):
+			var f := e as Fighter
+			if f == null or f.state == S.DEAD:
+				continue
+			var d := Vector2(f.global_position.x - center.x, f.global_position.z - center.z).length()
+			if d <= r * 0.55:
+				f.take_hit(info, self)
+			elif d <= r:
+				var weak := info.duplicate()
+				weak["amount"] = float(info.amount) * 0.5
+				f.take_hit(weak, self))
+	CombatDirector.alarm(self, 30.0)
+
+
+## Realitätsschnitt: der Raum selbst wird entlang einer Linie zerschnitten (unblockbar).
+func _reality_slash(sp: Dictionary, info: Dictionary, angle_off: float) -> void:
+	var lvl := get_parent()
+	var dir := facing
+	if lock and is_instance_valid(lock) and lock.state != S.DEAD:
+		dir = lock.global_position - global_position
+		dir.y = 0.0
+		dir = dir.normalized() if dir.length() > 0.1 else facing
+	dir = dir.rotated(Vector3.UP, angle_off)
+	var rng := float(sp.get("range", 20))
+	var half := float(sp.get("width", 1.6)) * 0.5
+	var start := global_position + Vector3.UP * 1.2 + dir * 0.8
+	if angle_off != 0.0:
+		start = global_position + Vector3.UP * 1.2 + facing * rng * 0.45 - dir * rng * 0.5
+	var stop := start + dir * rng
+	# ein Riss im Raum: drei gleißende Linien übereinander, Verzerrung, Risse im Boden entlang des Schnitts
+	for k in 3:
+		var hh := Vector3.UP * (-0.7 + k * 0.7)
+		SpellFX.beam(lvl, start + hh, stop + hh, Color(0.96, 0.98, 1.0), 0.09 if k == 1 else 0.05, 0.6 + k * 0.08)
+	SpellFX.beam(lvl, start, stop, Color(0.55, 0.65, 1.0), 0.35, 0.35)
+	SpellFX.distortion(lvl, (start + stop) * 0.5, rng * 0.5, 0.08, 0.5)
+	var steps := int(rng / 3.0)
+	for i in steps:
+		var gp := CombatFX._ground_below(lvl, start + dir * (1.5 + i * 3.0) + Vector3.UP * 2.0)
+		if gp != Vector3.INF:
+			CombatFX.decal(lvl, gp, "crack", 2.2, 10.0, Color(0.85, 0.9, 1.0), 1.5)
+			CombatFX.burst(lvl, "sparks", gp + Vector3.UP * 0.3, Color(0.85, 0.9, 1.0), Vector3.UP, 0.5)
+	var yaw := atan2(-dir.x, -dir.z)
+	var gm := GroundMark.telegraph_line(lvl, Vector3(start.x, global_position.y, start.z), yaw, rng, half, Color(0.8, 0.9, 1.0), 0.12)
+	if gm:
+		get_tree().create_timer(0.12, false).timeout.connect(func():
+			if is_instance_valid(gm):
+				gm.release())
+	CombatFX.flash(lvl, (start + stop) * 0.5, Color(0.85, 0.9, 1.0), 6.0, rng, 0.3)
+	CombatFX.sound("shield_break", start, 1.0)
+	CombatFX.sound("swing_heavy", start, 0.9)
+	CombatFX.shake(0.35)
+	var a2 := Vector2(start.x, start.z)
+	var b2 := Vector2(stop.x, stop.z)
+	for e in get_tree().get_nodes_in_group("enemies"):
+		var f := e as Fighter
+		if f == null or f.state == S.DEAD:
+			continue
+		var p2 := Vector2(f.global_position.x, f.global_position.z)
+		var q := Geometry2D.get_closest_point_to_segment(p2, a2, b2)
+		if p2.distance_to(q) <= half + f.body_radius:
+			CombatFX.burst(lvl, "sparks_big", f.global_position + Vector3.UP * f.body_height * 0.55, Color(0.85, 0.9, 1.0), Vector3.UP, 0.8)
+			f.take_hit(info, self)
+
+
+## Momons Unbeugsame Haltung: mehr Rüstung, kein Taumeln.
+func _buff(sp: Dictionary, col: Color) -> void:
+	var dur := float(sp.get("duration", 8))
+	var add := float(sp.get("armor", 60))
+	_unbreakable = dur
+	_buff_armor = add
+	_apply_rings()
+	if _buff_fx and is_instance_valid(_buff_fx):
+		CombatFX.stop(_buff_fx)
+	_buff_fx = CombatFX.emitter(self, "aura", col)
+	rig.glow(col, 0.12)
+	GroundMark.ring(get_parent(), global_position, 2.4, col, 0.6)
+	CombatFX.sound("shield_up", global_position + Vector3.UP, 0.9)
+	feedback.emit(String(sp.name), col)
+	get_tree().create_timer(dur, false).timeout.connect(func():
+		if not is_instance_valid(self):
+			return
+		_buff_armor = 0.0
+		_apply_rings()
+		if rig:
+			rig.glow(Color.WHITE, 0.0)
+		if _buff_fx and is_instance_valid(_buff_fx):
+			CombatFX.stop(_buff_fx)
+		_buff_fx = null)
+
+
+## Ringe des Overlords: Leben, Mana, Rüstung, Kritisch, Erholung, Schutz vor Heiligem.
+func _apply_rings() -> void:
+	if style_data.is_empty():
+		return
+	var hr := hp / maxf(max_hp, 1.0)
+	var mr := mana / maxf(max_mana, 1.0)
+	var rings := Game.state.has("progress")
+	max_hp = float(style_data.hp) + (Progress.ring_effect("max_hp") if rings else 0.0)
+	hp = clampf(max_hp * hr, 0.0, max_hp) if state != S.DEAD else hp
+	max_mana = float(style_data.mana) + (Progress.ring_effect("max_mana") if rings else 0.0)
+	mana = clampf(max_mana * mr, 0.0, max_mana)
+	armor = float(style_data.armor) + (Progress.ring_effect("armor") if rings else 0.0) + _buff_armor
+	crit_chance = float(style_data.get("crit", 0.08)) + (Progress.ring_effect("crit") if rings else 0.0)
+	mana_regen = float(cfg.mana_regen) * (1.0 + (Progress.ring_effect("mana_regen") if rings else 0.0))
+	stamina_regen = float(cfg.stamina_regen) * (1.0 + (Progress.ring_effect("stamina_regen") if rings else 0.0))
+	var base_resist: Dictionary = style_data.get("resist", {})
+	resist = base_resist.duplicate()
+	if rings and Progress.ring_effect("holy_resist") > 0.0:
+		resist["holy"] = float(base_resist.get("holy", 1.0)) * (1.0 - clampf(Progress.ring_effect("holy_resist"), 0.0, 0.8))
 
 
 func _super_target(rng: float) -> Vector3:
@@ -707,6 +957,7 @@ func _physics_process(delta: float) -> void:
 	tick_combat(delta)
 	for k in cooldowns.keys():
 		cooldowns[k] = maxf(0.0, float(cooldowns[k]) - delta)
+	_unbreakable = maxf(0.0, _unbreakable - delta)
 	if _combo_timer > 0.0:
 		_combo_timer -= delta
 	if lock and (not is_instance_valid(lock) or lock.state == S.DEAD):
@@ -904,6 +1155,11 @@ func _on_hurt() -> void:
 
 func _on_parry() -> void:
 	rig.flash(Palette.GOLD_BRIGHT, 0.3, 0.3)
+
+
+func _on_shield_hit(src: Vector3 = Vector3.ZERO) -> void:
+	if _barrier and is_instance_valid(_barrier):
+		SpellFX.barrier_hit(_barrier, src)
 
 
 func _on_shield_break(src: Vector3 = Vector3.ZERO) -> void:

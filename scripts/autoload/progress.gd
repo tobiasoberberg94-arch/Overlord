@@ -686,3 +686,326 @@ func upcoming() -> PackedStringArray:
 
 func _fmt_num(v: float) -> String:
 	return str(int(v)) if is_equal_approx(v, roundf(v)) else "%.1f" % v
+
+
+# =====================================================================
+#  Ainz im Kampf: Seelen, Zauberbuch, Ringe (data/grimoire.json)
+# =====================================================================
+
+signal souls_changed(total: int, gained: int)
+signal grimoire_changed
+
+var grimoire: Dictionary = {}
+var ring_defs: Dictionary = {}
+
+
+## Einstellungen des Zauberbuchs (data/grimoire.json).
+func gcfg() -> Dictionary:
+	_load_grimoire()
+	return grimoire
+
+
+func _load_grimoire() -> void:
+	if not grimoire.is_empty():
+		return
+	var f := FileAccess.open("res://data/grimoire.json", FileAccess.READ)
+	if f:
+		grimoire = JSON.parse_string(f.get_as_text())
+	for r in grimoire.get("rings", []):
+		ring_defs[r.id] = r
+
+
+## Zustand des Zauberbuchs (wird bei alten Spielständen ergänzt).
+func gs() -> Dictionary:
+	_load_grimoire()
+	var p := ps()
+	if not p.has("grimoire"):
+		p["grimoire"] = {"souls": 0, "souls_total": 0, "ranks": {}, "unlocked": [], "loadout": {}, "rings": [], "ring_slots": ["", "", ""], "story_rewards": []}
+	var g: Dictionary = p.grimoire
+	g.souls = int(g.souls)
+	g.souls_total = int(g.souls_total)
+	for k in g.ranks:
+		g.ranks[k] = int(g.ranks[k])
+	while (g.ring_slots as Array).size() < 3:
+		g.ring_slots.append("")
+	return g
+
+
+func souls() -> int:
+	return int(gs().souls) if Game.state.has("progress") else 0
+
+
+## Seelen eines besiegten Gegners (nach Stärke; Beschworene geben wenig).
+func souls_for(e_data: Dictionary, summoned: bool = false) -> int:
+	_load_grimoire()
+	var c: Dictionary = grimoire.get("souls", {})
+	var n := float(e_data.get("hp", 50)) * float(c.get("per_hp", 0.04))
+	if e_data.get("boss", false):
+		n = n * float(c.get("boss_mult", 1.5)) + float(c.get("boss_bonus", 40))
+	elif e_data.get("elite", false):
+		n = n * float(c.get("elite_mult", 2.0)) + float(c.get("elite_bonus", 8))
+	if summoned:
+		n *= float(c.get("summoned_mult", 0.25))
+	return maxi(int(c.get("min", 1)), roundi(n * (1.0 + ring_effect("souls"))))
+
+
+func add_souls(n: int) -> void:
+	if n <= 0 or not Game.state.has("progress"):
+		return
+	var g := gs()
+	g.souls = int(g.souls) + n
+	g.souls_total = int(g.souls_total) + n
+	set_max("souls_total", int(g.souls_total))
+	souls_changed.emit(int(g.souls), n)
+
+
+func spend_souls(n: int) -> bool:
+	var g := gs()
+	if int(g.souls) < n:
+		return false
+	g.souls = int(g.souls) - n
+	souls_changed.emit(int(g.souls), -n)
+	return true
+
+
+# ------------------------------------------------------------------ Zauber
+
+## Alle Zauber eines Kampfstils im Zauberbuch (bekannte und erlernbare).
+func style_spells(style: String) -> Array:
+	_load_grimoire()
+	return grimoire.get("styles", {}).get(style, [])
+
+
+func spell_entry(id: String) -> Dictionary:
+	_load_grimoire()
+	return grimoire.get("spells", {}).get(id, {})
+
+
+func spell_known(id: String) -> bool:
+	return int(spell_entry(id).get("unlock", 0)) <= 0 or id in gs().unlocked
+
+
+func spell_rank(id: String) -> int:
+	return clampi(int(gs().ranks.get(id, 1)), 1, 3)
+
+
+func upgrade_cost(id: String) -> int:
+	var r := spell_rank(id)
+	return int(grimoire.get("rank_cost", {}).get(str(r + 1), 0)) if r < 3 else 0
+
+
+## Erlernen: [möglich, Grund]
+func can_unlock(id: String) -> Array:
+	var e := spell_entry(id)
+	if spell_known(id):
+		return [false, "bereits bekannt"]
+	if not Game.check(e.get("requires", {})):
+		return [false, "ab Kapitel %d" % int(e.get("requires", {}).get("chapter_min", 1))]
+	if souls() < int(e.get("unlock", 0)):
+		return [false, "%d Seelen nötig" % int(e.get("unlock", 0))]
+	return [true, ""]
+
+
+func unlock_spell(id: String) -> bool:
+	if not can_unlock(id)[0] or not spend_souls(int(spell_entry(id).get("unlock", 0))):
+		return false
+	gs().unlocked.append(id)
+	bump("spells_learned")
+	var sp: Dictionary = Content.combat.spells.get(id, {})
+	_emit({"kind": "achievement", "title": "NEUER ZAUBER", "text": String(sp.get("name", id)), "sub": "Im Zauberbuch erlernt", "icon": String(sp.get("icon", "✦")), "color": Color(sp.get("color", "#c37bff"))})
+	grimoire_changed.emit()
+	Game.state_changed.emit()
+	return true
+
+
+func upgrade_spell(id: String) -> bool:
+	var cost := upgrade_cost(id)
+	if cost <= 0 or not spell_known(id) or not spend_souls(cost):
+		return false
+	var r := spell_rank(id) + 1
+	gs().ranks[id] = r
+	if r >= 3:
+		bump("spells_mastered")
+	var sp: Dictionary = Content.combat.spells.get(id, {})
+	_emit({"kind": "achievement", "title": "ZAUBER AUFGEWERTET", "text": "%s – Rang %s" % [String(sp.get("name", id)), ROMAN[r - 1]],
+		"sub": String(spell_entry(id).get("ranks", {}).get(str(r), {}).get("text", "")), "icon": String(sp.get("icon", "✦")), "color": Color(sp.get("color", "#c37bff"))})
+	grimoire_changed.emit()
+	Game.state_changed.emit()
+	return true
+
+
+## Zauberleiste eines Stils (6 Tasten: 1–5, R). Ohne eigene Belegung: die Grundzauber des Stils.
+func loadout(style: String, base: Array) -> Array:
+	var lo: Array = gs().loadout.get(style, [])
+	if lo.is_empty():
+		lo = base.duplicate()
+	var out: Array = []
+	for i in 6:
+		var id: String = String(lo[i]) if i < lo.size() else ""
+		out.append(id if id != "" and Content.combat.spells.has(id) and spell_known(id) else "")
+	return out
+
+
+func set_loadout(style: String, base: Array, slot: int, id: String) -> void:
+	var lo := loadout(style, base)
+	var old := lo.find(id)
+	if old >= 0 and id != "":
+		lo[old] = lo[slot]                 # Tausch, wenn der Zauber schon auf einer anderen Taste liegt
+	lo[slot] = id
+	gs().loadout[style] = lo
+	grimoire_changed.emit()
+
+
+## Wirksame Werte eines Zaubers: Rang (Schaden, Abklingzeit, Kosten, Sonderwirkung) und Ringe.
+func effective_spell(id: String) -> Dictionary:
+	var sp: Dictionary = Content.combat.spells.get(id, {}).duplicate(true)
+	if sp.is_empty():
+		return sp
+	if not Game.state.has("progress"):
+		sp["rank"] = 1
+		return sp
+	var r := spell_rank(id)
+	var m: Dictionary = grimoire.get("rank_mult", {})
+	if sp.has("damage"):
+		sp.damage = float(sp.damage) * float(m.get("damage", [1, 1, 1])[r - 1])
+	sp.cooldown = float(sp.get("cooldown", 1.0)) * float(m.get("cooldown", [1, 1, 1])[r - 1])
+	sp.cost = float(sp.get("cost", 0)) * float(m.get("cost", [1, 1, 1])[r - 1])
+	for k in range(2, r + 1):
+		var ov: Dictionary = spell_entry(id).get("ranks", {}).get(str(k), {})
+		for key in ov:
+			if key != "text":
+				sp[key] = ov[key]
+	# Ringe: Schaden je Art, Abklingzeiten
+	if sp.has("damage"):
+		var t := String(sp.get("type", "physical"))
+		sp.damage = float(sp.damage) * (1.0 + ring_effect("dmg_all") + ring_effect("dmg_" + t) + (ring_effect("dmg_melee") if sp.get("cost_type", "") == "stamina" else 0.0))
+	sp.cooldown = float(sp.cooldown) * (1.0 - clampf(ring_effect("cdr"), 0.0, 0.5))
+	sp["rank"] = r
+	return sp
+
+
+# ------------------------------------------------------------------ Ringe
+
+func ring_def(rid: String) -> Dictionary:
+	_load_grimoire()
+	return ring_defs.get(rid, {})
+
+
+func rings() -> Array:
+	return gs().rings
+
+
+func ring_entry(uid: String) -> Dictionary:
+	for e in rings():
+		if e.uid == uid:
+			return e
+	return {}
+
+
+func owns_ring(rid: String) -> bool:
+	for e in rings():
+		if e.id == rid:
+			return true
+	return false
+
+
+func grant_ring(rid: String, source: String = "") -> String:
+	var d := ring_def(rid)
+	if d.is_empty() or (d.get("unique", false) and owns_ring(rid)):
+		return ""
+	var uid := Game.next_uid("rg")
+	rings().append({"uid": uid, "id": rid, "day": Game.state.day, "source": source})
+	bump("rings_found")
+	var r := rarity(String(d.rarity))
+	Game.log_msg("Ring für Ainz: %s (%s)%s." % [d.name, r.name, "" if source == "" else " – " + source], "mission")
+	_emit({"kind": "ring", "title": ("EINZIGARTIGER RING" if d.get("unique", false) else String(r.name).to_upper() + "ER RING"), "unique": d.get("unique", false),
+		"text": String(d.name), "sub": ring_text(d), "color": Color(r.color), "rarity": String(d.rarity), "icon": String(d.get("icon", "◍"))})
+	# Freier Platz? Dann gleich anstecken.
+	var slots: Array = gs().ring_slots
+	var free := slots.find("")
+	if free >= 0:
+		slots[free] = uid
+	grimoire_changed.emit()
+	return uid
+
+
+## Zufallsring (Gewichtung wie Artefakte), keine einzigartigen.
+func roll_ring() -> String:
+	_load_grimoire()
+	var pool: Array = []
+	var total := 0.0
+	for d in grimoire.get("rings", []):
+		if d.get("unique", false):
+			continue
+		var w := float(rarity(String(d.rarity)).get("weight", 10))
+		pool.append([d.id, w])
+		total += w
+	var roll := Game.rng.randf() * total
+	for p in pool:
+		roll -= p[1]
+		if roll <= 0:
+			return p[0]
+	return pool[0][0] if not pool.is_empty() else ""
+
+
+func equip_ring(uid: String, slot: int) -> void:
+	var slots: Array = gs().ring_slots
+	var old := slots.find(uid)
+	if old >= 0:
+		slots[old] = slots[slot]
+	slots[slot] = uid
+	grimoire_changed.emit()
+
+
+func unequip_ring(slot: int) -> void:
+	gs().ring_slots[slot] = ""
+	grimoire_changed.emit()
+
+
+## Ring einschmelzen (nicht angesteckt, nicht einzigartig) → Seelen.
+func melt_ring(uid: String) -> int:
+	var e := ring_entry(uid)
+	var d := ring_def(String(e.get("id", "")))
+	if e.is_empty() or d.get("unique", false) or uid in gs().ring_slots:
+		return 0
+	rings().erase(e)
+	var n := int(grimoire.get("ring_melt", {}).get(String(d.rarity), 20))
+	add_souls(n)
+	grimoire_changed.emit()
+	return n
+
+
+## Summe einer Ringwirkung über die angesteckten Ringe.
+func ring_effect(k: String) -> float:
+	if not Game.state.has("progress"):
+		return 0.0
+	var v := 0.0
+	for uid in gs().ring_slots:
+		if String(uid) == "":
+			continue
+		v += float(ring_def(String(ring_entry(String(uid)).get("id", ""))).get("effects", {}).get(k, 0.0))
+	return v
+
+
+func ring_text(d: Dictionary) -> String:
+	_load_grimoire()
+	var labels: Dictionary = grimoire.get("ring_effects", {})
+	var parts := PackedStringArray()
+	for k in d.get("effects", {}):
+		var v := float(d.effects[k])
+		var shown := roundi(v * 100.0) if absf(v) < 1.0 else roundi(v)
+		parts.append(String(labels.get(k, k + " %+d")) % shown)
+	return " · ".join(parts)
+
+
+## Belohnung eines Story-Einsatzes: Seelen und der einzigartige Ring (nur beim ersten Mal).
+func story_reward(mid: String) -> void:
+	_load_grimoire()
+	var g := gs()
+	if mid in g.story_rewards:
+		return
+	g.story_rewards.append(mid)
+	add_souls(int(grimoire.get("souls", {}).get("story_reward", 150)))
+	var rid := String(grimoire.get("story_rings", {}).get(mid, ""))
+	if rid != "":
+		grant_ring(rid, "Kapitel-Moment")

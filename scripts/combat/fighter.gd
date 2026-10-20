@@ -48,6 +48,7 @@ var phase := ""                        ## windup | active | recovery
 var block_time := 0.0
 var invulnerable := false
 var shield_time := 0.0                 ## Schutzbarriere (absorbiert einen Treffer)
+var shield_charges := 1                ## so viele Treffer fängt die Barriere ab (Rang III: zwei)
 var status: Dictionary = {}            ## burn/chill/stun → verbleibende Sekunden
 var facing := Vector3.FORWARD          ## Blickrichtung (Welt, flach)
 var knock := Vector3.ZERO              ## Rückstoß, klingt ab
@@ -266,6 +267,10 @@ func take_hit(info_in: Dictionary, from: Node3D) -> String:
 	var info := info_in.duplicate()
 	var res := _resolve_hit(info, from)
 	var dealt := float(info.get("_dealt", 0.0))
+	if dealt > 0.0:
+		var atk := CombatFX.attacker_of(from)
+		if atk and atk != self and atk.has_method("on_dealt"):
+			atk.on_dealt(dealt, self)
 	CombatFX.on_struck(self, from, info, res, dealt)
 	struck.emit(self, res, info, dealt)
 	return res
@@ -299,9 +304,13 @@ func _resolve_hit(info: Dictionary, from: Node3D) -> String:
 		_on_block()
 		return "block"
 	if shield_time > 0.0:
-		shield_time = 0.0
+		shield_charges -= 1
 		_feedback("Barriere absorbiert", Palette.GOLD_BRIGHT)
-		_on_shield_break(src)
+		if shield_charges <= 0:
+			shield_time = 0.0
+			_on_shield_break(src)
+		else:
+			_on_shield_hit(src)
 		return "shield"
 	# Wucht-Zuschläge: Rücken, Konter (Gegner in der Erholung), wehrlos (taumelt/gelähmt), kritischer Treffer
 	var flags: Array = []
@@ -501,6 +510,11 @@ func _on_hurt() -> void:
 
 
 func _on_shield_break(_src: Vector3 = Vector3.ZERO) -> void:
+	pass
+
+
+## Barriere hält noch (weitere Ladungen): nur Einschlagwelle.
+func _on_shield_hit(_src: Vector3 = Vector3.ZERO) -> void:
 	pass
 
 

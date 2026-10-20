@@ -35,7 +35,6 @@ var temp_fx: Array = []                ## Brände u. Ä. aus Szenen – verlösc
 var _hidden: Array = []                ## Figuren des Ortes, die während des Einsatzes ruhen
 var _folk: Array = []                  ## Bewohner (Townsfolk), die sich während eines Kampfes in die Häuser zurückziehen
 var _start_style := ""
-var loot: Array = []                   ## Bezwungene Elite-Gegner – ihre Beute gibt es nach dem Einsatz
 var replay := false                    ## Erinnerung (Questbuch): keine Depesche, keine Folgen
 var return_loc := ""                   ## Erinnerung: danach zurück an diesen Ort
 

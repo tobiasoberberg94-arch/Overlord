@@ -17,19 +17,33 @@ var _font: Font
 var _glyph_font: Font
 var _r := 27.0                 ## Radius (Superrang-Slot größer)
 var _super := false
+var rank := 1                  ## Rang im Zauberbuch (I–III), als Rauten über dem Slot
 
 
 func _init(id: String, d: Dictionary, key_label: String, big: bool = false) -> void:
 	_super = big
 	_r = 34.0 if big else 27.0
 	spell_id = id
+	rank = int(d.get("rank", 1))
+	if id == "":
+		# unbelegte Taste
+		icon = "+"
+		key = key_label
+		color = Color(0.45, 0.42, 0.55)
+		custom_minimum_size = Vector2(64, 76)
+		mouse_filter = Control.MOUSE_FILTER_PASS
+		tooltip_text = "Taste %s ist frei – im Zauberbuch [B] einen Zauber darauf legen." % key_label
+		_font = NazarickTheme.display_font(700)
+		_glyph_font = NazarickTheme.body_font(700)
+		affordable = false
+		return
 	icon = d.get("icon", "?")
 	key = key_label
 	color = Color(d.get("color", "#ffffff"))
 	cooldown_max = maxf(0.1, float(d.get("cooldown", 1.0)))
 	custom_minimum_size = Vector2(80, 92) if big else Vector2(64, 76)
 	mouse_filter = Control.MOUSE_FILTER_PASS
-	tooltip_text = "%s [%s]\n%s\nKosten: %d %s · Abklingzeit %.0f s" % [d.get("name", id), key_label, d.get("desc", ""), int(d.get("cost", 0)),
+	tooltip_text = "%s [%s]%s\n%s\nKosten: %d %s · Abklingzeit %.0f s" % [d.get("name", id), key_label, ("  · Rang " + ["I", "II", "III"][clampi(rank, 1, 3) - 1]) if rank > 1 else "", d.get("desc", ""), int(d.get("cost", 0)),
 		"Mana" if d.get("cost_type", "mana") == "mana" else "Ausdauer", float(d.get("cooldown", 0))]
 	_font = NazarickTheme.display_font(700)
 	_glyph_font = NazarickTheme.body_font(700)
@@ -53,6 +67,17 @@ func _process(delta: float) -> void:
 func _draw() -> void:
 	var c := Vector2(size.x * 0.5, _r + 5.0)
 	var r := _r
+	if spell_id == "":
+		# leere Taste: gedämpfter Ring mit Plus
+		draw_circle(c, r, Color(0.02, 0.01, 0.035, 0.55))
+		draw_arc(c, r, 0, TAU, 48, Color(Palette.GOLD_DARK, 0.5), 2.0, true)
+		draw_line(c + Vector2(-7, 0), c + Vector2(7, 0), Color(0.6, 0.55, 0.7, 0.6), 2.0)
+		draw_line(c + Vector2(0, -7), c + Vector2(0, 7), Color(0.6, 0.55, 0.7, 0.6), 2.0)
+		var kp0 := Rect2(c + Vector2(-11, r - 4), Vector2(22, 17))
+		draw_style_box(NazarickTheme.box(Color(0.03, 0.02, 0.05, 0.8), Color(Palette.GOLD, 0.5), 1, 4, Color.TRANSPARENT, 0, 0), kp0)
+		var ks0 := _font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, 12)
+		draw_string(_font, kp0.position + Vector2((kp0.size.x - ks0.x) * 0.5, 13), key, HORIZONTAL_ALIGNMENT_LEFT, -1, 12, Color(Palette.GOLD_BRIGHT, 0.5))
+		return
 	var ready := cooldown <= 0.0 and affordable
 	# Leuchten
 	var pulse := 0.5 + 0.5 * sin(_t * 3.0)
@@ -99,6 +124,13 @@ func _draw() -> void:
 		draw_arc(c, r + 2.5, 0, TAU, 64, Color(color, 0.55 + 0.3 * pulse), 1.5, true)
 	elif not affordable:
 		draw_arc(c, r + 2.5, 0, TAU, 64, Color(0.35, 0.5, 1.0, 0.6), 1.5, true)
+	# Rang-Rauten (Zauberbuch)
+	if rank > 1:
+		for i in rank:
+			var dc := c + Vector2((i - (rank - 1) * 0.5) * 9.0, -r - 1.0)
+			var dia := PackedVector2Array([dc + Vector2(0, -4), dc + Vector2(3.5, 0), dc + Vector2(0, 4), dc + Vector2(-3.5, 0)])
+			draw_colored_polygon(dia, Palette.GOLD_BRIGHT if rank >= 3 else Palette.GOLD)
+			draw_polyline(dia + PackedVector2Array([dia[0]]), Color(0, 0, 0, 0.7), 1.0)
 	# Tasten-Plakette
 	var kp := Rect2(c + Vector2(-11, r - 4), Vector2(22, 17))
 	draw_style_box(NazarickTheme.box(Color(0.03, 0.02, 0.05, 0.95), Palette.GOLD, 1, 4, Color.TRANSPARENT, 0, 0), kp)

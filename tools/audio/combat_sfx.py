@@ -536,11 +536,58 @@ def sfx_spells():
     write_ogg("super_blast", reverb(s, 3.0, 0.4, 0.5), 0.95)
 
 
+def sfx_rewards():
+    """Belohnungen: Seelen (gläsernes Klingen), Beute (Funkeln), Aufwertung (Akkord), Ring (Metallklang)."""
+    global rng
+    rng = np.random.default_rng(2024)        # eigene Folge: die übrigen Klänge bleiben unverändert
+    penta = [523.3, 587.3, 659.3, 784.0, 880.0, 1046.5, 1174.7]
+    for i in range(4):
+        f = penta[i + 1]
+        bell = modes(0.7, [f, f * 2.01, f * 2.98, f * 4.1], [0.35, 0.22, 0.14, 0.08], [1.0, 0.45, 0.25, 0.12], 0.003)
+        air = sweep(0.5, lambda x: 2500 + 3500 * (x / 0.5), 2.0) * bell_env(0.5, 0.35, 2.0) * 0.18
+        write_ogg("soul_%d" % (i + 1), reverb(mix(0.7, (0.0, bell, 0.5), (0.0, air, 1.0)), 1.1, 0.35, 0.3), 0.42)
+    # Seelen lösen sich aus dem Körper: Hauch, der aufsteigt
+    rise = sweep(1.0, lambda x: 300 + 2200 * (x / 1.0) ** 1.4, 1.5) * bell_env(1.0, 0.6, 1.5)
+    ghost = shimmer(1.0, 330, 990, 4, True) * 0.5
+    write_ogg("soul_burst", reverb(mix(1.0, (0.0, rise, 0.7), (0.05, ghost, 0.6)), 1.4, 0.35, 0.4), 0.55)
+    # Beute fällt: dumpfer Aufschlag + Funkeln
+    sparkle = pings(0.9, 14, 2600, 7000, 0.05, 0.18, 0.7, 0.4, 0.5)
+    drop = mix(1.0, (0.0, thump(0.3, 140, 70, 0.08, 0.2), 0.7), (0.05, sparkle, 0.9), (0.1, shimmer(0.8, 700, 1500, 4), 0.5))
+    write_ogg("loot_drop", reverb(drop, 1.2, 0.3, 0.4), 0.7)
+    for i in range(2):
+        base = penta[i * 2]
+        arp = np.zeros(int(0.9 * SR))
+        for k, m in enumerate([1.0, 1.25, 1.5, 2.0]):
+            place(arp, modes(0.5, [base * m, base * m * 2.0], [0.25, 0.12], [1.0, 0.3]), 0.055 * k)
+        glit = pings(0.9, 10, 3000, 8000, 0.04, 0.12, 0.5, 0.5, 0.4)
+        write_ogg("loot_pickup_%d" % (i + 1), reverb(mix(0.9, (0.0, arp, 0.8), (0.0, glit, 0.5)), 1.2, 0.3, 0.3), 0.7)
+    # Aufwertung im Zauberbuch: aufsteigender Akkord mit Glocken und Hauch
+    dur = 2.4
+    t = tt(dur)
+    chord = np.zeros_like(t)
+    for k, f in enumerate([261.6, 329.6, 392.0, 523.3, 659.3]):
+        env = np.clip((t - k * 0.08) / 0.05, 0.0, 1.0) * np.exp(-np.clip(t - k * 0.08, 0.0, None) / 1.1)
+        ph = np.cumsum(2 * math.pi * f * (1 + 0.003 * np.sin(2 * math.pi * 5.0 * t)) / SR)
+        chord += (2.0 * ((ph / (2 * math.pi)) % 1.0) - 1.0) * env
+    chord = band(chord, 200, 2400, 2) * 0.22
+    bells = modes(dur, [1046.5, 1568.0, 2093.0], [1.2, 0.9, 0.6], [1.0, 0.6, 0.4]) * 0.2
+    whoosh = sweep(dur, lambda x: 400 + 5000 * min(1.0, x / 0.8), 1.4) * bell_env(dur, 0.3, 2.0) * 0.25
+    write_ogg("rank_up", reverb(mix(dur, (0.0, chord, 1.0), (0.12, bells, 0.8), (0.0, whoosh, 0.6)), 2.2, 0.38, 0.4), 0.8)
+    # Ring anlegen: heller Metallklang mit Schimmer
+    clink = modes(0.9, [2350, 3620, 5180, 6900], [0.45, 0.3, 0.2, 0.12], [1.0, 0.6, 0.4, 0.25], 0.004)
+    write_ogg("ring_equip", reverb(mix(0.9, (0.0, clink, 0.6), (0.02, shimmer(0.8, 900, 1800, 4), 0.4)), 1.0, 0.3, 0.3), 0.6)
+
+
 if __name__ == "__main__":
+    import sys
     os.makedirs(OUT, exist_ok=True)
     print("Kampfgeräusche ->", os.path.normpath(OUT))
+    if len(sys.argv) > 1 and sys.argv[1] == "rewards":
+        sfx_rewards()
+        sys.exit(0)
     sfx_swings()
     sfx_hits()
     sfx_defense()
     sfx_enemy()
     sfx_spells()
+    sfx_rewards()

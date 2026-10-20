@@ -47,6 +47,7 @@ const BARKS := {
 }
 
 static var spawner: Callable           ## world_3d.spawn_enemy (für Beschwörungen)
+static var ally_spawner: Callable      ## world_3d.spawn_ally (Ainz' Beschwörungen)
 static var hold := false               ## Filmszene: alle Kämpfer ruhen (keine KI, Angriffe brechen ab, Animation läuft)
 
 var type_id := ""
@@ -91,6 +92,7 @@ var _bark_time := 0.0
 var _tele_col := Color.WHITE
 var _tele_a := 0.0
 var yielded := false                   ## hat aufgegeben (Story): kniet, kämpft nicht mehr, ist unverwundbar
+var summoned := false                  ## beschworen (Skelette eines Lichs …): wenig Seelen, keine Beute
 var _emitters: Array = []
 
 
@@ -843,6 +845,7 @@ func _summon() -> void:
 				return
 			var e: Enemy3D = _spawn_direct(id, at + Vector3.UP * 0.1) if ally or not spawner.is_valid() else spawner.call(id, at + Vector3.UP * 0.1)
 			if e:
+				e.summoned = true
 				_summons.append(e)
 				e.notice(target)
 				CombatFX.burst(lvl, "flash_soft", at + Vector3.UP, col)

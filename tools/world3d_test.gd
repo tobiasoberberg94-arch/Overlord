@@ -67,6 +67,10 @@ func _ready() -> void:
 		await _story_test(w)
 		get_tree().quit()
 		return
+	if only == "grimoire":
+		await _grimoire_test(w)
+		get_tree().quit()
+		return
 	if only == "anchors":
 		# Ankerpunkte und Draufsicht je Ort (für das Einrichten von Szenen-Bühnen)
 		for lid in OS.get_environment("ANCHORLOCS").split(",", false):
@@ -891,6 +895,88 @@ func _story_test(w: Node) -> void:
 	if not answered or not flag:
 		errors += 1
 	print("STORY %s: %s – Zeilen %d, Zeit %.0f s, beantwortet %s, Flag %s, Ergebnis %s" % [mid, "OK" if errors == 0 else "FEHLER", lines, t, answered, flag, (Game.state.flags as Array).filter(func(k): return String(k).begins_with("story_") or k in ["loyalty_sworn", "carne_saved", "nigun_resolved", "nigun_captured", "erantel_saved", "nfirea_taken", "shalltear_defeated", "ending_peace", "ending_power", "ending_conquest"])])
+
+
+## Zauberbuch und Fortschritt sichtbar prüfen: Fenster (alle Reiter), neue Zauber im Kampf, Seelen-Lichter, Beute.
+func _grimoire_test(w: Node) -> void:
+	if DisplayServer.get_name() != "headless":
+		get_window().size = Vector2i(1720, 720)
+	Game.state.chapter = 6
+	Progress.add_souls(2400)
+	for id in ["negative_burst", "black_hole", "reality_slash", "create_death_knight"]:
+		Progress.unlock_spell(id)
+	Progress.upgrade_spell("fireball")
+	Progress.upgrade_spell("fireball")
+	Progress.upgrade_spell("chain_lightning")
+	for r in ["ring_primal_flame", "ring_focus", "ring_blood", "ring_storm", "ring_archmage"]:
+		Progress.grant_ring(r, "Test")
+	var base: Array = w.player.style_data.spells
+	Progress.set_loadout("ainz", base, 2, "negative_burst")
+	Progress.set_loadout("ainz", base, 3, "black_hole")
+	Progress.set_loadout("ainz", base, 4, "reality_slash")
+	await w.load_location("katze")
+	await _wait(1.5)
+	for c in w.overlay_layer.get_children():
+		c.queue_free()
+	var gr := Grimoire.new()
+	w._open(gr)
+	await _wait(1.0)
+	_shot("grim_ainz")
+	gr._sel["ainz"] = "black_hole"
+	gr._build_style("ainz")
+	await _wait(0.5)
+	_shot("grim_ainz_detail")
+	gr._tabs.current_tab = 1
+	await _wait(0.5)
+	_shot("grim_momon")
+	gr._tabs.current_tab = 2
+	await _wait(0.5)
+	_shot("grim_ringe")
+	gr.close()
+	await _wait(0.8)
+	# Kampf mit den neuen Zaubern
+	var p: Player3D = w.player
+	p.max_hp = 99999.0
+	p.hp = p.max_hp
+	var foes: Array = []
+	for e in w.enemies:
+		if is_instance_valid(e):
+			foes.append(e)
+	foes.sort_custom(func(x, y): return x.global_position.distance_to(p.global_position) < y.global_position.distance_to(p.global_position))
+	if foes.is_empty():
+		print("GRIMOIRE: keine Gegner")
+		return
+	var f0: Enemy3D = foes[0]
+	p.global_position = f0.global_position + Vector3(0, 0.3, 7)
+	p.face(0.0)
+	await _wait(0.6)
+	_shot("grim_hud")
+	p.toggle_lock()
+	for id in ["fireball", "negative_burst", "black_hole", "reality_slash", "create_death_knight"]:
+		p.mana = p.max_mana
+		p.set_state(Fighter.S.IDLE)
+		p.cooldowns.clear()
+		var ok := p.cast(id)
+		print("GRIMOIRE cast %s: %s" % [id, ok])
+		await _wait(0.75 if id != "black_hole" else 1.4)
+		_shot("grim_cast_" + id)
+		await _wait(0.9)
+	# Beute und Seelen: einen Elite-Gegner fallen lassen (Beute sicher)
+	var elite: Enemy3D = null
+	for e in w.enemies:
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.data.get("elite", false):
+			elite = e
+	if elite:
+		LootDrop.drop(w.level, elite.global_position + Vector3(2, 0, 0), "ring", "ring_reaper", "epic", "Test")
+		LootDrop.drop(w.level, elite.global_position + Vector3(-2, 0, 0), "item", Progress.roll_item("legendary"), "legendary", "Test")
+		elite.take_hit({"amount": 99999.0, "type": "negative"}, p)
+		await _wait(0.5)
+		_shot("grim_souls")
+		await _wait(1.0)
+		p.camera.global_position = elite.global_position + Vector3(0, 4, 9)
+		_shot("grim_loot")
+	await _wait(2.0)
+	print("GRIMOIRE: Seelen %d, Ringe %d" % [Progress.souls(), Progress.rings().size()])
 
 
 func _wait(t: float) -> void:

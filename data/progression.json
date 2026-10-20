@@ -1370,6 +1370,104 @@
    "cond": {
     "day_min": 365
    }
+  },
+  {
+   "id": "souls_500",
+   "name": "Seelensammler",
+   "desc": "Sammelt 500 Seelen besiegter Gegner.",
+   "icon": "❖",
+   "tier": "bronze",
+   "reward": {
+    "gold": 100
+   },
+   "stat": "souls_total",
+   "target": 500
+  },
+  {
+   "id": "souls_5000",
+   "name": "Ernte des Todes",
+   "desc": "Sammelt 5000 Seelen besiegter Gegner.",
+   "icon": "❖",
+   "tier": "gold",
+   "reward": {
+    "gold": 400,
+    "item": "epic"
+   },
+   "stat": "souls_total",
+   "target": 5000
+  },
+  {
+   "id": "spell_learned",
+   "name": "Verbotenes Wissen",
+   "desc": "Erlernt einen neuen Zauber im Zauberbuch.",
+   "icon": "✸",
+   "tier": "bronze",
+   "reward": {
+    "gold": 80
+   },
+   "stat": "spells_learned",
+   "target": 1
+  },
+  {
+   "id": "spells_learned_6",
+   "name": "Meister aller Künste",
+   "desc": "Erlernt alle sechs neuen Zauber und Techniken.",
+   "icon": "✸",
+   "tier": "gold",
+   "reward": {
+    "item": "legendary"
+   },
+   "stat": "spells_learned",
+   "target": 6
+  },
+  {
+   "id": "spell_mastered",
+   "name": "Gemeistert",
+   "desc": "Wertet einen Zauber auf Rang III auf.",
+   "icon": "◆",
+   "tier": "silver",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "spells_mastered",
+   "target": 1
+  },
+  {
+   "id": "spells_mastered_6",
+   "name": "Der Höchste der Magier",
+   "desc": "Wertet sechs Zauber auf Rang III auf.",
+   "icon": "◆",
+   "tier": "platinum",
+   "reward": {
+    "gold": 600,
+    "item": "legendary"
+   },
+   "stat": "spells_mastered",
+   "target": 6
+  },
+  {
+   "id": "rings_3",
+   "name": "Ringträger",
+   "desc": "Findet drei Ringe für Ainz.",
+   "icon": "◍",
+   "tier": "bronze",
+   "reward": {
+    "gold": 100
+   },
+   "stat": "rings_found",
+   "target": 3
+  },
+  {
+   "id": "rings_12",
+   "name": "Die Hand des Overlords",
+   "desc": "Findet zwölf Ringe – darunter die einzigartigen der Kapitel-Momente.",
+   "icon": "◍",
+   "tier": "gold",
+   "reward": {
+    "gold": 500
+   },
+   "stat": "rings_found",
+   "target": 12
   }
  ],
  "loot_chance": {

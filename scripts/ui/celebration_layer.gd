@@ -63,6 +63,8 @@ func _is_big(d: Dictionary) -> bool:
 			return true
 		"loot":
 			return d.get("rarity", "") in ["legendary", "world"]
+		"ring":
+			return d.get("rarity", "") in ["legendary", "world"] or d.get("unique", false)
 		"achievement":
 			return d.get("color", Color.WHITE) in [Palette.GOLD_BRIGHT, Color("b8f0ff")]
 	return false
@@ -79,6 +81,7 @@ func _next() -> void:
 	match d.kind:
 		"levelup": Audio.sfx("levelup", 0.9)
 		"loot": Audio.sfx("loot_legendary" if big else "loot", 0.85)
+		"ring": Audio.sfx("loot_legendary" if big else "loot", 0.85)
 		"achievement": Audio.sfx("achievement", 0.85)
 		"build": Audio.sfx("build_done", 0.85)
 		_: Audio.sfx("love", 0.7)

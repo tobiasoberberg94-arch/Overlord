@@ -83,6 +83,7 @@ Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Mode
 | Zauber bzw. Techniken | `1` `2` `3` `4` `5` `R` |
 | Superrang-Magie (nur Ainz) | `Y` (QWERTZ; auf US-Tastaturen `Z`) |
 | Kampfstil wechseln: Ainz ↔ Momon | `X` |
+| Zauberbuch (Seelen, Zauber, Ringe) | `B` |
 
 - **Zustandsautomat** für Spieler und Gegner (`scripts/combat/fighter.gd`): Bereit · Bewegung · Angriff (*Wind-up → aktiv → Recovery*) · Ausweichen · Block · Zauber · Taumeln · Gelähmt · Tot.
 - **Hitboxes/Hurtboxes** (`hitbox.gd`, `hurtbox.gd`): echte Area3D-Trefferzonen auf getrennten Physik-Ebenen; jeder Angriff trifft ein Ziel höchstens einmal, Bogen-/Reichweitenprüfung inklusive.
@@ -98,6 +99,20 @@ Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Mode
 - **Gegner** (`data/combat.json`): Skelettkrieger und -schützen, Ältester Leichnam, Todesritter, Ritter, Schützen und Magier der Schrift (beschwören Flammenerzengel), Engel der Herrschaft, Wölfe, Echsenkrieger und -schamanen, Quagoa, Elfenkrieger und -schützinnen, Söldner – dazu Bosse wie Zaryusu, Brain, Gagaran, Succulent (Spiegelbilder) und der Elfenkönig.
 - Begegnungen je Ort in `data/locations.json` (`encounters`). Besiegte Gegner bringen Gold, Eliten zusätzlich Beute. Fällt Ainz, zieht er sich nach Nazarick zurück (Stimmung −4).
 - Werte anpassen: `data/combat.json` (Stile, Angriffe mit `windup/active/recovery/damage/range/arc/stagger/lunge/unblockable`, Zauber, Gegner).
+
+---
+
+## Fortschritt im Kampf: Seelen, Zauberbuch und Ringe
+
+Jeder besiegte Gegner gibt **Seelen** frei – violette Lichter, die aufsteigen und in einem Bogen zu Ainz fliegen (Fußvolk wenige, Eliten und Bosse viele, Beschworene kaum). Der Zähler steht neben Ainz' Namen im HUD.
+
+- **Zauberbuch** [`B`]: Seelen in Macht verwandeln. Jeder Zauber und jede Technik steigt von **Rang I bis III** (mehr Schaden, kürzere Abklingzeit, geringere Kosten) – Rang III mit Sonderwirkung: *Feuerkugel* dreifach maximiert (drei Kugeln im Fächer), *Kettendrachenblitz* springt auf acht Ziele, *Druckwelle* betäubt, *Schutzbarriere* fängt zwei Treffer ab, *Lähmung* bannt drei Feinde, *Herzgriff* schneller, *Fallen Down* größer; Momons *Schwerterwirbel* doppelt, *Schwertwurf* mit beiden Klingen.
+- **Neue Magie** zum Erlernen: **Negative Burst** (Ausbruch negativer Energie rings um Ainz), **Erschaffe Untoten: Todesritter** (erhebt sich aus dem Boden und kämpft an Ainz' Seite, auf Rang III zwei), **Schwarzes Loch** (saugt Feinde an und verschlingt sie, ab Kapitel 3), **Realitätsschnitt** (zerschneidet den Raum entlang einer Linie, unblockbar, ab Kapitel 5); für Momon **Unbeugsame Haltung** und **Erdspaltung**.
+- **Zauberleiste frei belegen**: im Zauberbuch jeden bekannten Zauber auf `1`–`5` oder `R` legen; die Rang-Rauten erscheinen über den Tasten.
+- **Ringe des Overlords**: drei Plätze, 18 Ringe in fünf Seltenheiten (Feuer-, Sturm-, Todesschaden, Abklingzeiten, Lebensraub, Leben, Mana, Rüstung, Seelen …) – darunter einzigartige Ringe aus jedem Kapitel-Moment (*Ring der Urflamme*, *Siegel von Carne*, *Ring des Herrschaftsengels*, *Ring der Kampfkünste*, *Blutroter Ring*, *Platinsiegel*). Überzählige Ringe werden zu Seelen eingeschmolzen.
+- **Beute zum Aufheben**: Eliten und Bosse lassen leuchtende Funde mit Lichtsäule in der Farbe ihrer Seltenheit fallen – Ringe für Ainz oder Artefakte für die Schatzkammer. Ainz hebt sie im Vorbeigehen auf.
+- Acht neue Errungenschaften (Seelensammler, Meister aller Künste, Der Höchste der Magier, Die Hand des Overlords …). Erinnerungen im Questbuch bringen keinen Lohn.
+- Werte: `data/grimoire.json` (Seelen, Rangkosten und -wirkung, Sonderwirkungen, Ringe), neue Zauber in `data/combat.json`.
 
 ---
 
@@ -202,7 +217,7 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 - **Artefakte & Schatzkammer** – 35 Artefakte in fünf Seltenheiten (*Gewöhnlich, Selten, Episch, Legendär, Weltklasse*): Triumphe, Schlachten, gebannte Bedrohungen, Errungenschaften und Albedos Truhe bringen Beute. Jeder Wächter hat Waffe, Rüstung und Kleinod; Lieblingsstücke (Spuhletit-Lanze für Shalltear, Frosthellebarde für Cocytus …) wirken stärker. Überzählige Funde lassen sich einschmelzen.
 - **Ausbau der Ebenen** – 10 Bauwerke × 3 Stufen (Grabkammern, Gletscher, Amphitheater, Lavahölle, Königliche Gemächer, Bibliothek von Ashurbanipal, Schatzkammer, Golemschmiede …): billigere Legionen, stärkere Heere, mehr Erfahrung, Gold, Wissen, Audienzen, Beute. Immer nur ein Bauprojekt zugleich – jede Entscheidung zählt.
 - **Albedos Wochenziele** – jede Woche drei neue Ziele mit Belohnung; wer alle erfüllt, öffnet **Albedos Truhe** (Gold + garantiert seltenes Artefakt). Aufeinanderfolgende Wochen bauen eine **Serie** auf, die die Truhe immer wertvoller macht.
-- **37 Errungenschaften** in Bronze, Silber, Gold und Platin – mit Belohnungen bis hin zu einem Weltgegenstand.
+- **45 Errungenschaften** in Bronze, Silber, Gold und Platin – mit Belohnungen bis hin zu einem Weltgegenstand.
 
 **Story**: 11 Kapitel – *Die Ankunft · Das Dorf Carne · Der Dunkle Held · Blutiger Wahnsinn (der Shalltear-Zwischenfall) · Frost über dem Sumpf · Gehenna · Das Zauberkönigreich · Die Hallen von Feo Jera · Das Heilige Königreich · Der Wald der Elfen · Der Platin-Drachenlord* – mit einem **Epilog**, der sich aus deinen Entscheidungen zusammensetzt (Weltordnung, Ruf, Vasallen, Albedo & Shalltear, das Schicksal jedes Wächters). Danach geht die Herrschaft endlos weiter. Dazu 42 Aufträge (10 Haupt-, 15 Neben-, 17 Vorschlagsaufträge), 33 Ereignisse und 23 Eigeninitiativen, mit Verzweigungen (Carne retten oder ignorieren, Name „Ainz Ooal Gown“ annehmen oder Momonga bleiben, Shalltear selbst stellen oder Albedo schicken …).
 
@@ -230,6 +245,7 @@ scripts/
     character_rig.gd       Modell oder Ersatzfigur + Animationssteuerung
     proc_model.gd          prozedurale Ersatzfiguren mit Gelenken
     actor_3d.gd            Figuren als Portrait-Aufsteller, Interaktionsobjekte
+    loot_drop.gd           Beute zum Aufheben (Lichtsäule in Seltenheitsfarbe)
     location_builder.gd    Rezepte der 20 Orte (Thronsaal, Gletscher, Stadt, Wald …)
     b3.gd                  3D-Baukasten (Materialien, Primitive mit Kollision, Licht, Partikel)
   combat/
@@ -241,6 +257,7 @@ scripts/
     spell_fx.gd            Inszenierung der Zauber (Geschosse, Explosionen, Blitze, Herzgriff, Superrang)
     slash_fx.gd            Hiebspuren · ground_mark.gd Bodenwarnungen und Magiekreise · hit_react.gd Zurückzucken, Verbeugen, Knien
     projectile.gd          Geschosse (Lenkung, Pfeilflug)
+    soul_orbs.gd           Seelen besiegter Gegner fliegen zu Ainz
     save_system.gd         JSON-Speichern/Laden (3 Slots)
   story/
     story_mission.gd       spielbare Story-Momente: Szenen, Wellen, Bosse (Einführung, Schwellen, Aufgeben), Verbündete
@@ -267,6 +284,7 @@ data/
   events.json              Story-, Zufalls- und Rivalitätsereignisse + Eigeninitiativen
   story.json               Kapitel und Befehlsarten
   story_missions.json      spielbare Story-Einsätze (Schritte und Szenen als Daten)
+  grimoire.json            Zauberbuch: Seelen, Zauberränge, Sonderwirkungen, Ringe
   regions.json, factions.json, systems.json   Strategie-Ebene
   progression.json         Ränge, Artefakte, Ebenen, Wochenziele, Errungenschaften
   locations.json           begehbare 3D-Orte, Story-Figuren, Begegnungen

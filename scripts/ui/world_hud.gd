@@ -36,6 +36,7 @@ var target_info := Label.new()
 var medallion := TextureRect.new()
 var style_label := Label.new()
 var state_label := Label.new()
+var souls_label := Label.new()            ## Seelen für das Zauberbuch
 var bars: Dictionary = {}
 var spell_row := HBoxContainer.new()
 var slots: Array[SpellSlot] = []
@@ -252,7 +253,11 @@ func _build_bottom() -> void:
 	_outlined(state_label, 15, Palette.MUTED, NazarickTheme.italic_font(600))
 	nh.add_child(style_label)
 	nh.add_child(state_label)
+	_outlined(souls_label, 16, Color(0.78, 0.6, 1.0), NazarickTheme.display_font(700), 5)
+	souls_label.tooltip_text = "Seelen – im Zauberbuch [B] für neue Zauber und Ränge"
+	nh.add_child(souls_label)
 	bv.add_child(nh)
+	Progress.souls_changed.connect(_on_souls)
 	for spec in [["hp", Color(0.78, 0.08, 0.16), 18.0, 330.0], ["mana", Color(0.28, 0.45, 1.0), 12.0, 290.0], ["stamina", Color(0.9, 0.72, 0.25), 8.0, 250.0]]:
 		var b := HudBar.new(spec[1], spec[2], spec[3])
 		b.show_text = spec[0] != "stamina"
@@ -304,7 +309,7 @@ func _build_misc() -> void:
 		"[color=#f5d77a]WASD[/color] gehen · [color=#f5d77a]Shift[/color] rennen · Maus Kamera\n" + \
 		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
 		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
-		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche\n" + \
+		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche · [color=#c9a8ff]B[/color] Zauberbuch\n" + \
 		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
 		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
 	help_panel.add_child(help_text)
@@ -433,13 +438,22 @@ func set_prompt(text: String) -> void:
 	prompt_text.text = text
 
 
+## Seelen erhalten: der Zähler leuchtet kurz auf.
+func _on_souls(_total: int, gained: int) -> void:
+	if gained > 0 and is_instance_valid(souls_label):
+		souls_label.modulate = Color(1.7, 1.35, 2.2)
+		souls_label.create_tween().tween_property(souls_label, "modulate", Color.WHITE, 0.45)
+
+
 func rebuild_spells(player: Node) -> void:
 	for c in spell_row.get_children():
 		c.queue_free()
 	slots.clear()
 	var sp: Array = player.spells()
 	for i in mini(sp.size(), 6):
-		var s := SpellSlot.new(sp[i], Content.combat.spells[sp[i]], Player3D.key_label(Player3D.SPELL_ACTIONS[i]))
+		var id := String(sp[i])
+		var d: Dictionary = Progress.effective_spell(id) if id != "" and Content.combat.spells.has(id) else {}
+		var s := SpellSlot.new(id if not d.is_empty() else "", d, Player3D.key_label(Player3D.SPELL_ACTIONS[i]))
 		spell_row.add_child(s)
 		slots.append(s)
 	var sup: String = player.super_spell()
@@ -448,7 +462,7 @@ func rebuild_spells(player: Node) -> void:
 		gap.custom_minimum_size.x = 14
 		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		spell_row.add_child(gap)
-		var s := SpellSlot.new(sup, Content.combat.spells[sup], Player3D.key_label("spell_super"), true)
+		var s := SpellSlot.new(sup, Progress.effective_spell(sup), Player3D.key_label("spell_super"), true)
 		spell_row.add_child(s)
 		slots.append(s)
 
@@ -483,8 +497,11 @@ func tick(delta: float, blocked: bool) -> void:
 		if tex:
 			medallion.texture = tex
 			_portrait_id = pid
+	souls_label.text = "❖ %d" % Progress.souls()
 	for s in slots:
-		var sd: Dictionary = Content.combat.spells[s.spell_id]
+		if s.spell_id == "":
+			continue
+		var sd: Dictionary = Progress.effective_spell(s.spell_id)
 		var pool: float = p.mana if sd.get("cost_type", "mana") == "mana" else p.stamina
 		s.update(float(p.cooldowns.get(s.spell_id, 0.0)), pool >= float(sd.get("cost", 0)))
 	# Boss im Kampf: großer Balken oben

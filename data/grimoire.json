@@ -1,0 +1,523 @@
+{
+ "_info": "Ainz' Fortschritt im Kampf: Seelen aus besiegten Gegnern, Zauberränge I–III, neue Zauber, Ringe (siehe scripts/autoload/progress.gd, scripts/ui/grimoire.gd).",
+ "souls": {
+  "per_hp": 0.04,
+  "min": 1,
+  "elite_mult": 2.0,
+  "elite_bonus": 8,
+  "boss_mult": 1.5,
+  "boss_bonus": 40,
+  "summoned_mult": 0.25,
+  "story_reward": 150
+ },
+ "rank_cost": {
+  "2": 120,
+  "3": 320
+ },
+ "rank_mult": {
+  "damage": [
+   1.0,
+   1.3,
+   1.65
+  ],
+  "cooldown": [
+   1.0,
+   0.88,
+   0.75
+  ],
+  "cost": [
+   1.0,
+   0.9,
+   0.8
+  ]
+ },
+ "styles": {
+  "ainz": [
+   "fireball",
+   "chain_lightning",
+   "shockwave",
+   "shield",
+   "hold",
+   "grasp_heart",
+   "negative_burst",
+   "create_death_knight",
+   "black_hole",
+   "reality_slash",
+   "fallen_down"
+  ],
+  "momon": [
+   "leap",
+   "whirl",
+   "sword_throw",
+   "unbreakable",
+   "earth_split"
+  ]
+ },
+ "spells": {
+  "fireball": {
+   "ranks": {
+    "2": {
+     "text": "Maximiert: mehr Schaden, schneller bereit"
+    },
+    "3": {
+     "text": "Dreifach maximiert: drei Feuerkugeln im Fächer",
+     "count": 3,
+     "spread": 22
+    }
+   }
+  },
+  "chain_lightning": {
+   "ranks": {
+    "2": {
+     "text": "Stärkere Entladung"
+    },
+    "3": {
+     "text": "Springt auf bis zu acht Ziele, weitere Sprünge",
+     "chains": 7,
+     "jump": 9.5
+    }
+   }
+  },
+  "shockwave": {
+   "ranks": {
+    "2": {
+     "text": "Weiter und wuchtiger",
+     "range": 7.5
+    },
+    "3": {
+     "text": "Betäubt alle Getroffenen kurz",
+     "range": 8.0,
+     "status": {
+      "stun": 1.2
+     },
+     "knockback": 13
+    }
+   }
+  },
+  "shield": {
+   "ranks": {
+    "2": {
+     "text": "Hält länger",
+     "duration": 20
+    },
+    "3": {
+     "text": "Zweite Schicht: fängt zwei Treffer ab",
+     "duration": 24,
+     "charges": 2
+    }
+   }
+  },
+  "hold": {
+   "ranks": {
+    "2": {
+     "text": "Längere Lähmung",
+     "status": {
+      "stun": 4.0
+     }
+    },
+    "3": {
+     "text": "Massenlähmung: bannt auch zwei Feinde nahe dem Ziel",
+     "status": {
+      "stun": 4.5
+     },
+     "area": 5.0,
+     "extra": 2
+    }
+   }
+  },
+  "grasp_heart": {
+   "ranks": {
+    "2": {
+     "text": "Mehr Schaden"
+    },
+    "3": {
+     "text": "Schneller gewirkt, kürzere Abklingzeit",
+     "cast": 0.8,
+     "cooldown": 14.0
+    }
+   }
+  },
+  "fallen_down": {
+   "ranks": {
+    "2": {
+     "text": "Gewaltigere Säule"
+    },
+    "3": {
+     "text": "Größerer Wirkungskreis",
+     "radius": 11.5,
+     "outer": 19.0
+    }
+   }
+  },
+  "negative_burst": {
+   "unlock": 150,
+   "ranks": {
+    "2": {
+     "text": "Größerer Umkreis",
+     "radius": 8.5
+    },
+    "3": {
+     "text": "Lähmt Überlebende",
+     "radius": 9.5,
+     "status": {
+      "stun": 1.5
+     }
+    }
+   }
+  },
+  "create_death_knight": {
+   "unlock": 220,
+   "ranks": {
+    "2": {
+     "text": "Bleibt länger",
+     "duration": 60
+    },
+    "3": {
+     "text": "Zwei Todesritter erheben sich",
+     "duration": 60,
+     "count": 2
+    }
+   }
+  },
+  "black_hole": {
+   "unlock": 300,
+   "requires": {
+    "chapter_min": 3
+   },
+   "ranks": {
+    "2": {
+     "text": "Stärkerer Sog",
+     "pull": 9.0
+    },
+    "3": {
+     "text": "Verschlingt länger und weiter",
+     "radius": 10.0,
+     "duration": 3.0,
+     "pull": 10.0
+    }
+   }
+  },
+  "reality_slash": {
+   "unlock": 420,
+   "requires": {
+    "chapter_min": 5
+   },
+   "ranks": {
+    "2": {
+     "text": "Längerer Schnitt",
+     "range": 24
+    },
+    "3": {
+     "text": "Zwei Schnitte im Kreuz",
+     "range": 26,
+     "cross": true
+    }
+   }
+  },
+  "leap": {
+   "ranks": {
+    "2": {
+     "text": "Weiterer Sprung",
+     "range": 8.5
+    },
+    "3": {
+     "text": "Gewaltiger Aufschlag",
+     "range": 9.0,
+     "radius": 4.5,
+     "knockback": 8
+    }
+   }
+  },
+  "whirl": {
+   "ranks": {
+    "2": {
+     "text": "Breiterer Wirbel",
+     "range": 4.2
+    },
+    "3": {
+     "text": "Doppelter Wirbel",
+     "range": 4.4,
+     "repeat": 2
+    }
+   }
+  },
+  "sword_throw": {
+   "ranks": {
+    "2": {
+     "text": "Härterer Wurf"
+    },
+    "3": {
+     "text": "Beide Großschwerter fliegen",
+     "count": 2,
+     "spread": 14
+    }
+   }
+  },
+  "unbreakable": {
+   "unlock": 140,
+   "ranks": {
+    "2": {
+     "text": "Hält länger",
+     "duration": 11
+    },
+    "3": {
+     "text": "Jeder Treffer stärkt Momon",
+     "duration": 12,
+     "armor": 90
+    }
+   }
+  },
+  "earth_split": {
+   "unlock": 180,
+   "ranks": {
+    "2": {
+     "text": "Längere Bruchlinie",
+     "range": 11.0
+    },
+    "3": {
+     "text": "Die Erde reißt weit auf",
+     "range": 13.0,
+     "arc": 50,
+     "status": {
+      "stun": 1.0
+     }
+    }
+   }
+  }
+ },
+ "ring_drop": {
+  "elite": 0.14,
+  "boss": 0.5
+ },
+ "ring_melt": {
+  "common": 20,
+  "rare": 45,
+  "epic": 90,
+  "legendary": 180,
+  "world": 400
+ },
+ "ring_effects": {
+  "dmg_all": "Schaden %+d %%",
+  "dmg_fire": "Feuerschaden %+d %%",
+  "dmg_lightning": "Blitzschaden %+d %%",
+  "dmg_negative": "Negativer Schaden %+d %%",
+  "dmg_melee": "Nahkampfschaden %+d %%",
+  "cdr": "Abklingzeiten −%d %%",
+  "mana_regen": "Mana-Erholung %+d %%",
+  "stamina_regen": "Ausdauer-Erholung %+d %%",
+  "max_hp": "Leben %+d",
+  "max_mana": "Mana %+d",
+  "armor": "Rüstung %+d",
+  "crit": "Kritische Treffer %+d %%",
+  "lifesteal": "Lebensraub %d %%",
+  "souls": "Seelen %+d %%",
+  "holy_resist": "Heiliger Schaden −%d %%",
+  "dodge_cost": "Ausweichen kostet −%d %% Ausdauer"
+ },
+ "rings": [
+  {
+   "id": "ring_iron_will",
+   "name": "Ring des Eisernen Willens",
+   "rarity": "common",
+   "icon": "◍",
+   "effects": {
+    "max_hp": 30
+   },
+   "desc": "Schlichter Eisenring, von einem Todesritter gefertigt."
+  },
+  {
+   "id": "ring_mana_spring",
+   "name": "Ring der Manaquelle",
+   "rarity": "common",
+   "icon": "◍",
+   "effects": {
+    "mana_regen": 0.25
+   },
+   "desc": "Ein blauer Stein, der leise summt."
+  },
+  {
+   "id": "ring_swift_hand",
+   "name": "Ring der flinken Hand",
+   "rarity": "common",
+   "icon": "◍",
+   "effects": {
+    "stamina_regen": 0.2
+   },
+   "desc": "Leicht wie eine Feder."
+  },
+  {
+   "id": "ring_flame",
+   "name": "Feuerring",
+   "rarity": "rare",
+   "icon": "◉",
+   "effects": {
+    "dmg_fire": 0.15
+   },
+   "desc": "Im Rubin tanzt eine winzige Flamme."
+  },
+  {
+   "id": "ring_storm",
+   "name": "Sturmring",
+   "rarity": "rare",
+   "icon": "◉",
+   "effects": {
+    "dmg_lightning": 0.15
+   },
+   "desc": "Knistert, wenn man ihn berührt."
+  },
+  {
+   "id": "ring_death",
+   "name": "Ring des Todes",
+   "rarity": "rare",
+   "icon": "◉",
+   "effects": {
+    "dmg_negative": 0.15
+   },
+   "desc": "Kalt wie ein Grab."
+  },
+  {
+   "id": "ring_bastion",
+   "name": "Ring der Bastion",
+   "rarity": "rare",
+   "icon": "◉",
+   "effects": {
+    "armor": 20
+   },
+   "desc": "Schwer, eckig, unverwüstlich."
+  },
+  {
+   "id": "ring_focus",
+   "name": "Ring der Sammlung",
+   "rarity": "epic",
+   "icon": "✦",
+   "effects": {
+    "cdr": 0.12
+   },
+   "desc": "Lässt die Gedanken klar werden – Zauber kehren schneller zurück."
+  },
+  {
+   "id": "ring_reaper",
+   "name": "Ring des Schnitters",
+   "rarity": "epic",
+   "icon": "✦",
+   "effects": {
+    "souls": 0.25,
+    "dmg_negative": 0.06
+   },
+   "desc": "Zieht die Seelen Gefallener an."
+  },
+  {
+   "id": "ring_blood",
+   "name": "Ring der Blutsauger",
+   "rarity": "epic",
+   "icon": "✦",
+   "effects": {
+    "lifesteal": 0.04
+   },
+   "desc": "Trinkt vom Schaden, den sein Träger anrichtet."
+  },
+  {
+   "id": "ring_archmage",
+   "name": "Ring des Erzmagiers",
+   "rarity": "legendary",
+   "icon": "❂",
+   "effects": {
+    "dmg_all": 0.12,
+    "max_mana": 40
+   },
+   "desc": "Getragen von einem der Einundvierzig – oder doch nur eine Kopie?"
+  },
+  {
+   "id": "ring_shooting_star",
+   "name": "Sternschnuppe",
+   "rarity": "world",
+   "icon": "✪",
+   "effects": {
+    "dmg_all": 0.18,
+    "cdr": 0.15,
+    "souls": 0.2
+   },
+   "desc": "Ein Ring, der Wünsche erfüllen kann. Ainz hat ihn mit realem Geld erworben – und bereut nichts."
+  },
+  {
+   "id": "ring_primal_flame",
+   "name": "Ring der Urflamme",
+   "rarity": "epic",
+   "icon": "✹",
+   "unique": true,
+   "effects": {
+    "dmg_fire": 0.2,
+    "mana_regen": 0.1
+   },
+   "desc": "Aus der Asche des Urfeuer-Elementars im Amphitheater geborgen."
+  },
+  {
+   "id": "ring_carne",
+   "name": "Siegel von Carne",
+   "rarity": "rare",
+   "icon": "❖",
+   "unique": true,
+   "effects": {
+    "max_hp": 45,
+    "souls": 0.1
+   },
+   "desc": "Ein schlichter Holzring – Nemus Geschenk. Wertvoller, als er aussieht."
+  },
+  {
+   "id": "ring_dominion",
+   "name": "Ring des Herrschaftsengels",
+   "rarity": "epic",
+   "icon": "☀",
+   "unique": true,
+   "effects": {
+    "holy_resist": 0.35,
+    "dmg_all": 0.06
+   },
+   "desc": "Aus dem Kristall, mit dem Nigun den Engel rief. Schützt den Untoten vor heiligem Licht."
+  },
+  {
+   "id": "ring_martial",
+   "name": "Ring der Kampfkünste",
+   "rarity": "epic",
+   "icon": "⚔",
+   "unique": true,
+   "effects": {
+    "crit": 0.06,
+    "dodge_cost": 0.2
+   },
+   "desc": "Clementines Fingerring. Flink, tückisch, tödlich."
+  },
+  {
+   "id": "ring_bloodfallen",
+   "name": "Blutroter Ring",
+   "rarity": "legendary",
+   "icon": "♥",
+   "unique": true,
+   "effects": {
+    "lifesteal": 0.05,
+    "dmg_melee": 0.08
+   },
+   "desc": "Ein Tropfen von Shalltears Blut, in Kristall gefasst."
+  },
+  {
+   "id": "ring_platinum",
+   "name": "Platinsiegel",
+   "rarity": "legendary",
+   "icon": "✧",
+   "unique": true,
+   "effects": {
+    "cdr": 0.12,
+    "armor": 15
+   },
+   "desc": "Ein Splitter der Platinrüstung – noch immer kühl wie Drachenatem."
+  }
+ ],
+ "story_rings": {
+  "sm_loyalty": "ring_primal_flame",
+  "sm_carne": "ring_carne",
+  "sm_nigun": "ring_dominion",
+  "sm_erantel": "ring_martial",
+  "sm_shalltear": "ring_bloodfallen",
+  "sm_platinum": "ring_platinum"
+ }
+}

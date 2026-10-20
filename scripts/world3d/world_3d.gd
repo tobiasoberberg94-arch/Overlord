@@ -55,6 +55,8 @@ func _ready() -> void:
 	player.struck.connect(_on_player_struck)
 	player.died.connect(func(_f): _on_player_died())
 	Enemy3D.spawner = spawn_enemy
+	Enemy3D.ally_spawner = spawn_ally
+	Progress.grimoire_changed.connect(_rebuild_spell_bar)
 	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
@@ -343,6 +345,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	match key.keycode:
 		KEY_ESCAPE: _pause_menu()
+		KEY_B: _open(Grimoire.new())
 		KEY_J:
 			var qj := QuestJournal.new()
 			qj.replay_requested.connect(func(mid: String): replay_story(mid))
@@ -752,11 +755,10 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 		CombatFX.slowmo(0.4, 0.32)
 		CombatFX.sound("kill_big", e.global_position + Vector3.UP, 0.8)
 	Progress.bump("enemies_slain")
-	if e.data.get("elite", false) and not e.data.get("noloot", false) and not memory:
-		if story != null:
-			story.loot.append(e.display_name)
-		else:
-			Progress.roll_loot("battle", "Bezwungen: " + e.display_name)
+	if not memory:
+		# Seelen fliegen zu Ainz, Eliten und Bosse lassen Beute zum Aufheben fallen
+		SoulOrbs.spawn(level, e.global_position + Vector3.UP * e.body_height * 0.6, player, Progress.souls_for(e.data, e.summoned))
+		_drop_loot(e)
 		Game.log_msg("%s bezwingt %s." % [Game.state.lord_name, e.display_name], "mission")
 	if e.data.get("respawn", false):
 		var id := e.type_id
@@ -768,6 +770,27 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 	if enemies.is_empty() and not e.data.get("respawn", false) and story == null:
 		toast("Die Gegend ist gesäubert.", Palette.SUCCESS)
 	_refresh_hud()
+
+
+## Beute eines Elite-Gegners oder Bosses: Artefakt für die Schatzkammer und/oder ein Ring für Ainz – als leuchtender
+## Fund am Boden, den Ainz im Vorbeigehen aufhebt.
+func _drop_loot(e: Enemy3D) -> void:
+	var boss: bool = e.data.get("boss", false)
+	if not (boss or e.data.get("elite", false)) or e.data.get("noloot", false) or e.summoned:
+		return
+	var drops: Array = []
+	var chance := float(Progress.data.loot_chance.get("battle", 0.3)) * (2.0 if boss else 1.0) + Progress.floor_value("loot")
+	if Game.rng.randf() < chance:
+		var iid := Progress.roll_item("common", 0.12 if boss else 0.0)
+		drops.append(["item", iid, String(Progress.item_def(iid).get("rarity", "common"))])
+	var rc := float(Progress.gcfg().get("ring_drop", {}).get("boss" if boss else "elite", 0.12))
+	if Game.rng.randf() < rc:
+		var rid := Progress.roll_ring()
+		if rid != "":
+			drops.append(["ring", rid, String(Progress.ring_def(rid).get("rarity", "common"))])
+	for i in drops.size():
+		var off := Vector3(cos(i * 2.4), 0.0, sin(i * 2.4)) * 1.4 if drops.size() > 1 else Vector3.ZERO
+		LootDrop.drop(level, e.global_position + off, drops[i][0], drops[i][1], drops[i][2], "Bezwungen: " + e.display_name)
 
 
 func _on_player_died() -> void:
@@ -860,25 +883,32 @@ func story_finished(m: StoryMission, key: String) -> void:
 	var title: String = String(m.def.get("title", "Story"))
 	if d.is_empty():
 		return
+	# „Selbst erleben“ ist erledigt: die Option verschwindet, ersetzte Antworten werden wieder normale Antworten
+	d.options = d.options.filter(func(o): return String(o.key) != "play")
+	for o in d.options:
+		o.erase("play")
 	var found := false
 	for o in d.options:
 		found = found or String(o.key) == key
-	if not found:
-		for o in d.options:
-			if not o.has("play"):
-				key = String(o.key)
-				break
-	var res := Game.respond(m.dispatch_uid, key)
-	_refresh_hud()
-	for n in m.loot:
-		Progress.roll_loot("battle", "Bezwungen: " + String(n))
+	if not found and not d.options.is_empty():
+		key = String(d.options[0].key)
+	# liegen gebliebene Beute einsammeln, dann der Lohn des Kapitel-Moments (Seelen, einzigartiger Ring)
+	for ld in get_tree().get_nodes_in_group("loot_drops"):
+		if is_instance_valid(ld):
+			ld.collect()
 	Progress.celebrate.emit({"kind": "achievement", "title": "Kapitel-Moment", "text": title, "sub": "Selbst erlebt", "icon": "⚜", "color": Palette.GOLD_BRIGHT})
-	var reaction: String = res.get("reaction", "")
-	if reaction != "":
-		var cid: String = String(d.get("char_id", ""))
-		_open(ChoiceMenu.new(title, reaction, [{"text": "Fortfahren", "action": func(): _open_next_dispatch(true), "style": "ButtonPrimary"}], 820, cid if cid != "" else "ainz"))
-	else:
+	Progress.story_reward(m.id)
+	# Die Depesche zeigt die Folgen der erspielten Wahl wie gewohnt: Reaktion (mit Farben) und Auswirkungen
+	var dlg: DispatchDialog = DispatchDialog.new(d)
+	dlg.closed.connect(func():
+		await get_tree().create_timer(0.15).timeout
 		_open_next_dispatch(true)
+		_refresh_hud())
+	_open(dlg)
+	await get_tree().process_frame
+	if is_instance_valid(dlg):
+		dlg._choose(key)
+	_refresh_hud()
 
 
 ## Erinnerung: einen erlebten Story-Einsatz erneut spielen – ohne Folgen, danach zurück an den Ausgangsort.

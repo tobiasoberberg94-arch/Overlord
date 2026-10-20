@@ -58,13 +58,13 @@ static func summon_undead(parent: Node, at: Vector3, col: Color = Color(0.55, 0.
 
 
 ## Negative Burst: eine Kugel negativer Energie dehnt sich bis `radius` aus und vergeht.
-static func negative_burst(parent: Node, at: Vector3, radius: float = 14.0) -> void:
+static func negative_burst(parent: Node, at: Vector3, radius: float = 14.0, sphere: float = 2.0) -> void:
 	var col := Color(0.62, 0.2, 1.0)
 	var m := SpellFX._mesh(parent, SpellFX._sphere(), SpellFX._dark_mat(), at + Vector3.UP, Vector3.ONE * 0.5)
 	m.set_instance_shader_parameter("rim_col", col)
 	m.set_instance_shader_parameter("energy", 4.0)
 	var tw := m.create_tween().set_parallel(true)
-	tw.tween_property(m, "scale", Vector3.ONE * radius * 2.0, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+	tw.tween_property(m, "scale", Vector3.ONE * radius * sphere, 0.9).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
 	tw.tween_method(func(v: float): m.set_instance_shader_parameter("fade", v), 1.0, 0.0, 1.0).set_delay(0.25)
 	tw.chain().tween_callback(m.queue_free)
 	SpellFX.distortion(parent, at + Vector3.UP, radius * 1.2, 0.08, 0.9)
@@ -233,7 +233,7 @@ static func mood(level: Node, kind: String) -> void:
 
 
 ## Schwarzes Loch: eine Kugel aus Finsternis verschlingt alles in ihrer Nähe und fällt in sich zusammen.
-static func black_hole(parent: Node, at: Vector3, radius: float = 3.0) -> void:
+static func black_hole(parent: Node, at: Vector3, radius: float = 3.0, hold: float = 0.9) -> void:
 	if parent == null or not CombatFX.enabled:
 		return
 	var col := Color(0.55, 0.2, 1.0)
@@ -242,7 +242,7 @@ static func black_hole(parent: Node, at: Vector3, radius: float = 3.0) -> void:
 	m.set_instance_shader_parameter("energy", 3.5)
 	var tw := m.create_tween()
 	tw.tween_property(m, "scale", Vector3.ONE * radius * 2.0, 0.45).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_interval(0.9)
+	tw.tween_interval(hold)
 	tw.tween_property(m, "scale", Vector3.ONE * 0.05, 0.35).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
 	tw.tween_callback(func():
 		CombatFX.burst(parent, "flash", at, col)

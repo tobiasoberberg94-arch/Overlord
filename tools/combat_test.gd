@@ -31,6 +31,7 @@ func _ready() -> void:
 	await _test_feel()
 	await _test_new_spells()
 	await _test_ai()
+	await _test_grimoire()
 	await _test_models()
 	print("KAMPFTEST: %s (%d Fehler)" % ["OK" if fails == 0 else "FEHLER", fails])
 	CombatFX.clear_caches()
@@ -208,7 +209,7 @@ func _test_momon() -> void:
 	_reset_player()
 	player.set_style("momon")
 	check(player.max_hp > 400 and player.armor > 50, "Momon: mehr Leben und Rüstung")
-	check(player.spells() == ["leap", "whirl", "sword_throw"], "Momon nutzt Techniken statt Zauber")
+	check(player.spells().slice(0, 3) == ["leap", "whirl", "sword_throw"] and player.spells().slice(3) == ["", "", ""], "Momon nutzt Techniken statt Zauber (übrige Tasten frei)")
 	var e := _enemy("golem", 5.0)
 	await _wait(0.2)
 	var hp0 := e.hp
@@ -344,6 +345,126 @@ func _test_new_spells() -> void:
 	await _wait(1.2)
 	check(t.hp < hp0, "Geworfenes Schwert trifft (%.0f)" % (hp0 - t.hp))
 	player.set_style("ainz")
+	await _clear()
+
+
+## Fortschritt: Seelen, Zauberränge mit Sonderwirkung, neue Zauber, Ringe, Beute zum Aufheben.
+func _test_grimoire() -> void:
+	print("Zauberbuch, Seelen und Ringe")
+	_reset_player()
+	player.set_style("ainz")
+	Game.state.chapter = 6
+	var s0 := Progress.souls()
+	Progress.add_souls(3000)
+	check(Progress.souls() == s0 + 3000, "Seelen gutgeschrieben")
+	var d1 := float(Progress.effective_spell("fireball").damage)
+	check(Progress.upgrade_spell("fireball"), "Feuerkugel auf Rang II")
+	var d2 := float(Progress.effective_spell("fireball").damage)
+	check(d2 > d1 * 1.25 and float(Progress.effective_spell("fireball").cooldown) < 0.9, "Rang II: mehr Schaden, kürzere Abklingzeit (%.0f → %.0f)" % [d1, d2])
+	check(Progress.upgrade_spell("fireball") and Progress.spell_rank("fireball") == 3, "Feuerkugel auf Rang III")
+	var t := _enemy("golem", 9.0)
+	await _wait(0.3)
+	player.toggle_lock()
+	player.mana = player.max_mana
+	var before := get_tree().get_nodes_in_group("projectiles").size()
+	check(player.cast("fireball"), "Dreifach maximierte Feuerkugel gewirkt")
+	await _wait(0.35)
+	var flying := 0
+	for n in find_children("*", "Projectile", true, false):
+		flying += 1
+	check(flying >= 3 or get_tree().get_nodes_in_group("projectiles").size() - before >= 3, "Drei Feuerkugeln im Fächer (%d)" % flying)
+	await _wait(1.2)
+	await _clear()
+	# neuer Zauber: Negative Burst auf Taste 4
+	_reset_player()
+	check(not Progress.spell_known("negative_burst") and Progress.unlock_spell("negative_burst"), "Negative Burst erlernt")
+	Progress.set_loadout("ainz", player.style_data.spells, 3, "negative_burst")
+	check(player.spells()[3] == "negative_burst", "Auf Taste 4 gelegt")
+	var a := _enemy("golem", 3.5)
+	var b := _enemy("golem", 4.5)
+	b.global_position.x = 2.5
+	await _wait(0.3)
+	player.mana = player.max_mana
+	var ha := a.hp
+	var hb := b.hp
+	check(player.cast("negative_burst"), "Negative Burst gewirkt")
+	await _wait(1.0)
+	check(a.hp < ha and b.hp < hb, "Trifft alles im Umkreis (%.0f / %.0f)" % [ha - a.hp, hb - b.hp])
+	await _clear()
+	# Todesritter beschwören
+	_reset_player()
+	check(Progress.unlock_spell("create_death_knight"), "Todesritter-Beschwörung erlernt")
+	player.mana = player.max_mana
+	check(player.cast("create_death_knight"), "Todesritter beschworen")
+	await _wait(1.4)
+	var dk := get_tree().get_nodes_in_group("allies").filter(func(o): return o.type_id == "death_knight_ally")
+	check(dk.size() == 1, "Ein Todesritter kämpft an Ainz' Seite")
+	for o in dk:
+		player._unsummon(o)
+	await _wait(0.7)
+	# Schwarzes Loch: zieht an und verschlingt
+	_reset_player()
+	check(Progress.unlock_spell("black_hole"), "Schwarzes Loch erlernt (ab Kapitel 3)")
+	var v := _enemy("golem", 10.0)
+	var v2 := _enemy("golem", 12.0)
+	v2.global_position.x = 4.0
+	await _wait(0.3)
+	player.toggle_lock()
+	player.mana = player.max_mana
+	var p0 := v2.global_position
+	check(player.cast("black_hole"), "Schwarzes Loch gewirkt")
+	await _wait(3.4)
+	check(v.hp < v.max_hp and v2.hp < v2.max_hp, "Verschlingt die Gegner (%.0f / %.0f)" % [v.max_hp - v.hp, v2.max_hp - v2.hp])
+	check(v2.global_position.distance_to(v.global_position) < p0.distance_to(v.global_position) - 0.5, "Sog zieht Gegner zur Mitte")
+	await _clear()
+	# Realitätsschnitt: unblockbar, trifft alles auf der Linie
+	_reset_player()
+	check(Progress.unlock_spell("reality_slash"), "Realitätsschnitt erlernt (ab Kapitel 5)")
+	var l1 := _enemy("golem", 6.0)
+	var l2 := _enemy("golem", 13.0)
+	var off := _enemy("golem", 8.0)
+	off.global_position.x = 6.0
+	await _wait(0.3)
+	player.mana = player.max_mana
+	check(player.cast("reality_slash"), "Realitätsschnitt gewirkt")
+	await _wait(0.9)
+	check(l1.hp < l1.max_hp and l2.hp < l2.max_hp and off.hp == off.max_hp, "Schneidet nur entlang der Linie")
+	await _clear()
+	# Ringe: Wirkungen auf Zauber und Werte
+	_reset_player()
+	var hp_before := player.max_hp
+	var f_before := float(Progress.effective_spell("fireball").damage)
+	Progress.grant_ring("ring_flame", "Test")
+	Progress.grant_ring("ring_iron_will", "Test")
+	check(Progress.ring_effect("dmg_fire") >= 0.15, "Feuerring angesteckt")
+	check(float(Progress.effective_spell("fireball").damage) > f_before * 1.1, "Feuerring verstärkt Feuerzauber")
+	check(player.max_hp >= hp_before + 29.0, "Ring des Eisernen Willens: mehr Leben (%.0f → %.0f)" % [hp_before, player.max_hp])
+	var uid := Progress.grant_ring("ring_storm", "Test")
+	Progress.grant_ring("ring_death", "Test")
+	var full: bool = Progress.gs().ring_slots.find("") < 0 and (Progress.gs().ring_slots as Array).size() == 3
+	check(full, "Höchstens drei Ringe zugleich")
+	var spare := ""
+	for e in Progress.rings():
+		if not String(e.uid) in Progress.gs().ring_slots:
+			spare = String(e.uid)
+	var sbefore := Progress.souls()
+	check(spare != "" and Progress.melt_ring(spare) > 0 and Progress.souls() > sbefore, "Überzähliger Ring zu Seelen eingeschmolzen")
+	check(Progress.grant_ring("ring_carne", "Test") != "" and Progress.grant_ring("ring_carne", "Test") == "", "Einzigartige Ringe nur einmal")
+	# Seelen fliegen zu Ainz, Beute wird aufgehoben
+	_reset_player()
+	var s1 := Progress.souls()
+	SoulOrbs.spawn(self, player.global_position + Vector3(0, 1, -6), player, 25)
+	await _wait(2.6)
+	check(Progress.souls() == s1 + 25, "Seelen-Lichter erreichen Ainz (+%d)" % (Progress.souls() - s1))
+	var rings0 := Progress.rings().size()
+	var drop := LootDrop.drop(self, player.global_position + Vector3(0, 0, -5), "ring", "ring_mana_spring", "common", "Test")
+	await _wait(0.8)
+	check(is_instance_valid(drop), "Beute liegt leuchtend am Boden")
+	player.global_position = drop.global_position + Vector3(0.5, 0.1, 0.5)
+	await _wait(0.6)
+	check(Progress.rings().size() == rings0 + 1, "Beute im Vorbeigehen aufgehoben")
+	check(Progress.souls_for(Content.combat.enemies.nigun) > Progress.souls_for(Content.combat.enemies.skeleton) * 10, "Bosse geben viel mehr Seelen als Fußvolk")
+	_reset_player()
 	await _clear()
 
 
