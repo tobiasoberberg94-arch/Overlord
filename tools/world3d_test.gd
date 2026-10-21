@@ -71,6 +71,14 @@ func _ready() -> void:
 		await _grimoire_test(w)
 		get_tree().quit()
 		return
+	if only == "bench":
+		await _bench(w)
+		get_tree().quit()
+		return
+	if only == "stageprobe":
+		await _stage_probe(w)
+		get_tree().quit()
+		return
 	if only == "anchors":
 		# Ankerpunkte und Draufsicht je Ort (für das Einrichten von Szenen-Bühnen)
 		for lid in OS.get_environment("ANCHORLOCS").split(",", false):
@@ -755,6 +763,114 @@ func _battle_test(w: Node) -> void:
 
 ## Story-Einsatz automatisch durchspielen: STORY=sm_… (STORYCHOICE=Index der Antwort, STORYSHOTS=jede n-te Zeile).
 ## Ainz ist unverwundbar, die Gegner verlieren laufend Leben (als kämpfte er), Wegpunkte werden angesprungen.
+## Freie, ebene Plätze für Story-Bühnen suchen (LOC=stageprobe STAGELOCS=sumpf,katze …): Raster um den Startpunkt,
+## je Punkt freier Radius (keine Kollision außer Boden bis 3 m Höhe), Steigung auf 10 m und Wasser; Bestenliste.
+func _stage_probe(w: Node) -> void:
+	for lid in OS.get_environment("STAGELOCS").split(",", false):
+		await w.load_location(lid)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var space: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+		var waters: Array = []
+		for mi in w.level.find_children("*", "MeshInstance3D", true, false):
+			var nm := String(mi.name).to_lower()
+			if nm.begins_with("water") or nm.contains("nocol_water"):
+				waters.append((mi as MeshInstance3D).global_transform * (mi as MeshInstance3D).get_aabb())
+		var ground := func(p: Vector3) -> Dictionary:
+			return space.intersect_ray(PhysicsRayQueryParameters3D.create(Vector3(p.x, p.y + 80.0, p.z), Vector3(p.x, p.y - 80.0, p.z), 1))
+		var spawn: Vector3 = w.anchors.spawn
+		var cands: Array = []
+		var span := int(OS.get_environment("STAGESPAN")) if OS.get_environment("STAGESPAN") != "" else 96
+		for gz in range(-span, span + 1, 4):
+			for gx in range(-span, span + 1, 4):
+				var p := spawn + Vector3(gx, 0, gz)
+				var hit: Dictionary = ground.call(p)
+				if hit.is_empty():
+					continue
+				var c: Vector3 = hit.position
+				var under := false
+				for wa in waters:
+					var a: AABB = wa
+					if c.x > a.position.x and c.x < a.end.x and c.z > a.position.z and c.z < a.end.z and c.y < a.end.y - 0.05:
+						under = true
+				if under:
+					continue
+				# Steigung: Höhen auf einem 10-m-Ring
+				var slope := 0.0
+				for k in 8:
+					var q := c + Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0)) * 10.0
+					var hq: Dictionary = ground.call(q)
+					slope = maxf(slope, absf(float(hq.position.y) - c.y) if not hq.is_empty() else 9.0)
+				if slope > 2.5:
+					continue
+				# freier Radius: Zylinder 0,6–3,6 m über dem Boden, Boden selbst ausgenommen
+				var free := 0.0
+				for r in [4.0, 7.0, 10.0, 13.0, 16.0, 20.0]:
+					var cyl := CylinderShape3D.new()
+					cyl.radius = r
+					cyl.height = 3.0
+					var qp := PhysicsShapeQueryParameters3D.new()
+					qp.shape = cyl
+					qp.transform = Transform3D(Basis(), c + Vector3(0, 0.6 + 1.5 + slope * 0.5, 0))
+					qp.exclude = [hit.rid]
+					qp.collision_mask = 0xFFFFFFFF
+					var res := space.intersect_shape(qp, 4)
+					var blocked := false
+					for hr in res:
+						if not (hr.collider is CharacterBody3D):
+							blocked = true
+					if blocked:
+						break
+					free = r
+				if free < 10.0:
+					continue
+				cands.append([free, slope, c, c.distance_to(spawn)])
+		cands.sort_custom(func(a, b): return a[0] * 10.0 - a[1] * 3.0 - a[3] * 0.02 > b[0] * 10.0 - b[1] * 3.0 - b[3] * 0.02)
+		print("STAGE %s · Start %s · %d Kandidaten" % [lid, spawn.snapped(Vector3(0.1, 0.1, 0.1)), cands.size()])
+		var marks: Array = []
+		var n := 0
+		for cd in cands.slice(0, 10):
+			n += 1
+			var c: Vector3 = cd[2]
+			print("STAGE   #%d frei %4.0f m · Steigung %4.1f m · Abstand Start %5.1f m · pos [%d, %d] (y %.1f)" % [n, cd[0], cd[1], cd[3], roundi(c.x), roundi(c.z), c.y])
+			if n <= 4:
+				var m := MeshInstance3D.new()
+				var cy := CylinderMesh.new()
+				cy.top_radius = 0.6
+				cy.bottom_radius = 0.6
+				cy.height = 12.0
+				m.mesh = cy
+				var mat := StandardMaterial3D.new()
+				mat.albedo_color = [Color.RED, Color.ORANGE, Color.YELLOW, Color.CYAN][n - 1]
+				mat.emission_enabled = true
+				mat.emission = mat.albedo_color
+				mat.emission_energy_multiplier = 3.0
+				mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+				m.material_override = mat
+				w.level.add_child(m)
+				m.global_position = c + Vector3(0, 6, 0)
+				marks.append(m)
+		if not cands.is_empty() and OS.get_environment("STAGESHOT") != "":
+			var cam := Camera3D.new()
+			cam.far = 3000.0
+			cam.fov = 70.0
+			w.add_child(cam)
+			var best: Vector3 = cands[0][2]
+			cam.look_at_from_position(best + Vector3(0, 70, 30), best)
+			cam.current = true
+			for cl in w.find_children("*", "CanvasLayer", true, false):
+				(cl as CanvasLayer).visible = false
+			await _wait(1.5)
+			_shot("stage_%s" % lid)
+			cam.queue_free()
+			w.player.camera.current = true
+			for cl in w.find_children("*", "CanvasLayer", true, false):
+				(cl as CanvasLayer).visible = true
+		for m in marks:
+			m.queue_free()
+
+
 func _story_test(w: Node) -> void:
 	var mid := OS.get_environment("STORY")
 	var pick := int(OS.get_environment("STORYCHOICE")) if OS.get_environment("STORYCHOICE") != "" else 0
@@ -977,6 +1093,379 @@ func _grimoire_test(w: Node) -> void:
 		_shot("grim_loot")
 	await _wait(2.0)
 	print("GRIMOIRE: Seelen %d, Ringe %d" % [Progress.souls(), Progress.rings().size()])
+
+
+## Leistungsmessung je Ort: 8 s aufwärmen (Shader, Streaming), dann 10 s messen, während die Kamera einmal rundum
+## schwenkt. Ohne VSync und Bildratenbegrenzung, sonst mit den Einstellungen des Spielers (Auflösung, FSR).
+##   LOC=bench BENCHLOCS=carne,e_rantel   (leer = alle Orte)
+func _bench(w: Node) -> void:
+	Engine.max_fps = 0
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	var vrid := get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(vrid, true)
+	if OS.get_environment("BENCHQ") != "":
+		Settings.graphics = int(OS.get_environment("BENCHQ"))
+		GraphicsQuality.apply_global()
+	var want: PackedStringArray = OS.get_environment("BENCHLOCS").split(",", false)
+	var locs: Array = []
+	for l in Content.locations:
+		if want.is_empty() or String(l.id) in want:
+			locs.append(String(l.id))
+	var vp_size := get_viewport().get_visible_rect().size
+	print("BENCH Fenster %dx%d · 3D-Skalierung %.2f (%s) · AA %d · Grafik %s" % [vp_size.x, vp_size.y, get_viewport().scaling_3d_scale,
+		"FSR2" if get_viewport().scaling_3d_mode == Viewport.SCALING_3D_MODE_FSR2 else "bilinear", Settings.antialias, GraphicsQuality.NAMES[GraphicsQuality.level()]])
+	var summary: Array = []
+	for lid in locs:
+		await w.load_location(lid)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		var p: Player3D = w.player
+		p.max_hp = 99999.0
+		p.hp = p.max_hp
+		if OS.get_environment("BENCHLEVELS") != "":
+			summary.append(await _bench_levels(w, vrid, lid))
+			continue
+		var y0 := p.cam_yaw
+		var t := 0.0
+		while t < 8.0:
+			await get_tree().process_frame
+			t += get_process_delta_time()
+			w.cinematic = true                 # Gegner ruhen (Animation läuft), keine Eingaben
+			p.cam_yaw = y0 + t / 8.0 * TAU
+		var frames: Array = []
+		var acc := {"cpu": 0.0, "gpu": 0.0, "setup": 0.0, "proc": 0.0, "phys": 0.0, "dc": 0.0, "dcs": 0.0, "obj": 0.0, "prim": 0.0}
+		t = 0.0
+		while t < 10.0:
+			await get_tree().process_frame
+			var dt := get_process_delta_time()
+			t += dt
+			frames.append(dt)
+			w.cinematic = true
+			p.cam_yaw = y0 + t / 10.0 * TAU
+			acc.cpu += RenderingServer.viewport_get_measured_render_time_cpu(vrid)
+			acc.gpu += RenderingServer.viewport_get_measured_render_time_gpu(vrid)
+			acc.setup += RenderingServer.get_frame_setup_time_cpu()
+			acc.proc += Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+			acc.phys += Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
+			acc.dc += RenderingServer.viewport_get_render_info(vrid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME)
+			acc.dcs += RenderingServer.viewport_get_render_info(vrid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_SHADOW, RenderingServer.VIEWPORT_RENDER_INFO_DRAW_CALLS_IN_FRAME)
+			acc.obj += RenderingServer.viewport_get_render_info(vrid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, RenderingServer.VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME)
+			acc.prim += RenderingServer.viewport_get_render_info(vrid, RenderingServer.VIEWPORT_RENDER_INFO_TYPE_VISIBLE, RenderingServer.VIEWPORT_RENDER_INFO_PRIMITIVES_IN_FRAME)
+		w.cinematic = false
+		var n := maxi(1, frames.size())
+		frames.sort()
+		var fps := n / maxf(t, 0.001)
+		var low := 1.0 / maxf(float(frames[mini(n - 1, int(n * 0.99))]), 0.0001)
+		var line := "BENCH %-17s FPS %5.1f (1%%-Tief %5.1f) | Render-CPU %5.1f ms · GPU %5.1f ms · Aufbau %4.1f · Skripte %4.1f · Physik %4.1f | Draw %5d + Schatten %5d · Objekte %5d · Dreiecke %5.1f M · VRAM %4d MB" % [
+			lid, fps, low, acc.cpu / n, acc.gpu / n, acc.setup / n, acc.proc / n, acc.phys / n, int(acc.dc / n), int(acc.dcs / n), int(acc.obj / n),
+			acc.prim / n / 1000000.0, int(Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576)]
+		print(line)
+		summary.append(line)
+		if OS.get_environment("BENCHSHOT") != "":
+			_shot("bench_" + lid)
+		if OS.get_environment("BENCHINFO") != "":
+			_geo_info(w)
+		if OS.get_environment("BENCHAB") != "":
+			await _bench_ab(w, vrid)
+		if OS.get_environment("BENCHOPT") != "":
+			await _bench_opt(w, vrid, lid)
+	print("BENCH fertig: %d Orte" % summary.size())
+
+
+## Grafikstufen nacheinander (BENCHLEVELS="2,1,0"): je Stufe dieselbe Kamerafahrt messen und ein Bild aus
+## derselben Blickrichtung speichern (BENCHSHOT) – zum Vergleich von Bildrate und Bildwirkung.
+func _bench_levels(w: Node, vrid: RID, lid: String) -> String:
+	var y0: float = w.player.cam_yaw
+	var levels := OS.get_environment("BENCHLEVELS").split(",", false)
+	var settle := func(secs: float) -> void:
+		var t0 := 0.0
+		while t0 < secs:                   # GI/SDFGI nach dem Umschalten einschwingen lassen
+			await get_tree().process_frame
+			t0 += get_process_delta_time()
+			w.cinematic = true
+			w.player.cam_yaw = y0
+	# 1) Bilder: Kamera bleibt stehen (gleiche Detailstufen, gleicher Schattenwurf) – nur die Stufe wechselt
+	if OS.get_environment("BENCHSHOT") != "":
+		# Zeit anhalten (Wind in Laub und Schatten, Animationen): sonst wandern die Lichtflecken zwischen den Bildern
+		Engine.time_scale = 0.0
+		var idx := 0
+		for lv in levels:
+			idx += 1
+			_bench_set_level(lv)
+			var t_end := Time.get_ticks_msec() + 4000
+			while Time.get_ticks_msec() < t_end:
+				await get_tree().process_frame
+				w.cinematic = true
+			_shot("q_%s_%d_%s" % [lid, idx, lv])
+		Engine.time_scale = 1.0
+	# 2) Messung: je Stufe dieselbe Kamerafahrt
+	var line := "BENCHQ %-17s" % lid
+	for lv in levels:
+		_bench_set_level(lv)
+		await settle.call(2.0)
+		var g := 0.0
+		var frames: Array = []
+		var tt := 0.0
+		while tt < 6.0:
+			await get_tree().process_frame
+			var dt := get_process_delta_time()
+			tt += dt
+			frames.append(dt)
+			w.cinematic = true
+			w.player.cam_yaw = y0 + tt / 6.0 * TAU
+			g += RenderingServer.viewport_get_measured_render_time_gpu(vrid)
+		var n := maxi(1, frames.size())
+		frames.sort()
+		var low := 1.0 / maxf(float(frames[mini(n - 1, int(n * 0.99))]), 0.0001)
+		line += " | %s: %5.1f FPS (1%% %5.1f) GPU %5.1f ms" % [GraphicsQuality.NAMES[int(lv)].get_slice(" ", 0), n / maxf(tt, 0.001), low, g / n]
+	w.cinematic = false
+	w.player.cam_yaw = y0
+	print(line)
+	return line
+
+
+## Stufe für den Vergleich setzen (wie in den Einstellungen).
+func _bench_set_level(lv: String) -> void:
+	Settings.graphics = int(lv)
+	GraphicsQuality._applied = -1
+	GraphicsQuality.apply_global()
+
+
+## Sparmaßnahmen nacheinander (kumulativ) einschalten und messen – immer dieselbe Kamerafahrt.
+func _bench_opt(w: Node, vrid: RID, lid: String) -> void:
+	var env: Environment = null
+	var sun: DirectionalLight3D = null
+	for c in w.level.get_children():
+		if c is WorldEnvironment:
+			env = (c as WorldEnvironment).environment
+		elif c is DirectionalLight3D and sun == null:
+			sun = c
+	var y0: float = w.player.cam_yaw
+	var measure := func() -> Array:
+		w.player.cam_yaw = y0
+		var t0 := 0.0
+		while t0 < 1.5:
+			await get_tree().process_frame
+			t0 += get_process_delta_time()
+			w.cinematic = true
+		var g := 0.0
+		var tt := 0.0
+		var n := 0
+		while tt < 5.0:
+			await get_tree().process_frame
+			tt += get_process_delta_time()
+			w.cinematic = true
+			w.player.cam_yaw = y0 + tt / 5.0 * TAU
+			g += RenderingServer.viewport_get_measured_render_time_gpu(vrid)
+			n += 1
+		return [g / maxi(1, n), n / maxf(tt, 0.001)]
+	var steps := [
+		["Grundlage", func(): pass],
+		["GI halbe Auflösung", func(): RenderingServer.gi_set_use_half_resolution(true)],
+		["SDFGI 8 Strahlen, Licht alle 8 Bilder", func():
+			RenderingServer.environment_set_sdfgi_ray_count(RenderingServer.ENV_SDFGI_RAY_COUNT_8)
+			RenderingServer.environment_set_sdfgi_frames_to_update_light(RenderingServer.ENV_SDFGI_UPDATE_LIGHT_IN_8_FRAMES)],
+		["PCF statt PCSS", func():
+			if sun:
+				sun.light_angular_distance = 0.0
+				sun.shadow_blur = 2.0],
+		["SSR 32 Schritte", func():
+			if env:
+				env.ssr_max_steps = 32],
+		["SSIL niedrig", func(): RenderingServer.environment_set_ssil_quality(RenderingServer.ENV_SSIL_QUALITY_LOW, true, 0.5, 2, 50.0, 300.0)],
+		["Nebel 48er-Raster", func(): RenderingServer.environment_set_volumetric_fog_volume_size(48, 48)],
+		["SSR aus", func():
+			if env:
+				env.ssr_enabled = false],
+	]
+	if OS.get_environment("BENCHSET") == "forest":
+		steps += [
+			["SDFGI ohne Verdeckung", func():
+				if env:
+					env.sdfgi_use_occlusion = false],
+			["SDFGI 3 Kaskaden", func():
+				if env:
+					env.sdfgi_cascades = 3],
+			["SDFGI Zelle 0.2", func():
+				if env:
+					env.sdfgi_min_cell_size = 0.2],
+			["Schatten bis 50 m", func():
+				if sun:
+					sun.directional_shadow_max_distance = 50.0],
+			["Volumennebel aus (Probe)", func():
+				if env:
+					env.volumetric_fog_enabled = false],
+		]
+	var base := 0.0
+	for st in steps:
+		(st[1] as Callable).call()
+		var r: Array = await measure.call()
+		if st[0] == "Grundlage":
+			base = r[0]
+		print("BENCHOPT %-14s + %-40s GPU %5.1f ms (%+5.1f) · FPS %5.1f" % [lid, st[0], r[0], float(r[0]) - base, r[1]])
+		if OS.get_environment("BENCHSHOT") != "":
+			w.player.cam_yaw = y0
+			await _wait(0.6)
+			_shot("opt_%s_%s" % [lid, String(st[0]).left(8).replace(" ", "_")])
+	# zurück auf die eingestellte Grafikstufe (für den nächsten Ort)
+	GraphicsQuality._applied = -1
+	GraphicsQuality.apply_global()
+	w.cinematic = false
+
+
+## Wohin gehen die Dreiecke? Sichtbare Instanzen × Dreiecke je Netz, gruppiert nach Herkunft (Bäume je LOD-Stufe, Gras …).
+func _geo_info(w: Node) -> void:
+	var tris := func(m: Mesh) -> int:
+		var n := 0
+		if m is ArrayMesh:
+			for s in m.get_surface_count():
+				var il: int = (m as ArrayMesh).surface_get_array_index_len(s)
+				n += (il if il > 0 else (m as ArrayMesh).surface_get_array_len(s)) / 3
+		elif m:
+			for s in m.get_surface_count():
+				var a := m.surface_get_arrays(s)
+				var idx: PackedInt32Array = a[Mesh.ARRAY_INDEX] if a[Mesh.ARRAY_INDEX] != null else PackedInt32Array()
+				n += (idx.size() if idx.size() > 0 else (a[Mesh.ARRAY_VERTEX] as PackedVector3Array).size()) / 3
+		return n
+	var cam := get_viewport().get_camera_3d()
+	var groups := {}
+	for mmi in w.level.find_children("*", "MultiMeshInstance3D", true, false):
+		var mm: MultiMesh = (mmi as MultiMeshInstance3D).multimesh
+		if mm == null or mm.mesh == null or not (mmi as Node3D).is_visible_in_tree():
+			continue
+		var vis := mm.visible_instance_count if mm.visible_instance_count >= 0 else mm.instance_count
+		var gi := mmi as GeometryInstance3D
+		if gi.visibility_range_end > 0.0 and cam and cam.global_position.distance_to(gi.global_transform * mm.get_aabb().get_center()) > gi.visibility_range_end + mm.get_aabb().size.length() * 0.5:
+			continue
+		var par: Node = mmi.get_parent()
+		var kind := "FoliageLod" if par is FoliageLod else ("Gras" if par is GrassField else ("Bodendetails" if par is DetailField or (par and par.get_parent() is DetailField) else String(mmi.name).get_slice("_", 0)))
+		if par is FoliageLod:
+			kind += " L%d" % (mmi.get_index() % 3)
+		var t: int = tris.call(mm.mesh)
+		var key := "%s · %s (%d Dr.)" % [kind, mm.mesh.resource_name if mm.mesh.resource_name != "" else str(mm.mesh.get_instance_id() % 10000), t]
+		if not groups.has(key):
+			groups[key] = [0, 0, 0, gi.cast_shadow != GeometryInstance3D.SHADOW_CASTING_SETTING_OFF]
+		groups[key][0] += vis
+		groups[key][1] += vis * t
+		groups[key][2] += 1
+	var keys := groups.keys()
+	keys.sort_custom(func(a, b): return groups[a][1] > groups[b][1])
+	var total := 0
+	for k in keys:
+		total += int(groups[k][1])
+	print("BENCHINFO Instanz-Dreiecke gesamt (vor Frustum-Culling): %.2f M" % (total / 1000000.0))
+	for k in keys.slice(0, 22):
+		print("BENCHINFO %-70s Inst %6d · %6.2f M Dr. · %3d Knoten%s" % [k, groups[k][0], groups[k][1] / 1000000.0, groups[k][2], " · Schatten" if groups[k][3] else ""])
+
+
+## GPU-Kosten einzelner Effekte: jeweils abschalten, kurz messen, wieder einschalten.
+func _bench_ab(w: Node, vrid: RID) -> void:
+	var env: Environment = null
+	var sun: DirectionalLight3D = null
+	for c in w.level.get_children():
+		if c is WorldEnvironment:
+			env = (c as WorldEnvironment).environment
+		elif c is DirectionalLight3D and sun == null:
+			sun = c
+	var y0: float = w.player.cam_yaw
+	var measure := func() -> Array:
+		var g := 0.0
+		var tt := 0.0
+		var n := 0
+		var t0 := 0.0
+		w.player.cam_yaw = y0
+		while t0 < 1.5:
+			await get_tree().process_frame
+			t0 += get_process_delta_time()
+			w.cinematic = true
+		while tt < 5.0:
+			await get_tree().process_frame
+			tt += get_process_delta_time()
+			w.cinematic = true
+			w.player.cam_yaw = y0 + tt / 5.0 * TAU
+			g += RenderingServer.viewport_get_measured_render_time_gpu(vrid)
+			n += 1
+		return [g / maxi(1, n), n / maxf(tt, 0.001)]
+	var base: Array = await measure.call()
+	print("BENCHAB   Grundlage        GPU %5.1f ms · FPS %5.1f" % [base[0], base[1]])
+	var hide := func(nodes: Array, on: bool) -> void:
+		for nd in nodes:
+			if is_instance_valid(nd):
+				nd.visible = on
+	var cases: Array = [
+		["SDFGI", func(on): env.sdfgi_enabled = on],
+		["SSIL", func(on): env.ssil_enabled = on],
+		["SSAO", func(on): env.ssao_enabled = on],
+		["SSR", func(on): env.ssr_enabled = on],
+		["Volumennebel", func(on): env.volumetric_fog_enabled = on],
+		["Glow", func(on): env.glow_enabled = on],
+		["Sonnenschatten", func(on): sun.shadow_enabled = on],
+		["Weiche Schatten", func(on): sun.light_angular_distance = 0.6 if on else 0.0],
+		["Gras", func(on): hide.call(w.level.find_children("*", "GrassField", true, false), on)],
+		["Streu-Laub", func(on): hide.call(w.level.find_children("*", "MultiMeshInstance3D", true, false).filter(func(m): return not m is GrassField and m.get_parent() and not m.get_parent() is GrassField), on)],
+		["Punktlichter", func(on): hide.call(w.level.find_children("*", "OmniLight3D", true, false) + w.level.find_children("*", "SpotLight3D", true, false), on)],
+		["Partikel", func(on): hide.call(w.level.find_children("*", "GPUParticles3D", true, false), on)],
+		["Bewohner", func(on): hide.call(w.level.find_children("Townsfolk", "", true, false), on)],
+	]
+	if OS.get_environment("BENCHSET") == "forest":
+		# Wald im Detail: welche Pflanzengruppe kostet im Bild bzw. im Schattendurchgang?
+		var shadows := func(nodes: Array, on: bool) -> void:
+			for nd in nodes:
+				if not is_instance_valid(nd) or not nd is GeometryInstance3D:
+					continue
+				if not on:
+					nd.set_meta("ab_cs", nd.cast_shadow)
+					nd.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				elif nd.has_meta("ab_cs"):
+					nd.cast_shadow = nd.get_meta("ab_cs")
+		var lod := func() -> Array: return w.level.find_children("FoliageLod", "", true, false)
+		var lod_mm := func() -> Array:
+			var r: Array = []
+			for f in w.level.find_children("FoliageLod", "", true, false):
+				r += f.get_children()
+			return r
+		var foto := func() -> Array: return w.level.find_children("foto_streu_*", "MultiMeshInstance3D", true, false)
+		var streu := func() -> Array: return w.level.find_children("mm_*", "MultiMeshInstance3D", true, false)
+		var inst := func() -> Array: return w.level.find_children("inst_*", "MultiMeshInstance3D", true, false)
+		var detail := func() -> Array: return w.level.find_children("*", "DetailField", true, false)
+		var detail_mm := func() -> Array:
+			var r: Array = []
+			for f in w.level.find_children("*", "DetailField", true, false):
+				r += f.find_children("*", "MultiMeshInstance3D", true, false)
+			return r
+		var meshes := func() -> Array: return w.level.find_children("*", "MeshInstance3D", true, false)
+		cases = [
+			["Bäume (LOD)", func(on): hide.call(lod.call(), on)],
+			["Baum-Schatten", func(on): shadows.call(lod_mm.call(), on)],
+			["Fotopflanzen", func(on): hide.call(foto.call(), on)],
+			["Fotopfl.-Schatten", func(on): shadows.call(foto.call(), on)],
+			["Streu mm_", func(on): hide.call(streu.call(), on)],
+			["Streu-Schatten", func(on): shadows.call(streu.call(), on)],
+			["inst_-Modelle", func(on): hide.call(inst.call(), on)],
+			["inst_-Schatten", func(on): shadows.call(inst.call(), on)],
+			["Bodendetails", func(on): hide.call(detail.call(), on)],
+			["Bodendet.-Schatten", func(on): shadows.call(detail_mm.call(), on)],
+			["Gras", func(on): hide.call(w.level.find_children("*", "GrassField", true, false), on)],
+			["Mesh-Schatten", func(on): shadows.call(meshes.call(), on)],
+			["Sonnenschatten", func(on): sun.shadow_enabled = on],
+			["Filter sehr niedrig", func(on): RenderingServer.directional_soft_shadow_filter_set_quality(RenderingServer.SHADOW_QUALITY_SOFT_LOW if on else RenderingServer.SHADOW_QUALITY_SOFT_VERY_LOW)],
+			["Schattenkarte 2048", func(on): RenderingServer.directional_shadow_atlas_set_size(4096 if on else 2048, true)],
+			["SDFGI", func(on): env.sdfgi_enabled = on],
+			["SSR", func(on): env.ssr_enabled = on],
+			["Volumennebel", func(on): env.volumetric_fog_enabled = on],
+		]
+	for cs in cases:
+		if (String(cs[0]) in ["SDFGI", "SSIL", "SSAO", "SSR", "Volumennebel", "Glow"] and env == null) or (String(cs[0]).ends_with("chatten") and sun == null):
+			continue
+		var f: Callable = cs[1]
+		var keep_ad := sun.light_angular_distance if sun else 0.0
+		f.call(false)
+		var r: Array = await measure.call()
+		f.call(true)
+		if cs[0] == "Weiche Schatten" and sun:
+			sun.light_angular_distance = keep_ad
+		print("BENCHAB   ohne %-19s GPU %5.1f ms (%+5.1f) · FPS %5.1f" % [cs[0], r[0], float(r[0]) - float(base[0]), r[1]])
+	w.cinematic = false
 
 
 func _wait(t: float) -> void:

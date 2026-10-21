@@ -29,6 +29,7 @@ var max_fps := 1
 var particles := true
 var antialias := 2
 var render_scale := -1                 ## -1 = beim ersten Start nach Bildschirmauflösung wählen
+var graphics := 1                      ## Grafikqualität (GraphicsQuality.NAMES): 0 Ausgewogen, 1 Hoch, 2 Ultra
 var ui_scale := 1.0
 # Spiel
 var text_speed := 1
@@ -65,7 +66,7 @@ func _keys() -> Array:
 	return [
 		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ui_sounds"],
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
-		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"],
+		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"], ["video", "graphics"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],
 		["game", "screen_shake"], ["game", "hitstop"],
 	]
@@ -107,6 +108,7 @@ func apply_all() -> void:
 	if get_tree() and get_tree().root:
 		get_tree().root.content_scale_factor = ui_scale
 		apply_viewport(get_tree().root)
+	GraphicsQuality.apply_global()
 
 
 ## Kantenglättung und Renderauflösung (FSR-Hochskalierung) für ein Viewport.

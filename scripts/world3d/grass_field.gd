@@ -12,6 +12,8 @@ const DENSITY := 10.0           ## Büschel je m² (nah)
 const FLOWERS := 0.35           ## Blumen je m²
 const BUILD_PER_FRAME := 1
 
+static var range_scale := 1.0     ## Reichweiten von dichtem und ausgedünntem Gras (GraphicsQuality)
+
 var _h: PackedFloat32Array      ## Höhe je Gitterpunkt
 var _m: PackedFloat32Array      ## Wegmaske je Gitterpunkt
 var _n := 0
@@ -31,6 +33,7 @@ var water_y := -INF               ## unter dem Wasserspiegel wächst kein Gras
 var _build_us := 0
 var _built := 0
 var _hnoise := FastNoiseLite.new()   ## großflächige Grashöhe: abgegraste Flächen, hohe Wiesenstücke
+var _far := FAR
 
 
 ## Baut ein Grasfeld für das Gelände `ground`; null, wenn kein passendes Gelände.
@@ -137,15 +140,17 @@ func _process(_delta: float) -> void:
 		return
 	var p := cam.global_position
 	var center := Vector2i(floori(p.x / CHUNK), floori(p.z / CHUNK))
-	if center != _last_center:
+	var far := FAR * range_scale
+	if center != _last_center or not is_equal_approx(far, _far):
 		_last_center = center
-		var r := int(ceil(FAR / CHUNK))
+		_far = far
+		var r := int(ceil(far / CHUNK))
 		var want := {}
 		for dz in range(-r, r + 1):
 			for dx in range(-r, r + 1):
 				var k := center + Vector2i(dx, dz)
 				var cpos := Vector2((k.x + 0.5) * CHUNK, (k.y + 0.5) * CHUNK)
-				if cpos.distance_to(Vector2(p.x, p.z)) > FAR + CHUNK * 0.7:
+				if cpos.distance_to(Vector2(p.x, p.z)) > far + CHUNK * 0.7:
 					continue
 				want[k] = true
 				if not _chunks.has(k) and not k in _queue:
@@ -172,7 +177,7 @@ func _process(_delta: float) -> void:
 		var c: Dictionary = _chunks[k]
 		var d := Vector2((k.x + 0.5) * CHUNK, (k.y + 0.5) * CHUNK).distance_to(Vector2(p.x, p.z))
 		var mmi: MultiMeshInstance3D = c.grass
-		var near := d < NEAR
+		var near := d < NEAR * range_scale
 		if near != bool(c.get("near", false)) or not c.has("near"):
 			c["near"] = near
 			mmi.multimesh.mesh = _mesh_near if near else _mesh_mid
@@ -234,7 +239,7 @@ func _build(k: Vector2i) -> void:
 			print("GRAS   Büschel bei %s, Boden (Strahl) %s, Maßstab %s" % [tp, rr.get("position", "kein Treffer"), xforms[j].basis.get_scale()])
 		print("GRAS Kachel %s: offen %d/%d Zellen, Büschel %d (Soll %d), Blumen %d" % [k, opened, cells * cells, xforms.size(), count, fl.size()])
 	var c := {}
-	c["grass"] = _mmi(_mesh_near, xforms)
+	c["grass"] = _mmi(_mesh_near, xforms, FAR * range_scale)
 	if not fl.is_empty():
 		c["flowers"] = _mmi(_mesh_flower, fl, 30.0)
 	_chunks[k] = c

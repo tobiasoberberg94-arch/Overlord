@@ -860,6 +860,7 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 		if sky_by_loc.has(String(_loc.get("id", ""))):
 			p2["hdri"] = sky_by_loc[_loc.id]
 		HdriSky.apply(env, sun, p2)
+	GraphicsQuality.tune(env, sun, String(_loc.get("kind", "")))
 
 
 static func is_forward_plus() -> bool:

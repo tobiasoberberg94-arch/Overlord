@@ -8,9 +8,12 @@ extends Node3D
 const UPDATE_EVERY := 0.25
 const MOVE_EPS := 2.5
 
+static var range_scale := 1.0  ## Entfernungen der Detailstufen (GraphicsQuality „Ausgewogen“: etwas früher ausdünnen)
+
 var _tiles: Array = []         ## {center, radius, items: Array[Transform3D], mm: [MultiMesh×3], ranges, level}
 var _last := Vector3(INF, INF, INF)
 var _t := 0.0
+var _scale := 1.0
 
 
 ## meshes: [lod0, lod1, lod2]; ranges: [[0, a], [a, b], [b, c]]
@@ -54,6 +57,11 @@ func _process(delta: float) -> void:
 	if cam == null:
 		return
 	var p := cam.global_position
+	if _scale != range_scale:
+		_scale = range_scale
+		_last = Vector3(INF, INF, INF)
+		for tile in _tiles:
+			tile.level = -2
 	if p.distance_to(_last) < MOVE_EPS:
 		return
 	_last = p
@@ -62,7 +70,8 @@ func _process(delta: float) -> void:
 
 
 func _update_tile(tile: Dictionary, p: Vector3) -> void:
-	var ranges: Array = tile.ranges
+	var base: Array = tile.ranges
+	var ranges: Array = [[0.0, base[0][1] * _scale], [0.0, base[1][1] * _scale], [0.0, base[2][1] * _scale]]
 	var d0: float = p.distance_to(tile.center) - tile.radius
 	var d1: float = p.distance_to(tile.center) + tile.radius
 	# ganze Kachel in einer Stufe (oder außer Sicht) → ohne Einzelprüfung

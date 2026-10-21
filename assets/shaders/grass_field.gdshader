@@ -31,7 +31,11 @@ void vertex() {
 	float t = TIME * 2.1 + origin.x * 0.37 + origin.z * 0.29 + COLOR.g * 6.28 + irnd * 6.28;
 	vec2 bend = vec2(0.8, 0.45) * gust * 1.4 + vec2(sin(t), cos(t * 0.8)) * 0.35;
 	bend *= wind * h * h;
-	VERTEX.xz += (inverse(mat3(MODEL_MATRIX)) * vec3(bend.x, 0.0, bend.y)).xz;
+	// Welt → Büschel: Drehung um die Hochachse mit Maßstab – statt inverse() je Vertex (teuer bei Millionen Halmen)
+	mat3 m3 = mat3(MODEL_MATRIX);
+	vec3 wb = vec3(bend.x, 0.0, bend.y);
+	VERTEX.x += dot(m3[0], wb) / max(dot(m3[0], m3[0]), 1e-4);
+	VERTEX.z += dot(m3[2], wb) / max(dot(m3[2], m3[2]), 1e-4);
 	VERTEX.y -= dot(bend, bend) * 0.6;
 	// zur Sichtgrenze hin einsinken
 	float d = distance(CAMERA_POSITION_WORLD, origin);
