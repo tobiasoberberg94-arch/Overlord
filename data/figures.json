@@ -538,6 +538,393 @@
   "dominion": {
    "special": "enemy:angel",
    "color": "#fff6d0"
+  },
+  "lizardman": {
+   "special": "lizard",
+   "skin": "#4f7a42",
+   "belly": "#a8b878",
+   "crest": "#2a4a2a",
+   "eyes": "#e8c040",
+   "bottom": [
+    "loin",
+    "#5a4028"
+   ],
+   "weapon": [
+    "spear",
+    "#8a8a90"
+   ]
+  },
+  "zaryusu": {
+   "special": "lizard",
+   "scale": 1.08,
+   "skin": "#3f7a52",
+   "belly": "#b0c080",
+   "crest": "#1a3a2a",
+   "eyes": "#f0d040",
+   "bottom": [
+    "loin",
+    "#4a3a28"
+   ],
+   "weapon": [
+    "frost_sword",
+    "#9fe0ff"
+   ]
+  },
+  "zenberu": {
+   "special": "lizard",
+   "scale": 1.2,
+   "skin": "#3a5a3a",
+   "belly": "#8a9a6a",
+   "crest": "#5a2a1a",
+   "eyes": "#e0a030",
+   "bottom": [
+    "loin",
+    "#3a2a1a"
+   ],
+   "big_arm": true
+  },
+  "crusch": {
+   "special": "lizard",
+   "scale": 0.98,
+   "skin": "#e4e8ea",
+   "belly": "#f6f6f2",
+   "crest": "#c04848",
+   "eyes": "#d83030",
+   "bottom": [
+    "loin",
+    "#8a3a2a"
+   ],
+   "weapon": [
+    "staff",
+    "#ff9090"
+   ]
+  },
+  "jaldabaoth": {
+   "model": "demiurge",
+   "mask": "#efe8dc"
+  },
+  "kingdom_soldier": {
+   "scale": 1.0,
+   "skin": "#d8b48e",
+   "hair": [
+    "#3a2a1a",
+    "short"
+   ],
+   "top": "#7a7e86",
+   "bottom": [
+    "pants",
+    "#3a3a42"
+   ],
+   "trim": "#5a1414",
+   "eyes": "#2a2a2a",
+   "armor": true,
+   "helmet": "#8a9098",
+   "tabard": "#7a1818",
+   "weapon": [
+    "spear",
+    "#c8c8d0"
+   ]
+  },
+  "kingdom_knight": {
+   "scale": 1.04,
+   "skin": "#e0bc98",
+   "hair": [
+    "#6a4a2a",
+    "short"
+   ],
+   "top": "#a8aeb8",
+   "bottom": [
+    "pants",
+    "#2a2a32"
+   ],
+   "trim": "#d4af37",
+   "eyes": "#2a2a2a",
+   "armor": true,
+   "helmet": "#c0c6d0",
+   "plume": "#2a3a8a",
+   "tabard": "#2a3a8a",
+   "cape": "#c0a040",
+   "weapon": [
+    "sword_shield",
+    "#d8d8e0"
+   ]
+  },
+  "gondo": {
+   "scale": 0.72,
+   "skin": "#d8a888",
+   "hair": [
+    "#8a4a20",
+    "short"
+   ],
+   "beard": "#8a4a20",
+   "top": "#6a4a2a",
+   "bottom": [
+    "pants",
+    "#3a2a1a"
+   ],
+   "trim": "#c87a2a",
+   "apron": true,
+   "eyes": "#3a2a1a",
+   "weapon": [
+    "hammer",
+    "#8a8a90"
+   ]
+  },
+  "child": {
+   "scale": 0.62,
+   "skin": "#ecd2b6",
+   "hair": [
+    "#5a3a1a",
+    "short"
+   ],
+   "top": "#8a7a5a",
+   "bottom": [
+    "pants",
+    "#4a4030"
+   ],
+   "trim": "#6a5a3a",
+   "eyes": "#3a2a1a"
+  },
+  "paladin": {
+   "scale": 1.04,
+   "skin": "#e0bc98",
+   "hair": [
+    "#6a4a2a",
+    "short"
+   ],
+   "top": "#c8ccd4",
+   "bottom": [
+    "pants",
+    "#5a5e68"
+   ],
+   "trim": "#d4af37",
+   "eyes": "#2a2a2a",
+   "armor": true,
+   "helmet": "#d8dce4",
+   "tabard": "#f0ece4",
+   "cape": "#e8e4dc",
+   "weapon": [
+    "sword_shield",
+    "#e0e0e8"
+   ]
+  },
+  "bafolk": {
+   "scale": 1.06,
+   "skin": "#8a6a52",
+   "hair": [
+    "#3a2a1a",
+    "bald"
+   ],
+   "beard": "#3a2a1a",
+   "horns": "#d8c8a0",
+   "top": "#5a4030",
+   "bottom": [
+    "pants",
+    "#3a2a1a"
+   ],
+   "trim": "#8a6a3a",
+   "eyes": "#e0a030",
+   "weapon": [
+    "axe",
+    "#9a9a9a"
+   ]
+  },
+  "bafolk_warlord": {
+   "scale": 1.25,
+   "skin": "#7a5a42",
+   "hair": [
+    "#2a1a0a",
+    "bald"
+   ],
+   "beard": "#2a1a0a",
+   "horns": "#e8d8b0",
+   "top": "#4a3020",
+   "bottom": [
+    "pants",
+    "#2a1a0a"
+   ],
+   "trim": "#c08040",
+   "eyes": "#ff8a20",
+   "armor": true,
+   "cape": "#5a1a0a",
+   "weapon": [
+    "axe",
+    "#b0b0b0"
+   ]
+  },
+  "decem": {
+   "scale": 1.06,
+   "skin": "#f2e2d0",
+   "hair": [
+    "#e8e8f0",
+    "long"
+   ],
+   "top": "#2a5a3a",
+   "bottom": [
+    "robe",
+    "#1a3a2a"
+   ],
+   "trim": "#d4af37",
+   "eyes": "#6ad890",
+   "ears": true,
+   "crown": true,
+   "cape": "#1a4a2a",
+   "weapon": [
+    "sword",
+    "#d8e8e0"
+   ]
+  },
+  "elf_guard": {
+   "scale": 1.0,
+   "skin": "#f0dcc8",
+   "hair": [
+    "#d8c070",
+    "long"
+   ],
+   "top": "#3a6a3a",
+   "bottom": [
+    "pants",
+    "#2a4a2a"
+   ],
+   "trim": "#a0c070",
+   "eyes": "#3a7a4a",
+   "ears": true,
+   "armor": true,
+   "weapon": [
+    "spear",
+    "#c8d0c8"
+   ]
+  },
+  "theo_knight": {
+   "scale": 1.04,
+   "skin": "#e0c8a8",
+   "hair": [
+    "#2a2a2a",
+    "short"
+   ],
+   "top": "#d8dce4",
+   "bottom": [
+    "pants",
+    "#3a3a48"
+   ],
+   "trim": "#c8a848",
+   "eyes": "#2a2a2a",
+   "armor": true,
+   "helmet": "#e8ecf4",
+   "plume": "#1a1a2a",
+   "tabard": "#1a1a2a",
+   "cape": "#1a1a2a",
+   "weapon": [
+    "sword",
+    "#e8e8f0"
+   ]
+  },
+  "lizard_shaman": {
+   "special": "lizard",
+   "scale": 1.0,
+   "skin": "#4a6a52",
+   "belly": "#a0b090",
+   "crest": "#6a2a6a",
+   "eyes": "#e8d060",
+   "bottom": [
+    "loin",
+    "#4a3060"
+   ],
+   "weapon": [
+    "staff",
+    "#9fe070"
+   ]
+  },
+  "quagoa": {
+   "special": "lizard",
+   "scale": 0.95,
+   "skin": "#6a5e52",
+   "belly": "#8a7a6a",
+   "crest": "#3a3028",
+   "eyes": "#c84030",
+   "spikes": false,
+   "tail": false,
+   "snout": 0.55,
+   "round_ears": true,
+   "claws": 2.2,
+   "bottom": [
+    "loin",
+    "#3a3028"
+   ]
+  },
+  "quagoa_elite": {
+   "special": "lizard",
+   "scale": 1.12,
+   "skin": "#4a4a52",
+   "belly": "#6a6a72",
+   "crest": "#2a2a30",
+   "eyes": "#e05030",
+   "spikes": false,
+   "tail": false,
+   "snout": 0.55,
+   "round_ears": true,
+   "claws": 2.6,
+   "bottom": [
+    "loin",
+    "#5a2a1a"
+   ]
+  },
+  "pe_riyuro": {
+   "special": "lizard",
+   "scale": 1.45,
+   "skin": "#3a4a6a",
+   "belly": "#5a6a8a",
+   "crest": "#1a2030",
+   "eyes": "#ffb040",
+   "spikes": false,
+   "tail": false,
+   "snout": 0.6,
+   "round_ears": true,
+   "claws": 3.0,
+   "bottom": [
+    "loin",
+    "#8a6a2a"
+   ]
+  },
+  "elf_warrior": {
+   "scale": 0.98,
+   "skin": "#f0dcc8",
+   "hair": [
+    "#d8c070",
+    "long"
+   ],
+   "top": "#4a7a3a",
+   "bottom": [
+    "pants",
+    "#2a4a2a"
+   ],
+   "trim": "#a0c070",
+   "eyes": "#3a7a4a",
+   "ears": true,
+   "weapon": [
+    "sword",
+    "#c8d8c8"
+   ]
+  },
+  "elf_archer": {
+   "scale": 0.95,
+   "skin": "#f0dcc8",
+   "hair": [
+    "#e8d8a0",
+    "ponytail"
+   ],
+   "top": "#5a7a3a",
+   "bottom": [
+    "pants",
+    "#2a3a2a"
+   ],
+   "trim": "#c0d080",
+   "eyes": "#3a7a4a",
+   "ears": true,
+   "weapon": [
+    "bow",
+    "#5a3a20"
+   ]
   }
  }
 }

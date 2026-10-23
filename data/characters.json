@@ -1332,5 +1332,117 @@
   "color": "#fff6d0",
   "accent": "#5a4a2a",
   "npc": true
+ },
+ "zaryusu": {
+  "name": "Zaryusu Shasha",
+  "title": "Krieger der Grünen Klaue",
+  "color": "#5faa72",
+  "accent": "#1a3a2a",
+  "npc": true
+ },
+ "zenberu": {
+  "name": "Zenberu Gugu",
+  "title": "Häuptling der Drachenzähne",
+  "color": "#7a9a5a",
+  "accent": "#1a2a1a",
+  "npc": true
+ },
+ "crusch": {
+  "name": "Crusch Lulu",
+  "title": "Häuptling der Roten Augen",
+  "color": "#e8ecef",
+  "accent": "#7a2a2a",
+  "npc": true
+ },
+ "lizardman": {
+  "name": "Echsenkrieger",
+  "title": "Krieger der Stämme",
+  "color": "#5f8a52",
+  "accent": "#1a2a1a",
+  "npc": true
+ },
+ "jaldabaoth": {
+  "name": "Jaldabaoth",
+  "title": "Der Dämonenkaiser",
+  "color": "#ff5020",
+  "accent": "#2a0a06",
+  "npc": true
+ },
+ "gondo": {
+  "name": "Gondo Feuerbart",
+  "title": "Der letzte Runenschmied",
+  "color": "#c87a2a",
+  "accent": "#3a2a1a",
+  "npc": true
+ },
+ "pe_riyuro": {
+  "name": "Pe Riyuro",
+  "title": "Herr der Quagoa-Klans",
+  "color": "#c8a070",
+  "accent": "#3a3028",
+  "npc": true
+ },
+ "child": {
+  "name": "Kind",
+  "title": "Flüchtling aus Kalinsha",
+  "color": "#d8b890",
+  "accent": "#4a3a2a",
+  "npc": true
+ },
+ "paladin": {
+  "name": "Paladin",
+  "title": "Orden des Heiligen Königreichs",
+  "color": "#e8e4dc",
+  "accent": "#5a4a2a",
+  "npc": true
+ },
+ "bafolk": {
+  "name": "Bafolk",
+  "title": "Halbmensch aus Jaldabaoths Heer",
+  "color": "#a07040",
+  "accent": "#2a1a0a",
+  "npc": true
+ },
+ "bafolk_warlord": {
+  "name": "Kriegsfürst der Bafolk",
+  "title": "Heerführer der Halbmenschen",
+  "color": "#c08040",
+  "accent": "#2a1a0a",
+  "npc": true
+ },
+ "decem": {
+  "name": "Decem Hougan",
+  "title": "König der Elfen",
+  "color": "#6ad890",
+  "accent": "#1a3a2a",
+  "npc": true
+ },
+ "elf_guard": {
+  "name": "Leibwache",
+  "title": "Elfen des Königs",
+  "color": "#7ad890",
+  "accent": "#1a3a2a",
+  "npc": true
+ },
+ "theo_knight": {
+  "name": "Ritter der Schwarzen Schrift",
+  "title": "Slane-Theokratie",
+  "color": "#e8e8f0",
+  "accent": "#2a2a3a",
+  "npc": true
+ },
+ "kingdom_soldier": {
+  "name": "Soldat",
+  "title": "Heer von Re-Estize",
+  "color": "#8a2020",
+  "accent": "#2a0a0a",
+  "npc": true
+ },
+ "kingdom_knight": {
+  "name": "Ritter",
+  "title": "Adelshaus von Re-Estize",
+  "color": "#c0a040",
+  "accent": "#2a200a",
+  "npc": true
  }
 }

@@ -90,9 +90,10 @@ func _ready() -> void:
 
 func _make_standee(cid: String, variant: String, _height: float) -> void:
 	# 3D-Figur: echtes Modell (assets/models/characters/<id>.glb) oder prozedurale Gestalt
-	rig = CharacterRig.create(cid, func(r): ProcModel.figure(r, cid))
+	rig = CharacterRig.create(ProcModel.model_of(cid), func(r): ProcModel.figure(r, cid))
 	rig.position.y = 0.13
 	add_child(rig)
+	ProcModel.accessories(rig, cid)
 	mood = variant
 	# Stimmung als farbiges Licht (verliebt, wütend, traurig)
 	var mc: Variant = {"love": Color(1, 0.4, 0.7), "angry": Color(1, 0.15, 0.1), "sad": Color(0.3, 0.5, 1.0)}.get(variant)

@@ -201,7 +201,10 @@ static func _humanoid(r: CharacterRig, kind: String, color: Color, weapon: Strin
 			main = B3.mat(Color(0.08, 0.06, 0.1), 0.35, 0.8)
 			skin = B3.mat(Color(0.85, 0.82, 0.72), 0.7)
 		"angel":
-			main = B3.mat(Color(1, 0.97, 0.88), 0.3, 0.2, Color(1, 0.9, 0.6), 0.4)
+			if color.get_luminance() < 0.3:
+				main = B3.mat(Color(0.07, 0.04, 0.09), 0.3, 0.4, Color(0.35, 0.08, 0.5), 0.35)
+			else:
+				main = B3.mat(Color(1, 0.97, 0.88), 0.3, 0.2, Color(1, 0.9, 0.6), 0.4)
 			skin = main
 		_:
 			main = B3.mat(color, 0.4, 0.6)
@@ -223,13 +226,14 @@ static func _humanoid(r: CharacterRig, kind: String, color: Color, weapon: Strin
 		B3.box(torso, Vector3(0.3, 0.32, 0.32), Vector3(0, 1.0, 0), B3.mat(Color(0.7, 0.72, 0.78), 0.3, 0.9), false)
 		B3.box(torso, Vector3(0.4, 0.55, 0.04), Vector3(0, 0.38, 0.2), B3.mat(color.darkened(0.4), 0.9), false)
 	if kind == "angel":
+		var fallen := color.get_luminance() < 0.3
 		var halo := TorusMesh.new()
 		halo.inner_radius = 0.18
 		halo.outer_radius = 0.23
-		B3.mesh(torso, halo, Vector3(0, 1.28, 0) * sc, B3.mat(Color(1, 0.9, 0.5), 1, 0, Color(1, 0.85, 0.4), 4))
+		B3.mesh(torso, halo, Vector3(0, 1.28, 0) * sc, B3.mat(Color(0.6, 0.05, 0.1), 1, 0, Color(0.9, 0.08, 0.15), 4) if fallen else B3.mat(Color(1, 0.9, 0.5), 1, 0, Color(1, 0.85, 0.4), 4))
 		# Flügel aus gefächerten Schwungfedern (außen länger) und Deckfedern am Ansatz, leicht nach hinten gelegt
-		var wing_mat := B3.mat(Color(1, 0.98, 0.93), 0.55, 0.0, Color(1, 0.93, 0.75), 0.9)
-		var cover_mat := B3.mat(Color(1, 0.96, 0.88), 0.6, 0.0, Color(1, 0.9, 0.7), 0.6)
+		var wing_mat := B3.mat(Color(0.05, 0.03, 0.06), 0.45, 0.0, Color(0.3, 0.05, 0.45), 0.5) if fallen else B3.mat(Color(1, 0.98, 0.93), 0.55, 0.0, Color(1, 0.93, 0.75), 0.9)
+		var cover_mat := B3.mat(Color(0.08, 0.05, 0.09), 0.5, 0.0, Color(0.25, 0.04, 0.35), 0.4) if fallen else B3.mat(Color(1, 0.96, 0.88), 0.6, 0.0, Color(1, 0.9, 0.7), 0.6)
 		for s in [-1.0, 1.0]:
 			var wing := Node3D.new()
 			wing.position = Vector3(0.15 * s, 0.66, -0.2) * sc
@@ -266,6 +270,16 @@ static func _humanoid(r: CharacterRig, kind: String, color: Color, weapon: Strin
 		var st := staff(color.lightened(0.3))
 		st.position = Vector3(0, -0.74, 0.06) * sc
 		p.arm_r.add_child(st)
+		return
+	var wood := B3.mat(Color(0.34, 0.24, 0.14), 0.7)
+	if weapon == "spear":
+		B3.cyl(w, 0.022, 0.022, 2.3 * sc, Vector3(0, 0.55, 0) * sc, wood, false, 6)
+		B3.cone(w, 0.05 * sc, 0.3 * sc, Vector3(0, 1.85, 0) * sc, steel)
+		return
+	if weapon == "axe":
+		B3.cyl(w, 0.026, 0.026, 1.05 * sc, Vector3(0, 0.45, 0) * sc, wood, false, 6)
+		B3.box(w, Vector3(0.05, 0.32, 0.34) * sc, Vector3(0, 0.88, 0.13) * sc, steel, false)
+		B3.box(w, Vector3(0.04, 0.12, 0.12) * sc, Vector3(0, 0.88, -0.08) * sc, steel, false)
 		return
 	match kind:
 		"death_knight":
@@ -345,6 +359,49 @@ static func figure_spec(cid: String) -> Dictionary:
 	return _figures.get(cid, {})
 
 
+## Modell einer Figur: "model" in data/figures.json (z. B. Jaldabaoth = Demiurges Modell), sonst die ID selbst.
+static func model_of(cid: String) -> String:
+	return String(figure_spec(cid).get("model", cid))
+
+
+## Zubehör, das auch an echten Modellen hängt (figures.json): "mask" = Farbe der Maske (Jaldabaoth).
+static func accessories(r: CharacterRig, cid: String) -> void:
+	var f := figure_spec(cid)
+	if not f.has("mask"):
+		return
+	var mask := _mask(_c(f.mask))
+	if r.has_model:
+		var put := func() -> void:
+			if r.attach_to_bone("mixamorig_Head", mask):
+				mask.position = Vector3(0, 0.1, 0.085)
+			else:
+				mask.queue_free()
+		if r.is_inside_tree():
+			put.call()
+		else:
+			r.tree_entered.connect(put, CONNECT_ONE_SHOT)
+	elif r.parts.has("head"):
+		(r.parts.head as Node3D).add_child(mask)
+		mask.position = Vector3(0, 0.0, 0.1)
+
+
+## Dämonenmaske: blasse Porzellanplatte mit schmalen Augenschlitzen, Goldrand und zwei kleinen Hörnern.
+static func _mask(col: Color) -> Node3D:
+	var m := Node3D.new()
+	m.name = "mask"
+	var plate := B3.mat(col, 0.25, 0.1)
+	var dark := B3.mat(Color(0.03, 0.01, 0.02), 0.6)
+	var gold := B3.mat(Color(0.85, 0.65, 0.25), 0.25, 1.0)
+	B3.sphere(m, 0.5, Vector3.ZERO, plate, Vector3(0.17, 0.22, 0.07))
+	for s in [-1.0, 1.0]:
+		B3.box(m, Vector3(0.055, 0.012, 0.02), Vector3(0.042 * s, 0.025, 0.032), dark, false, Vector3(0, 0, -14 * s))
+		B3.box(m, Vector3(0.006, 0.17, 0.008), Vector3(0.082 * s, -0.005, 0.012), gold, false, Vector3(0, 0, 8 * s))
+		B3.cone(m, 0.012, 0.07, Vector3(0.05 * s, 0.11, -0.01), gold).rotation_degrees = Vector3(-20, 0, -25 * s)
+	B3.box(m, Vector3(0.11, 0.006, 0.008), Vector3(0, 0.105, 0.016), gold, false)
+	B3.box(m, Vector3(0.03, 0.005, 0.01), Vector3(0, -0.06, 0.034), dark, false)
+	return m
+
+
 ## Baut die Figur zu einer Charakter-ID (Fallback: neutrale Gestalt in der Charakterfarbe).
 static func figure(r: CharacterRig, cid: String) -> void:
 	var f := figure_spec(cid)
@@ -366,6 +423,7 @@ static func figure(r: CharacterRig, cid: String) -> void:
 		"victim": _victim(r)
 		"neuronist": _neuronist(r, Color(f.color))
 		"armor": _platinum(r, Color(f.color))
+		"lizard": _lizardman(r, f)
 		_:
 			if f.is_empty():
 				f = {"skin": "#e8d0c0", "hair": ["#2a2a2a", "short"], "top": Content.char_color(cid).to_html(), "bottom": ["pants", "#2a2a2a"], "trim": "#d4af37"}
@@ -374,6 +432,101 @@ static func figure(r: CharacterRig, cid: String) -> void:
 
 static func _c(v: Variant, fallback: String = "#888888") -> Color:
 	return Color(str(v)) if v != null and str(v) != "" else Color(fallback)
+
+
+## Echsenmensch (Sümpfe): geschuppte Haut mit hellem Bauch, Schnauze mit Kiefer und Nüstern, Bernsteinaugen,
+## Rückenkamm, Krallen an Händen und Füßen und ein langer Schwanz. figures.json: "skin", "belly", "crest", "eyes",
+## "bottom" (Lendenschurz), "weapon", "big_arm" (Zenberus gewaltiger Arm), "scale".
+static func _lizardman(r: CharacterRig, f: Dictionary) -> void:
+	var sc := float(f.get("scale", 1.05))
+	var p := _skeleton(r, sc)
+	var sk := _c(f.get("skin"), "#4f7a42")
+	var skin := B3.noise_mat(sk.darkened(0.3), sk.lightened(0.12), 0.22, 0.5, Color.BLACK, 4.0)
+	var belly := B3.noise_mat(_c(f.get("belly"), "#a8b878").darkened(0.15), _c(f.get("belly"), "#a8b878"), 0.18, 0.6, Color.BLACK, 3.0)
+	var crest := B3.mat(_c(f.get("crest"), "#2a4a2a"), 0.5)
+	var claw := B3.mat(Color(0.12, 0.1, 0.08), 0.35)
+	var spikes: bool = f.get("spikes", true)
+	var snout := float(f.get("snout", 1.0))
+	var claws := float(f.get("claws", 1.0))
+	var body: Node3D = p.body
+	var torso: Node3D = p.torso
+	torso.rotation_degrees.x = 8.0                       # leicht vorgebeugt
+	# Rumpf: kräftiger Brustkorb, heller Bauch, Schultern
+	B3.sphere(torso, 0.5, Vector3(0, 0.36, 0) * sc, skin, Vector3(0.5, 0.66, 0.36) * sc)
+	B3.sphere(torso, 0.5, Vector3(0, 0.3, 0.07) * sc, belly, Vector3(0.36, 0.54, 0.26) * sc)
+	for s in [-1.0, 1.0]:
+		B3.sphere(torso, 0.12 * sc, Vector3(0.26 * s, 0.6, 0) * sc, skin)
+	B3.sphere(body, 0.5, Vector3(0, 0.02, 0) * sc, skin, Vector3(0.42, 0.3, 0.32) * sc)
+	# Rückenkamm
+	for i in (6 if spikes else 0):
+		var t := i / 5.0
+		var spike := B3.cone(torso, 0.035 * sc, (0.16 - t * 0.07) * sc, Vector3(0, (0.72 - t * 0.6), -0.17 + t * 0.02) * sc, crest)
+		spike.rotation_degrees.x = -35.0
+	# Hals und Kopf mit Schnauze
+	_limb_to(torso, Vector3(0, 0.66, 0.02) * sc, Vector3(0, 0.84, 0.07) * sc, 0.08 * sc, 0.07 * sc, skin)
+	var head := Node3D.new()
+	head.position = Vector3(0, 0.9, 0.08) * sc
+	torso.add_child(head)
+	r.parts["head"] = head
+	B3.sphere(head, 0.5, Vector3(0, 0.02, -0.01) * sc, skin, Vector3(0.21, 0.19, 0.23) * sc)
+	B3.sphere(head, 0.5, Vector3(0, -0.01, 0.06 + 0.08 * snout) * sc, skin, Vector3(0.14, 0.11, 0.1 + 0.16 * snout) * sc)       # Schnauze
+	B3.sphere(head, 0.5, Vector3(0, -0.06, 0.05 + 0.07 * snout) * sc, belly, Vector3(0.12, 0.06, 0.09 + 0.15 * snout) * sc)     # Unterkiefer
+	if f.get("round_ears", false):
+		for s in [-1.0, 1.0]:
+			B3.sphere(head, 0.5, Vector3(0.1 * s, 0.07, -0.04) * sc, skin, Vector3(0.05, 0.07, 0.03) * sc)
+	var eye := B3.mat(_c(f.get("eyes"), "#e8c040"), 0.2, 0.0, _c(f.get("eyes"), "#e8c040"), 1.6)
+	var pupil := B3.mat(Color(0.02, 0.02, 0.02), 0.4)
+	for s in [-1.0, 1.0]:
+		B3.sphere(head, 0.026 * sc, Vector3(0.078 * s, 0.045, 0.06) * sc, eye)
+		B3.box(head, Vector3(0.006, 0.03, 0.01) * sc, Vector3(0.1 * s, 0.045, 0.065) * sc, pupil, false)
+		B3.sphere(head, 0.008 * sc, Vector3(0.025 * s, 0.015, 0.12 + 0.145 * snout) * sc, pupil)
+		if spikes:
+			var brow := B3.cone(head, 0.02 * sc, 0.09 * sc, Vector3(0.07 * s, 0.1, -0.02) * sc, crest)
+			brow.rotation_degrees = Vector3(-60, 0, -20 * s)
+	for i in (4 if spikes else 0):
+		var spike := B3.cone(head, 0.025 * sc, (0.12 - i * 0.02) * sc, Vector3(0, 0.1 - i * 0.02, -0.06 - i * 0.05) * sc, crest)
+		spike.rotation_degrees.x = -55.0
+	# Schwanz: sich verjüngende Glieder nach hinten unten
+	var prev := Vector3(0, -0.02, -0.12) * sc
+	for i in (6 if f.get("tail", true) else 0):
+		var t := (i + 1) / 6.0
+		var nxt := Vector3(sin(t * 1.4) * 0.06, -0.12 - t * 0.6, -0.12 - t * 0.85) * sc
+		_limb_to(body, prev, nxt, (0.13 - (t - 1.0 / 6.0) * 0.11) * sc, (0.13 - t * 0.11) * sc, skin)
+		prev = nxt
+	# Lendenschurz
+	var bottom_spec: Array = f.get("bottom", ["loin", "#5a4028"])
+	var cloth := B3.mat(_c(bottom_spec[1]), 0.85)
+	B3.box(body, Vector3(0.36, 0.08, 0.27) * sc, Vector3(0, 0.0, 0.0) * sc, cloth, false)
+	B3.box(body, Vector3(0.22, 0.36, 0.02) * sc, Vector3(0, -0.2, 0.15) * sc, cloth, false, Vector3(-6, 0, 0))
+	# Beine mit Krallenfüßen
+	for leg in [p.leg_l, p.leg_r]:
+		_limb(leg, 0.48 * sc, 0.1 * sc, skin)
+		_limb_to(leg, Vector3(0, -0.46, 0) * sc, Vector3(0, -0.88, -0.06) * sc, 0.08 * sc, 0.06 * sc, skin)
+		B3.box(leg, Vector3(0.12, 0.05, 0.2) * sc, Vector3(0, -0.92, 0.05) * sc, skin, false)
+		for k in 3:
+			var c := B3.cone(leg, 0.018 * sc, 0.07 * sc, Vector3((k - 1) * 0.04, -0.93, 0.17) * sc, claw)
+			c.rotation_degrees.x = 90.0
+	# Arme mit Krallen (Zenberu: ein gewaltiger rechter Arm)
+	var big: bool = f.get("big_arm", false)
+	for arm in [p.arm_r, p.arm_l]:
+		var huge: bool = big and arm == p.arm_r
+		var th := (0.1 if huge else 0.065) * sc
+		var ln := (0.72 if huge else 0.62) * sc
+		_limb(arm, ln, th, skin)
+		B3.sphere(arm, th * 1.15, Vector3(0, -ln - 0.02 * sc, 0), skin)
+		for k in 3:
+			var cs := (1.6 if huge else 1.0) * claws
+			var c := B3.cone(arm, 0.014 * sc * cs, 0.06 * sc * cs, Vector3((k - 1) * 0.025 * sc * claws, -ln - 0.06 * sc * cs, 0.03 * sc), claw)
+			c.rotation_degrees.x = 160.0
+	if f.has("weapon"):
+		_hand_weapon(r, p.arm_r, f.weapon, sc)
+
+
+## Zylinder zwischen zwei Punkten (lokale Koordinaten von parent).
+static func _limb_to(parent: Node3D, a: Vector3, b: Vector3, r0: float, r1: float, m: Material) -> MeshInstance3D:
+	var seg := B3.cyl(parent, r1, r0, a.distance_to(b), (a + b) * 0.5, m, false, 8)
+	seg.basis = Basis(Quaternion(Vector3.UP, (b - a).normalized()))
+	return seg
 
 
 static func _person(r: CharacterRig, f: Dictionary) -> void:
@@ -510,6 +663,25 @@ static func _hand_weapon(r: CharacterRig, arm: Node3D, spec: Array, sc: float) -
 		"sword", "dagger":
 			var len := 0.9 if spec[0] == "sword" else 0.35
 			B3.box(w, Vector3(0.06, len, 0.02) * sc, Vector3(0, len / 2.0, 0.05) * sc, m, false, Vector3(70, 0, 0))
+		"frost_sword":
+			# Frost Pain: eisblaue, leuchtende Klinge
+			var ice := B3.mat(_c(spec[1]), 0.1, 0.3, _c(spec[1]), 1.6)
+			B3.box(w, Vector3(0.07, 0.95, 0.02) * sc, Vector3(0, 0.48, 0.05) * sc, ice, false, Vector3(70, 0, 0))
+			B3.box(w, Vector3(0.2, 0.04, 0.05) * sc, Vector3(0, 0.02, 0.05) * sc, B3.mat(Color(0.5, 0.55, 0.6), 0.3, 0.9), false, Vector3(70, 0, 0))
+			var gl := B3.light(w, Vector3(0, 0.5, 0.2) * sc, _c(spec[1]), 0.6, 2.5)
+			gl.shadow_enabled = false
+		"spear":
+			B3.cyl(w, 0.02, 0.02, 2.1 * sc, Vector3(0, 0.45, 0) * sc, B3.mat(Color(0.34, 0.24, 0.14), 0.7), false, 6)
+			B3.cone(w, 0.045 * sc, 0.26 * sc, Vector3(0, 1.62, 0) * sc, m)
+		"axe", "hammer":
+			var piv := Node3D.new()
+			piv.rotation_degrees.x = 70
+			w.add_child(piv)
+			B3.cyl(piv, 0.022, 0.022, 0.75 * sc, Vector3(0, 0.3, 0.05) * sc, B3.mat(Color(0.34, 0.24, 0.14), 0.7), false, 6)
+			if spec[0] == "axe":
+				B3.box(piv, Vector3(0.04, 0.24, 0.26) * sc, Vector3(0, 0.62, 0.15) * sc, m, false)
+			else:
+				B3.box(piv, Vector3(0.13, 0.12, 0.24) * sc, Vector3(0, 0.66, 0.05) * sc, m, false)
 		"whip":
 			B3.cyl(w, 0.015, 0.015, 0.8 * sc, Vector3(0, -0.4, 0.1) * sc, m, false, 4)
 		"bow":

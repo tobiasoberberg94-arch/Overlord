@@ -37,6 +37,11 @@ var _folk: Array = []                  ## Bewohner (Townsfolk), die sich währen
 var _start_style := ""
 var replay := false                    ## Erinnerung (Questbuch): keine Depesche, keine Folgen
 var return_loc := ""                   ## Erinnerung: danach zurück an diesen Ort
+var army: ArmyCrowd                    ## Heer in der Ferne (Katze-Ebene)
+var dark_youngs: Array = []            ## Dunkle Junge (Katze-Ebene)
+var _props: Array = []                 ## Kulissen aus Szenen (Thron …)
+var _fog_orig: Array = []              ## Nebel vor dem Einsatz (fog-Aufruf), wird am Ende wiederhergestellt
+var _hidden_nodes: Array = []          ## ausgeblendete Kulissen des Ortes (Gate-Portal)
 
 
 static func load_all() -> Dictionary:
@@ -85,6 +90,17 @@ func start() -> void:
 	if def.get("hide_folk", false):
 		show_folk(false)
 	_set_stage(def.get("stage", {}))
+	# Reise-Gate, Anschlagbrett u. Ä. in Bühnennähe ausblenden (stehen sonst mitten im Bild)
+	for a in w.actors.duplicate():
+		if is_instance_valid(a) and a.kind == "object" and a.global_position.distance_to(stage.origin) < 45.0:
+			a.visible = false
+			a.process_mode = Node.PROCESS_MODE_DISABLED
+			w.actors.erase(a)
+			_hidden.append(a)
+	for g in w.level.find_children("GatePortal*", "Node3D", true, false):
+		if (g as Node3D).visible and (g as Node3D).global_position.distance_to(stage.origin) < 45.0:
+			(g as Node3D).visible = false
+			_hidden_nodes.append(g)
 	if def.has("player_at"):
 		w.player.global_position = pos(def.player_at) + Vector3.UP * 0.1
 	if def.has("music"):
@@ -304,6 +320,126 @@ func heal(_args: Dictionary = {}) -> void:
 	w.player.stamina = w.player.max_stamina
 
 
+# --- große Momente (Szenen-Aufrufe) ------------------------------------------------------------------------
+## Heer aufstellen: {"call": "army", "args": {"at": [x, z], "yaw": 180, "blocks": [[dx, dz, Spalten, Reihen, Wappen], …]}}
+## (yaw relativ zur Bühne; 180 = das Heer blickt zur Bühne).
+func army_spawn(args: Dictionary) -> void:
+	if army and is_instance_valid(army):
+		army.queue_free()
+	army = ArmyCrowd.create(w.level, pos(args.get("at", [0, -90])), stage.basis.get_euler().y + deg_to_rad(float(args.get("yaw", 180.0))), args.get("blocks", []))
+
+
+## Schwarzer Wind von `at` aus; das Heer fällt unter ihm.
+func black_wind(args: Dictionary) -> void:
+	var at := pos(args.get("at", [0, -10]))
+	var cb := Callable()
+	if army and is_instance_valid(army):
+		var a := army
+		cb = func(r: float) -> void:
+			if is_instance_valid(a):
+				a.wave(at, r)
+	StoryFX.black_wind(w.level, at, float(args.get("radius", 260.0)), float(args.get("dur", 6.0)), cb)
+
+
+## Dunkle Junge steigen aus dem Boden: {"at": [[x, z], …], "size": 1.0}
+func dark_young_spawn(args: Dictionary) -> void:
+	var yaw := stage.basis.get_euler().y + deg_to_rad(float(args.get("yaw", 0.0)))
+	for p in args.get("at", []):
+		var d := DarkYoung.spawn(w.level, pos(p), yaw, float(args.get("size", 1.0)) * randf_range(0.9, 1.1))
+		if army and is_instance_valid(army):
+			var a := army
+			d.on_stomp = func(at: Vector3) -> void:
+				if is_instance_valid(a):
+					a.trample(at, 5.0)
+		d.rise(float(args.get("rise", 3.0)) + randf() * 0.9)
+		dark_youngs.append(d)
+
+
+## Die Dunklen Jungen stapfen los (nebeneinander, Abstand `spread`): {"to": [x, z], "dur": 30}
+func dark_young_walk(args: Dictionary) -> void:
+	var to: Array = args.get("to", [0, -150])
+	var spread := float(args.get("spread", 16.0))
+	for i in dark_youngs.size():
+		var d: DarkYoung = dark_youngs[i]
+		if is_instance_valid(d):
+			var off := (i - (dark_youngs.size() - 1) * 0.5) * spread
+			d.walk_to(pos([float(to[0]) + off, float(to[1]) + randf_range(-8.0, 8.0)]), float(args.get("dur", 30.0)) * randf_range(0.9, 1.1))
+
+
+## Der Boss wird zur Szenenfigur (gleicher Platz, gleiche Blickrichtung) – z. B. um zu fallen und später
+## wiederbelebt zu werden: {"call": "boss_to_actor", "args": {"id": "zaryusu", "figure": "zaryusu"}}
+func boss_to_actor(args: Dictionary) -> void:
+	if boss == null or not is_instance_valid(boss):
+		return
+	var id := String(args.get("id", boss.type_id))
+	var a := Actor3D.character(String(args.get("figure", id)), "", 2.3)
+	a.id = id
+	a.scripted = true
+	a.wander_radius = 0.0
+	a.set_meta("story_spawned", true)
+	a.set_meta("figure", String(args.get("figure", id)))
+	w.level.add_child(a)
+	a.global_position = boss.global_position
+	a.home = a.global_position
+	a.rotation.y = atan2(boss.facing.x, boss.facing.z)
+	if a.rig and boss.rig:
+		a.rig.scale = boss.rig.scale
+	w.actors.append(a)
+	actors[id] = a
+	w.enemies.erase(boss)
+	boss.remove_from_group("enemies")
+	boss.queue_free()
+	boss = null
+
+
+## Alle Brände und Flammenwände der Szenen verlöschen lassen.
+func extinguish(_args: Dictionary = {}) -> void:
+	for f in temp_fx:
+		StoryFX.extinguish(f)
+	temp_fx.clear()
+
+
+## Kulisse aufstellen (wird am Ende entfernt): {"kind": "elf_throne", "at": [x, z], "yaw": 180}
+func prop(args: Dictionary) -> void:
+	var n := StoryFX.prop(w.level, String(args.get("kind", "")), pos(args.get("at", [0, -10])), stage.basis.get_euler().y + deg_to_rad(float(args.get("yaw", 0.0))))
+	if n:
+		_props.append(n)
+
+
+## Der Nebel lichtet sich (factor < 1) oder zieht auf: {"call": "fog", "args": {"factor": 0.3, "dur": 6}}
+func fog(args: Dictionary) -> void:
+	var env := _environment()
+	if env == null:
+		return
+	if _fog_orig.is_empty():
+		_fog_orig = [env.fog_density, env.volumetric_fog_density]
+	var f := float(args.get("factor", 0.3))
+	var dur := float(args.get("dur", 6.0))
+	var tw: Tween = w.level.create_tween().set_parallel(true)
+	tw.tween_property(env, "fog_density", float(_fog_orig[0]) * f, dur).set_trans(Tween.TRANS_SINE)
+	if env.volumetric_fog_enabled:
+		tw.tween_property(env, "volumetric_fog_density", float(_fog_orig[1]) * f, dur).set_trans(Tween.TRANS_SINE)
+
+
+func _environment() -> Environment:
+	if w.level == null:
+		return null
+	for c in w.level.get_children():
+		if c is WorldEnvironment:
+			return (c as WorldEnvironment).environment
+	return null
+
+
+## Wasser gefriert von `at` aus: {"at": [x, z], "radius": 240, "dur": 7}
+func freeze(args: Dictionary) -> void:
+	temp_fx.append(StoryFX.freeze(w.level, pos(args.get("at", [0, 0])), float(args.get("radius", 240.0)), float(args.get("dur", 7.0))))
+
+
+## Gehenna-Flamme von `from` nach `to`: {"from": [x, z], "to": [x, z], "height": 24}
+func flame_wall(args: Dictionary) -> void:
+	temp_fx.append(StoryFX.flame_wall(w.level, pos(args.get("from", [-30, -40])), pos(args.get("to", [30, -40])), float(args.get("height", 24.0))))
+
+
 func _vanish(e: Enemy3D) -> void:
 	w.enemies.erase(e)
 	e.remove_from_group("enemies")
@@ -422,6 +558,27 @@ func _cleanup() -> void:
 	for f in temp_fx:
 		StoryFX.extinguish(f)
 	temp_fx.clear()
+	if army and is_instance_valid(army):
+		army.queue_free()
+	army = null
+	for d in dark_youngs:
+		if is_instance_valid(d):
+			d.queue_free()
+	dark_youngs.clear()
+	for n in _props:
+		if is_instance_valid(n):
+			n.queue_free()
+	_props.clear()
+	for g in _hidden_nodes:
+		if is_instance_valid(g):
+			(g as Node3D).visible = true
+	_hidden_nodes.clear()
+	if not _fog_orig.is_empty():
+		var env := _environment()
+		if env:
+			env.fog_density = float(_fog_orig[0])
+			env.volumetric_fog_density = float(_fog_orig[1])
+		_fog_orig.clear()
 	# Szenenfiguren gehen, die Figuren des Ortes kehren zurück
 	for k in actors:
 		var a = actors[k]

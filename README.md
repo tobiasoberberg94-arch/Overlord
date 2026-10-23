@@ -19,7 +19,7 @@ Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäud
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-2.0.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.4.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.3.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.4.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -118,7 +118,7 @@ Jeder besiegte Gegner gibt **Seelen** frei – violette Lichter, die aufsteigen 
 
 ## Story-Einsätze: die großen Momente selbst erleben
 
-Sechs Schlüsselmomente der Geschichte lassen sich statt per Depesche **selbst in 3D spielen** – mit Filmszenen (Letterbox, Kamerafahrten, Untertitel mit Porträt, Ainz' Gedanken), Verbündeten an Ainz' Seite und Bossen mit Zwischenszenen. Erscheint die Depesche, bietet sie *„⚔ Selbst erleben“* an; die im Einsatz getroffene Entscheidung wird wie eine Antwort in der Depesche gewertet.
+Zwölf Schlüsselmomente der Geschichte – aus allen Kapiteln von der Ankunft bis zum Platin-Drachenlord – lassen sich statt per Depesche **selbst in 3D spielen** – mit Filmszenen (Letterbox, Kamerafahrten, Untertitel mit Porträt, Ainz' Gedanken), Verbündeten an Ainz' Seite und Bossen mit Zwischenszenen. Erscheint die Depesche, bietet sie *„⚔ Selbst erleben“* an; die im Einsatz getroffene Entscheidung wird wie eine Antwort in der Depesche gewertet.
 
 | Moment | Ort | Was passiert |
 |---|---|---|
@@ -127,9 +127,15 @@ Sechs Schlüsselmomente der Geschichte lassen sich statt per Depesche **selbst i
 | **Die Sonnenlicht-Schrift** | Carne, Abenddämmerung | Gazef wird ausgetauscht, Nigun beschwört Engel, die Prinzipalität und schließlich den Engel der Herrschaft – Heiliges Urteil, „Das also ist Schmerz“, Schwarzes Loch. Am Ende: Negative Burst oder Gefangennahme. |
 | **Die Nacht der Untoten** | Friedhof von E-Rantel | Als Momon mit Nabe durch die Untotenflut, ein Ältester Leichnam, Khajit und Clementine am Mausoleum; Kettendrachenblitz, die Enthüllung – und Nfireas Schicksal. |
 | **Overlord gegen Wahren Vampir** | Wald von Tob, Mitternacht | Das Duell gegen die beherrschte Shalltear mit Einherjar-Abbild und Blutrausch; beendet mit Fallen Down (kostet 150 Gold) oder List. |
+| **Frost über dem Sumpf** | Sümpfe der Echsenmenschen | Ainz lässt den ganzen See in einer Welle zu Eis erstarren; **als Cocytus** kämpft Ihr gegen die Krieger der Stämme, Zenberu und Zaryusu mit Frost Pain – danach bittet Crusch um sein Leben: Wiederbelebung oder nicht. |
+| **Gehenna** | Königshauptstadt bei Nacht | Eine haushohe Gehenna-Flamme quer durch die Stadt, brennende Häuser, Dämonen aus dem Feuer; **als Momon** mit Nabe gegen den maskierten Jaldabaoth – ein aufgeführter Kampf, den die Stadt nie vergisst. Danach legt Demiurge seine Liste vor. |
+| **Die Schlacht auf der Katze-Ebene** | Katze-Ebene | Der Nebel lichtet sich vor einem Heer aus Tausenden Soldaten. *Iä Shub-Niggurath*: Superrang-Kreise, die Sanduhr, ein schwarzer Wind, unter dem die Reihen fallen, fünf Dunkle Junge steigen aus dem Boden – oder Todesreiter brechen nur die Adelsbanner. Zum Schluss Gazef Stronoffs Duell. |
+| **Die Hallen von Feo Jera** | Azerlisia-Gebirge | Ainz, Aura und Shalltear retten den Runenschmied Gondo vor den Quagoa und ihrem Herrn Pe Riyuro; danach die Frage, was aus der Runenkunst wird. |
+| **Das Mädchen mit den bösen Augen** | Heiliges Königreich, vor der Großen Mauer | Neia verteidigt zwei Kinder gegen Bafolk und Höllenhunde, die Paladine zögern – der Zauberkönig erscheint. Ihre Frage: Warum rettet ein Untoter die Schwachen? |
+| **Der Elfenkönig** | Ewiger Wald, Thron aus lebendem Holz | Decem Hougan beleidigt Aura und Mare: Ainz kämpft selbst, **Aura kämpft mit Mare an ihrer Seite** – oder der König wird gelähmt der Theokratie übergeben. |
 | **Das Gleichgewicht der Welt** | Katze-Ebene, Nebel bei Nacht | Die Platinrüstung stellt die Frage nach Ainz' Absicht: Frieden – oder ein Kampf gegen schwebende Klingen an der Seite von Albedo und Cocytus. |
 
-- **Technik** (`scripts/story/`): `story_mission.gd` (Ablauf: Szenen, Wellen, Bosse mit Einführung, Schwellen-Szenen und Aufgeben, Wegpunkte, Verbündete), `cutscene.gd` (Kamera relativ zu Figuren mit Sichtprüfung, Figuren stellen/gehen/knien/stürzen/aus dem Boden steigen, Effekte, Entscheidungen), `story_fx.gd` (Gate, Großbrand, Schutzkuppel, Schwarzes Loch, Tageszeit-Stimmungen), `scripts/ui/cinematic_ui.gd` (Letterbox, Untertitel, Entscheidungen, `Esc` überspringt).
+- **Technik** (`scripts/story/`): `story_mission.gd` (Ablauf: Szenen, Wellen, Bosse mit Einführung, Schwellen-Szenen und Aufgeben, Wegpunkte, Verbündete), `cutscene.gd` (Kamera relativ zu Figuren mit Sichtprüfung, Figuren stellen/gehen/knien/stürzen/aus dem Boden steigen, Effekte, Entscheidungen), `story_fx.gd` (Gate, Großbrand, Schutzkuppel, Schwarzes Loch, gefrierendes Wasser, Gehenna-Flamme, Superrang-Kreise, Sanduhr, schwarzer Wind, Tageszeit-Stimmungen, Kulissen wie der Elfenthron), `army_crowd.gd` (Heer aus Tausenden Soldaten in einem MultiMesh, fällt im Shader), `dark_young.gd` (Dunkles Junges, ganz prozedural), `scripts/ui/cinematic_ui.gd` (Letterbox, Untertitel, Entscheidungen, `Esc` überspringt).
 - **Inhalte**: `data/story_missions.json` – Schritte und Szenen als Daten, Gegner und Verbündete in `data/combat.json`, neue Figuren in `data/figures.json`.
 - **Verbündete** kämpfen eigenständig, folgen Ainz und kündigen ihre Angriffe in Blau an; Bosse können **aufgeben** (knien nieder), Untote ihres Gefolges zerfallen, Lebende ergeben sich.
 - **Kapitel-Momente** im Questbuch [`J`]: erlebte (oder ohne Euch entschiedene) Momente lassen sich als **Erinnerung** erneut spielen – ohne Lohn und ohne Folgen für das Reich.
@@ -310,6 +316,16 @@ Das Spiel kommt ohne 2D-Artworks aus:
 - **UI**: Schriften, Ornamentrahmen (`assets/ui/frames/`) und Icons (`assets/ui/icons/`, inkl. `item_<id>` und `frame_<seltenheit>` für Artefakte).
 
 Eine Liste gewünschter Modelle und Icons steht in `docs/ASSET_WUNSCHLISTE.txt`.
+
+**Grafikqualität** (Einstellungen → Grafik, `scripts/world3d/graphics_quality.gd`):
+
+| Stufe | Was sie tut | Bildrate (RTX 3060 Ti, 3440×1440, FSR 2 77 %) |
+|---|---|---|
+| **Ultra** | alles in voller Qualität (kontaktgehärtete PCSS-Schatten, globale Beleuchtung in voller Auflösung) | Städte 47–56, Wälder 37–40 FPS |
+| **Hoch** (Standard) | im Bild wie Ultra: PCSS mit halb so vielen Abtastungen, GI in halber Auflösung, SDFGI mit 8 Strahlen, Spiegelungen/SSIL/Nebel etwas gröber | Städte 54–62, Wälder 43–47 FPS |
+| **Ausgewogen** | zusätzlich gefilterte PCF-Schatten, Schattenkarte 2048, keine Spiegelungen in der Natur, Gras und Bäume wechseln früher in ihre fernen Detailstufen | Städte 62–66, Wälder 54–61 FPS |
+
+Keine Stufe reduziert die Dreiecke der Modelle. Messen: `LOC=bench BENCHLEVELS=2,1,0 godot res://tools/world3d_test.tscn` (mit `BENCHSHOT=1` Bilder bei angehaltener Zeit, `BENCHAB=1` Kosten je Effekt, `BENCHINFO=1` Dreiecksverteilung).
 
 ---
 

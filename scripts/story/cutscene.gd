@@ -698,6 +698,10 @@ func _fx(d: Dictionary) -> void:
 			StoryFX.teleport(lvl, at, Color(d.get("color", "#9f4dff")))
 		"heal":
 			StoryFX.heal(lvl, at, Color(d.get("color", "#ff4050")))
+		"super":
+			StoryFX.super_circle(lvl, at, float(d.get("radius", 14.0)), Color(d.get("color", "#d8c0ff")), float(d.get("dur", 4.0)))
+		"hourglass":
+			StoryFX.hourglass(lvl, at + Vector3.UP * float(d.get("h", 2.2)))
 		"beam":
 			SpellFX.beam(lvl, _pos(d.get("from", "player")), _pos(d.get("to", "player")), Color(d.get("color", "#fff0b0")), float(d.get("width", 0.3)), float(d.get("dur", 0.4)))
 			CombatFX.sound(String(d.get("sound", "holy_impact")), at, 1.0)

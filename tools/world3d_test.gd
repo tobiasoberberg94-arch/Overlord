@@ -79,6 +79,79 @@ func _ready() -> void:
 		await _stage_probe(w)
 		get_tree().quit()
 		return
+	if only == "stageview":
+		# Rundblick von möglichen Bühnen: STAGEVIEW="sumpf:-64,48;katze:8,64" – je Ort vier Blickrichtungen (N, O, S, W)
+		for spec in OS.get_environment("STAGEVIEW").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var xz := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				await w.load_location(lid)
+				for c in w.overlay_layer.get_children():
+					c.queue_free()
+				await _wait(1.0)
+				for gm in w.level.find_children("*", "MeshInstance3D", true, false):
+					if String(gm.name).to_lower().begins_with("ground"):
+						var gb: AABB = (gm as MeshInstance3D).global_transform * (gm as MeshInstance3D).get_aabb()
+						print("BODEN %s: %s … %s" % [lid, gb.position.snapped(Vector3.ONE), gb.end.snapped(Vector3.ONE)])
+			if spec.get_slice(":", 1) == "map":
+				# Draufsicht über den ganzen Ort (Norden = oben), Raster alle 50 m als Säulen
+				var mc := Camera3D.new()
+				mc.far = 4000.0
+				mc.fov = 55.0
+				w.add_child(mc)
+				mc.look_at_from_position(Vector3(0, 320, 0.5), Vector3.ZERO, Vector3(0, 0, -1))
+				mc.current = true
+				var marks: Array = []
+				for gx in range(-100, 101, 50):
+					for gz in range(-100, 101, 50):
+						var mk := MeshInstance3D.new()
+						var cy := CylinderMesh.new()
+						cy.top_radius = 1.2
+						cy.bottom_radius = 1.2
+						cy.height = 30.0
+						mk.mesh = cy
+						var mm := StandardMaterial3D.new()
+						mm.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+						mm.albedo_color = Color.RED if gx == 0 and gz == 0 else (Color.YELLOW if gz < 0 else Color.CYAN)
+						mk.material_override = mm
+						w.level.add_child(mk)
+						mk.global_position = Vector3(gx, 15, gz)
+						marks.append(mk)
+				for cl in w.find_children("*", "CanvasLayer", true, false):
+					(cl as CanvasLayer).visible = false
+				await _wait(1.5)
+				_shot("map_%s" % lid)
+				for mk in marks:
+					mk.queue_free()
+				mc.queue_free()
+				w.player.camera.current = true
+				for cl in w.find_children("*", "CanvasLayer", true, false):
+					(cl as CanvasLayer).visible = true
+				continue
+			var p := Vector3(float(xz[0]), 0.0, float(xz[1]))
+			var hit: Dictionary = w.level.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 80.0, p - Vector3.UP * 80.0, 1))
+			if hit:
+				p.y = float(hit.position.y)
+			w.player.global_position = p + Vector3.UP * 0.1
+			var cam := Camera3D.new()
+			cam.far = 3000.0
+			cam.fov = 70.0
+			w.add_child(cam)
+			cam.current = true
+			for cl in w.find_children("*", "CanvasLayer", true, false):
+				(cl as CanvasLayer).visible = false
+			for k in 4:
+				var yaw := k * PI * 0.5
+				var fwd := Basis(Vector3.UP, yaw) * Vector3(0, 0, -1)
+				cam.look_at_from_position(p - fwd * 7.0 + Vector3.UP * 3.0, p + fwd * 12.0 + Vector3.UP * 1.5)
+				await _wait(1.2)
+				_shot("view_%s_%s_%s_%d" % [lid, xz[0], xz[1], k])
+			cam.queue_free()
+			w.player.camera.current = true
+			for cl in w.find_children("*", "CanvasLayer", true, false):
+				(cl as CanvasLayer).visible = true
+		get_tree().quit()
+		return
 	if only == "anchors":
 		# Ankerpunkte und Draufsicht je Ort (für das Einrichten von Szenen-Bühnen)
 		for lid in OS.get_environment("ANCHORLOCS").split(",", false):
@@ -806,7 +879,7 @@ func _stage_probe(w: Node) -> void:
 					continue
 				# freier Radius: Zylinder 0,6–3,6 m über dem Boden, Boden selbst ausgenommen
 				var free := 0.0
-				for r in [4.0, 7.0, 10.0, 13.0, 16.0, 20.0]:
+				for r in [4.0, 5.5, 7.0, 8.5, 10.0, 13.0, 16.0, 20.0]:
 					var cyl := CylinderShape3D.new()
 					cyl.radius = r
 					cyl.height = 3.0
@@ -823,7 +896,7 @@ func _stage_probe(w: Node) -> void:
 					if blocked:
 						break
 					free = r
-				if free < 10.0:
+				if free < (float(OS.get_environment("STAGEMIN")) if OS.get_environment("STAGEMIN") != "" else 10.0):
 					continue
 				cands.append([free, slope, c, c.distance_to(spawn)])
 		cands.sort_custom(func(a, b): return a[0] * 10.0 - a[1] * 3.0 - a[3] * 0.02 > b[0] * 10.0 - b[1] * 3.0 - b[3] * 0.02)

@@ -143,10 +143,12 @@ func _ready() -> void:
 	var weapon := String(data.get("weapon", ""))
 	if data.has("figure"):
 		var fig := String(data.figure)
-		rig = CharacterRig.create(String(data.get("model", fig)), func(r): ProcModel.figure(r, fig))
+		rig = CharacterRig.create(String(data.get("model", ProcModel.model_of(fig))), func(r): ProcModel.figure(r, fig))
 	else:
 		rig = CharacterRig.create(model, func(r): ProcModel.enemy(r, model, c, weapon))
 	add_child(rig)
+	if data.has("figure"):
+		ProcModel.accessories(rig, String(data.figure))
 	if rig.has_model and weapon != "":
 		ProcModel.attach_weapon(rig, weapon, c)
 	if float(data.get("scale", 1.0)) != 1.0:

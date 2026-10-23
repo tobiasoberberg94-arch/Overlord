@@ -578,6 +578,78 @@ def sfx_rewards():
     write_ogg("ring_equip", reverb(mix(0.9, (0.0, clink, 0.6), (0.02, shimmer(0.8, 900, 1800, 4), 0.4)), 1.0, 0.3, 0.3), 0.6)
 
 
+def sfx_story2():
+    """Große Story-Momente: gefrierender See, Sanduhr, schwarzer Wind, Hufe und Gebrüll der Dunklen Jungen,
+    Kriegshorn, Schlachtruf und Jubel einer Menge."""
+    global rng
+    rng = np.random.default_rng(1010)        # eigene Folge: die übrigen Klänge bleiben unverändert
+    # Eis breitet sich aus: Knistern, das anschwillt und weiterwandert, tiefes Ächzen, gläserne Splitter
+    dur = 5.0
+    t = tt(dur)
+    rate_env = np.clip(t / 0.6, 0.0, 1.0) * np.exp(-np.clip(t - 1.2, 0.0, None) / 1.8)
+    cr = np.zeros_like(t)
+    for lo, hi, gain in ((900, 5000, 1.0), (2500, 9000, 0.6)):
+        n = len(t)
+        x = np.zeros(n)
+        k = rng.random(n) < (420.0 * rate_env) / SR
+        x[k] = rng.standard_normal(k.sum()) * 3.0
+        cr += band(x, lo, hi, 2) * gain
+    groan = sweep(dur, lambda x: 260 - 170 * min(1.0, x / 3.5), 6.0, 40.0) * bell_env(dur, 0.25, 1.5) * 0.9
+    glass = pings(dur, 40, 2200, 7500, 0.05, 0.25, 2.2, 0.5, 0.5)
+    boom = thump(1.2, 90, 38, 0.35, 0.2)
+    write_ogg("freeze_spread", reverb(mix(dur, (0.0, boom, 0.8), (0.0, cr, 0.7), (0.0, groan, 0.6), (0.2, glass, 0.5)), 2.4, 0.4, 0.4), 0.85)
+    # Sanduhr zerspringt: Glasregen und ein goldener Glockenton
+    shards = pings(1.4, 34, 2600, 9000, 0.03, 0.16, 0.6, 0.3, 0.8)
+    chime = modes(1.6, [1568.0, 2349.3, 3136.0, 4186.0], [0.9, 0.7, 0.45, 0.3], [1.0, 0.6, 0.45, 0.25]) * 0.5
+    burst = noise(0.12, 3000, 12000) * exp_env(0.12, 0.03)
+    write_ogg("hourglass", reverb(mix(1.6, (0.0, burst, 0.6), (0.0, shards, 0.8), (0.02, chime, 0.7)), 1.8, 0.35, 0.3), 0.75)
+    # Schwarzer Wind: heulender Sturm, der heranrollt, tiefes Grollen, flüsternde Fläche
+    dur = 7.0
+    howl = sweep(dur, lambda x: 320 + 520 * math.sin(math.pi * min(1.0, x / 6.0)) + 90 * math.sin(x * 5.0), 5.0, 80.0)
+    howl *= bell_env(dur, 0.35, 1.3)
+    rumble = noise(dur, 25, 120, 2) * bell_env(dur, 0.3, 1.2) * 2.5
+    whisper = sweep(dur, lambda x: 2400 + 900 * math.sin(x * 2.3), 3.0, 600.0) * bell_env(dur, 0.45, 1.5) * 0.35
+    write_ogg("black_wind", reverb(mix(dur, (0.0, rumble, 1.0), (0.0, howl, 0.9), (0.3, whisper, 0.6)), 3.0, 0.4, 0.6), 0.9)
+    # Huftritt eines Dunklen Jungen: tiefer Schlag, Erde knirscht
+    crunch = noise(0.4, 150, 1800) * exp_env(0.4, 0.08) * 0.8
+    write_ogg("stomp", reverb(mix(1.0, (0.0, thump(1.0, 55, 26, 0.28, 0.5), 1.0), (0.0, crunch, 0.7)), 1.2, 0.3, 0.6), 0.9)
+    # Gebrüll eines Dunklen Jungen: tiefes, gurgelndes Blöken, darüber ein schrilles Meckern, Atem
+    dur = 3.4
+    t = np.linspace(0.0, 1.0, int(dur * SR))
+    f = 78 * (1.0 + 0.25 * np.sin(math.pi * t)) * (1.0 + 0.04 * np.sin(2 * math.pi * 6.5 * t * dur))
+    ph = np.cumsum(2 * math.pi * f / SR)
+    saw = 2.0 * ((ph / (2 * math.pi)) % 1.0) - 1.0
+    growl = saw * (0.6 + 0.4 * np.sin(2 * math.pi * 31.0 * t * dur)) * np.sin(math.pi * np.clip(t * 1.05, 0.0, 1.0)) ** 0.6
+    growl = band(growl, 90, 1100, 2)
+    fb = 330 * (1.0 + 0.3 * np.sin(math.pi * t)) * (1.0 + 0.06 * np.sin(2 * math.pi * 8.0 * t * dur))
+    phb = np.cumsum(2 * math.pi * fb / SR)
+    bleat = band(2.0 * ((phb / (2 * math.pi)) % 1.0) - 1.0, 400, 2600, 2) * np.clip(np.sin(math.pi * np.clip((t - 0.15) / 0.6, 0.0, 1.0)), 0.0, 1.0) * 0.35
+    breath = noise(dur, 200, 3000) * bell_env(dur, 0.3, 1.2) * 0.25
+    write_ogg("dark_young_roar", reverb(mix(dur, (0.0, growl, 1.0), (0.0, bleat, 1.0), (0.0, breath, 1.0)), 3.2, 0.45, 0.55), 0.9)
+    # Kriegshorn: tiefer, leicht schwankender Ton mit Obertönen
+    dur = 3.0
+    t = np.linspace(0.0, 1.0, int(dur * SR))
+    f = 98.0 * (1.0 + 0.05 * np.clip(t * 8, 0, 1)) * (1.0 + 0.006 * np.sin(2 * math.pi * 5.0 * t * dur))
+    ph = np.cumsum(2 * math.pi * f / SR)
+    horn = band(2.0 * ((ph / (2 * math.pi)) % 1.0) - 1.0, 70, 1400, 2)
+    env = np.clip(t / 0.08, 0, 1) * np.clip((1.0 - t) / 0.25, 0, 1)
+    write_ogg("war_horn", reverb(horn * env, 3.5, 0.5, 0.5), 0.8)
+    # Schlachtruf / Jubel einer Menge: viele Stimmen als schmale Rauschbänder mit eigenem Auf und Ab
+    for name, dur, bright, claps in (("crowd_roar", 3.5, 0.0, 0), ("crowd_cheer", 4.0, 1.0, 1)):
+        t = tt(dur)
+        out = np.zeros_like(t)
+        for v in range(36):
+            fc = rng.uniform(260, 900 + 600 * bright)
+            vo = band(white(len(t)), fc * 0.85, fc * 1.18, 2)
+            a0 = rng.uniform(0.0, 0.6)
+            env = np.clip((t - a0) / 0.3, 0, 1) * np.exp(-np.clip(t - a0 - rng.uniform(0.8, 2.4), 0, None) / 0.6)
+            env *= 0.7 + 0.3 * np.sin(2 * math.pi * rng.uniform(2.0, 5.0) * t + rng.uniform(0, 6.28))
+            out += vo * env
+        if claps:
+            out += crackle(dur, 90, 1200, 6000, 3.0) * 1.2
+        write_ogg(name, reverb(out, 2.0, 0.35, 0.5), 0.75)
+
+
 if __name__ == "__main__":
     import sys
     os.makedirs(OUT, exist_ok=True)
@@ -585,9 +657,13 @@ if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "rewards":
         sfx_rewards()
         sys.exit(0)
+    if len(sys.argv) > 1 and sys.argv[1] == "story2":
+        sfx_story2()
+        sys.exit(0)
     sfx_swings()
     sfx_hits()
     sfx_defense()
     sfx_enemy()
     sfx_spells()
     sfx_rewards()
+    sfx_story2()

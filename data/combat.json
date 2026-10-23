@@ -1427,7 +1427,6 @@
    "speed": 4.0,
    "poise": 40,
    "aggro": 15,
-   "model": "soldier",
    "color": "#5f8a52",
    "gold": 8,
    "attacks": [
@@ -1457,7 +1456,8 @@
     }
    ],
    "ai": "duelist",
-   "material": "beast"
+   "material": "beast",
+   "figure": "lizardman"
   },
   "quagoa": {
    "name": "Quagoa",
@@ -1466,7 +1466,6 @@
    "speed": 4.8,
    "poise": 30,
    "aggro": 16,
-   "model": "wolf",
    "color": "#7a6a58",
    "gold": 5,
    "attacks": [
@@ -1497,7 +1496,8 @@
    ],
    "ai": "beast",
    "material": "beast",
-   "height": 1.3
+   "height": 1.3,
+   "figure": "quagoa"
   },
   "elf": {
    "name": "Elfenkrieger",
@@ -1506,7 +1506,6 @@
    "speed": 4.6,
    "poise": 30,
    "aggro": 16,
-   "model": "soldier",
    "color": "#7ad890",
    "gold": 10,
    "attacks": [
@@ -1535,7 +1534,8 @@
     }
    ],
    "ai": "skirmisher",
-   "material": "flesh"
+   "material": "flesh",
+   "figure": "elf_warrior"
   },
   "zaryusu": {
    "name": "Zaryusu Shasha",
@@ -1544,7 +1544,6 @@
    "speed": 4.4,
    "poise": 120,
    "aggro": 20,
-   "model": "soldier",
    "color": "#4f8a62",
    "gold": 40,
    "elite": true,
@@ -1625,7 +1624,8 @@
       }
      ]
     }
-   ]
+   ],
+   "figure": "zaryusu"
   },
   "mercenary": {
    "name": "Söldner der Todesschwerter",
@@ -2311,8 +2311,6 @@
    "speed": 4.6,
    "poise": 25,
    "aggro": 22,
-   "model": "soldier",
-   "weapon": "bow",
    "ai": "archer",
    "material": "flesh",
    "color": "#7ad890",
@@ -2347,7 +2345,8 @@
      "stagger": 10,
      "cooldown": 5
     }
-   ]
+   ],
+   "figure": "elf_archer"
   },
   "bandit_archer": {
    "name": "Söldner-Schütze",
@@ -2385,8 +2384,6 @@
    "speed": 3.6,
    "poise": 30,
    "aggro": 18,
-   "model": "soldier",
-   "weapon": "staff",
    "ai": "caster",
    "material": "beast",
    "color": "#4f7a5a",
@@ -2430,7 +2427,8 @@
      "color": "#8fd0c0",
      "cooldown": 8
     }
-   ]
+   ],
+   "figure": "lizard_shaman"
   },
   "illusion": {
    "name": "Trugbild",
@@ -3765,6 +3763,1187 @@
        "stagger": 25,
        "color": "#dfe8ff",
        "cooldown": 6
+      }
+     ]
+    }
+   ]
+  },
+  "shalltear_ally": {
+   "name": "Shalltear Bloodfallen",
+   "team": "ally",
+   "figure": "shalltear",
+   "hp": 1300,
+   "armor": 60,
+   "speed": 6.0,
+   "poise": 260,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "flesh",
+   "height": 1.7,
+   "color": "#c0283c",
+   "crit": 0.12,
+   "attacks": [
+    {
+     "id": "lance",
+     "name": "Spuit Lance",
+     "windup": 0.5,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 30,
+     "range": 3.4,
+     "arc": 70,
+     "lunge": 4.0,
+     "stagger": 50,
+     "next": "sweep",
+     "next_chance": 0.5
+    },
+    {
+     "id": "sweep",
+     "name": "Lanzenwirbel",
+     "windup": 0.55,
+     "active": 0.22,
+     "recovery": 0.7,
+     "damage": 26,
+     "range": 3.2,
+     "arc": 300,
+     "stagger": 50
+    },
+    {
+     "id": "blood_lance",
+     "name": "Blutlanze",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 24,
+     "range": 22,
+     "kind": "projectile",
+     "fx": "blood",
+     "type": "physical",
+     "speed": 30,
+     "homing": 0.8,
+     "stagger": 25,
+     "color": "#ff2040",
+     "cooldown": 4
+    }
+   ]
+  },
+  "neia_ally": {
+   "name": "Neia Baraja",
+   "team": "ally",
+   "figure": "neia",
+   "hp": 420,
+   "armor": 25,
+   "speed": 5.0,
+   "poise": 60,
+   "aggro": 60,
+   "ai": "archer",
+   "material": "flesh",
+   "height": 1.6,
+   "color": "#c0a030",
+   "crit": 0.2,
+   "attacks": [
+    {
+     "id": "arrow",
+     "name": "Gezielter Schuss",
+     "windup": 0.6,
+     "active": 0.05,
+     "recovery": 0.5,
+     "damage": 20,
+     "range": 26,
+     "kind": "projectile",
+     "fx": "arrow",
+     "speed": 40,
+     "stagger": 20
+    },
+    {
+     "id": "volley",
+     "name": "Doppelschuss",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 16,
+     "range": 24,
+     "kind": "projectile",
+     "fx": "arrow",
+     "count": 2,
+     "spread": 8,
+     "speed": 40,
+     "stagger": 15,
+     "cooldown": 3
+    },
+    {
+     "id": "kick",
+     "name": "Tritt",
+     "windup": 0.4,
+     "active": 0.12,
+     "recovery": 0.5,
+     "damage": 10,
+     "range": 1.8,
+     "arc": 90,
+     "stagger": 30,
+     "knockback": 4
+    }
+   ]
+  },
+  "zaryusu_boss": {
+   "name": "Zaryusu Shasha",
+   "figure": "zaryusu",
+   "hp": 1400,
+   "armor": 35,
+   "speed": 4.8,
+   "poise": 180,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "beast",
+   "color": "#4f8a62",
+   "gold": 0,
+   "noloot": true,
+   "resist": {
+    "ice": 1.2
+   },
+   "barks": {
+    "alert": [
+     "Für die Grüne Klaue!"
+    ],
+    "hurt": [
+     "Noch stehe ich!",
+     "Crusch … gib mir Kraft …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "frost_pain",
+     "name": "Frost Pain",
+     "windup": 0.55,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 26,
+     "range": 2.6,
+     "arc": 110,
+     "type": "ice",
+     "status": {
+      "chill": 1.5
+     },
+     "stagger": 40,
+     "color": "#9fe0ff",
+     "next": "thrust",
+     "next_chance": 0.45
+    },
+    {
+     "id": "thrust",
+     "name": "Ausfall",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 30,
+     "range": 3.4,
+     "lunge": 4.0,
+     "arc": 50,
+     "stagger": 45
+    },
+    {
+     "id": "frost_burst",
+     "name": "Eisexplosion",
+     "windup": 1.2,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 34,
+     "range": 14,
+     "kind": "aoe",
+     "fx": "ice",
+     "type": "ice",
+     "radius": 3.2,
+     "unblockable": true,
+     "status": {
+      "chill": 2.5
+     },
+     "stagger": 80,
+     "color": "#9fe0ff",
+     "cooldown": 8
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Für Crusch! Für die Stämme!",
+     "speed": 1.15,
+     "cd": 0.8,
+     "color": "#9fe0ff"
+    }
+   ]
+  },
+  "zenberu": {
+   "name": "Zenberu Gugu",
+   "figure": "zenberu",
+   "hp": 760,
+   "armor": 40,
+   "speed": 4.2,
+   "poise": 200,
+   "aggro": 60,
+   "ai": "brute",
+   "elite": true,
+   "material": "beast",
+   "color": "#3a5a3a",
+   "gold": 0,
+   "noloot": true,
+   "scale": 1.15,
+   "height": 2.1,
+   "barks": {
+    "alert": [
+     "Endlich ein Gegner, der es wert ist!"
+    ],
+    "hurt": [
+     "Ha! Mehr davon!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "fist",
+     "name": "Eisenfaust",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.7,
+     "damage": 26,
+     "range": 2.4,
+     "arc": 100,
+     "stagger": 70,
+     "next": "fist2",
+     "next_chance": 0.5
+    },
+    {
+     "id": "fist2",
+     "name": "Doppelschlag",
+     "windup": 0.45,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 22,
+     "range": 2.4,
+     "arc": 100,
+     "stagger": 60
+    },
+    {
+     "id": "slam",
+     "name": "Erdstoß",
+     "windup": 1.1,
+     "active": 0.22,
+     "recovery": 1.0,
+     "damage": 34,
+     "range": 4.0,
+     "kind": "aoe",
+     "fx": "steel",
+     "radius": 3.0,
+     "stagger": 110,
+     "knockback": 6,
+     "color": "#a0c070",
+     "cooldown": 7
+    }
+   ]
+  },
+  "gehenna_demon": {
+   "name": "Höllendämon",
+   "model": "golem",
+   "hp": 240,
+   "armor": 30,
+   "speed": 3.8,
+   "poise": 120,
+   "aggro": 60,
+   "ai": "brute",
+   "material": "fire",
+   "color": "#ff5a20",
+   "tint": "#5a1408",
+   "scale": 0.82,
+   "height": 2.4,
+   "gold": 6,
+   "resist": {
+    "fire": 0.3,
+    "holy": 1.4
+   },
+   "emit": [
+    [
+     "body_fire",
+     "#ff5a20",
+     0.7
+    ],
+    [
+     "ash",
+     "#ff7a2a",
+     0.5
+    ]
+   ],
+   "light": [
+    "#ff5a20",
+    0.9,
+    5.0
+   ],
+   "attacks": [
+    {
+     "id": "claw",
+     "name": "Höllenklaue",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 18,
+     "range": 2.6,
+     "arc": 130,
+     "type": "fire",
+     "status": {
+      "burn": 1.5
+     },
+     "stagger": 40
+    },
+    {
+     "id": "spit",
+     "name": "Feuerspeien",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.8,
+     "damage": 16,
+     "range": 18,
+     "kind": "projectile",
+     "fx": "fire",
+     "type": "fire",
+     "speed": 16,
+     "homing": 0.5,
+     "stagger": 20,
+     "color": "#ff7a2a",
+     "cooldown": 4
+    }
+   ]
+  },
+  "shadow_demon": {
+   "name": "Schattendämon",
+   "model": "angel",
+   "hp": 180,
+   "armor": 20,
+   "speed": 4.6,
+   "poise": 70,
+   "aggro": 60,
+   "ai": "skirmisher",
+   "material": "holy",
+   "color": "#8a3ad0",
+   "tint": "#140818",
+   "scale": 0.9,
+   "height": 2.4,
+   "gold": 6,
+   "bound": true,
+   "resist": {
+    "negative": 0.4,
+    "holy": 1.6
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schattenklinge",
+     "windup": 0.45,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 16,
+     "range": 2.4,
+     "arc": 110,
+     "type": "negative",
+     "stagger": 30
+    },
+    {
+     "id": "bolt",
+     "name": "Finsterpfeil",
+     "windup": 0.8,
+     "active": 0.05,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 20,
+     "kind": "projectile",
+     "fx": "dark",
+     "type": "negative",
+     "speed": 22,
+     "homing": 1.0,
+     "stagger": 20,
+     "color": "#9f4dff",
+     "cooldown": 3
+    }
+   ]
+  },
+  "jaldabaoth": {
+   "name": "Jaldabaoth",
+   "figure": "jaldabaoth",
+   "model": "demiurge",
+   "hp": 2400,
+   "armor": 55,
+   "speed": 5.0,
+   "poise": 300,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "flesh",
+   "color": "#ff5020",
+   "gold": 0,
+   "noloot": true,
+   "height": 1.9,
+   "resist": {
+    "fire": 0.1,
+    "holy": 1.3
+   },
+   "emit": [
+    [
+     "ash",
+     "#ff6a20",
+     0.6
+    ]
+   ],
+   "light": [
+    "#ff6a30",
+    1.1,
+    6.0
+   ],
+   "barks": {
+    "alert": [
+     "Zeigt mir Euer Schwert, Held."
+    ],
+    "hurt": [
+     "Interessant …",
+     "Ihr seid … beachtlich."
+    ]
+   },
+   "attacks": [
+    {
+     "id": "claw",
+     "name": "Dämonenklaue",
+     "windup": 0.5,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 28,
+     "range": 2.8,
+     "arc": 120,
+     "stagger": 50,
+     "next": "claw2",
+     "next_chance": 0.5
+    },
+    {
+     "id": "claw2",
+     "name": "Zweite Klaue",
+     "windup": 0.4,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 24,
+     "range": 2.8,
+     "arc": 120,
+     "stagger": 45
+    },
+    {
+     "id": "hellflame",
+     "name": "Höllenflamme",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.8,
+     "damage": 26,
+     "range": 22,
+     "kind": "projectile",
+     "fx": "fire",
+     "type": "fire",
+     "speed": 20,
+     "homing": 0.8,
+     "stagger": 30,
+     "color": "#ff5020",
+     "cooldown": 4
+    },
+    {
+     "id": "hellfire_wall",
+     "name": "Höllenfeuerwall",
+     "windup": 1.3,
+     "active": 0.25,
+     "recovery": 1.0,
+     "damage": 42,
+     "range": 14,
+     "kind": "aoe",
+     "fx": "fire",
+     "type": "fire",
+     "radius": 3.6,
+     "unblockable": true,
+     "status": {
+      "burn": 3.0
+     },
+     "stagger": 100,
+     "color": "#ff3010",
+     "cooldown": 8
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.55,
+     "say": "Genug gespielt.",
+     "speed": 1.15,
+     "cd": 0.8,
+     "color": "#ff3010",
+     "add": [
+      {
+       "id": "gehenna",
+       "name": "Gehennas Atem",
+       "windup": 1.5,
+       "active": 0.3,
+       "recovery": 1.2,
+       "damage": 46,
+       "range": 4.6,
+       "kind": "aoe",
+       "fx": "fire",
+       "type": "fire",
+       "radius": 5.0,
+       "unblockable": true,
+       "status": {
+        "burn": 3.0
+       },
+       "stagger": 120,
+       "knockback": 7,
+       "color": "#ff3010",
+       "cooldown": 10
+      }
+     ]
+    }
+   ]
+  },
+  "kingdom_soldier": {
+   "name": "Soldat des Königreichs",
+   "figure": "kingdom_soldier",
+   "hp": 90,
+   "armor": 20,
+   "speed": 4.0,
+   "poise": 30,
+   "aggro": 60,
+   "ai": "grunt",
+   "material": "armor",
+   "color": "#8a2020",
+   "gold": 4,
+   "barks": {
+    "alert": [
+     "Für den König!",
+     "Er ist allein – greift an!"
+    ],
+    "death": [
+     "Mutter …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "spear",
+     "name": "Speerstoß",
+     "windup": 0.6,
+     "active": 0.16,
+     "recovery": 0.7,
+     "damage": 14,
+     "range": 2.8,
+     "arc": 60,
+     "lunge": 2.0,
+     "stagger": 25
+    }
+   ]
+  },
+  "kingdom_knight": {
+   "name": "Ritter eines Adelshauses",
+   "figure": "kingdom_knight",
+   "hp": 150,
+   "armor": 40,
+   "speed": 4.2,
+   "poise": 60,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "armor",
+   "color": "#c0a040",
+   "gold": 8,
+   "barks": {
+    "alert": [
+     "Für das Haus Blumrush!",
+     "Tötet den Untoten!"
+    ],
+    "hurt": [
+     "Das ist kein Gegner – das ist der Tod selbst!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schwerthieb",
+     "windup": 0.55,
+     "active": 0.16,
+     "recovery": 0.6,
+     "damage": 18,
+     "range": 2.2,
+     "arc": 110,
+     "stagger": 30,
+     "next": "thrust",
+     "next_chance": 0.4
+    },
+    {
+     "id": "thrust",
+     "name": "Stich",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 22,
+     "range": 2.8,
+     "lunge": 2.5,
+     "arc": 50,
+     "stagger": 35
+    }
+   ]
+  },
+  "gazef_boss": {
+   "name": "Gazef Stronoff",
+   "figure": "gazef",
+   "hp": 2000,
+   "armor": 55,
+   "speed": 5.4,
+   "poise": 260,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "armor",
+   "color": "#2a3a7a",
+   "gold": 0,
+   "noloot": true,
+   "crit": 0.15,
+   "height": 1.85,
+   "barks": {
+    "alert": [
+     "Für den König und das Volk!"
+    ],
+    "hurt": [
+     "Noch nicht …!",
+     "Ein Krieger fällt nicht so leicht!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "slash",
+     "name": "Schwerthieb",
+     "windup": 0.45,
+     "active": 0.16,
+     "recovery": 0.55,
+     "damage": 26,
+     "range": 2.4,
+     "arc": 110,
+     "stagger": 40,
+     "next": "slash2",
+     "next_chance": 0.55
+    },
+    {
+     "id": "slash2",
+     "name": "Rückhand",
+     "windup": 0.35,
+     "active": 0.14,
+     "recovery": 0.6,
+     "damage": 22,
+     "range": 2.4,
+     "arc": 110,
+     "stagger": 35
+    },
+    {
+     "id": "six_light",
+     "name": "Sechsfacher Lichtschlag",
+     "windup": 0.8,
+     "active": 0.45,
+     "recovery": 1.0,
+     "damage": 54,
+     "range": 3.0,
+     "arc": 140,
+     "unblockable": true,
+     "stagger": 100,
+     "color": "#fff0b0",
+     "cooldown": 7
+    },
+    {
+     "id": "dash",
+     "name": "Kampfkunst: Ausfall",
+     "windup": 0.6,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 34,
+     "range": 5.5,
+     "lunge": 6.0,
+     "arc": 50,
+     "stagger": 60,
+     "cooldown": 5
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Kampfkunst: Grenzdurchbruch!",
+     "speed": 1.25,
+     "cd": 0.75,
+     "color": "#fff0b0",
+     "add": [
+      {
+       "id": "seven_light",
+       "name": "Siebenfacher Lichtschlag",
+       "windup": 0.9,
+       "active": 0.5,
+       "recovery": 1.1,
+       "damage": 62,
+       "range": 3.2,
+       "arc": 160,
+       "unblockable": true,
+       "stagger": 120,
+       "color": "#ffffff",
+       "cooldown": 8
+      }
+     ]
+    }
+   ]
+  },
+  "quagoa_elite": {
+   "name": "Quagoa-Krieger",
+   "figure": "quagoa_elite",
+   "hp": 220,
+   "armor": 45,
+   "speed": 5.0,
+   "poise": 80,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "beast",
+   "color": "#5a4a3a",
+   "height": 1.9,
+   "gold": 10,
+   "resist": {
+    "fire": 0.8,
+    "lightning": 0.8,
+    "negative": 0.8
+   },
+   "attacks": [
+    {
+     "id": "claws",
+     "name": "Grabklauen",
+     "windup": 0.5,
+     "active": 0.18,
+     "recovery": 0.6,
+     "damage": 22,
+     "range": 2.4,
+     "arc": 100,
+     "stagger": 40,
+     "next": "bite",
+     "next_chance": 0.4
+    },
+    {
+     "id": "bite",
+     "name": "Biss",
+     "windup": 0.45,
+     "active": 0.14,
+     "recovery": 0.6,
+     "damage": 18,
+     "range": 2.0,
+     "arc": 70,
+     "stagger": 30
+    },
+    {
+     "id": "burrow",
+     "name": "Aus dem Boden",
+     "windup": 1.0,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 30,
+     "range": 6.0,
+     "lunge": 6.0,
+     "arc": 60,
+     "unblockable": true,
+     "stagger": 70,
+     "cooldown": 6
+    }
+   ]
+  },
+  "pe_riyuro": {
+   "name": "Pe Riyuro, Herr der Quagoa",
+   "figure": "pe_riyuro",
+   "hp": 1500,
+   "armor": 55,
+   "speed": 4.8,
+   "poise": 260,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "beast",
+   "color": "#8a6a3a",
+   "height": 2.5,
+   "gold": 0,
+   "noloot": true,
+   "resist": {
+    "fire": 0.75,
+    "lightning": 0.75,
+    "negative": 0.75
+   },
+   "barks": {
+    "alert": [
+     "Frischfleisch!"
+    ],
+    "hurt": [
+     "Das … das ist kein Mensch!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "claws",
+     "name": "Felsklauen",
+     "windup": 0.55,
+     "active": 0.2,
+     "recovery": 0.7,
+     "damage": 30,
+     "range": 3.0,
+     "arc": 130,
+     "stagger": 60,
+     "next": "maul",
+     "next_chance": 0.45
+    },
+    {
+     "id": "maul",
+     "name": "Zerfleischen",
+     "windup": 0.5,
+     "active": 0.2,
+     "recovery": 0.7,
+     "damage": 26,
+     "range": 2.6,
+     "arc": 90,
+     "stagger": 50
+    },
+    {
+     "id": "quake",
+     "name": "Bergbeben",
+     "windup": 1.3,
+     "active": 0.25,
+     "recovery": 1.1,
+     "damage": 40,
+     "range": 4.5,
+     "kind": "aoe",
+     "fx": "steel",
+     "radius": 4.2,
+     "unblockable": true,
+     "stagger": 110,
+     "knockback": 6,
+     "color": "#c8a070",
+     "cooldown": 8
+    },
+    {
+     "id": "call",
+     "name": "Ruf der Klans",
+     "windup": 1.4,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "quagoa",
+     "count": 2,
+     "max": 4,
+     "cooldown": 14,
+     "color": "#c8a070"
+    }
+   ]
+  },
+  "bafolk": {
+   "name": "Bafolk",
+   "figure": "bafolk",
+   "hp": 120,
+   "armor": 25,
+   "speed": 4.2,
+   "poise": 50,
+   "aggro": 60,
+   "ai": "duelist",
+   "material": "beast",
+   "color": "#8a6a4a",
+   "gold": 6,
+   "barks": {
+    "alert": [
+     "Menschenfleisch!",
+     "Für Jaldabaoth!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "axe",
+     "name": "Axthieb",
+     "windup": 0.6,
+     "active": 0.18,
+     "recovery": 0.7,
+     "damage": 18,
+     "range": 2.4,
+     "arc": 120,
+     "stagger": 35,
+     "next": "horns",
+     "next_chance": 0.35
+    },
+    {
+     "id": "horns",
+     "name": "Hornstoß",
+     "windup": 0.7,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 22,
+     "range": 3.2,
+     "lunge": 3.0,
+     "arc": 60,
+     "stagger": 50
+    }
+   ]
+  },
+  "hellhound": {
+   "name": "Höllenhund",
+   "model": "wolf",
+   "hp": 110,
+   "armor": 15,
+   "speed": 6.4,
+   "poise": 30,
+   "aggro": 60,
+   "ai": "beast",
+   "material": "beast",
+   "color": "#ff5a20",
+   "tint": "#2a0a06",
+   "scale": 1.2,
+   "gold": 4,
+   "resist": {
+    "fire": 0.2,
+    "ice": 1.5
+   },
+   "emit": [
+    [
+     "body_fire",
+     "#ff5a20",
+     0.6
+    ]
+   ],
+   "light": [
+    "#ff5a20",
+    1.2,
+    4.0
+   ],
+   "attacks": [
+    {
+     "id": "bite",
+     "name": "Feuerbiss",
+     "windup": 0.4,
+     "active": 0.14,
+     "recovery": 0.5,
+     "damage": 14,
+     "range": 2.0,
+     "arc": 80,
+     "type": "fire",
+     "status": {
+      "burn": 1.5
+     },
+     "stagger": 25
+    },
+    {
+     "id": "breath",
+     "name": "Höllenatem",
+     "windup": 0.9,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 18,
+     "range": 5.0,
+     "kind": "aoe",
+     "fx": "fire",
+     "type": "fire",
+     "radius": 2.2,
+     "status": {
+      "burn": 2.0
+     },
+     "stagger": 30,
+     "color": "#ff5a20",
+     "cooldown": 5
+    }
+   ]
+  },
+  "bafolk_warlord": {
+   "name": "Kriegsfürst der Bafolk",
+   "figure": "bafolk_warlord",
+   "hp": 1400,
+   "armor": 50,
+   "speed": 4.4,
+   "poise": 240,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "beast",
+   "color": "#a07040",
+   "gold": 0,
+   "noloot": true,
+   "scale": 1.25,
+   "height": 2.3,
+   "barks": {
+    "alert": [
+     "Jaldabaoth hat uns dieses Land versprochen!"
+    ],
+    "hurt": [
+     "Was bist du?!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "cleave",
+     "name": "Große Axt",
+     "windup": 0.7,
+     "active": 0.22,
+     "recovery": 0.8,
+     "damage": 32,
+     "range": 3.0,
+     "arc": 150,
+     "stagger": 70,
+     "armor": true,
+     "next": "charge",
+     "next_chance": 0.4
+    },
+    {
+     "id": "charge",
+     "name": "Widderansturm",
+     "windup": 0.8,
+     "active": 0.25,
+     "recovery": 0.9,
+     "damage": 36,
+     "range": 6.0,
+     "lunge": 7.0,
+     "arc": 60,
+     "unblockable": true,
+     "stagger": 90,
+     "knockback": 6,
+     "cooldown": 6
+    },
+    {
+     "id": "call",
+     "name": "Ruf der Höllenhunde",
+     "windup": 1.3,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "hellhound",
+     "count": 2,
+     "max": 3,
+     "cooldown": 15,
+     "color": "#ff5a20"
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Ihr Menschen seid nur Futter!",
+     "speed": 1.15,
+     "cd": 0.8,
+     "color": "#ff7a2a"
+    }
+   ]
+  },
+  "decem_boss": {
+   "name": "Decem Hougan, König der Elfen",
+   "figure": "decem",
+   "hp": 1900,
+   "armor": 50,
+   "speed": 5.2,
+   "poise": 280,
+   "aggro": 60,
+   "ai": "boss",
+   "boss": true,
+   "elite": true,
+   "material": "flesh",
+   "color": "#6ad890",
+   "gold": 0,
+   "noloot": true,
+   "height": 1.9,
+   "crit": 0.12,
+   "barks": {
+    "alert": [
+     "Knie vor deinem König!"
+    ],
+    "hurt": [
+     "Wie … kannst du es wagen!",
+     "Mein Blut … mein königliches Blut!"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "blade",
+     "name": "Königsklinge",
+     "windup": 0.45,
+     "active": 0.16,
+     "recovery": 0.55,
+     "damage": 28,
+     "range": 2.6,
+     "arc": 120,
+     "stagger": 45,
+     "next": "blade2",
+     "next_chance": 0.5
+    },
+    {
+     "id": "blade2",
+     "name": "Wirbelnde Klinge",
+     "windup": 0.5,
+     "active": 0.22,
+     "recovery": 0.7,
+     "damage": 26,
+     "range": 2.8,
+     "arc": 280,
+     "stagger": 50
+    },
+    {
+     "id": "roots",
+     "name": "Würgende Wurzeln",
+     "windup": 1.0,
+     "active": 0.25,
+     "recovery": 0.9,
+     "damage": 30,
+     "range": 16,
+     "kind": "aoe",
+     "fx": "steel",
+     "radius": 3.0,
+     "unblockable": true,
+     "status": {
+      "stun": 0.8
+     },
+     "stagger": 80,
+     "color": "#7ed957",
+     "cooldown": 7
+    },
+    {
+     "id": "beasts",
+     "name": "Bestien des Waldes",
+     "windup": 1.4,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "wolf",
+     "count": 2,
+     "max": 4,
+     "cooldown": 14,
+     "color": "#7ed957"
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.5,
+     "say": "Ihr habt mich erzürnt!",
+     "speed": 1.2,
+     "cd": 0.8,
+     "color": "#b0ff80",
+     "add": [
+      {
+       "id": "storm",
+       "name": "Sturm des Ewigen Waldes",
+       "windup": 1.5,
+       "active": 0.3,
+       "recovery": 1.2,
+       "damage": 44,
+       "range": 4.8,
+       "kind": "aoe",
+       "fx": "lightning",
+       "type": "lightning",
+       "radius": 4.8,
+       "unblockable": true,
+       "stagger": 120,
+       "knockback": 6,
+       "color": "#c0ff90",
+       "cooldown": 10
       }
      ]
     }
