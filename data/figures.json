@@ -942,6 +942,90 @@
    "trim": "#8a6a3a",
    "apron": true,
    "eyes": "#3a2a1a"
+  },
+  "smith": {
+   "scale": 1.04,
+   "skin": "#c89a78",
+   "hair": [
+    "#3a3a3a",
+    "short"
+   ],
+   "beard": "#3a3a3a",
+   "top": "#4a3a2a",
+   "bottom": [
+    "pants",
+    "#3a2a1a"
+   ],
+   "trim": "#6a5a4a",
+   "apron": true,
+   "eyes": "#2a2a2a"
+  },
+  "priest": {
+   "scale": 0.98,
+   "skin": "#e4c4a0",
+   "hair": [
+    "#b9b0a5",
+    "short"
+   ],
+   "top": "#e8e0d0",
+   "bottom": [
+    "dress",
+    "#e8e0d0"
+   ],
+   "trim": "#b89a4a",
+   "eyes": "#3a3a3a"
+  },
+  "fluder": {
+   "scale": 0.96,
+   "skin": "#e0c8b0",
+   "hair": [
+    "#d8d0c8",
+    "bald"
+   ],
+   "beard": "#d8d0c8",
+   "top": "#2a2a4a",
+   "bottom": [
+    "dress",
+    "#2a2a4a"
+   ],
+   "trim": "#a09060",
+   "eyes": "#3a3a4a",
+   "weapon": [
+    "staff",
+    "#9fe070"
+   ]
+  },
+  "carne_innkeeper": {
+   "scale": 0.94,
+   "skin": "#e8c8a8",
+   "hair": [
+    "#8a6a3a",
+    "bun"
+   ],
+   "top": "#8a5a3a",
+   "bottom": [
+    "dress",
+    "#5a3a2a"
+   ],
+   "trim": "#d8c8a0",
+   "apron": true,
+   "eyes": "#4a3a2a"
+  },
+  "cardinal": {
+   "scale": 0.95,
+   "skin": "#e0c0a0",
+   "hair": [
+    "#d0c8c0",
+    "bald"
+   ],
+   "beard": "#d0c8c0",
+   "top": "#f0e8d8",
+   "bottom": [
+    "dress",
+    "#e8e0d0"
+   ],
+   "trim": "#c8a040",
+   "eyes": "#3a3a3a"
   }
  }
 }

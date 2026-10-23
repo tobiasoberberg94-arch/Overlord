@@ -515,5 +515,257 @@
     "text": ""
    }
   ]
+ },
+ "erantel_schmiede": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "charter",
+    "kind": "plaque",
+    "at": [
+     -2.0,
+     0.0,
+     -4.1
+    ],
+    "yaw": 0,
+    "title": "Zunftbrief",
+    "text": "»Zunft der Schmiede zu E-Rantel. Meister: Harlan Eisenhand. Berechtigt zur Fertigung von Klingen, Rüstungen und Beschlägen.«\n\nDarunter, mit Kreide: »Preise für Abenteurer – Kupfer zahlt doppelt, Eisen zahlt dreifach, Mithril zahlt gar nicht. Die kommen eh nicht wieder.«\n\nJemand hat das Wort ›nicht‹ durchgestrichen. Die Kreide ist frisch."
+   },
+   {
+    "id": "orders",
+    "kind": "note",
+    "at": [
+     3.9,
+     0.0,
+     -4.1
+    ],
+    "yaw": -15,
+    "title": "Auftragstafel",
+    "text": "»Zwei Großschwerter, schwarz, für Herrn Momon – ABGEHOLT. Kein Schliff nötig, sagt er. Was für ein Stahl ist das?«\n\n»Zwanzig Speerspitzen für die Stadtwache. Bezahlt die Hälfte. Wie immer.«\n\n»Ein Dolch mit Hohlgriff für ›eine Dame in Rot‹. Bezahlt in Gold. Nicht nachfragen, hat sie gesagt. Ich habe nicht nachgefragt.«"
+   },
+   {
+    "id": "blade",
+    "kind": "cache",
+    "at": [
+     4.3,
+     0.0,
+     3.6
+    ],
+    "title": "Vergessene Klinge",
+    "text": "Unter dem Erz, in Öltuch gewickelt: ein Schwert, das nie abgeholt wurde. Der Name auf dem Zettel ist der eines Abenteurers, der auf dem Friedhof blieb."
+   }
+  ]
+ },
+ "erantel_tempel": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "donors",
+    "kind": "plaque",
+    "at": [
+     -5.6,
+     0.0,
+     5.0
+    ],
+    "yaw": 90,
+    "title": "Stiftertafel",
+    "text": "»Für den Erhalt des Tempels gaben:« – Familie Bareare, für die Heilung einer Enkelin. Die Gilde der Abenteurer, drei Goldmünzen, ›für die, die nicht zurückkommen‹. Die Stadtwache, nichts, aber Dank.\n\nZuletzt, frisch eingraviert: »Ein Abenteurer in schwarzer Rüstung. Betrag: ungenannt.« Der Steinmetz hat das Wort ›ungenannt‹ sehr groß gemacht."
+   },
+   {
+    "id": "scripture",
+    "kind": "lectern",
+    "at": [
+     1.6,
+     0.0,
+     -6.0
+    ],
+    "yaw": 180,
+    "title": "Schriften der Vier Götter",
+    "text": "»Gebet gegen die Untoten: Licht über E-Rantel, Licht über die Gräber, Licht in die Knochen der Toten, dass sie ruhen.«\n\nEine Randnotiz, in der Schrift des Priesters: »Khajiit hat wieder nach den Totenregistern gefragt. Ich habe nein gesagt. Er lächelte und sagte, er brauche sie bald nicht mehr.«"
+   },
+   {
+    "id": "relic",
+    "kind": "cache",
+    "at": [
+     0.0,
+     0.0,
+     -9.4
+    ],
+    "title": "Reliquienschrein",
+    "text": "Hinter dem Altar, unter einem Tuch: ein Schrein mit dem Fingerknochen eines Heiligen. Oder eines Priesters. Oder eines Bauern. Der Tempel ist sich da nicht mehr sicher."
+   }
+  ]
+ },
+ "carne_schenke": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "notice",
+    "kind": "note",
+    "at": [
+     4.2,
+     0.0,
+     3.7
+    ],
+    "yaw": -10,
+    "title": "Aushang an der Tür",
+    "text": "»Wolfsjagd: Jugem zahlt zwei Kupfer je Pelz. Nur ausgewachsene Wölfe – keine Welpen, keine Hunde, keine ›das war ein Wolf, ehrlich‹.«\n\n»Goblins trinken gratis. Beschluss der Dorfversammlung, acht zu sieben Stimmen. Die sieben zahlen ab jetzt doppelt.«"
+   },
+   {
+    "id": "guestbook",
+    "kind": "lectern",
+    "at": [
+     -3.2,
+     0.0,
+     2.4
+    ],
+    "yaw": 90,
+    "title": "Gästebuch der Schenke",
+    "text": "»Momon und Nabe – zweimal Eintopf, einmal nichts. Nabe hat den Löffel angesehen, als sei er schuld.«\n\n»Nfirea Bareare – bleibt noch eine Woche. Schon wieder. Zahlt mit Tränken.«\n\n»Lupusregina – fragt nach allem, lacht über alles, zahlt mit einem Lächeln. Das zählt hier nicht als Münze. Noch nicht.«"
+   },
+   {
+    "id": "stash",
+    "kind": "cache",
+    "at": [
+     -4.4,
+     0.0,
+     -3.6
+    ],
+    "title": "Schmugglerfach",
+    "text": "Hinter dem Weinfass ein loses Brett: Münzen aus E-Rantel, ein Kamm und ein Brief, der nie abgeschickt wurde. Marla weiß davon. Sie sagt nichts."
+   }
+  ]
+ },
+ "theokratie_kathedrale": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "six",
+    "kind": "plaque",
+    "at": [
+     -8.6,
+     0.0,
+     8.0
+    ],
+    "yaw": 90,
+    "title": "Die Sechs Götter",
+    "text": "Die Namen der Sechs: Gott des Lebens, der Erde, des Wassers, des Feuers, des Windes – und Surshana, Gott des Todes.\n\nDer sechste Name ist halb abgeschlagen. Jemand hat versucht, ihn zu tilgen; jemand anderes hat ihn mit Gold wieder nachgezogen. Beide hatten Recht, sagen die Kardinäle. Das ist die Theokratie."
+   },
+   {
+    "id": "teachings",
+    "kind": "lectern",
+    "at": [
+     2.0,
+     0.0,
+     -10.5
+    ],
+    "yaw": 180,
+    "title": "Lehren der Sechs",
+    "text": "»Die Menschheit ist das schwächste Volk. Darum müssen wir das grausamste sein.«\n\nEin eingelegter Bericht: »Sonnenlicht-Schrift, Einsatz Carne. Kein Rückkehrer. Nigun Grid Luin: vermisst. Ursache: unbekannt. Vermutung: ein Untoter von einer Stärke, die es nicht geben darf.« Darunter ein Siegel: ›Nicht verbreiten.‹"
+   },
+   {
+    "id": "treasure",
+    "kind": "cache",
+    "at": [
+     8.3,
+     0.0,
+     -12.6
+    ],
+    "title": "Schatz der Kardinäle",
+    "text": "In einer Nische hinter der Statue: Gold, das für Söldner bestimmt war, und ein Brief an das Kaiserreich, der nie abging. Beides wird niemand vermissen – offiziell gibt es beides nicht."
+   }
+  ]
+ },
+ "baharuth_akademie": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "research",
+    "kind": "lectern",
+    "at": [
+     -3.4,
+     0.0,
+     -3.6
+    ],
+    "yaw": 135,
+    "title": "Fluders Forschungen",
+    "text": "»Stufe sechs. Nach zweihundert Jahren Stufe sechs. Der Abgrund bleibt geschlossen.«\n\n»Heute sah ich ihn. Nicht einen Abgrund – einen Ozean. Ich habe geweint wie ein Kind. Der Kaiser fragte, ob ich krank sei. Ich sagte: geheilt.«"
+   },
+   {
+    "id": "schedule",
+    "kind": "note",
+    "at": [
+     5.6,
+     0.0,
+     4.4
+    ],
+    "yaw": -90,
+    "title": "Stundenplan der Akademie",
+    "text": "»Morgens: Feuerball für Anfänger (Hof, Eimer bereitstellen). Mittags: Fliegen (Matten auslegen, Heiler bereithalten). Abends: ›Der Zauberkönig – eine Einordnung‹.«\n\nDie Abendvorlesung ist durchgestrichen. Daneben: »Abgesagt auf Anweisung des Kaisers. Einordnung nicht möglich.«"
+   },
+   {
+    "id": "sealed",
+    "kind": "cache",
+    "at": [
+     5.2,
+     0.0,
+     -5.3
+    ],
+    "title": "Versiegelte Truhe",
+    "text": "Eine Truhe mit sieben Siegeln, alle gebrochen – von innen. Darin: Notizen über Beschwörungen, die niemand lehren darf, und eine Schriftrolle, die noch warm ist."
+   }
+  ]
+ },
+ "azerlisia_schmiedehalle": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "masters",
+    "kind": "plaque",
+    "at": [
+     -9.6,
+     0.0,
+     -1.0
+    ],
+    "yaw": 90,
+    "title": "Runentafel der Meister",
+    "text": "Hundertachtzehn Namen von Runenschmieden, in Stein gemeißelt. Die letzten fünf sind mit Kreide ergänzt, nicht gemeißelt – niemand konnte mehr meißeln, der die Runen kannte.\n\nDer letzte Name: »Gondo Firebeard – noch am Leben, noch am Suchen.«"
+   },
+   {
+    "id": "runes",
+    "kind": "lectern",
+    "at": [
+     6.5,
+     0.0,
+     2.6
+    ],
+    "yaw": -45,
+    "title": "Buch der Runen",
+    "text": "Zwanzig Runen, die einst jedes Zwergenkind kannte. Neben jeder steht: ›Wirkung: vergessen.‹\n\nNeben der zwölften, mit frischer Tinte: »Wirkt wieder. Der Zauberkönig hat sie gelesen, als wäre sie Kinderschrift. Dann hat er gefragt, ob wir Lehrlinge brauchen.«"
+   },
+   {
+    "id": "ore",
+    "kind": "cache",
+    "at": [
+     -9.2,
+     0.0,
+     6.0
+    ],
+    "title": "Erzkiste",
+    "text": "Eine Kiste mit Erz, das keiner mehr schmelzen kann: schwer, kalt, und es summt leise, wenn man die Hand darauf legt."
+   }
+  ]
  }
 }

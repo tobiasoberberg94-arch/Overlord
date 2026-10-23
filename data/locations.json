@@ -231,6 +231,17 @@
       6.0
      ],
      "yaw": 270
+    },
+    {
+     "id": "schenke",
+     "to": "carne_schenke",
+     "name": "Dorfschenke",
+     "at": [
+      12.6,
+      -0.3,
+      -22.4
+     ],
+     "yaw": 90
     }
    ]
   },
@@ -309,6 +320,28 @@
       -4.9,
       -0.3,
       0.9
+     ],
+     "yaw": 180
+    },
+    {
+     "id": "schmiede",
+     "to": "erantel_schmiede",
+     "name": "Schmiede",
+     "at": [
+      2.6,
+      -0.3,
+      -11.6
+     ],
+     "yaw": 90
+    },
+    {
+     "id": "tempel",
+     "to": "erantel_tempel",
+     "name": "Tempel der Vier Götter",
+     "at": [
+      -53.4,
+      -0.3,
+      -14.5
      ],
      "yaw": 180
     }
@@ -426,6 +459,19 @@
       "chapter_min": 4
      }
     }
+   ],
+   "doors": [
+    {
+     "id": "akademie",
+     "to": "baharuth_akademie",
+     "name": "Magierakademie",
+     "at": [
+      -65.5,
+      -0.3,
+      -40.0
+     ],
+     "yaw": 270
+    }
    ]
   },
   {
@@ -486,6 +532,19 @@
       0.0,
       -2.0
      ]
+    }
+   ],
+   "doors": [
+    {
+     "id": "kathedrale",
+     "to": "theokratie_kathedrale",
+     "name": "Kathedrale der Sechs Götter",
+     "at": [
+      0.0,
+      -0.3,
+      -46.5
+     ],
+     "yaw": 180
     }
    ]
   },
@@ -666,6 +725,19 @@
       -10
      ]
     }
+   ],
+   "doors": [
+    {
+     "id": "schmiedehalle",
+     "to": "azerlisia_schmiedehalle",
+     "name": "Schmiedehalle von Feo Jera",
+     "at": [
+      0.0,
+      -0.3,
+      -73.0
+     ],
+     "yaw": 180
+    }
    ]
   },
   {
@@ -684,6 +756,108 @@
      "requires": {
       "chapter_min": 10
      }
+    }
+   ]
+  },
+  {
+   "id": "erantel_schmiede",
+   "name": "Schmiede zum Glühenden Amboss",
+   "kind": "smithy",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "title",
+   "desc": "Hammerschläge, Glut und der Geruch von heißem Eisen – hier bekommen die Abenteurer von E-Rantel ihre Klingen.",
+   "npcs": [
+    {
+     "id": "smith",
+     "line": "Schwarze Rüstung, zwei Großschwerter … Herr Momon, wenn Ihr je eine Klinge schärfen lasst, mach ich's umsonst. Reklame ist Reklame."
+    }
+   ]
+  },
+  {
+   "id": "erantel_tempel",
+   "name": "Tempel der Vier Götter",
+   "kind": "temple",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "title",
+   "desc": "Kerzenlicht unter hohen Säulen. Die Priester heilen gegen Spende – und schweigen über das, was nachts auf dem Friedhof geschieht.",
+   "npcs": [
+    {
+     "id": "priest",
+     "line": "Die Vier Götter schützen E-Rantel. Zumindest sagen wir das den Leuten. Spendet, was Ihr könnt – Heiltränke sind teuer geworden."
+    }
+   ]
+  },
+  {
+   "id": "carne_schenke",
+   "name": "Dorfschenke Carne",
+   "kind": "inn",
+   "group": "interior",
+   "parent": "carne",
+   "region": "carne",
+   "sky": "carne_village",
+   "music": "title",
+   "desc": "Enris Dorf hat jetzt eine Schenke: ein Herd, drei Tische – und Goblins, die vor der Tür Wache halten.",
+   "npcs": [
+    {
+     "id": "carne_innkeeper",
+     "line": "Setzt Euch! Seit die Goblins da sind, trinken die Männer weniger und reden mehr. Die Goblins trinken dafür umso mehr."
+    }
+   ]
+  },
+  {
+   "id": "theokratie_kathedrale",
+   "name": "Kathedrale der Sechs Götter",
+   "kind": "basilica",
+   "group": "interior",
+   "parent": "theokratie",
+   "region": "theokratie",
+   "sky": "holy_kingdom",
+   "music": "tension",
+   "desc": "Gold, Weihrauch und die Statuen der Sechs. Hier wird über das Schicksal der Menschheit entschieden – und über das von Untoten.",
+   "npcs": [
+    {
+     "id": "cardinal",
+     "line": "Ein Untoter im Haus der Sechs Götter. Die Kardinäle werden das Wort dafür noch finden müssen. Bis dahin: Sprecht, Zauberkönig."
+    }
+   ]
+  },
+  {
+   "id": "baharuth_akademie",
+   "name": "Magierakademie von Arwintar",
+   "kind": "academy",
+   "group": "interior",
+   "parent": "baharuth",
+   "region": "baharuth",
+   "sky": "baharuth",
+   "music": "title",
+   "desc": "Fluder Paradynes Studierzimmer: Bücher bis zur Decke, ein Beschwörungskreis im Boden und ein Kristall, der die Tiefe der Magie misst.",
+   "npcs": [
+    {
+     "id": "fluder",
+     "line": "Zweihundert Jahre habe ich gewartet, um den Abgrund zu sehen. Und Ihr … Ihr SEID der Abgrund. Lehrt mich. Bitte."
+    }
+   ]
+  },
+  {
+   "id": "azerlisia_schmiedehalle",
+   "name": "Schmiedehalle von Feo Jera",
+   "kind": "forge_hall",
+   "group": "interior",
+   "parent": "azerlisia",
+   "region": "azerlisia",
+   "sky": "world_map",
+   "music": "tension",
+   "desc": "Drei Essen, die seit zweihundert Jahren brennen. Die Runen an den Pfeilern leuchten noch – die Runenschmiede, die sie schrieben, sind fast alle fort.",
+   "npcs": [
+    {
+     "id": "gondo",
+     "line": "Runenhandwerk! Niemand will es mehr. Aber Ihr … Ihr fragt danach. Setzt Euch, Zauberkönig. Ich zeige Euch, was mein Vater mir zeigte."
     }
    ]
   }

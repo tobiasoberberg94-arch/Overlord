@@ -20,6 +20,7 @@ const RENDER_SCALE_NAMES := ["FSR 2 Leistung (50 %)", "FSR 2 Ausgewogen (59 %)",
 var master_volume := 1.0
 var music_volume := 0.7
 var sfx_volume := 0.8
+var ambience_volume := 0.8
 var ui_sounds := true
 # Grafik
 var window_mode := 0
@@ -64,7 +65,8 @@ func _ready() -> void:
 
 func _keys() -> Array:
 	return [
-		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ui_sounds"],
+		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ambience_volume"],
+		["audio", "ui_sounds"],
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
 		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"], ["video", "graphics"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],

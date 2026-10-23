@@ -264,17 +264,20 @@ func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 	seeds += w.anchors.get("slots", [])
 	if w.anchors.has("keeper"):
 		seeds.append(w.anchors.keeper)
-	var indoor: bool = w.loc.group == "nazarick" or w.loc.get("kind", "") in ["city", "palace", "cathedral"]
-	var reach := 18.0 if indoor else 48.0
+	# indoor: Hallen Nazaricks (Decke über allem, kurze Strahlen); dense: Städte – unter freiem Himmel, aber eng,
+	# darum kurze Reichweiten wie drinnen. Der Strahl kommt in Städten von oben, damit Dächer erkannt werden.
+	var indoor: bool = w.loc.group == "nazarick"
+	var dense: bool = indoor or w.loc.get("kind", "") in ["city", "palace", "cathedral"]
+	var reach := 18.0 if dense else 48.0
 	if mode == "hidden":
-		reach = 26.0 if indoor else 80.0
+		reach = 26.0 if dense else 80.0
 	var out: Array = []
 	var tries := 0
 	while out.size() < n and tries < n * 60:
 		tries += 1
 		var s: Vector3 = seeds[rng.randi() % seeds.size()]
 		var a := rng.randf() * TAU
-		var r := rng.randf_range(3.0 if mode != "hidden" else (8.0 if indoor else 18.0), reach)
+		var r := rng.randf_range(3.0 if mode != "hidden" else (8.0 if dense else 18.0), reach)
 		var x := s.x + cos(a) * r
 		var z := s.z + sin(a) * r
 		var top := Vector3(x, s.y + (2.4 if indoor else 40.0), z)
@@ -282,8 +285,11 @@ func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 		var hit := space.intersect_ray(rq)
 		if hit.is_empty() or hit.normal.y < 0.85:
 			continue
+		# Dächer, Zelte, Mauern und Türme der Ortsmodelle (Kollisionskörper „SM_…“) sind kein Boden für Entdeckungen
+		if not indoor and hit.collider is Node and String((hit.collider as Node).name).begins_with("SM_"):
+			continue
 		var p: Vector3 = hit.position
-		if absf(p.y - s.y) > (2.5 if indoor else 12.0):
+		if absf(p.y - s.y) > (2.5 if indoor else (8.0 if mode == "hidden" else 5.0)):
 			continue
 		var los := PhysicsRayQueryParameters3D.create(s + Vector3(0, 1.0, 0), p + Vector3(0, 1.0, 0))
 		var seen := space.intersect_ray(los).is_empty()

@@ -61,6 +61,36 @@ func _add(pos: Vector3, standing: bool) -> void:
 			f["tabard"] = CAPE[_rng.randi() % CAPE.size()]
 		var weapons := [["sword", "#c8c8d0"], ["sword", "#c8c8d0"], ["bow", "#5a3a20"], ["sword_shield", "#d0d0d8"], ["staff", "#9fe070"], ["axe", "#9a9a9a"]]
 		f["weapon"] = weapons[_rng.randi() % weapons.size()]
+	elif _style == "priest":
+		# Priester und Novizen: helle Roben mit goldenem Saum
+		var robe: String = ["#e8e0d0", "#d8d0c0", "#c8c0b0", "#f0ead8"][_rng.randi() % 4]
+		f["top"] = robe
+		f["bottom"] = ["dress", robe]
+		f["trim"] = "#b89a4a"
+		f["apron"] = false
+	elif _style == "mage":
+		# Magier der Akademie: dunkle Roben, Stab
+		var robe: String = ["#2a2a4a", "#3a2a4a", "#1a2a3a", "#4a2a2a"][_rng.randi() % 4]
+		f["top"] = robe
+		f["bottom"] = ["dress", robe]
+		f["trim"] = ["#8a7aa0", "#a09060", "#6a8aa0"][_rng.randi() % 3]
+		f["apron"] = false
+		if _rng.randf() < 0.5:
+			f["weapon"] = ["staff", "#9fe070"]
+	elif _style == "smith":
+		# Schmiede und Gesellen: Lederschürze, dunkle Kleidung, kräftig
+		f["top"] = ["#4a3a2a", "#3a3a3a", "#5a4a3a"][_rng.randi() % 3]
+		f["bottom"] = ["pants", "#3a2a1a"]
+		f["apron"] = true
+		f["scale"] = _rng.randf_range(0.98, 1.06)
+		if _rng.randf() < 0.6:
+			f["beard"] = HAIR[_rng.randi() % HAIR.size()]
+	elif _style == "dwarf":
+		# Zwerge: gedrungen, Bart, Schürze oder Lederwams
+		f["scale"] = _rng.randf_range(0.7, 0.78)
+		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
+		f["beard"] = ["#8a5a2a", "#c9a25a", "#5a3a20", "#b9b0a5"][_rng.randi() % 4]
+		f["apron"] = _rng.randf() < 0.6
 	var rig := CharacterRig.create("", func(r: CharacterRig) -> void: ProcModel._person(r, f))
 	add_child(rig)
 	rig.position = pos

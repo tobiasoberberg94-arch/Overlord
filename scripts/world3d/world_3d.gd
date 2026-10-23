@@ -113,9 +113,10 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
 	if not arrive.is_empty():
-		player.global_position = arrive.pos
+		player.global_position = _on_ground(arrive.pos) + Vector3.UP * 0.1
 		player.face(float(arrive.yaw))
 	Audio.set_space(String(loc.get("kind", "")))
+	Audio.play_ambience_for(loc)
 	# Kampfeffekte einmal zeigen (unsichtbar), damit der erste Treffer nicht ruckelt
 	await get_tree().process_frame
 	if is_instance_valid(level):
@@ -190,7 +191,7 @@ func _place_actors() -> void:
 		var at: Array = d.at
 		var door := Actor3D.object("door:" + String(d.id), String(d.name), "Betreten", Palette.GOLD, 2.4)
 		door.set_meta("door", d)
-		_add_actor(door, Vector3(float(at[0]), float(at[1]), float(at[2])))
+		_add_actor(door, _on_ground(Vector3(float(at[0]), float(at[1]), float(at[2]))))
 		_door_sign(door, d)
 	if anchors.has("exit"):
 		var parent_loc: Dictionary = Content.location_by_id.get(String(loc.get("parent", "")), {})
@@ -470,6 +471,13 @@ func board_loc() -> String:
 
 
 ## Durch eine Tür in einen Innenraum; der Weg zurück führt vor dieselbe Tür.
+## Punkt auf den Boden des Ortes setzen – Türen und Rückkehrpunkte brauchen so keine genaue Höhe in den Daten
+## (Vorplätze liegen erhöht, Gassen gesenkt; ohne Boden darunter bleibt der Punkt, wie er ist).
+func _on_ground(p: Vector3) -> Vector3:
+	var hit := level.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 8.0, p - Vector3.UP * 8.0, 1))
+	return Vector3(p.x, float(hit.position.y), p.z) if not hit.is_empty() else p
+
+
 func _enter_door(d: Dictionary) -> void:
 	if _busy or not Content.location_by_id.has(String(d.to)):
 		return

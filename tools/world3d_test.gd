@@ -90,6 +90,90 @@ func _ready() -> void:
 			print("PROP %-26s %s" % [n, (w2.size as Vector3).snapped(Vector3(0.01, 0.01, 0.01)) if not w2.is_empty() else "fehlt"])
 		get_tree().quit()
 		return
+	if only == "probe":
+		# Bodenprobe: PROBE="ort:x,z;ort:x,z" – was liegt unter dem Punkt (Kollisionskörper, Höhe, Neigung)?
+		for spec in OS.get_environment("PROBE").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var xz := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				w._time_running = false
+				await w.load_location(lid)
+				await _wait(0.8)
+			var space: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+			var p := Vector3(float(xz[0]), 0.0, float(xz[1]))
+			var excl: Array[RID] = []
+			for k in 4:
+				var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 80.0, p - Vector3.UP * 80.0, 1, excl))
+				if hit.is_empty():
+					break
+				var col: Node = hit.collider
+				print("PROBE %s (%s, %s) Treffer %d: y=%.2f Neigung %.0f° Körper %s/%s" % [lid, xz[0], xz[1], k, hit.position.y, rad_to_deg(acos((hit.normal as Vector3).y)), col.get_parent().name if col.get_parent() else "-", col.name])
+				excl.append(hit.rid)
+		print("PROBEDONE")
+		get_tree().quit()
+		return
+	if only == "dresscheck":
+		# Ausstattung prüfen (DRESSLOCS=ort,ort; leer = alle): jedes Stück aus data/dressing.json auf Überschneidung
+		# mit Gebäuden oder Fels, fehlenden Boden und Hanglage testen – Ergebnis als AUSSTATTUNG-Zeilen.
+		var want := OS.get_environment("DRESSLOCS").split(",", false)
+		for l in Content.locations:
+			if not want.is_empty() and not l.id in want:
+				continue
+			w._time_running = false
+			await w.load_location(l.id)
+			await _wait(0.8)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			var holder: Node = w.level.find_child("Ausstattung", true, false)
+			if holder == null:
+				print("AUSSTATTUNG %s: keine Einträge" % l.id)
+				continue
+			var space: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+			var bad := 0
+			for n in holder.get_children():
+				var nd := n as Node3D
+				var pos := nd.global_position
+				var e: Dictionary = nd.get_meta("entry", {})
+				if String(e.get("kind", "")) in Dressing.SOFT:
+					continue
+				var own: Array[RID] = [w.player.get_rid()]
+				for b in nd.find_children("*", "StaticBody3D", true, false):
+					own.append((b as StaticBody3D).get_rid())
+				var sh := SphereShape3D.new()
+				sh.radius = 0.6
+				var q := PhysicsShapeQueryParameters3D.new()
+				q.shape = sh
+				q.transform = Transform3D(Basis(), pos + Vector3.UP * 1.0)
+				q.collision_mask = 1
+				q.exclude = own
+				var names: Array = []
+				for h in space.intersect_shape(q, 8):
+					var col: Object = h.collider
+					if col is CharacterBody3D or (col is Node and nd.is_ancestor_of(col as Node)):
+						continue
+					if col is Node:
+						var par := (col as Node).get_parent()
+						names.append(String((col as Node).name) if par == null else "%s/%s" % [par.name, (col as Node).name])
+				var ground := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 2.0, pos - Vector3.UP * 4.0, 1, own))
+				var note := ""
+				if ground.is_empty():
+					note = "KEIN BODEN"
+				elif (ground.normal as Vector3).y < 0.9:
+					note = "HANG (Neigung %.0f°)" % rad_to_deg(acos((ground.normal as Vector3).y))
+				elif absf(float(ground.position.y) - pos.y) > 0.25:
+					note = "SCHWEBT %.2f m" % (pos.y - float(ground.position.y))
+				var want_at: Array = e.get("at", [0, 0])
+				if want_at.size() == 2 and Vector2(pos.x, pos.z).distance_to(Vector2(float(want_at[0]), float(want_at[1]))) > 0.3:
+					note = ("%s · " % note if note != "" else "") + "verschoben von (%.1f, %.1f)" % [float(want_at[0]), float(want_at[1])]
+				if not names.is_empty():
+					note = ("%s · " % note if note != "" else "") + "KOLLISION " + ", ".join(names)
+				if note != "":
+					bad += 1
+					print("AUSSTATTUNG %s #%d %s bei (%.1f, %.1f): %s" % [l.id, nd.get_index(), nd.name, pos.x, pos.z, note])
+			print("AUSSTATTUNG %s: %d Stücke, %d auffällig" % [l.id, holder.get_child_count(), bad])
+		print("DRESSDONE")
+		get_tree().quit()
+		return
 	if only == "doors":
 		# Türen: Ort laden, zur ersten Tür gehen, hinein, Bild, hinaus, Bild (DOORLOC=e_rantel)
 		var lid := OS.get_environment("DOORLOC") if OS.get_environment("DOORLOC") != "" else "e_rantel"

@@ -15,6 +15,7 @@ var _rigs: Array[CharacterRig] = []
 
 func _ready() -> void:
 	Audio.play_music("title")
+	Audio.stop_ambience()
 	_build_scene()
 	_build_ui()
 

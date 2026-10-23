@@ -1419,5 +1419,40 @@
   "color": "#d8a85a",
   "accent": "#3a2a1a",
   "npc": true
+ },
+ "smith": {
+  "name": "Harlan Eisenhand",
+  "title": "Waffenschmied von E-Rantel",
+  "color": "#8a5a3a",
+  "accent": "#3a2a1a",
+  "npc": true
+ },
+ "priest": {
+  "name": "Priester Rolan",
+  "title": "Tempel der Vier Götter",
+  "color": "#e8dcc0",
+  "accent": "#b89a4a",
+  "npc": true
+ },
+ "fluder": {
+  "name": "Fluder Paradyne",
+  "title": "Erzmagier des Kaiserreichs",
+  "color": "#6a4a9a",
+  "accent": "#2a1a3a",
+  "npc": true
+ },
+ "carne_innkeeper": {
+  "name": "Wirtin Marla",
+  "title": "Dorfschenke von Carne",
+  "color": "#c89a5a",
+  "accent": "#5a3a2a",
+  "npc": true
+ },
+ "cardinal": {
+  "name": "Kardinal Raymond",
+  "title": "Kardinal der Erde, Slane-Theokratie",
+  "color": "#d8c8a0",
+  "accent": "#5a4a2a",
+  "npc": true
  }
 }

@@ -6,6 +6,58 @@ class_name Dressing
 ## Ziel: Orte erzählen ihre Geschichte (Überfall, Lager, Markt, Trauer), ohne dass die Ortsmodelle neu gebaut werden.
 
 static var _data: Dictionary = {}
+## Arten ohne Körper – schweben, brauchen weder Boden noch freien Platz.
+const SOFT := ["light", "motes", "smoke"]
+## Arten, die sich dem Boden anschmiegen dürfen (Reisig, Heu, Trümmer, Felsen): bis 45° Hang erlaubt, Knoten wird geneigt.
+const TILT := ["ph", "hay", "debris", "memorial"]
+
+
+## Boden unter (x, z): erster Treffer von oben – liegt knapp darunter (bis 1,4 m) noch eine Fläche, zählt die untere
+## (Büsche, Brüstungen und Geländer sind kein Boden; Dächer schon, die liegen höher über dem Hausboden).
+static func _ground(space: PhysicsDirectSpaceState3D, pos: Vector3) -> Dictionary:
+	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 60.0, pos - Vector3.UP * 60.0, 1))
+	var excl: Array[RID] = []
+	for k in 3:
+		if hit.is_empty() or (hit.collider is Node and String((hit.collider as Node).name).begins_with("Ground")):
+			break    # Gelände (auch Wasserflächen) ist Boden – nicht weiter nach unten suchen
+		excl.append(hit.rid)
+		var below := space.intersect_ray(PhysicsRayQueryParameters3D.create(hit.position - Vector3.UP * 0.05, hit.position - Vector3.UP * 1.4, 1, excl))
+		if below.is_empty():
+			break
+		hit = below
+	return hit
+
+
+## Passt ein Stück hierher? Nichts im Umkreis von 0,6 m auf Brusthöhe.
+static func _fits(space: PhysicsDirectSpaceState3D, pos: Vector3) -> bool:
+	var sh := SphereShape3D.new()
+	sh.radius = 0.6
+	var q := PhysicsShapeQueryParameters3D.new()
+	q.shape = sh
+	q.transform = Transform3D(Basis(), pos + Vector3.UP * 1.0)
+	q.collision_mask = 1
+	return space.intersect_shape(q, 1).is_empty()
+
+
+## Freier, flacher Platz für ein Stück: die Wunschposition, sonst der nächste freie Punkt im Umkreis von 5 m
+## (Boden flacher als 20°, nicht mehr als 2,5 m höher oder tiefer). Nichts gefunden → Wunschposition.
+static func _free_spot(space: PhysicsDirectSpaceState3D, pos: Vector3, g: Dictionary, min_ny: float = 0.94) -> Vector3:
+	var flat: bool = not g.is_empty() and (g.normal as Vector3).y >= min_ny
+	if flat and _fits(space, pos):
+		return pos
+	for r in [1.5, 2.5, 3.5, 5.0]:
+		for k in 12:
+			var a := TAU * k / 12.0 + float(r)
+			var c := pos + Vector3(cos(a) * float(r), 0.0, sin(a) * float(r))
+			var h := _ground(space, c)
+			if h.is_empty() or (h.normal as Vector3).y < min_ny:
+				continue
+			c.y = float(h.position.y)
+			if absf(c.y - pos.y) > 2.5:
+				continue
+			if _fits(space, c):
+				return c
+	return pos
 
 
 static func apply(loc: Dictionary, root: Node3D) -> void:
@@ -24,20 +76,40 @@ static func apply(loc: Dictionary, root: Node3D) -> void:
 	var space: PhysicsDirectSpaceState3D = root.get_world_3d().direct_space_state
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(String(loc.get("id", "")) + "ausstattung")
+	var idx := 0
 	for e in list:
+		idx += 1
 		if e.has("requires") and not Game.check(e.requires):
 			continue
 		if e.has("requires_not") and Game.check(e.requires_not):
 			continue
 		var at: Array = e.get("at", [0, 0])
 		var pos := Vector3(float(at[0]), float(at[1]) if at.size() > 2 else 0.0, float(at[2] if at.size() > 2 else at[1]))
+		var tilt_to := Vector3.UP
 		if at.size() < 3:
-			var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 60.0, pos - Vector3.UP * 60.0, 1))
-			if hit:
-				pos.y = float(hit.position.y)
+			# auf den Boden setzen; Stücke mit Körper weichen Gebäuden, Zelten, Fels und Dächern aus
+			var g := _ground(space, pos)
+			if not g.is_empty():
+				pos.y = float(g.position.y)
+			var kind := String(e.kind)
+			if kind in TILT:
+				pos = _free_spot(space, pos, g, 0.85)
+				var g2 := _ground(space, pos)
+				if not g2.is_empty() and (g2.normal as Vector3).y >= 0.7 and (g2.normal as Vector3).y < 0.999:
+					tilt_to = g2.normal
+			elif not kind in SOFT:
+				pos = _free_spot(space, pos, g)
 		var n := Node3D.new()
+		n.name = "%s_%d" % [e.kind, idx]
+		n.set_meta("entry", e)
 		n.position = pos
 		n.rotation.y = deg_to_rad(float(e.get("yaw", 0.0)))
+		if tilt_to != Vector3.UP:
+			# dem Hang anschmiegen: erst um die Hochachse drehen, dann die Hochachse auf die Bodennormale kippen
+			var yaw_basis := Basis(Vector3.UP, deg_to_rad(float(e.get("yaw", 0.0))))
+			var axis := Vector3.UP.cross(tilt_to)
+			if axis.length() > 0.001:
+				n.basis = Basis(axis.normalized(), Vector3.UP.angle_to(tilt_to)) * yaw_basis
 		holder.add_child(n)
 		_build(String(e.kind), n, e, rng)
 

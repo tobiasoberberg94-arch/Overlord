@@ -91,6 +91,7 @@ func _audio_tab() -> Control:
 	p.add_child(_row("Gesamtlautstärke", _slider("master_volume")))
 	p.add_child(_row("Musik", _slider("music_volume")))
 	p.add_child(_row("Soundeffekte", _slider("sfx_volume")))
+	p.add_child(_row("Umgebungsklänge", _slider("ambience_volume"), "Wind, Vögel, Stimmengewirr, Frösche, Kaminfeuer – je nach Ort."))
 	p.add_child(_row("Klickgeräusche der Oberfläche", _check("ui_sounds", "aktiv")))
 	return p
 

@@ -12,6 +12,9 @@ class_name Interiors
 
 const DAYLIGHT := Color(0.86, 0.9, 1.0)
 const WARM := Color(1.0, 0.78, 0.5)
+## Weitere Räume (Schmiede, Tempel, Kathedrale, Akademie, Schmiedehalle, Dorfschenke) – per preload, damit der
+## Raumbau nicht vom Klassen-Cache des Editors abhängt.
+const MORE := preload("res://scripts/world3d/interiors_more.gd")
 
 
 static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
@@ -24,6 +27,8 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return shop(root, loc)
 		"cottage":
 			return cottage(root, loc)
+		"smithy", "temple", "basilica", "academy", "forge_hall", "inn":
+			return MORE.build(kind, root, loc)
 	return {}
 
 

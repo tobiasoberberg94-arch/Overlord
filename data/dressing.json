@@ -349,54 +349,6 @@
    }
   },
   {
-   "kind": "palisade",
-   "at": [
-    -34.0,
-    18.0
-   ],
-   "yaw": 0,
-   "len": 8.0,
-   "requires": {
-    "chapter_min": 2
-   }
-  },
-  {
-   "kind": "palisade",
-   "at": [
-    -40.0,
-    14.0
-   ],
-   "yaw": 90,
-   "len": 7.0,
-   "requires": {
-    "chapter_min": 2
-   }
-  },
-  {
-   "kind": "tent",
-   "at": [
-    -36.0,
-    11.5
-   ],
-   "yaw": 20,
-   "color": "#5a6a4a",
-   "requires": {
-    "chapter_min": 2
-   }
-  },
-  {
-   "kind": "tent",
-   "at": [
-    -31.5,
-    10.0
-   ],
-   "yaw": -35,
-   "color": "#6a5a3a",
-   "requires": {
-    "chapter_min": 2
-   }
-  },
-  {
    "kind": "campfire",
    "at": [
     -33.5,
@@ -430,6 +382,2878 @@
    "requires": {
     "chapter_min": 2
    }
+  }
+ ],
+ "re_capital": [
+  {
+   "kind": "brazier",
+   "at": [
+    -4.5,
+    -70.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.5,
+    -70.0
+   ]
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    -45.0
+   ],
+   "yaw": 0,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    -45.0
+   ],
+   "yaw": 0,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    -65.0
+   ],
+   "yaw": 0,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    -65.0
+   ],
+   "yaw": 0,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    -45.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    -45.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -7.5,
+    -36.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    7.5,
+    -36.0
+   ],
+   "yaw": -90
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -16.0,
+    -28.0
+   ],
+   "yaw": 135
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    16.0,
+    -28.0
+   ],
+   "yaw": 225
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -16.0,
+    1.0
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    16.0,
+    1.0
+   ],
+   "yaw": 315
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -12.0,
+    -6.0
+   ],
+   "yaw": 25,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    12.5,
+    -20.0
+   ],
+   "yaw": 100
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -4.0,
+    -22.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.0,
+    -22.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -3.0,
+    9.5
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    3.0,
+    9.5
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -3.0,
+    35.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    3.0,
+    35.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    -12.0,
+    45.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "crates",
+   "at": [
+    16.0,
+    53.0
+   ],
+   "yaw": 10,
+   "count": 2
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -4.0,
+    60.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    -12.0,
+    78.0
+   ],
+   "yaw": 90,
+   "len": 5.0
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -9.0,
+    75.0
+   ]
+  },
+  {
+   "kind": "hay",
+   "at": [
+    6.0,
+    80.0
+   ],
+   "scale": 0.8
+  },
+  {
+   "kind": "debris",
+   "at": [
+    18.0,
+    86.0
+   ],
+   "yaw": 40,
+   "blood": false
+  },
+  {
+   "kind": "gallows",
+   "at": [
+    -14.0,
+    90.0
+   ],
+   "yaw": 60
+  }
+ ],
+ "baharuth": [
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -68.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -68.0
+   ]
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -7.0,
+    -62.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    7.0,
+    -62.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -10.5,
+    -66.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "empire_pact"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    10.5,
+    -66.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "empire_pact"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    -40.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    -40.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    -20.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    -20.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -8.0,
+    -30.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    8.0,
+    -30.0
+   ],
+   "yaw": -90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -8.0,
+    -50.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    8.0,
+    -50.0
+   ],
+   "yaw": -90
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -9.0,
+    -9.0
+   ],
+   "yaw": 135
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    9.0,
+    -9.0
+   ],
+   "yaw": 225
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -9.0,
+    9.0
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    9.0,
+    9.0
+   ],
+   "yaw": 315
+  },
+  {
+   "kind": "banner",
+   "at": [
+    42.0,
+    -24.0
+   ],
+   "yaw": 90,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    42.0,
+    -6.0
+   ],
+   "yaw": 90,
+   "faction": "",
+   "color": "#8a1a1a"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    43.5,
+    -20.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    43.5,
+    -10.0
+   ]
+  },
+  {
+   "kind": "crates",
+   "at": [
+    38.0,
+    -2.0
+   ],
+   "yaw": 70,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    38.0,
+    -28.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "light",
+   "at": [
+    -69.0,
+    6.0,
+    -35.0
+   ],
+   "color": "#8fa8ff",
+   "energy": 1.4,
+   "range": 12.0,
+   "flicker": false
+  },
+  {
+   "kind": "motes",
+   "at": [
+    -69.0,
+    -35.0
+   ],
+   "color": "#b0c0ff",
+   "r": 6.0,
+   "amount": 40
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -70.0,
+    -34.0
+   ],
+   "yaw": 135
+  },
+  {
+   "kind": "crates",
+   "at": [
+    20.0,
+    30.0
+   ],
+   "yaw": 15,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    -22.0,
+    32.0
+   ],
+   "yaw": 95
+  },
+  {
+   "kind": "well",
+   "at": [
+    -13.0,
+    40.0
+   ]
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -50.0,
+    60.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    56.0,
+    72.0
+   ],
+   "yaw": 20,
+   "len": 5.0
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    -56.0,
+    66.0
+   ],
+   "yaw": 100,
+   "len": 4.5
+  }
+ ],
+ "theokratie": [
+  {
+   "kind": "brazier",
+   "at": [
+    -4.0,
+    -50.0
+   ],
+   "color": "#ffe0a0"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.0,
+    -50.0
+   ],
+   "color": "#ffe0a0"
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -10.0,
+    -52.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    10.0,
+    -52.0
+   ],
+   "yaw": -90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -6.0,
+    -36.0
+   ],
+   "yaw": 90,
+   "scale": 0.9
+  },
+  {
+   "kind": "statue",
+   "at": [
+    6.0,
+    -36.0
+   ],
+   "yaw": -90,
+   "scale": 0.9
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -14.0,
+    -58.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#e8dcc0"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    14.0,
+    -58.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#e8dcc0"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -14.0,
+    -70.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#e8dcc0"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    14.0,
+    -70.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#e8dcc0"
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -62.0
+   ],
+   "color": "#fff4c0",
+   "r": 12.0,
+   "amount": 50
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -18.0,
+    -30.0
+   ],
+   "yaw": 135
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    18.0,
+    -30.0
+   ],
+   "yaw": 225
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -18.0,
+    8.0
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    18.0,
+    8.0
+   ],
+   "yaw": 315
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -70.0,
+    -25.0
+   ],
+   "yaw": 10,
+   "color": "#8a8070"
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -66.0,
+    -15.0
+   ],
+   "yaw": -20,
+   "color": "#8a8070"
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -68.0,
+    -20.0
+   ]
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -56.0,
+    -20.0
+   ],
+   "yaw": 30,
+   "count": 2
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -60.0,
+    -45.0
+   ],
+   "scale": 0.8
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -72.0,
+    -32.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#e8dcc0"
+  },
+  {
+   "kind": "gallows",
+   "at": [
+    -12.0,
+    60.0
+   ],
+   "yaw": -30
+  }
+ ],
+ "roble": [
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -34.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -34.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -18.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -18.0
+   ]
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -9.0,
+    -38.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a4a7a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    9.0,
+    -38.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a4a7a"
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -7.0,
+    -18.0
+   ],
+   "yaw": 180,
+   "requires": {
+    "chapter_max": 8
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    7.0,
+    -18.0
+   ],
+   "yaw": 180,
+   "requires": {
+    "chapter_max": 8
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    14.0,
+    -14.0
+   ],
+   "requires": {
+    "chapter_max": 8
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    18.0,
+    -12.0
+   ],
+   "yaw": 20,
+   "count": 2,
+   "requires": {
+    "chapter_max": 8
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    50.0,
+    -62.0
+   ]
+  },
+  {
+   "kind": "crates",
+   "at": [
+    44.0,
+    -70.0
+   ],
+   "yaw": 35,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    62.0,
+    -56.0
+   ],
+   "yaw": 80
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    56.0,
+    -50.0
+   ],
+   "yaw": 0,
+   "len": 5.0
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    36.0,
+    -58.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -10.0,
+    -56.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    -30.0,
+    -48.0
+   ],
+   "yaw": 90,
+   "len": 4.5
+  },
+  {
+   "kind": "memorial",
+   "at": [
+    12.0,
+    -40.0
+   ],
+   "yaw": 180,
+   "requires": {
+    "chapter_min": 9
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -60.0,
+    40.0
+   ],
+   "yaw": 15,
+   "color": "#3a2a1a",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -54.0,
+    48.0
+   ],
+   "yaw": -30,
+   "color": "#4a3020",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    80.0,
+    18.0
+   ],
+   "yaw": 40,
+   "color": "#3a2a1a",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    74.0,
+    27.0
+   ],
+   "yaw": 0,
+   "color": "#4a3020",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    -57.0,
+    33.0
+   ],
+   "yaw": 0,
+   "len": 8.0,
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    77.0,
+    11.0
+   ],
+   "yaw": 0,
+   "len": 8.0,
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -58.0,
+    44.0
+   ],
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    78.0,
+    22.0
+   ],
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -62.0,
+    36.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#3a0a0a",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    82.0,
+    14.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#3a0a0a",
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "smoke",
+   "at": [
+    -30.0,
+    60.0
+   ],
+   "h": 0.5,
+   "amount": 20,
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "light",
+   "at": [
+    -30.0,
+    1.0,
+    60.0
+   ],
+   "color": "#ff6a30",
+   "energy": 1.6,
+   "range": 12.0,
+   "requires": {
+    "chapter_min": 9
+   },
+   "requires_not": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    0.0,
+    16.0
+   ],
+   "yaw": 20,
+   "requires": {
+    "chapter_min": 9
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    -8.0,
+    30.0
+   ],
+   "yaw": 140,
+   "requires": {
+    "chapter_min": 9
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    14.0,
+    44.0
+   ],
+   "yaw": 80,
+   "requires": {
+    "chapter_min": 9
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -58.0,
+    44.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    78.0,
+    22.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -7.0,
+    -18.0
+   ],
+   "yaw": 180,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    7.0,
+    -18.0
+   ],
+   "yaw": 180,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  },
+  {
+   "kind": "memorial",
+   "at": [
+    12.0,
+    -12.0
+   ],
+   "yaw": 200,
+   "requires": {
+    "flags_all": [
+     "roble_saved"
+    ]
+   }
+  }
+ ],
+ "katze": [
+  {
+   "kind": "banner",
+   "at": [
+    -36.0,
+    14.0
+   ],
+   "yaw": 0,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -10.0,
+    40.0
+   ],
+   "yaw": 90,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -30.0,
+    34.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -44.0,
+    48.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -33.0,
+    44.0
+   ],
+   "yaw": 180,
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -26.0,
+    50.0
+   ],
+   "yaw": 15,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    -46.0,
+    32.0
+   ],
+   "yaw": 70
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -20.0,
+    54.0
+   ],
+   "scale": 1.0
+  },
+  {
+   "kind": "banner",
+   "at": [
+    48.0,
+    -54.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#8a1a1a",
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    34.0,
+    -31.0
+   ],
+   "yaw": 90,
+   "faction": "",
+   "color": "#8a1a1a",
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    42.0,
+    -26.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    54.0,
+    -36.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    48.0,
+    -22.0
+   ],
+   "yaw": 180,
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    56.0,
+    -24.0
+   ],
+   "yaw": 40,
+   "count": 2
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    40.0,
+    -40.0
+   ],
+   "yaw": 10
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -9.0,
+    -80.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -1.0,
+    -80.0
+   ],
+   "requires_not": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -9.0,
+    -80.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -1.0,
+    -80.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -3.0,
+    -62.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -30.0,
+    34.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -44.0,
+    48.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    42.0,
+    -26.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    54.0,
+    -36.0
+   ],
+   "cold": true,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    -30.0,
+    28.0
+   ],
+   "yaw": 30,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    -42.0,
+    44.0
+   ],
+   "yaw": 160,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    -12.0,
+    -12.0
+   ],
+   "yaw": 90,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    10.0,
+    -22.0
+   ],
+   "yaw": 250,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "debris",
+   "at": [
+    40.0,
+    -28.0
+   ],
+   "yaw": 10,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -12.0
+   ],
+   "color": "#5a3a6a",
+   "r": 14.0,
+   "amount": 40,
+   "requires": {
+    "flags_all": [
+     "katze_done"
+    ]
+   }
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    30.0,
+    60.0
+   ],
+   "yaw": 40
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    -60.0,
+    -20.0
+   ],
+   "yaw": 120
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    -20.0,
+    8.0
+   ],
+   "yaw": 70
+  }
+ ],
+ "azerlisia": [
+  {
+   "kind": "brazier",
+   "at": [
+    -6.0,
+    -65.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    6.0,
+    -65.0
+   ]
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -9.0,
+    -58.0
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    9.0,
+    -58.0
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "crates",
+   "at": [
+    12.0,
+    -54.0
+   ],
+   "yaw": 20,
+   "count": 3
+  },
+  {
+   "kind": "ph",
+   "model": "wicker_basket_01",
+   "at": [
+    14.5,
+    -52.0
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -62.0
+   ],
+   "color": "#d8d0c0",
+   "r": 10.0,
+   "amount": 30
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -11.0,
+    -62.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#5a4a2a",
+   "requires": {
+    "flags_all": [
+     "dwarf_contact"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    11.0,
+    -62.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#5a4a2a",
+   "requires": {
+    "flags_all": [
+     "dwarf_contact"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    15.0,
+    -60.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "frost_dragon_done"
+    ]
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    22.0,
+    -21.0
+   ],
+   "cold": true,
+   "requires": {
+    "chapter_max": 7
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    22.0,
+    -21.0
+   ],
+   "requires": {
+    "chapter_min": 8
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    26.0,
+    -18.0
+   ],
+   "yaw": 225,
+   "requires": {
+    "chapter_min": 8
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    28.0,
+    -26.0
+   ],
+   "yaw": 50,
+   "count": 2
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    19.0,
+    -29.0
+   ],
+   "yaw": 110
+  },
+  {
+   "kind": "debris",
+   "at": [
+    -10.0,
+    -40.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "ph",
+   "model": "rusted_spade_01",
+   "at": [
+    -8.0,
+    -38.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "ph",
+   "model": "hatchet",
+   "at": [
+    -12.0,
+    -42.0
+   ],
+   "yaw": 80
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    -30.0,
+    20.0
+   ],
+   "yaw": 150
+  },
+  {
+   "kind": "ph",
+   "model": "boulder_01",
+   "at": [
+    40.0,
+    30.0
+   ],
+   "yaw": 30,
+   "scale": 1.2,
+   "solid": true
+  },
+  {
+   "kind": "ph",
+   "model": "rock_moss_set_01",
+   "at": [
+    -45.0,
+    -10.0
+   ],
+   "yaw": 0
+  }
+ ],
+ "drachen": [
+  {
+   "kind": "banner",
+   "at": [
+    -14.0,
+    -56.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a3a5a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    14.0,
+    -56.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a3a5a"
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -75.0
+   ],
+   "color": "#c0e0ff",
+   "r": 12.0,
+   "amount": 40
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    4.0,
+    -80.0
+   ],
+   "color": "#9ad8ff",
+   "energy": 1.5,
+   "range": 14.0,
+   "flicker": false
+  },
+  {
+   "kind": "banner",
+   "at": [
+    20.0,
+    -54.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "platinum_met"
+    ]
+   }
+  },
+  {
+   "kind": "motes",
+   "at": [
+    -30.0,
+    -18.0
+   ],
+   "color": "#c0b0a0",
+   "r": 14.0,
+   "amount": 30
+  },
+  {
+   "kind": "crates",
+   "at": [
+    22.0,
+    58.0
+   ],
+   "yaw": 30,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    8.0,
+    66.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    15.0,
+    52.0
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "debris",
+   "at": [
+    30.0,
+    -30.0
+   ],
+   "yaw": 110,
+   "blood": false
+  },
+  {
+   "kind": "ph",
+   "model": "kite_shield",
+   "at": [
+    33.0,
+    -28.0
+   ],
+   "yaw": 40
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    -45.0,
+    30.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    50.0,
+    40.0
+   ],
+   "yaw": 200
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    -10.0,
+    30.0
+   ],
+   "yaw": 90
+  }
+ ],
+ "sumpf": [
+  {
+   "kind": "palisade",
+   "at": [
+    -7.0,
+    -4.0
+   ],
+   "yaw": 20,
+   "len": 5.0
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    7.0,
+    -4.0
+   ],
+   "yaw": -20,
+   "len": 5.0
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -4.0,
+    -7.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a5a3a",
+   "scale": 0.8
+  },
+  {
+   "kind": "banner",
+   "at": [
+    4.0,
+    -7.0
+   ],
+   "yaw": 0,
+   "faction": "",
+   "color": "#2a5a3a",
+   "scale": 0.8
+  },
+  {
+   "kind": "ph",
+   "model": "wicker_basket_01",
+   "at": [
+    -9.0,
+    -6.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "ph",
+   "model": "wicker_basket_02",
+   "at": [
+    9.0,
+    -7.0
+   ],
+   "yaw": 100
+  },
+  {
+   "kind": "ph",
+   "model": "wooden_bucket_02",
+   "at": [
+    4.0,
+    -3.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    14.0,
+    -12.0
+   ],
+   "yaw": 40
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    -13.0,
+    -10.0
+   ],
+   "yaw": 160
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    8.0,
+    -62.0
+   ]
+  },
+  {
+   "kind": "ph",
+   "model": "wicker_basket_01",
+   "at": [
+    12.0,
+    -58.0
+   ],
+   "yaw": 70
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    -6.0,
+    -56.0
+   ],
+   "yaw": 10
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.5,
+    -9.5
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_any": [
+     "lizard_resolved",
+     "lizard_conquered"
+    ]
+   }
+  },
+  {
+   "kind": "memorial",
+   "at": [
+    -14.0,
+    -14.0
+   ],
+   "yaw": 120,
+   "requires": {
+    "flags_any": [
+     "lizard_resolved",
+     "lizard_conquered"
+    ]
+   }
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -21.0
+   ],
+   "color": "#cfe8ff",
+   "r": 20.0,
+   "amount": 50,
+   "requires": {
+    "chapter": 5
+   }
+  },
+  {
+   "kind": "light",
+   "at": [
+    -40.0,
+    1.2,
+    40.0
+   ],
+   "color": "#80ff90",
+   "energy": 0.8,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    45.0,
+    1.2,
+    30.0
+   ],
+   "color": "#80ff90",
+   "energy": 0.8,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    -30.0,
+    1.2,
+    -50.0
+   ],
+   "color": "#80ff90",
+   "energy": 0.8,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    50.0,
+    1.2,
+    -40.0
+   ],
+   "color": "#80ff90",
+   "energy": 0.8,
+   "range": 6.0
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    40.0
+   ],
+   "color": "#a0ffb0",
+   "r": 30.0,
+   "amount": 60
+  },
+  {
+   "kind": "ph",
+   "model": "root_cluster_01",
+   "at": [
+    -20.0,
+    30.0
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "ph",
+   "model": "root_cluster_01",
+   "at": [
+    25.0,
+    50.0
+   ],
+   "yaw": 200
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    -35.0,
+    10.0
+   ],
+   "yaw": 80
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    30.0,
+    -30.0
+   ],
+   "yaw": 300
+  }
+ ],
+ "elfen": [
+  {
+   "kind": "light",
+   "at": [
+    -27.0,
+    14.0,
+    -32.0
+   ],
+   "color": "#a0ffc0",
+   "energy": 1.2,
+   "range": 10.0,
+   "flicker": false
+  },
+  {
+   "kind": "light",
+   "at": [
+    27.0,
+    14.0,
+    -32.0
+   ],
+   "color": "#a0ffc0",
+   "energy": 1.2,
+   "range": 10.0,
+   "flicker": false
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    14.0,
+    -68.0
+   ],
+   "color": "#a0ffc0",
+   "energy": 1.2,
+   "range": 10.0,
+   "flicker": false
+  },
+  {
+   "kind": "light",
+   "at": [
+    16.0,
+    14.0,
+    -3.0
+   ],
+   "color": "#a0ffc0",
+   "energy": 1.2,
+   "range": 10.0,
+   "flicker": false
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -27.0
+   ],
+   "color": "#b0ffd0",
+   "r": 14.0,
+   "amount": 60
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -6.0,
+    -22.0
+   ]
+  },
+  {
+   "kind": "ph",
+   "model": "wicker_basket_01",
+   "at": [
+    4.0,
+    -32.0
+   ],
+   "yaw": 50
+  },
+  {
+   "kind": "debris",
+   "at": [
+    20.0,
+    40.0
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "ph",
+   "model": "kite_shield",
+   "at": [
+    23.0,
+    42.0
+   ],
+   "yaw": 120
+  },
+  {
+   "kind": "banner",
+   "at": [
+    8.0,
+    -36.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "elf_king_done"
+    ]
+   }
+  },
+  {
+   "kind": "ph",
+   "model": "tree_stump_01",
+   "at": [
+    -15.0,
+    10.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "ph",
+   "model": "root_cluster_01",
+   "at": [
+    12.0,
+    30.0
+   ],
+   "yaw": 70
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -4.0,
+    -14.0
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    6.0,
+    -18.0
+   ],
+   "yaw": 225
+  }
+ ],
+ "erantel_friedhof": [
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -40.0
+   ],
+   "color": "#80ff90",
+   "requires": {
+    "chapter_max": 3
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -40.0
+   ],
+   "color": "#80ff90",
+   "requires": {
+    "chapter_max": 3
+   }
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -30.0
+   ],
+   "color": "#9fffb0",
+   "r": 14.0,
+   "amount": 50,
+   "requires": {
+    "chapter_max": 3
+   }
+  },
+  {
+   "kind": "smoke",
+   "at": [
+    0.0,
+    -44.0
+   ],
+   "h": 0.5,
+   "amount": 16,
+   "requires": {
+    "chapter_max": 3
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -40.0
+   ],
+   "requires": {
+    "chapter_min": 4
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -40.0
+   ],
+   "requires": {
+    "chapter_min": 4
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -20.0,
+    -10.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    20.0,
+    -10.0
+   ],
+   "yaw": 270
+  },
+  {
+   "kind": "memorial",
+   "at": [
+    12.0,
+    20.0
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "crates",
+   "at": [
+    20.0,
+    60.0
+   ],
+   "yaw": 25,
+   "count": 2
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    22.0,
+    70.0
+   ],
+   "yaw": 0,
+   "len": 4.0
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    24.0,
+    80.0
+   ],
+   "yaw": 50
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    30.0,
+    20.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    -30.0,
+    -30.0
+   ],
+   "yaw": 240
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    40.0,
+    -20.0
+   ],
+   "yaw": 10
+  }
+ ],
+ "nazarick_land": [
+  {
+   "kind": "banner",
+   "at": [
+    -5.0,
+    13.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a"
+  },
+  {
+   "kind": "banner",
+   "at": [
+    5.0,
+    13.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -5.0,
+    -20.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    5.0,
+    -20.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "statue",
+   "at": [
+    -13.0,
+    -20.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "statue",
+   "at": [
+    13.0,
+    -20.0
+   ],
+   "yaw": -90
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    -30.0
+   ],
+   "color": "#d0b0ff",
+   "r": 8.0,
+   "amount": 30
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    -30.0,
+    30.0
+   ],
+   "yaw": 0,
+   "len": 12.0,
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    -36.0,
+    36.0
+   ],
+   "yaw": 90,
+   "len": 12.0,
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -28.0,
+    40.0
+   ],
+   "scale": 1.1,
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -33.0,
+    46.0
+   ],
+   "scale": 0.9,
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -24.0,
+    34.0
+   ],
+   "yaw": 20,
+   "count": 2,
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "well",
+   "at": [
+    -20.0,
+    46.0
+   ],
+   "requires": {
+    "chapter_min": 3
+   }
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    22.0,
+    46.0
+   ],
+   "yaw": 100
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    17.0,
+    36.0
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "ph",
+   "model": "rock_07",
+   "at": [
+    40.0,
+    20.0
+   ],
+   "yaw": 50,
+   "scale": 1.5,
+   "solid": true
+  },
+  {
+   "kind": "ph",
+   "model": "boulder_01",
+   "at": [
+    -45.0,
+    -30.0
+   ],
+   "yaw": 10,
+   "scale": 1.3,
+   "solid": true
+  }
+ ],
+ "tob_wald": [
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    3.0,
+    -68.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk",
+   "at": [
+    8.0,
+    -74.0
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "ph",
+   "model": "rock_07",
+   "at": [
+    -6.0,
+    -84.0
+   ],
+   "yaw": 80,
+   "scale": 1.4,
+   "solid": true
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -10.0,
+    25.0
+   ],
+   "cold": true
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -14.0,
+    29.0
+   ],
+   "yaw": 20,
+   "color": "#5a5040"
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -7.0,
+    29.0
+   ],
+   "yaw": 60,
+   "count": 2
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    11.0,
+    40.0
+   ],
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    14.0,
+    44.0
+   ],
+   "yaw": 180,
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    16.0,
+    37.0
+   ],
+   "yaw": 0,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    8.0,
+    44.0
+   ],
+   "yaw": 10,
+   "count": 2,
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "ph",
+   "model": "dead_tree_trunk_02",
+   "at": [
+    -12.0,
+    -14.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "ph",
+   "model": "dry_branches_medium_01",
+   "at": [
+    -8.0,
+    -11.0
+   ],
+   "yaw": 110
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    0.0
+   ],
+   "color": "#c8ffb0",
+   "r": 20.0,
+   "amount": 40
+  },
+  {
+   "kind": "ph",
+   "model": "tree_stump_01",
+   "at": [
+    20.0,
+    10.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "ph",
+   "model": "tree_stump_02",
+   "at": [
+    -25.0,
+    30.0
+   ],
+   "yaw": 90
+  },
+  {
+   "kind": "ph",
+   "model": "tree_stump_02",
+   "at": [
+    30.0,
+    -40.0
+   ],
+   "yaw": 180
   }
  ]
 }

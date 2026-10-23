@@ -3,19 +3,38 @@ extends Node
 ##
 ## Musik: res://assets/audio/music/<name>.ogg   (title, throne, tension)
 ## Effekte: res://assets/audio/sfx/<name>.ogg   (click, hover, page, dispatch, gong, order, love, rebuke)
+## Umgebung: res://assets/audio/ambience/<name>.ogg – nahtlose Schleifen je Ortsart (Wind und Vögel im Wald,
+##   Stimmengewirr der Stadt, Frösche im Sumpf, Kaminknistern im Gasthaus …), erzeugt von tools/audio/ambience.py.
 ## Alle Buttons im Spiel klicken automatisch (siehe _on_node_added).
 ## Die Stücke werden von tools/audio/compose.py erzeugt und können einfach ersetzt werden.
 
 const MUSIC_DIR := "res://assets/audio/music/"
 const SFX_DIR := "res://assets/audio/sfx/"
+const AMBIENCE_DIR := "res://assets/audio/ambience/"
 const FADE := 1.6
+const AMB_FADE := 2.4
 const SFX_VOICES := 6
 const SFX3D_VOICES := 20
 const COMBAT_DIR := "res://assets/audio/sfx/combat/"
+## Umgebungsklang je Ortsart (data/locations.json kann mit "ambience" einen anderen vorgeben) und seine Lautstärke.
+const AMBIENCE_OF := {
+	"forest": "forest", "jungle": "jungle", "village": "village", "city": "town", "palace": "town", "cathedral": "town",
+	"wall": "battlefield", "battlefield": "battlefield", "cemetery": "cemetery", "swamp": "swamp", "mountain": "mountain",
+	"peaks": "mountain", "grassland": "meadow", "lava": "lava", "glacier": "glacier", "throne": "hall", "library": "hall",
+	"treasury": "hall", "royal": "hall", "tombs": "tombs", "guild": "interior", "tavern": "interior", "shop": "home",
+	"cottage": "home", "smithy": "forge", "forge_hall": "forge", "temple": "church", "basilica": "church",
+	"academy": "home", "inn": "interior",
+}
+const AMBIENCE_GAIN := {"hall": 0.55, "home": 0.7, "interior": 0.8, "tombs": 0.8, "town": 0.85, "church": 0.7, "forge": 0.8}
 
 var _music: Array[AudioStreamPlayer] = []
 var _active := 0
 var _current := ""
+var _amb: Array[AudioStreamPlayer] = []
+var _amb_tw: Array = [null, null]
+var _amb_active := 0
+var _amb_current := ""
+var _amb_gain := 1.0
 var _sfx: Array[AudioStreamPlayer] = []
 var _sfx_next := 0
 var _sfx3d: Array[AudioStreamPlayer3D] = []
@@ -32,6 +51,11 @@ func _ready() -> void:
 		p.volume_db = -80.0
 		add_child(p)
 		_music.append(p)
+	for i in 2:
+		var p := AudioStreamPlayer.new()
+		p.volume_db = -80.0
+		add_child(p)
+		_amb.append(p)
 	for i in SFX_VOICES:
 		var p := AudioStreamPlayer.new()
 		add_child(p)
@@ -162,7 +186,7 @@ func set_space(kind: String) -> void:
 	var room := 0.35
 	var wet := 0.12
 	match kind:
-		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava":
+		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava", "temple", "basilica", "forge_hall":
 			room = 0.85
 			wet = 0.3
 		"glacier", "mountain", "peaks", "cemetery":
@@ -171,7 +195,7 @@ func set_space(kind: String) -> void:
 		"city", "palace", "wall", "village":
 			room = 0.45
 			wet = 0.14
-		"guild", "tavern", "shop", "cottage", "interior":
+		"guild", "tavern", "shop", "cottage", "smithy", "academy", "inn", "interior":
 			room = 0.55
 			wet = 0.22
 		"forest", "jungle", "swamp":
@@ -187,9 +211,59 @@ func _music_db() -> float:
 	return linear_to_db(maxf(0.0001, Settings.music_volume * 0.8))
 
 
+## Umgebungsklang eines Ortes: Schleife aus AMBIENCE_DIR mit Überblendung; "" blendet nur aus.
+## Gleicher Name = nur die Lautstärke (gain) nachführen.
+func play_ambience(name: String, gain := 1.0) -> void:
+	if name == _amb_current:
+		_amb_gain = gain
+		if name != "":
+			_amb[_amb_active].volume_db = _amb_db()
+		return
+	var stream: AudioStream = _load(AMBIENCE_DIR + name + ".ogg") if name != "" else null
+	_amb_gain = gain
+	_amb_current = name if stream != null else ""
+	var old := _amb[_amb_active]
+	if _amb_tw[_amb_active]:
+		(_amb_tw[_amb_active] as Tween).kill()
+	var tw := create_tween()
+	tw.tween_property(old, "volume_db", -80.0, AMB_FADE).set_trans(Tween.TRANS_SINE)
+	tw.tween_callback(old.stop)
+	_amb_tw[_amb_active] = tw
+	if stream == null:
+		return
+	if stream is AudioStreamOggVorbis:
+		(stream as AudioStreamOggVorbis).loop = true
+	_amb_active = 1 - _amb_active
+	var nxt := _amb[_amb_active]
+	if _amb_tw[_amb_active]:
+		(_amb_tw[_amb_active] as Tween).kill()
+	nxt.stream = stream
+	nxt.volume_db = -80.0
+	nxt.play(randf() * 20.0)   # nicht jedes Mal mit demselben Vogelruf beginnen
+	var tw2 := create_tween()
+	tw2.tween_property(nxt, "volume_db", _amb_db(), AMB_FADE).set_trans(Tween.TRANS_SINE)
+	_amb_tw[_amb_active] = tw2
+
+
+## Umgebungsklang passend zur Ortsart (siehe AMBIENCE_OF); ein Ort kann mit "ambience" einen anderen nennen.
+func play_ambience_for(loc: Dictionary) -> void:
+	var name := String(loc.get("ambience", AMBIENCE_OF.get(String(loc.get("kind", "")), "")))
+	play_ambience(name, float(AMBIENCE_GAIN.get(name, 1.0)))
+
+
+func stop_ambience() -> void:
+	play_ambience("")
+
+
+func _amb_db() -> float:
+	return linear_to_db(maxf(0.0001, Settings.ambience_volume * _amb_gain * 0.9))
+
+
 func _apply_volume() -> void:
 	if _current != "":
 		_music[_active].volume_db = _music_db()
+	if _amb_current != "":
+		_amb[_amb_active].volume_db = _amb_db()
 
 
 ## Jeder neu erzeugte Button bekommt Klick- und (leise) Hover-Geräusche.

@@ -19,7 +19,7 @@ Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäud
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-2.4.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.5.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.4.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.5.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -126,8 +126,18 @@ Wichtige Gebäude lassen sich **betreten**: ein Wirtshausschild mit Laterne mark
 | **Gasthaus Goldener Pavillon** | E-Rantel | Tresen mit Fässern und Regal, Kamin, Tische mit Gästen, Wirt, Empore mit Zimmertüren – Zimmer 3 gehört Momon und Nabe; Gästebuch, vergessenes Gepäck |
 | **Apotheke Bareare** | E-Rantel | Lizzies Laden: Tresen mit Waage, Regale voller Tränke, Kräuter an der Decke, brodelnder Kessel, Nfireas verwaister Arbeitsplatz, Hinterzimmer, Geheimvorrat |
 | **Enris Haus** | Carne | Herd, Tisch, zwei Betten, das Horn des Goblin-Generals, Nemus Zeichnungen, eine lose Diele |
+| **Schmiede zum Glühenden Amboss** | E-Rantel | Esse mit Glut und Rauchfang, Amboss, Löschtrog, Werkbank mit Barren, Schwertständer, Erzkisten; Schmied Harlan, Zunftbrief, Auftragstafel (Momons Schwerter, Clementines Dolch), vergessene Klinge |
+| **Tempel der Vier Götter** | E-Rantel | Säulenschiff mit bunten Fenstern, Bänke, Altar mit Sonnenscheibe, vier Götterstatuen, Weihwasserbecken, Priester und Betende; Stiftertafel, Schriften (Khajiits Nachfragen), Reliquienschrein |
+| **Dorfschenke** | Carne | Kurzer Tresen, Herd mit Kochtopf, drei Tische mit Hockern, Spinnrad, Gemüsekörbe; Wirtin Marla, Aushang (Wolfsjagd, Goblins trinken gratis), Gästebuch, Schmugglerfach |
+| **Kathedrale der Sechs Götter** | Slane-Theokratie | Großes Schiff mit Bannern, sechs Statuen, goldener Altar, Kardinal Raymond; Tafel der Sechs Götter, Lehren der Sechs (Bericht über Nigun), Schatz der Kardinäle |
+| **Magierakademie** | Arwintar | Fluders Studierzimmer: Bücherwände mit Leiter, Beschwörungskreis, Kristall, Sternkarte, Fernrohr, Trankregal, Magier; Fluders Forschungen, Stundenplan, versiegelte Truhe |
+| **Schmiedehalle von Feo Jera** | Azerlisia | Drei Zwergenessen mit Ambossen, Runenpfeiler mit Leuchtsteinen, Statue des Runenkönigs, Erzkarren, Zwerge bei der Arbeit, Gondo; Runentafel der Meister, Buch der Runen, Erzkiste |
 
 Jeder Raum hat eigene **Entdeckungen** (`data/discoveries.json` → `placed`: Lesepult, Tafel, Aushang, Versteck) mit fester Position – Lesen bringt Wissen, Durchsuchen Beute. Der Stand der Welt-Überarbeitung je Ort steht in `docs/WELT_UEBERARBEITUNG.md`.
+
+**Ausstattung der Orte** (`data/dressing.json`, `scripts/world3d/dressing.gd`): Banner, Feuerschalen, Lagerfeuer, Statuen, Kisten, Fässer, Zelte, Palisaden, Brunnen, Gedenksteine, Laternen, Wäscheleinen, Trümmer, Galgen, Fotoscans, Rauch, Staub und Lichter je Ort – mit Bedingungen (`requires`/`requires_not`), sodass sich die Orte mit der Geschichte verändern: Banner des Königreichs werden nach der Krönung zu Bannern Nazaricks, auf der Katze-Ebene stehen vor der Schlacht die Lager beider Heere und danach erloschene Feuer, Trümmer und Blut, vor der Mauer von Roble lagert in Kapitel 9 Jaldabaoths Horde. Prüfen: `LOC=dresscheck godot res://tools/world3d_test.tscn` meldet jedes Stück, das in einem Gebäude steckt oder am Hang steht.
+
+**Umgebungsklänge** (`assets/audio/ambience/`, erzeugt von `tools/audio/ambience.py`): jeder Ort hat eine nahtlose Klangschleife seiner Art – Wind und Vögel im Wald, Stimmengewirr und Hammerschläge in der Stadt, Hühner im Dorf, Frösche im Sumpf, Krähen über dem Schlachtfeld, Eule und Grillen auf dem Friedhof, Grollen in der Lavahölle, Chor und Kerzen im Tempel, Blasebalg und Hammer in der Schmiede, Kaminknistern in Gasthaus und Stube. Lautstärke: Einstellungen → Audio → Umgebungsklänge.
 
 ---
 
@@ -218,7 +228,7 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 
 **Ressourcen**: Macht · Wissen · Ruf · Stimmung · Gold · **Aufmerksamkeit** (wie sehr die Welt auf Nazarick aufmerksam wird – hohe Werte locken gefährliche Mächte an) · **Effizienz der Guardians** (aus Stimmung, Gunst und Erschöpfung).
 
-**Die Herzen der Wächterinnen**: Albedo und Shalltear sehnen sich nach Eurer Aufmerksamkeit – Lob, Geschenke und Aufträge steigern ihre Gunst, Vernachlässigung senkt sie (und lässt sie unüberlegt handeln). Ihre Rivalität untereinander ist seit Version 2.5 kein eigenes Spielsystem mehr: kein Eifersuchtswert, kein Streit im Thronsaal, nächtlichen Besuchen, eigenmächtigen Intrigen und im Extremfall zu einem Duell im Amphitheater. Vernachlässigte oder eifersüchtige Untertanen ergreifen häufiger eigenmächtig die Initiative.
+**Die Herzen der Wächterinnen**: Albedo und Shalltear sehnen sich nach Eurer Aufmerksamkeit – Lob, Geschenke und Aufträge steigern ihre Gunst, Vernachlässigung senkt sie (und lässt sie unüberlegt handeln). Ihre Rivalität untereinander ist seit Version 2.5 kein eigenes Spielsystem mehr: kein Eifersuchtswert, kein Streit im Thronsaal, keine Intrigen gegeneinander. Vernachlässigte Untertanen ergreifen dafür häufiger eigenmächtig die Initiative.
 
 **Die Strategie-Ebene**
 
