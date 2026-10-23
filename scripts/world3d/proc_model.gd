@@ -5,6 +5,9 @@ class_name ProcModel
 ## Aufbau: body (Hüfte, Drehpunkt) → torso → arm_r/arm_l (Schultergelenke), leg_l/leg_r.
 
 const HIP := 0.95
+## Menschen (Bewohner, Ritter, Händler) sind 1,6–1,85 m groß – nicht 2,1 m wie Ainz. Die Figurenmaße in
+## data/figures.json („scale“) bleiben relativ dazu; Ainz, Wächter mit Modell und Sonderformen sind unberührt.
+const HUMAN := 0.84
 
 
 static func _skeleton(r: CharacterRig, scale: float = 1.0) -> Dictionary:
@@ -530,7 +533,7 @@ static func _limb_to(parent: Node3D, a: Vector3, b: Vector3, r0: float, r1: floa
 
 
 static func _person(r: CharacterRig, f: Dictionary) -> void:
-	var sc := float(f.get("scale", 1.0))
+	var sc := float(f.get("scale", 1.0)) * HUMAN
 	var p := _skeleton(r, sc)
 	var skin := B3.mat(_c(f.get("skin"), "#e8d0c0"), 0.75)
 	var top := B3.mat(_c(f.get("top")), 0.6, 0.1)

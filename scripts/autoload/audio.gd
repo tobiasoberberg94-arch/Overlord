@@ -171,6 +171,9 @@ func set_space(kind: String) -> void:
 		"city", "palace", "wall", "village":
 			room = 0.45
 			wet = 0.14
+		"guild", "tavern", "shop", "cottage", "interior":
+			room = 0.55
+			wet = 0.22
 		"forest", "jungle", "swamp":
 			room = 0.3
 			wet = 0.1

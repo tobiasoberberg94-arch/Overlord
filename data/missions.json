@@ -961,14 +961,10 @@
             "favor": 6,
             "mood": 10
           },
-          "shalltear": {
-            "jealousy": 15
-          },
           "cocytus": {
             "mood": 10
           }
-        },
-        "rivalry": 8
+        }
       },
       "outcomes": {
         "triumph": "Die Planung ist abgeschlossen. Nazarick hat nun einen 300-seitigen Thronfolgeplan, ein vorbereitetes Kinderzimmer und einen Cocytus, der vor Glück Eiskristalle weint. Shalltear hat ein Gegenkonzept eingereicht. Es besteht aus einer Zeichnung.",
@@ -1062,14 +1058,7 @@
         "reputation": -12,
         "attention": 18
       },
-      "on_success": {
-        "chars": {
-          "albedo": {
-            "jealousy": 10
-          }
-        },
-        "rivalry": 6
-      },
+      "on_success": {},
       "outcomes": {
         "triumph": "E-Rantel ist in einer Nacht gefallen. Die Stadt erwacht unter einem Banner mit Totenkopf. Die Welt erbebt. Momon hatte allerdings ein sehr peinliches Gespräch mit der Abenteurergilde.",
         "success": "Die Stadtwache ist vernichtet. Die Bevölkerung verbarrikadiert sich. Ein Pyrrhussieg für jeden Plan, der auf Heimlichkeit setzte.",
@@ -1129,11 +1118,7 @@
         "power": 2
       },
       "on_success": {
-        "rivalry": 10,
         "chars": {
-          "albedo": {
-            "jealousy": 8
-          },
           "shalltear": {
             "mood": 12
           }

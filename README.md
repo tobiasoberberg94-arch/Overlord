@@ -116,6 +116,21 @@ Jeder besiegte Gegner gibt **Seelen** frei – violette Lichter, die aufsteigen 
 
 ---
 
+## Begehbare Gebäude und Innenräume
+
+Wichtige Gebäude lassen sich **betreten**: ein Wirtshausschild mit Laterne markiert die Tür, `E` führt hinein, „Verlassen“ wieder vor dieselbe Tür. Die Innenräume sind eigene Orte (`data/locations.json`, `group: "interior"`, erreichbar über `doors` des umgebenden Ortes) und werden prozedural aus Fotomaterialien und Fotoscan-Requisiten gebaut (`scripts/world3d/interiors.gd`).
+
+| Gebäude | Ort | Was es gibt |
+|---|---|---|
+| **Abenteurergilde** | E-Rantel | Empfang mit Tresen und Empfangsdame, Auftragstafel mit den Kopfgeldern der Stadt, Schankstube mit Abenteurern, Kamin, Trophäenwand, Lager, Büro des Gildenmeisters Ainzach, Rangtafel und Gildenchronik zum Lesen |
+| **Gasthaus Goldener Pavillon** | E-Rantel | Tresen mit Fässern und Regal, Kamin, Tische mit Gästen, Wirt, Empore mit Zimmertüren – Zimmer 3 gehört Momon und Nabe; Gästebuch, vergessenes Gepäck |
+| **Apotheke Bareare** | E-Rantel | Lizzies Laden: Tresen mit Waage, Regale voller Tränke, Kräuter an der Decke, brodelnder Kessel, Nfireas verwaister Arbeitsplatz, Hinterzimmer, Geheimvorrat |
+| **Enris Haus** | Carne | Herd, Tisch, zwei Betten, das Horn des Goblin-Generals, Nemus Zeichnungen, eine lose Diele |
+
+Jeder Raum hat eigene **Entdeckungen** (`data/discoveries.json` → `placed`: Lesepult, Tafel, Aushang, Versteck) mit fester Position – Lesen bringt Wissen, Durchsuchen Beute. Der Stand der Welt-Überarbeitung je Ort steht in `docs/WELT_UEBERARBEITUNG.md`.
+
+---
+
 ## Story-Einsätze: die großen Momente selbst erleben
 
 Zwölf Schlüsselmomente der Geschichte – aus allen Kapiteln von der Ankunft bis zum Platin-Drachenlord – lassen sich statt per Depesche **selbst in 3D spielen** – mit Filmszenen (Letterbox, Kamerafahrten, Untertitel mit Porträt, Ainz' Gedanken), Verbündeten an Ainz' Seite und Bossen mit Zwischenszenen. Erscheint die Depesche, bietet sie *„⚔ Selbst erleben“* an; die im Einsatz getroffene Entscheidung wird wie eine Antwort in der Depesche gewertet.
@@ -203,7 +218,7 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 
 **Ressourcen**: Macht · Wissen · Ruf · Stimmung · Gold · **Aufmerksamkeit** (wie sehr die Welt auf Nazarick aufmerksam wird – hohe Werte locken gefährliche Mächte an) · **Effizienz der Guardians** (aus Stimmung, Gunst und Erschöpfung).
 
-**Herzenskrieg**: Lobst du Albedo, wird Shalltear eifersüchtig – und umgekehrt. Steigt die Rivalität, kommt es zu Streit im Thronsaal, nächtlichen Besuchen, eigenmächtigen Intrigen und im Extremfall zu einem Duell im Amphitheater. Vernachlässigte oder eifersüchtige Untertanen ergreifen häufiger eigenmächtig die Initiative.
+**Die Herzen der Wächterinnen**: Albedo und Shalltear sehnen sich nach Eurer Aufmerksamkeit – Lob, Geschenke und Aufträge steigern ihre Gunst, Vernachlässigung senkt sie (und lässt sie unüberlegt handeln). Ihre Rivalität untereinander ist seit Version 2.5 kein eigenes Spielsystem mehr: kein Eifersuchtswert, kein Streit im Thronsaal, nächtlichen Besuchen, eigenmächtigen Intrigen und im Extremfall zu einem Duell im Amphitheater. Vernachlässigte oder eifersüchtige Untertanen ergreifen häufiger eigenmächtig die Initiative.
 
 **Die Strategie-Ebene**
 
@@ -276,7 +291,6 @@ scripts/
     ui_fx.gd               Tween-Animationen (Einblenden, Pop-in, Hover, Pulsieren, Schreibmaschine)
     portrait.gd            Portrait mit Rahmen; Bild-Asset oder prozeduraler Platzhalter
     guardian_card.gd       Statuskarte eines Wächters
-    rivalry_meter.gd       „Herzenskrieg“-Anzeige Albedo ⚔ Shalltear
     throne_visual.gd       gezeichneter Thron mit dem Overlord
     background.gd          Shader-Hintergrund + Partikel
     overlay.gd             Basisklasse modaler Fenster
@@ -310,6 +324,7 @@ tools/                     Theme-Builder, Simulations- und UI-Tests
 
 Das Spiel kommt ohne 2D-Artworks aus:
 
+- **Maßstab**: Menschen sind 1,6–1,85 m groß (`ProcModel.HUMAN`), Ainz 2 m, Cocytus 2,5 m; Häuser, Laternen und Marktstände der Ortsmodelle sind in Metern gebaut. Die Kamera hat 54° senkrechtes Sichtfeld.
 - **Figuren** werden prozedural aus `data/figures.json` gebaut (Hautfarbe, Frisur, Kleidung, Hörner, Flügel, Schwanz, Waffe, Sonderformen wie Cocytus, Pandora's Actor oder Hamsuke) und durch `assets/models/characters/<id>.glb` ersetzt, sobald vorhanden.
 - **Portraits** in Dialogen, Berichten und Menüs sind **3D-Renders** dieser Figuren (`PortraitStudio`, einmal je Figur erzeugt; Stimmung färbt das Kantenlicht).
 - **Orte, Himmel und Weltkarte** sind prozedural; Gebäude/Requisiten lassen sich durch `assets/models/props/*.glb` ersetzen, ganze Orte durch `assets/models/locations/*.glb`.
@@ -352,11 +367,11 @@ Alle Inhalte sind JSON – neue Aufträge, Ereignisse oder Charaktere brauchen *
 
 Optionale Felder: `main`, `repeatable`, `required_char`, `forced_tier`, `followup_event`, `replace_report_with_event`, `failure`, `proposal` + `proposal_text` + `proposal_requires` (Vorschläge erscheinen nur, wenn ein Charakter sie unterbreitet – dazu die ID in `proposals` des Charakters eintragen).
 
-**Neues Ereignis** (`data/events.json`): `type` ist `story` (einmalig, sobald `trigger` erfüllt), `random`/`rivalry` (gewichtet, mit `cooldown`/`once`) oder `chain` (nur über `queue_events`/`followup_event`). Jede Wahl (`choices`) hat `label`, `effects`, `reaction`, optional `variant` (`primary`, `danger`, `success`, `warning`) und `requires`.
+**Neues Ereignis** (`data/events.json`): `type` ist `story` (einmalig, sobald `trigger` erfüllt), `random` (gewichtet, mit `cooldown`/`once`) oder `chain` (nur über `queue_events`/`followup_event`). Jede Wahl (`choices`) hat `label`, `effects`, `reaction`, optional `variant` (`primary`, `danger`, `success`, `warning`) und `requires`.
 
-**Bedingungen** (`requires`, `trigger`): `chapter`, `chapter_min/max`, `day_in_chapter_min`, `flags_all/none/any`, `rivalry_min/max`, `res_min/max`, `jealousy_min`, `favor_min/max`, `idle`, `unlocked`, `missions_done`.
+**Bedingungen** (`requires`, `trigger`): `chapter`, `chapter_min/max`, `day_in_chapter_min`, `flags_all/none/any`, `res_min/max`, `jealousy_min`, `favor_min/max`, `idle`, `unlocked`, `missions_done`.
 
-**Effekte** (`effects`, `on_success`, `on_trigger`): `res`, `chars` (favor/mood/jealousy/fatigue), `rivalry`, `set_flags`, `clear_flags`, `unlock_missions`, `unlock_chars`, `status`, `lord_name`, `log`, `queue_events`.
+**Effekte** (`effects`, `on_success`, `on_trigger`): `res`, `chars` (favor/mood/fatigue), `set_flags`, `clear_flags`, `unlock_missions`, `unlock_chars`, `status`, `lord_name`, `log`, `queue_events`.
 
 **Platzhalter in Texten**: `{lord}` → „Momonga-sama“ bzw. „Ainz-sama“, `{lord_full}` → voller Name. Texte unterstützen BBCode (`[i]`, `[b]`, `[color=#ff2a4f]…[/color]`).
 

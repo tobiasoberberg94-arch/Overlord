@@ -625,10 +625,9 @@
         "albedo",
         "shalltear"
       ],
-      "bonus": -4,
-      "variance": 12,
-      "rivalry": 6,
-      "text": "Rivalinnen: Sie streiten unentwegt – und übertrumpfen sich gegenseitig. Unberechenbar."
+      "bonus": 3,
+      "variance": 6,
+      "text": "Oberaufseherin und stärkste Wächterin: Albedo plant, Shalltear schlägt zu – beide wollen vor Euch glänzen."
     },
     {
       "pair": [

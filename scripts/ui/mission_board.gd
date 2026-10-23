@@ -3,8 +3,7 @@ extends Overlay
 ## Auftragstafel: Auftrag wählen → Vollstrecker wählen → Befehlsart wählen → erteilen.
 ##
 ## Zeigt dabei Persönlichkeits-Hinweise: ob ein Untertan zu eigenmächtiger
-## Auslegung neigt, welchen Stil er bei „Freier Hand“ wählt, und ob die
-## Vergabe die Eifersucht einer Rivalin weckt.
+## Auslegung neigt und welchen Stil er bei „Freier Hand“ wählt.
 
 signal mission_assigned
 

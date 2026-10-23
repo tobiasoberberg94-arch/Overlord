@@ -4,7 +4,7 @@ extends Control
 ##   oben Mitte  Kompassband mit Gate/Figuren/Gegnern, darunter Zielrahmen beim Lock-on
 ##   oben links  Ort + Datum (klein) mit Tagesfortschritt, darunter Meldungen, die verblassen
 ##   oben rechts Ressourcen + Depeschen-Hinweis, darunter Auftrags-Tracker (max. 3 Zeilen)
-##   Tab         Wochenziele & Herzenskrieg
+##   Tab         Wochenziele
 ##   unten links Medaillon + Leben/Mana/Ausdauer, unten Mitte Zauberleiste
 ##   F1 / H      Steuerungshilfe (beim ersten Start sichtbar)
 ## Während ein Fenster offen ist, blendet das HUD aus.
@@ -23,7 +23,6 @@ var tracker := VBoxContainer.new()
 var tracker_text := RichTextLabel.new()
 var goals_panel := NzPanel.new(Vector4(16, 12, 16, 12))
 var goals_text := RichTextLabel.new()
-var rivalry := RivalryMeter.new()
 var help_panel := NzPanel.new(Vector4(16, 12, 16, 12), Color(0.035, 0.02, 0.06, 0.8))
 var help_text := RichTextLabel.new()
 var prompt := NzPanel.new(Vector4(10, 6, 18, 6), Color(0.035, 0.02, 0.06, 0.9))
@@ -214,9 +213,6 @@ func _build_right() -> void:
 	gv.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_rich(goals_text, 15)
 	gv.add_child(goals_text)
-	gv.add_child(HSeparator.new())
-	rivalry.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	gv.add_child(rivalry)
 	goals_panel.add_child(gv)
 	goals_panel.visible = false
 	add_child(goals_panel)
@@ -386,7 +382,6 @@ func refresh() -> void:
 		for o in objs:
 			gl.append("[color=%s]%s %s[/color]" % ["#6fdc8c" if o[1] else "#c79bff", "✔" if o[1] else "◇", o[0]])
 	goals_text.text = "\n".join(gl)
-	rivalry.refresh()
 
 
 func _on_log(e: Dictionary) -> void:

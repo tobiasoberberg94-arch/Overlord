@@ -925,6 +925,23 @@
     "bow",
     "#5a3a20"
    ]
+  },
+  "innkeeper": {
+   "scale": 1.02,
+   "skin": "#e4c4a0",
+   "hair": [
+    "#5a4a3a",
+    "bald"
+   ],
+   "beard": "#5a4a3a",
+   "top": "#d8d2c0",
+   "bottom": [
+    "pants",
+    "#4a3a2a"
+   ],
+   "trim": "#8a6a3a",
+   "apron": true,
+   "eyes": "#3a2a1a"
   }
  }
 }

@@ -19,7 +19,7 @@ signal attack_started(attack: Dictionary)      ## Gegner können blocken oder au
 const ACCEL := 10.0
 const GRAVITY := 18.0
 const SPRINT_MULT := 1.75
-const BASE_FOV := 68.0
+const BASE_FOV := 54.0            # senkrechtes Sichtfeld: Häuser und Figuren behalten ihre Größe (68° ließ alles klein wirken)
 const SPELL_ACTIONS := ["spell_1", "spell_2", "spell_3", "spell_4", "spell_5", "spell_6", "spell_super"]
 ## Farbe der Hiebspuren je Stil
 const STYLE_TINT := {
@@ -30,7 +30,7 @@ const STYLE_TINT := {
 var input_enabled := true
 var cam_yaw := 0.0
 var cam_pitch := -0.38
-var cam_distance := 6.5
+var cam_distance := 7.0
 var camera := Camera3D.new()
 var style := "ainz"
 var style_data: Dictionary = {}

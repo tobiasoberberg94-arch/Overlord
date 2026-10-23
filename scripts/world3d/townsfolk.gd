@@ -15,20 +15,27 @@ var _rng := RandomNumberGenerator.new()
 
 
 ## Erzeugt die Bewohner. count = 0 → automatisch nach Anzahl Wegpunkte.
-static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: int = 0) -> Townsfolk:
+## style = "adventurer": Rüstung, Helme, Waffen und Umhänge (Gäste der Abenteurergilde) statt Dorftracht.
+static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: int = 0, style: String = "") -> Townsfolk:
 	var t := Townsfolk.new()
 	t.name = "Townsfolk"
 	parent.add_child(t)
 	t._rng.seed = seed_v
 	t._walk = walk
+	t._style = style
 	var n := count if count > 0 else clampi(walk.size() + idle.size(), 6, 28)
 	if not Settings.particles:
 		n = mini(n, 8)
 	for i in n:
-		var standing := i < idle.size() and t._rng.randf() < 0.8
+		var standing := i < idle.size() and (walk.is_empty() or t._rng.randf() < 0.8)
 		var p: Vector3 = idle[i] if standing else walk[t._rng.randi() % walk.size()] if not walk.is_empty() else Vector3.ZERO
 		t._add(p, standing)
 	return t
+
+
+var _style := ""
+const ARMOR := ["#8a8f98", "#6a6e78", "#a8aeb8", "#5a4a3a"]
+const CAPE := ["#5a1414", "#1a3a5a", "#2a4a2a", "#3a2a4a", "#6a5a2a"]
 
 
 func _add(pos: Vector3, standing: bool) -> void:
@@ -41,6 +48,19 @@ func _add(pos: Vector3, standing: bool) -> void:
 		"apron": _rng.randf() < 0.25,
 		"scale": _rng.randf_range(0.88, 1.04),
 	}
+	if _style == "adventurer":
+		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
+		f["apron"] = false
+		f["scale"] = _rng.randf_range(0.94, 1.06)
+		f["armor"] = _rng.randf() < 0.6
+		if _rng.randf() < 0.3:
+			f["helmet"] = ARMOR[_rng.randi() % ARMOR.size()]
+		if _rng.randf() < 0.4:
+			f["cape"] = CAPE[_rng.randi() % CAPE.size()]
+		if _rng.randf() < 0.35:
+			f["tabard"] = CAPE[_rng.randi() % CAPE.size()]
+		var weapons := [["sword", "#c8c8d0"], ["sword", "#c8c8d0"], ["bow", "#5a3a20"], ["sword_shield", "#d0d0d8"], ["staff", "#9fe070"], ["axe", "#9a9a9a"]]
+		f["weapon"] = weapons[_rng.randi() % weapons.size()]
 	var rig := CharacterRig.create("", func(r: CharacterRig) -> void: ProcModel._person(r, f))
 	add_child(rig)
 	rig.position = pos

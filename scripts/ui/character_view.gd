@@ -134,8 +134,6 @@ func _show(cid: String) -> void:
 	var mood := ""
 	if c.status == "feldzug":
 		mood = "battle"
-	elif c.jealousy >= 60:
-		mood = "angry"
 	elif c.favor < 30:
 		mood = "sad"
 	elif c.favor >= 75:
@@ -200,8 +198,6 @@ func _show(cid: String) -> void:
 	feelings_box.add_child(_section("Gefühle"))
 	var feelings := [["favor", "Gunst", Palette.GOLD, "♛"], ["mood", "Stimmung", Palette.VIOLET_GLOW, "☾"],
 		["fatigue", "Erschöpfung", Palette.MUTED, "◷"]]
-	if cd.has("emotion"):
-		feelings.insert(1, ["jealousy", "Eifersucht", Palette.CRIMSON, "⚡"])
 	for f in feelings:
 		var sb := StatBar.new(f[1], f[2], f[3], 100)
 		sb.set_value(float(c[f[0]]))
@@ -215,9 +211,7 @@ func _show(cid: String) -> void:
 		hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		hint.add_theme_font_size_override("font_size", 15)
 		hint.add_theme_color_override("font_color", Color("ff7aa8"))
-		if c.jealousy >= 60:
-			hint.text = "♥ Sie ist rasend eifersüchtig auf %s." % Game.char_name(cd.rival).split(" ")[0]
-		elif c.favor < 35:
+		if c.favor < 35:
 			hint.text = "♥ Sie fühlt sich vernachlässigt – und könnte unüberlegt handeln."
 		else:
 			hint.text = "♥ Ihr Herz gehört allein Euch."

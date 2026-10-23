@@ -593,8 +593,9 @@ func _ach_met(a: Dictionary) -> bool:
 		return false
 	if c.has("day_min") and int(Game.state.day) < int(c.day_min):
 		return false
-	if c.has("rivalry_max") and int(Game.state.rivalry) > int(c.rivalry_max):
-		return false
+	for cid in c.get("favor_min", {}):
+		if Game.cs(cid).favor < int(c.favor_min[cid]):
+			return false
 	for f in c.get("flags", []):
 		if not Game.has_flag(f):
 			return false

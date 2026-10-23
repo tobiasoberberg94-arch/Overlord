@@ -55,12 +55,8 @@
               "albedo": {
                 "favor": 10,
                 "mood": 10
-              },
-              "shalltear": {
-                "jealousy": 15
               }
             },
-            "rivalry": 10,
             "set_flags": [
               "loyalty_sworn"
             ]
@@ -75,12 +71,8 @@
               "shalltear": {
                 "favor": 10,
                 "mood": 10
-              },
-              "albedo": {
-                "jealousy": 15
               }
             },
-            "rivalry": 10,
             "set_flags": [
               "loyalty_sworn"
             ]
@@ -129,14 +121,10 @@
                 "favor": 10,
                 "mood": 12
               },
-              "shalltear": {
-                "jealousy": 10
-              },
               "sebas": {
                 "favor": 6
               }
             },
-            "rivalry": 5,
             "set_flags": [
               "carne_saved",
               "carne_resolved"
@@ -368,9 +356,6 @@
               "info": 5
             },
             "chars": {
-              "albedo": {
-                "jealousy": 12
-              },
               "narberal": {
                 "favor": 6
               }
@@ -405,9 +390,6 @@
             "chars": {
               "demiurge": {
                 "favor": 5
-              },
-              "albedo": {
-                "jealousy": 8
               }
             },
             "set_flags": [
@@ -642,11 +624,9 @@
             "chars": {
               "albedo": {
                 "favor": 8,
-                "jealousy": -15,
                 "fatigue": 50
               }
             },
-            "rivalry": 15,
             "set_flags": [
               "shalltear_defeated",
               "albedo_killed_shalltear"
@@ -668,7 +648,6 @@
                 "fatigue": 50
               }
             },
-            "rivalry": 8,
             "set_flags": [
               "shalltear_defeated",
               "albedo_killed_shalltear"
@@ -764,14 +743,9 @@
             "chars": {
               "shalltear": {
                 "favor": 22,
-                "mood": 25,
-                "jealousy": -10
-              },
-              "albedo": {
-                "jealousy": 15
+                "mood": 25
               }
             },
-            "rivalry": 6,
             "res": {
               "morale": 6
             },
@@ -791,11 +765,9 @@
                 "mood": 30
               },
               "albedo": {
-                "jealousy": 28,
                 "mood": -10
               }
             },
-            "rivalry": 15,
             "set_flags": [
               "shalltear_forgiven",
               "shalltear_chair"
@@ -1285,12 +1257,8 @@
               "albedo": {
                 "favor": 20,
                 "mood": 25
-              },
-              "shalltear": {
-                "jealousy": 25
               }
             },
-            "rivalry": 15,
             "res": {
               "morale": 8,
               "reputation": 6
@@ -1320,12 +1288,8 @@
               "shalltear": {
                 "favor": 20,
                 "mood": 25
-              },
-              "albedo": {
-                "jealousy": 25
               }
             },
-            "rivalry": 15,
             "res": {
               "morale": 8,
               "reputation": 4
@@ -1361,7 +1325,6 @@
                 "favor": 10
               }
             },
-            "rivalry": -10,
             "set_flags": [
               "crowned",
               "crown_self"
@@ -1671,9 +1634,6 @@
               "albedo": {
                 "favor": 8,
                 "mood": 8
-              },
-              "shalltear": {
-                "jealousy": 5
               }
             }
           },
@@ -1687,9 +1647,6 @@
               "shalltear": {
                 "favor": 8,
                 "mood": 8
-              },
-              "albedo": {
-                "jealousy": 5
               }
             }
           },
@@ -1718,9 +1675,6 @@
             "chars": {
               "narberal": {
                 "favor": 5
-              },
-              "albedo": {
-                "jealousy": 4
               }
             }
           },
@@ -1738,550 +1692,6 @@
         }
       ],
       "char": "yuri"
-    },
-    {
-      "id": "rv_words",
-      "type": "rivalry",
-      "weight": 4,
-      "cooldown": 12,
-      "title": "Lampreye gegen Gorilla",
-      "subtitle": "Thronsaal · Rivalität",
-      "trigger": {
-        "rivalry_min": 30,
-        "idle": [
-          "albedo",
-          "shalltear"
-        ]
-      },
-      "body": "Ein Streit hallt durch den Thronsaal.\n\n[color=#ff2a4f]Shalltear:[/color] »Du gehörnte Gorilla-Succubus! Ainz-sama hat MICH heute zuerst angesehen!«\n[color=#f1e6ff]Albedo:[/color] »Weil er dachte, du wärst ein umgefallener Kerzenständer, Lampreye. Mit gepolsterter Brust.«\n[color=#ff2a4f]Shalltear:[/color] »Wenigstens hatte ich keinen Bauplan für Hochzeitsglocken auf dem Schreibtisch!«\n[color=#f1e6ff]Albedo:[/color] »Neid steht dir nicht. Er passt nicht unter dein Polster.«\n\nBeide drehen sich gleichzeitig zu Euch um.",
-      "choices": [
-        {
-          "label": "Albedo recht geben",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": 8,
-                "mood": 6,
-                "jealousy": -10
-              },
-              "shalltear": {
-                "favor": -5,
-                "mood": -8,
-                "jealousy": 15
-              }
-            },
-            "rivalry": 8
-          },
-          "reaction": "Albedo verneigt sich mit triumphierendem Lächeln. Shalltear stampft so heftig auf, dass ein Kronleuchter klirrt. »Das werde ich mir merken, ~arinsu!«"
-        },
-        {
-          "label": "Shalltear recht geben",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "favor": 8,
-                "mood": 6,
-                "jealousy": -10
-              },
-              "albedo": {
-                "favor": -5,
-                "mood": -8,
-                "jealousy": 15
-              }
-            },
-            "rivalry": 8
-          },
-          "reaction": "Shalltear streckt Albedo die Zunge heraus. Albedo lächelt. Ihr Lächeln hat Zähne. »Natürlich, {lord}. Wie Ihr meint.«"
-        },
-        {
-          "label": "»Genug! Ihr seid mir beide gleich wertvoll.«",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "jealousy": -8,
-                "favor": -1
-              },
-              "shalltear": {
-                "jealousy": -8,
-                "favor": -1
-              }
-            },
-            "rivalry": -12,
-            "res": {
-              "morale": 2
-            }
-          },
-          "reaction": "Beide verneigen sich. »Verzeiht, {lord}.« Als sie hinausgehen, stoßen sie sich gegenseitig mit den Ellbogen. Aber leiser als vorher."
-        },
-        {
-          "label": "Schweigen und den Streit laufen lassen",
-          "variant": "default",
-          "effects": {
-            "rivalry": 6,
-            "res": {
-              "morale": -2
-            }
-          },
-          "reaction": "Der Streit dauert noch eine Stunde. Am Ende fragt Aura, ob sie Popcorn holen soll."
-        }
-      ]
-    },
-    {
-      "id": "rv_seat",
-      "type": "rivalry",
-      "weight": 3,
-      "cooldown": 25,
-      "title": "Der Platz zur Rechten",
-      "subtitle": "Thronsaal · Rivalität",
-      "trigger": {
-        "rivalry_min": 45,
-        "idle": [
-          "albedo",
-          "shalltear"
-        ]
-      },
-      "body": "Vor der morgendlichen Audienz stehen Albedo und Shalltear gleichzeitig auf der obersten Stufe – beide rechts neben dem Thron. Keine weicht einen Zentimeter. Die Luft knistert.\n\n»Dies ist der Platz der Oberaufseherin«, sagt Albedo ruhig.\n»Dies ist der Platz der Stärksten«, sagt Shalltear lächelnd.\n\nDie Wächter halten den Atem an.",
-      "choices": [
-        {
-          "label": "Albedo gehört an meine Rechte",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": 10,
-                "jealousy": -12
-              },
-              "shalltear": {
-                "jealousy": 18,
-                "mood": -10
-              }
-            },
-            "rivalry": 10
-          },
-          "reaction": "Shalltear tritt zurück. Langsam. Mit Blicken, die töten könnten – und in ihrem Fall tatsächlich töten können."
-        },
-        {
-          "label": "Shalltear soll heute rechts stehen",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "favor": 10,
-                "jealousy": -12
-              },
-              "albedo": {
-                "jealousy": 18,
-                "mood": -10
-              }
-            },
-            "rivalry": 10
-          },
-          "reaction": "Albedo tritt zurück, ohne die Miene zu verziehen. Während der gesamten Audienz spürt Ihr ihren Blick in Eurem Nacken."
-        },
-        {
-          "label": "»Ihr wechselt euch täglich ab.«",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "jealousy": -6
-              },
-              "shalltear": {
-                "jealousy": -6
-              }
-            },
-            "rivalry": -8,
-            "res": {
-              "morale": 3
-            }
-          },
-          "reaction": "Beide nicken. Am nächsten Morgen findet Ihr einen von beiden unterzeichneten Rotationsplan – mit 47 Fußnoten."
-        }
-      ]
-    },
-    {
-      "id": "rv_night",
-      "type": "rivalry",
-      "weight": 3,
-      "cooldown": 30,
-      "title": "Ein nächtlicher Besuch",
-      "subtitle": "Euer Schlafgemach · Rivalität",
-      "trigger": {
-        "chapter_min": 2,
-        "jealousy_min": {
-          "shalltear": 45
-        },
-        "idle": [
-          "albedo",
-          "shalltear"
-        ]
-      },
-      "body": "Mitternacht. Die Tür Eures Schlafgemachs öffnet sich leise. Shalltear schleicht herein, in einem Negligé aus schwarzer Spitze.\n\nSie erstarrt.\n\nAuf der anderen Seite des Bettes steht Albedo, in einem Negligé aus weißer Spitze, ein Bein bereits auf der Matratze.\n\nDie beiden Frauen starren sich an. Dann Euch.",
-      "choices": [
-        {
-          "label": "»Raus. Beide.«",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "mood": -6
-              },
-              "shalltear": {
-                "mood": -6
-              }
-            },
-            "rivalry": -5
-          },
-          "reaction": "Sie gehen. Auf dem Flur hört Ihr Albedo flüstern: »Das ist alles deine Schuld.« – »Nein, deine!« Etwas zerbricht."
-        },
-        {
-          "label": "Shalltear bleibt – für ein Gespräch",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "favor": 12,
-                "mood": 15
-              },
-              "albedo": {
-                "jealousy": 22,
-                "mood": -12
-              }
-            },
-            "rivalry": 12
-          },
-          "reaction": "Ihr redet nur. Wirklich. Shalltear erzählt von Peroroncino und schläft irgendwann ein. Albedo hat die Nacht vor Eurer Tür verbracht. Sitzend. Wach."
-        },
-        {
-          "label": "Albedo bleibt – für ein Gespräch",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": 12,
-                "mood": 15
-              },
-              "shalltear": {
-                "jealousy": 22,
-                "mood": -12
-              }
-            },
-            "rivalry": 12
-          },
-          "reaction": "Albedo spricht bis zum Morgengrauen über die Verwaltung Nazaricks. Mit dem Kopf auf Eurer Schulter. Shalltear hat eine Fledermaus vor dem Fenster postiert. Sie hat alles gesehen."
-        },
-        {
-          "label": "Euch per Teleport in die Bibliothek retten",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": -3
-              },
-              "shalltear": {
-                "favor": -3
-              }
-            },
-            "rivalry": 6,
-            "res": {
-              "info": 2
-            }
-          },
-          "reaction": "Ihr verbringt die Nacht mit einem Buch über die Geschichte der Neuen Welt. Im Schlafgemach kämpfen zwei Frauen bis zum Morgengrauen darum, wer schuld ist."
-        }
-      ]
-    },
-    {
-      "id": "rv_duel",
-      "type": "rivalry",
-      "weight": 6,
-      "cooldown": 40,
-      "title": "Ein Duell im Amphitheater",
-      "subtitle": "Sechste Ebene · Rivalität eskaliert",
-      "trigger": {
-        "rivalry_min": 70,
-        "idle": [
-          "albedo",
-          "shalltear"
-        ]
-      },
-      "body": "Aura stürmt in den Thronsaal. »Ainz-sama! Albedo und Shalltear stehen im Amphitheater – in voller Rüstung! Sie sagen, sie klären jetzt, wer Eure Erste ist!«\n\nDurch den Spiegel seht Ihr es: Hermes Trismegistus gegen Spuhletit Lance. Die Zuschauerränge füllen sich mit Golems, die Wetten abschließen.",
-      "choices": [
-        {
-          "label": "Persönlich einschreiten und es verbieten",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "mood": -10,
-                "jealousy": -10
-              },
-              "shalltear": {
-                "mood": -10,
-                "jealousy": -10
-              }
-            },
-            "rivalry": -15
-          },
-          "reaction": "Ihr erscheint zwischen ihnen. Beide fallen sofort auf die Knie. »Verzeiht, {lord}!« Die Waffen verschwinden. Der Groll nicht."
-        },
-        {
-          "label": "Das Duell erlauben – Cocytus soll richten",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "fatigue": 50,
-                "jealousy": -20
-              },
-              "shalltear": {
-                "fatigue": 50,
-                "jealousy": -20
-              },
-              "cocytus": {
-                "favor": 4
-              }
-            },
-            "rivalry": -25,
-            "res": {
-              "power": 3,
-              "morale": 3
-            }
-          },
-          "reaction": "Drei Stunden. Ein zerstörtes Amphitheater. Cocytus erklärt das Ergebnis zum Unentschieden. Beide Frauen liegen erschöpft im Sand und lachen plötzlich – zum ersten Mal miteinander."
-        },
-        {
-          "label": "»Stattdessen ein Wettstreit: Wer dient Nazarick besser?«",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "mood": 10,
-                "favor": 4
-              },
-              "shalltear": {
-                "mood": 10,
-                "favor": 4
-              }
-            },
-            "rivalry": -5,
-            "res": {
-              "morale": 5
-            },
-            "set_flags": [
-              "rival_contest"
-            ]
-          },
-          "reaction": "Beide Augenpaare leuchten. »Ein Wettstreit!« Die nächsten Wochen arbeiten beide mit fanatischem Eifer. Nazarick war nie effizienter."
-        }
-      ]
-    },
-    {
-      "id": "rv_albedo_scheme",
-      "type": "rivalry",
-      "weight": 5,
-      "cooldown": 35,
-      "title": "Albedos stille Intrige",
-      "subtitle": "Rivalität",
-      "trigger": {
-        "chapter_min": 2,
-        "jealousy_min": {
-          "albedo": 70
-        },
-        "idle": [
-          "shalltear"
-        ]
-      },
-      "body": "Ihr entdeckt in den Verwaltungsakten einen Befehl, unterzeichnet von Albedo: Shalltear Bloodfallen wird für drei Monate zur ›Inventur der Grabkammern in den äußersten Randgebieten‹ abkommandiert. Ohne Rücksprache mit Euch.\n\nAlbedo lächelt unschuldig, als Ihr sie darauf ansprecht. »Eine notwendige Verwaltungsmaßnahme, {lord}. Rein sachlich.«",
-      "choices": [
-        {
-          "label": "Den Befehl aufheben und Albedo tadeln",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": -8,
-                "mood": -12,
-                "jealousy": 5
-              },
-              "shalltear": {
-                "favor": 8
-              }
-            },
-            "rivalry": 5
-          },
-          "reaction": "Albedo senkt den Kopf. »Ich habe mich hinreißen lassen.« Als Shalltear davon erfährt, tanzt sie durch die Zweite Ebene. Albedo hört es. Natürlich hört sie es."
-        },
-        {
-          "label": "Den Befehl bestehen lassen",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": 6,
-                "jealousy": -25
-              },
-              "shalltear": {
-                "mood": -18,
-                "favor": -6,
-                "jealousy": 20
-              }
-            },
-            "rivalry": 10
-          },
-          "reaction": "Shalltear verlässt Nazarick mit Tränen in den Augen. Albedo summt den ganzen Tag ein Lied. Ihr erkennt es: einen Hochzeitsmarsch."
-        },
-        {
-          "label": "»Albedo. Ich sehe alles.«",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "jealousy": -10,
-                "mood": -4
-              }
-            },
-            "rivalry": -4
-          },
-          "reaction": "Albedo erbleicht – dann lächelt sie. »Natürlich tut Ihr das. Deshalb liebe ich Euch.« Der Befehl verschwindet spurlos aus den Akten."
-        }
-      ]
-    },
-    {
-      "id": "rv_shalltear_gift",
-      "type": "rivalry",
-      "weight": 5,
-      "cooldown": 30,
-      "title": "Ein Geschenk aus Blut",
-      "subtitle": "Rivalität",
-      "trigger": {
-        "chapter_min": 3,
-        "jealousy_min": {
-          "shalltear": 60
-        },
-        "idle": [
-          "shalltear"
-        ]
-      },
-      "on_trigger": {
-        "res": {
-          "attention": 6
-        }
-      },
-      "body": "Shalltear schleift einen gefesselten Mann in den Thronsaal: Brain Unglaus, einst Rivale von Gazef Stronoff, einer der stärksten Schwertkämpfer des Königreichs.\n\n»Ein Geschenk für Euch, Eure Herrlichkeit! Ich habe ihn ganz allein gefangen! Albedo bringt Euch nur Papier – ich bringe Euch Krieger, ~arinsu!«\n\nBrain zittert. Er hat Shalltear gesehen. Er wird nie wieder ruhig schlafen.",
-      "choices": [
-        {
-          "label": "Das Geschenk annehmen",
-          "variant": "danger",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "favor": 12,
-                "jealousy": -15
-              },
-              "albedo": {
-                "jealousy": 14
-              }
-            },
-            "rivalry": 8,
-            "res": {
-              "power": 3,
-              "info": 3
-            }
-          },
-          "reaction": "Shalltear strahlt. »Nimm das, Albedo!« Albedo, die eben eintritt, mustert Brain. »Wie … aufmerksam. Er tropft auf den Teppich.«"
-        },
-        {
-          "label": "Ihn freilassen – »Ein gebrochener Mann ist mir nichts wert.«",
-          "variant": "default",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "mood": -10
-              },
-              "sebas": {
-                "favor": 4
-              }
-            },
-            "res": {
-              "reputation": 3,
-              "attention": -2
-            }
-          },
-          "reaction": "Brain flieht. Später erfährt Ihr, dass er bei Gazef untergekommen ist – und jede Nacht von roten Augen träumt."
-        },
-        {
-          "label": "Shalltear loben, Brain an Demiurge übergeben",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "shalltear": {
-                "favor": 6
-              },
-              "demiurge": {
-                "favor": 3
-              }
-            },
-            "res": {
-              "info": 6
-            }
-          },
-          "reaction": "Demiurge bedankt sich höflich. Shalltear fragt, ob sie nächste Woche einen Drachen bringen darf."
-        }
-      ]
-    },
-    {
-      "id": "rv_truce",
-      "type": "rivalry",
-      "weight": 4,
-      "once": true,
-      "title": "Ein seltener Waffenstillstand",
-      "subtitle": "Rivalität · Frieden?",
-      "trigger": {
-        "chapter_min": 3,
-        "rivalry_max": 15,
-        "idle": [
-          "albedo",
-          "shalltear"
-        ]
-      },
-      "body": "Ihr überrascht Albedo und Shalltear in der Bibliothek. Sie sitzen nebeneinander. Friedlich. Vor ihnen liegt ein Pergament mit der Überschrift: ›Vereinbarung über die Rangfolge der Gemahlinnen des Höchsten Wesens‹.\n\nShalltear: »Wer zuerst … ähm … die Erste wird, unterstützt die andere als Zweite!«\nAlbedo: »Ein rationales Bündnis. Rein strategisch.«\n\nBeide sehen Euch erwartungsvoll an.",
-      "choices": [
-        {
-          "label": "Lächelnd (innerlich) den Raum verlassen",
-          "variant": "primary",
-          "effects": {
-            "chars": {
-              "albedo": {
-                "favor": 5,
-                "mood": 8
-              },
-              "shalltear": {
-                "favor": 5,
-                "mood": 8
-              }
-            },
-            "res": {
-              "morale": 5
-            },
-            "set_flags": [
-              "harem_pact"
-            ]
-          },
-          "reaction": "Hinter Euch hört Ihr Kichern. Zweistimmig. Es ist das Beunruhigendste, was Ihr in dieser Welt bisher erlebt habt."
-        },
-        {
-          "label": "Euch vernehmlich räuspern",
-          "variant": "default",
-          "effects": {
-            "rivalry": 5
-          },
-          "reaction": "Das Pergament verschwindet. Beide sehen sich an – und der Waffenstillstand ist vorbei."
-        }
-      ]
     },
     {
       "id": "ev_dwarf_runes",
@@ -2365,9 +1775,6 @@
               "shalltear": {
                 "favor": 10,
                 "mood": 15
-              },
-              "albedo": {
-                "jealousy": 6
               }
             },
             "set_flags": [
@@ -2726,12 +2133,8 @@
               "albedo": {
                 "favor": 10,
                 "mood": 15
-              },
-              "shalltear": {
-                "jealousy": 10
               }
-            },
-            "rivalry": 4
+            }
           },
           "reaction": "Albedo erfährt von Eurem Kommentar und fällt in Ohnmacht. Glücklich. Shalltear beginnt noch am selben Abend, ein eigenes Kissen zu nähen. Es sieht aus wie ein Kartoffelsack mit Krone."
         },
@@ -2833,11 +2236,7 @@
       "weight": 4,
       "cooldown": 30,
       "title": "Albedos Liste",
-      "trigger": {
-        "jealousy_min": {
-          "albedo": 55
-        }
-      },
+      "trigger": {},
       "body": "Auf Albedos Schreibtisch liegt eine Liste. Überschrift: ›Weibliche Personen, die Ainz-sama zu lange angesehen haben‹.\n\nPlatz 1: Shalltear Bloodfallen (unterstrichen, dreimal).\nPlatz 2: Narberal Gamma (›reist mit ihm – inakzeptabel‹).\nPlatz 3: Aura (›noch zu jung, aber beobachten‹).\nPlatz 4–37: diverse Maids.\nPlatz 38: Hamsuke (›Geschlecht unklar‹).",
       "choices": [
         {
@@ -2846,11 +2245,9 @@
           "effects": {
             "chars": {
               "albedo": {
-                "mood": -8,
-                "jealousy": -10
+                "mood": -8
               }
-            },
-            "rivalry": -3
+            }
           },
           "reaction": "Albedo verbrennt die Liste. Am nächsten Tag liegt eine neue da. Sie ist kürzer – und Hamsuke steht auf Platz 2."
         },
@@ -2860,11 +2257,7 @@
           "effects": {
             "chars": {
               "albedo": {
-                "favor": 8,
-                "jealousy": -20
-              },
-              "shalltear": {
-                "jealousy": 6
+                "favor": 8
               }
             }
           },
@@ -2873,9 +2266,7 @@
         {
           "label": "Nichts tun",
           "variant": "default",
-          "effects": {
-            "rivalry": 4
-          },
+          "effects": {},
           "reaction": "Die Liste wächst. Narberal bekommt einen Vermerk: ›Gefahrenstufe Rot‹."
         }
       ]
@@ -2914,12 +2305,8 @@
               "shalltear": {
                 "favor": 10,
                 "mood": 15
-              },
-              "albedo": {
-                "jealousy": 12
               }
-            },
-            "rivalry": 6
+            }
           },
           "reaction": "Shalltear quiekt, dreht sich noch dreimal und wirft Albedo einen Blick zu, der ein ganzes Königreich in Brand setzen könnte. Albedo bestellt noch am selben Tag sieben neue Kleider."
         },
@@ -2969,9 +2356,6 @@
                 "favor": 10,
                 "mood": 15,
                 "fatigue": -20
-              },
-              "albedo": {
-                "jealousy": 8
               }
             }
           },
@@ -3000,11 +2384,7 @@
       "weight": 4,
       "cooldown": 40,
       "title": "Shalltear, die Verwalterin",
-      "trigger": {
-        "jealousy_min": {
-          "shalltear": 50
-        }
-      },
+      "trigger": {},
       "body": "Shalltear erscheint mit einer Brille (ohne Gläser), einem Stapel Pergamente und einer Feder hinter dem Ohr.\n\n»Eure Herrlichkeit, ich habe beschlossen, ebenfalls Verwaltungsarbeit zu leisten. Wie Albedo. Nur besser. Hier ist mein erster Bericht.«\n\nDer Bericht besteht aus einer Zeichnung von Euch und ihr, Hand in Hand, unter einem blutroten Mond.",
       "choices": [
         {
@@ -3014,11 +2394,7 @@
             "chars": {
               "shalltear": {
                 "favor": 9,
-                "mood": 12,
-                "jealousy": -10
-              },
-              "albedo": {
-                "jealousy": 6
+                "mood": 12
               }
             }
           },
@@ -3030,14 +2406,12 @@
           "effects": {
             "chars": {
               "shalltear": {
-                "mood": -12,
-                "jealousy": 10
+                "mood": -12
               },
               "albedo": {
                 "favor": 5
               }
-            },
-            "rivalry": 6
+            }
           },
           "reaction": "Shalltear nimmt die Brille ab. Langsam. »Natürlich. Albedo. Immer Albedo.« Sie geht. Die Brille zerbricht in ihrer Faust."
         }
@@ -3220,15 +2594,12 @@
                 "mood": 15
               },
               "albedo": {
-                "jealousy": 10,
                 "mood": 8
               },
               "shalltear": {
-                "jealousy": 10,
                 "mood": 8
               }
-            },
-            "rivalry": 10
+            }
           },
           "reaction": "Cocytus erzählt. Ausführlich. Albedo hört zufällig mit und fragt, ob der Erbe ›Flügel oder Hörner‹ haben wird. Shalltear fragt, ob er ›Fangzähne‹ haben wird. Es kommt zu Handgreiflichkeiten."
         },

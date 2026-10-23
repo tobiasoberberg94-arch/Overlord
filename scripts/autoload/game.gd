@@ -8,7 +8,7 @@ extends Node
 ##
 ## Ablauf eines Tages ([method _tick_day]):
 ##   1. Laufende Aufträge prüfen → Berichte erzeugen
-##   2. Erholung, Emotionen & Rivalität fortschreiben
+##   2. Erholung und Gefühle fortschreiben
 ##   3. Story-Ereignisse und Kapitelfortschritt prüfen
 ##   4. Eigeninitiative der Untertanen würfeln
 ##   5. Zufallsereignisse würfeln
@@ -45,7 +45,7 @@ const RESOURCE_LABELS := {
 }
 const BOUNDED := ["power", "info", "reputation", "morale", "attention"]
 
-const CHAR_STAT_LABELS := {"favor": "Gunst", "mood": "Stimmung", "jealousy": "Eifersucht", "fatigue": "Erschöpfung"}
+const CHAR_STAT_LABELS := {"favor": "Gunst", "mood": "Stimmung", "fatigue": "Erschöpfung"}
 const STAT_LABELS := {
 	"kampf": "Kampfkraft", "intellekt": "Intellekt", "diskretion": "Diskretion",
 	"diplomatie": "Diplomatie", "grausamkeit": "Grausamkeit", "initiative": "Initiative",
@@ -80,7 +80,7 @@ func diff(key: String) -> float:
 func new_game(difficulty: String = "normal") -> void:
 	state = {
 		"day": 1, "chapter": 1, "chapter_start_day": 1,
-		"lord_name": "Momonga", "rivalry": 25,
+		"lord_name": "Momonga",
 		"audiences_day": 0, "audiences_used": 0, "uid": 0,
 		"resources": {}, "chars": {}, "flags": [], "unlocked_missions": [],
 		"completed": {}, "completed_day": {}, "failed": {}, "active": [], "dispatches": [], "log": [], "fired": {},
@@ -112,7 +112,7 @@ func _new_char_state(cid: String) -> Dictionary:
 	var unlocked: bool = cd.get("unlocked", true)
 	return {
 		"favor": int(init.get("favor", 50)), "mood": int(init.get("mood", 70)),
-		"jealousy": int(init.get("jealousy", 0)), "fatigue": 0,
+		"fatigue": 0,
 		"status": STATUS_READY if unlocked else STATUS_LOCKED,
 		"mission_uid": "", "unlocked": unlocked, "recover_until": 0, "deeds": [],
 	}
@@ -121,16 +121,18 @@ func _new_char_state(cid: String) -> Dictionary:
 ## JSON kennt nur Floats – nach dem Laden alle Zahlen wieder zu int machen
 ## und neu hinzugekommene Charaktere ergänzen.
 func _normalize() -> void:
-	for k in ["day", "chapter", "chapter_start_day", "rivalry", "audiences_day", "audiences_used", "uid"]:
+	for k in ["day", "chapter", "chapter_start_day", "audiences_day", "audiences_used", "uid"]:
 		state[k] = int(state.get(k, 0))
+	state.erase("rivalry")                       # Spielstände vor 2.5: Herzenskrieg abgeschafft
 	for k in state.resources:
 		state.resources[k] = int(state.resources[k])
 	for cid in Content.character_order:
 		if not state.chars.has(cid):
 			state.chars[cid] = _new_char_state(cid)
 		var cs: Dictionary = state.chars[cid]
-		for k in ["favor", "mood", "jealousy", "fatigue", "recover_until"]:
+		for k in ["favor", "mood", "fatigue", "recover_until"]:
 			cs[k] = int(cs.get(k, 0))
+		cs.erase("jealousy")
 	for k in state.completed:
 		state.completed[k] = int(state.completed[k])
 	# Ältere Spielstände kennen diese Felder noch nicht
@@ -290,16 +292,11 @@ func check(cond: Variant) -> bool:
 			any = any or has_flag(f)
 		if not any:
 			return false
-	if state.rivalry < int(c.get("rivalry_min", -1)) or state.rivalry > int(c.get("rivalry_max", 101)):
-		return false
 	for k in c.get("res_min", {}):
 		if state.resources.get(k, 0) < int(c.res_min[k]):
 			return false
 	for k in c.get("res_max", {}):
 		if state.resources.get(k, 0) > int(c.res_max[k]):
-			return false
-	for cid in c.get("jealousy_min", {}):
-		if cs(cid).jealousy < int(c.jealousy_min[cid]):
 			return false
 	for cid in c.get("favor_min", {}):
 		if cs(cid).favor < int(c.favor_min[cid]):
@@ -330,7 +327,7 @@ func check(cond: Variant) -> bool:
 ## Wendet ein Effekt-Dictionary an und liefert eine Zusammenfassung
 ## als Array von [Label, Delta] für die Anzeige.
 ##
-## Unterstützte Schlüssel: res, chars, rivalry, set_flags, clear_flags,
+## Unterstützte Schlüssel: res, chars (favor/mood/fatigue), set_flags, clear_flags,
 ## unlock_missions, unlock_chars, status, lord_name, log, log_cat, queue_events
 func apply_effects(eff: Variant) -> Array:
 	var summary: Array = []
@@ -353,16 +350,13 @@ func apply_effects(eff: Variant) -> Array:
 			continue
 		var c := cs(cid)
 		for attr in eff.chars[cid]:
+			if not attr in ["favor", "mood", "fatigue"]:
+				continue
 			var old: int = c.get(attr, 0)
 			var nv := clampi(old + int(eff.chars[cid][attr]), 0, 100)
 			c[attr] = nv
 			if nv != old and c.unlocked:
 				summary.append(["%s: %s" % [char_name(cid), CHAR_STAT_LABELS.get(attr, attr)], nv - old])
-	if int(eff.get("rivalry", 0)) != 0:
-		var old: int = state.rivalry
-		state.rivalry = clampi(old + int(eff.rivalry), 0, 100)
-		if state.rivalry != old:
-			summary.append(["Rivalität Albedo ⚔ Shalltear", state.rivalry - old])
 	for f in eff.get("set_flags", []):
 		set_flag(f)
 	for f in eff.get("clear_flags", []):
@@ -724,15 +718,11 @@ func assign(mid: String, cid: String, directive: String, partner: String = "") -
 		cs(partner).mission_uid = am.uid
 	var team := "" if partner == "" else " mit %s" % char_name(partner).split(" ")[0]
 	log_msg("%s bricht%s auf: »%s« (%s, %d Tage)." % [char_name(cid), team, m.title, Content.directives[directive].name, days], "mission")
-	# Wer mit Aufgaben betraut wird, gewinnt an Gunst – die Rivalin wird eifersüchtig.
+	# Wer mit Aufgaben betraut wird, gewinnt an Gunst.
 	var boost := 4 if m.get("main", false) else 2
 	var eff := {"chars": {cid: {"favor": boost}}}
-	var rival: String = Content.char_data(cid).get("rival", "")
-	if rival != "" and cs(rival).unlocked and rival != partner:
-		eff.chars[rival] = {"jealousy": boost + 2}
 	if partner != "":
 		eff.chars[partner] = {"favor": 1}
-		eff["rivalry"] = int(World.synergy(cid, partner).get("rivalry", 0))
 	apply_effects(eff)
 	state_changed.emit()
 	return true
@@ -890,14 +880,14 @@ func build_ending() -> String:
 	# Herzensangelegenheiten
 	var a := cs("albedo")
 	var sh := cs("shalltear")
-	if has_flag("harem_pact") or (state.rivalry < 25 and a.favor >= 70 and sh.favor >= 70):
-		p.append("[color=#ff7aa8]♥ Albedo und Shalltear haben ihren Pakt erneuert: Wer auch immer die Erste wird, die andere wird die Zweite. Sie streiten trotzdem täglich über die Reihenfolge – aber leiser.[/color]")
+	if a.favor >= 70 and sh.favor >= 70:
+		p.append("[color=#ff7aa8]♥ Albedo und Shalltear stehen jeden Morgen rechts und links des Throns. Beide behaupten, die Erste zu sein. Ihr habt aufgehört, es zu kommentieren – und seid insgeheim dankbar für beide.[/color]")
 	elif a.favor >= sh.favor + 10:
 		p.append("[color=#f1e6ff]♥ Albedo trägt seit der Krönung einen Ring am Ringfinger. Niemand weiß genau, ob Ihr ihn ihr geschenkt habt – Ihr selbst am allerwenigsten. Sie lächelt jeden Morgen, als hätte sie gewonnen. Vielleicht hat sie das.[/color]")
 	elif sh.favor >= a.favor + 10:
-		p.append("[color=#ff2a4f]♥ Shalltear hat ihren Sarg in die Gemächer neben Euren verlegen lassen. ›Zur Sicherheit‹, ~arinsu. Albedo hat die Verbindungstür dreimal zumauern lassen. Shalltear hat sie dreimal eingerissen.[/color]")
+		p.append("[color=#ff2a4f]♥ Shalltear hat ihren Sarg in die Gemächer neben Euren verlegen lassen. ›Zur Sicherheit‹, ~arinsu. Ihr habt die Verbindungstür nie geöffnet. Sie hat nie aufgehört zu hoffen.[/color]")
 	else:
-		p.append("[color=#ff7aa8]♥ Der Herzenskrieg ist nicht entschieden. Albedo und Shalltear stehen jeden Morgen gleichzeitig rechts neben dem Thron. Ihr habt aufgehört, es zu kommentieren.[/color]")
+		p.append("[color=#8f86a3]♥ Die Wächter dienen Euch mit der Hingabe, die ihre Schöpfer ihnen gaben. Mehr habt Ihr nie von ihnen verlangt – und doch war es Euch nie genug.[/color]")
 	if has_flag("world_conquest") or has_flag("ending_conquest"):
 		p.append("[color=#ff8c1a]Demiurge hat seinen Zehnjahresplan zur Welteroberung auf sieben Jahre verkürzt. Er schreibt bereits an einem Hundertjahresplan.[/color]")
 	if has_flag("tuare_saved"):
@@ -947,12 +937,9 @@ func _compose_report(m: Dictionary, cid: String, directive: String, ordered: Str
 
 	# Emotionale Bemerkung – das Herzstück von Albedo & Shalltear
 	var emo: Dictionary = cd.get("emotion", {})
-	var rival: String = cd.get("rival", "")
 	if not emo.is_empty():
 		var line := ""
-		if rival != "" and c.jealousy >= 55 and cs(rival).unlocked:
-			line = pick(emo.get("jealous"))
-		elif c.favor < 35:
+		if c.favor < 35:
 			line = pick(emo.get("neglected"))
 		elif rng.randf() < 0.85:
 			line = pick(emo.get("love"))
@@ -979,20 +966,11 @@ func _compose_report(m: Dictionary, cid: String, directive: String, ordered: Str
 func _report_options(cid: String, tier: String) -> Array:
 	var cd := Content.char_data(cid)
 	var reactions: Dictionary = cd.reactions
-	var rival: String = cd.get("rival", "")
-	var has_rival: bool = rival != "" and cs(rival).unlocked
 	var rival_line := ""
-	if has_rival:
-		rival_line = "\n\n[color=#8f86a3]" + pick(Content.char_data(rival).emotion.get("watching")) + "[/color]"
 	var failed := tier == "failure"
 
 	var praise := {"chars": {cid: {"favor": 8, "mood": 4 if failed else 8}}}
 	var reward := {"res": {"gold": -40}, "chars": {cid: {"favor": 15, "mood": 12}}}
-	if has_rival:
-		praise.chars[rival] = {"jealousy": 8}
-		praise["rivalry"] = 2
-		reward.chars[rival] = {"jealousy": 13}
-		reward["rivalry"] = 3
 	var silence := {}
 	if cd.has("emotion"):
 		silence = {"chars": {cid: {"favor": -3, "mood": -3}}}
@@ -1063,33 +1041,19 @@ func audience(cid: String, kind: String) -> Dictionary:
 		state.audiences_used = 0
 	state.audiences_used += 1
 	var cd := Content.char_data(cid)
-	var c := cs(cid)
-	var rival: String = cd.get("rival", "")
-	var has_rival: bool = rival != "" and cs(rival).unlocked
 	var aud: Dictionary = cd.audience
 	var text := ""
 	var eff := {}
 	match kind:
 		"talk":
-			text = pick(aud.jealous if (c.jealousy >= 60 and aud.has("jealous")) else aud.talk)
-			eff = {"chars": {cid: {"favor": 6, "mood": 6, "jealousy": -6}}}
-			if has_rival:
-				eff.chars[rival] = {"jealousy": 6}
-				eff["rivalry"] = 2
+			text = pick(aud.talk)
+			eff = {"chars": {cid: {"favor": 6, "mood": 6}}}
 		"gift":
 			text = pick(aud.gift)
-			eff = {"res": {"gold": -60}, "chars": {cid: {"favor": 14, "mood": 10, "jealousy": -10}}}
-			if has_rival:
-				eff.chars[rival] = {"jealousy": 12}
-				eff["rivalry"] = 4
-			elif cd.get("female", false) and cid != "albedo":
-				# Albedo registriert jede Gunst, die anderen Frauen zuteilwird.
-				eff.chars["albedo"] = {"jealousy": 3}
+			eff = {"res": {"gold": -60}, "chars": {cid: {"favor": 14, "mood": 10}}}
 		_:
 			text = pick(aud.rebuke)
 			eff = {"chars": {cid: {"favor": -8, "mood": -10}}}
-	if has_rival and kind != "rebuke":
-		text += "\n\n[color=#8f86a3]" + pick(Content.char_data(rival).emotion.get("watching")) + "[/color]"
 	var summary := apply_effects(eff)
 	Progress.bump("audiences")
 	if kind == "gift":
@@ -1143,7 +1107,7 @@ func _tick_day() -> void:
 			_roll_random_event()
 
 
-## Langsame Veränderung von Stimmung, Gunst, Eifersucht und Rivalität.
+## Langsame Veränderung von Stimmung und Gunst.
 func _drift_emotions() -> void:
 	for cid in unlocked_chars():
 		var c := cs(cid)
@@ -1161,18 +1125,6 @@ func _drift_emotions() -> void:
 		var decay_every := 3 if cd.has("emotion") else 8
 		if state.day % decay_every == 0 and c.favor > 40:
 			c.favor -= 1
-		var rival: String = cd.get("rival", "")
-		if rival != "" and cs(rival).unlocked:
-			if cs(rival).favor > c.favor + 8:
-				c.jealousy = clampi(c.jealousy + 2, 0, 100)
-			else:
-				c.jealousy = clampi(c.jealousy - 1, 0, 100)
-	if state.chars.has("albedo") and state.chars.has("shalltear"):
-		var total: int = cs("albedo").jealousy + cs("shalltear").jealousy
-		if total > 110 and state.day % 2 == 0:
-			state.rivalry = clampi(state.rivalry + 1, 0, 100)
-		elif total < 70:
-			state.rivalry = clampi(state.rivalry - 1, 0, 100)
 	if state.day % 2 == 0:
 		state.resources.attention = clampi(state.resources.attention - 1, 0, 100)
 	var eff := efficiency()
@@ -1224,7 +1176,7 @@ func _roll_initiative() -> void:
 		var cd := Content.char_data(cid)
 		var c := cs(cid)
 		var p := float(cd.stats.initiative) / 100.0 * INITIATIVE_BASE
-		if c.favor < 35 or c.jealousy > 60:
+		if c.favor < 35:
 			p *= 1.8
 		if rng.randf() >= p:
 			continue
@@ -1274,7 +1226,7 @@ func _fire_initiative(ini: Dictionary) -> void:
 func _roll_random_event() -> void:
 	var pool: Array = []
 	for ev in Content.events.values():
-		if ev.get("type", "") in ["random", "rivalry"] and not _on_cooldown(ev) and check(ev.get("trigger")):
+		if ev.get("type", "") == "random" and not _on_cooldown(ev) and check(ev.get("trigger")):
 			pool.append(ev)
 	if not pool.is_empty():
 		queue_event(_weighted(pool).id)

@@ -79,6 +79,60 @@ func _ready() -> void:
 		await _stage_probe(w)
 		get_tree().quit()
 		return
+	if only == "propsizes":
+		for n in ["WoodenChair_01", "WoodenTable_01", "WoodenTable_02", "WoodenTable_03", "round_wooden_table_01", "GothicCabinet_01", "Lantern_01",
+				"wooden_lantern_01", "wooden_candlestick", "brass_candleholders", "book_encyclopedia_set_01", "chess_set", "wine_barrel_01",
+				"barrel_03", "wooden_barrels_01", "wooden_crate_01", "wooden_crate_02", "wicker_basket_02", "jug_01", "metal_jug", "brass_goblets",
+				"wine_bottles_01", "ceramic_vase_01", "CheeseBox_01", "carved_wooden_plate", "wooden_bowl_02", "food_apple_01", "kite_shield",
+				"antique_estoc", "large_castle_door", "wooden_ladder", "treasure_chest", "gothic_statue", "stone_fire_pit", "painted_wooden_bench",
+				"folding_wooden_stool", "wooden_stool_01", "wooden_stool_02", "wooden_bucket_01", "rusted_spade_01", "wooden_broom", "hatchet", "wooden_axe", "modular_wooden_pier"]:
+			var w2 := PhProps.whole(n)
+			print("PROP %-26s %s" % [n, (w2.size as Vector3).snapped(Vector3(0.01, 0.01, 0.01)) if not w2.is_empty() else "fehlt"])
+		get_tree().quit()
+		return
+	if only == "doors":
+		# Türen: Ort laden, zur ersten Tür gehen, hinein, Bild, hinaus, Bild (DOORLOC=e_rantel)
+		var lid := OS.get_environment("DOORLOC") if OS.get_environment("DOORLOC") != "" else "e_rantel"
+		await w.load_location(lid)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var door: Actor3D = null
+		var want_door := OS.get_environment("DOORID")
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id).begins_with("door:") and (want_door == "" or String(a.id) == "door:" + want_door):
+				door = a
+		if door == null:
+			print("DOORS: keine Tür in %s" % lid)
+			get_tree().quit()
+			return
+		w.player.global_position = door.global_position + Vector3(0, 0.1, 1.2)
+		w.player.face(0.0)
+		await _wait(1.0)
+		_shot("doors_vor_der_tuer")
+		print("DOORS Tür %s bei %s" % [door.label, door.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+		w._interact(door)
+		await _wait(4.0)
+		print("DOORS drinnen: %s · Spieler %s · Figuren: %s" % [w.loc.id, w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)), ", ".join(w.actors.map(func(x): return String(x.id)))])
+		_shot("doors_drinnen")
+		# Rundblick innen
+		for k in 4:
+			w.player.cam_yaw = k * PI * 0.5
+			await _wait(0.5)
+			_shot("doors_innen_%d" % k)
+		var ex: Actor3D = null
+		for a in w.actors:
+			if is_instance_valid(a) and a.id == "exit":
+				ex = a
+		if ex:
+			w.player.global_position = ex.global_position + Vector3(0, 0.1, -1.0)
+			await _wait(0.5)
+			w._interact(ex)
+			await _wait(4.0)
+			print("DOORS draußen: %s · Spieler %s" % [w.loc.id, w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
+			_shot("doors_draussen")
+		get_tree().quit()
+		return
 	if only == "stageview":
 		# Rundblick von möglichen Bühnen: STAGEVIEW="sumpf:-64,48;katze:8,64" – je Ort vier Blickrichtungen (N, O, S, W)
 		for spec in OS.get_environment("STAGEVIEW").split(";", false):
@@ -140,10 +194,17 @@ func _ready() -> void:
 			cam.current = true
 			for cl in w.find_children("*", "CanvasLayer", true, false):
 				(cl as CanvasLayer).visible = false
+			var interior: bool = w.loc.get("group", "") == "interior"
+			if interior:
+				cam.current = false
+				w.player.camera.current = true     # drinnen: die Spielerkamera (eine frische Kamera bleibt dort dunkel)
 			for k in 4:
 				var yaw := k * PI * 0.5
 				var fwd := Basis(Vector3.UP, yaw) * Vector3(0, 0, -1)
-				cam.look_at_from_position(p - fwd * 7.0 + Vector3.UP * 3.0, p + fwd * 12.0 + Vector3.UP * 1.5)
+				if interior:
+					w.player.cam_yaw = yaw
+				else:
+					cam.look_at_from_position(p - fwd * 7.0 + Vector3.UP * 3.0, p + fwd * 12.0 + Vector3.UP * 1.5)
 				await _wait(1.2)
 				_shot("view_%s_%s_%s_%d" % [lid, xz[0], xz[1], k])
 			cam.queue_free()

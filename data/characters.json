@@ -54,12 +54,10 @@
   "accent": "#8a4dff",
   "symbol": "❦",
   "female": true,
-  "rival": "shalltear",
   "unlocked": true,
   "initial": {
    "favor": 68,
-   "mood": 88,
-   "jealousy": 22
+   "mood": 88
   },
   "quote": "Ich gehöre Euch – mit jeder Feder, jedem Atemzug, jeder Faser meiner Seele.",
   "bio": "Die Oberaufseherin aller Wächter und Verwalterin des Großen Grabes. Unvergleichlich brillant, kalt gegenüber allen Niederen – und seit jener letzten Nacht in Yggdrasil von einer allesverzehrenden Liebe zu ihrem Herrn erfüllt. Sie sieht in Shalltear nicht nur eine Rivalin, sondern eine Bedrohung ihres rechtmäßigen Platzes an seiner Seite.",
@@ -132,19 +130,9 @@
     "Euer Thron ist so groß, {lord}. Fast groß genug für zwei.",
     "Kufufu … verzeiht. Ich musste nur gerade an Euch denken."
    ],
-   "jealous": [
-    "Ich hörte, Shalltear habe sich wieder in Eure Nähe gedrängt. Diese Leiche mit ihren gepolsterten … Verzeiht. Ich bin ganz ruhig.",
-    "Wenn diese Lampreye noch einmal behauptet, sie sei Eure Erste, so lasse ich ihr den Mund zunähen. Liebevoll natürlich.",
-    "Ich frage nur aus Verwaltungsgründen: Wie oft habt Ihr Shalltear diese Woche gelobt? Ich führe eine Liste."
-   ],
    "neglected": [
     "Ihr habt mich lange nicht angesehen, {lord}. Habe ich etwas falsch gemacht? Sagt es mir, und ich tilge es – oder mich.",
     "Ich warte. Ich warte immer. Ich werde ewig warten. Aber bitte … lasst mich nicht ewig warten."
-   ],
-   "watching": [
-    "Hinter Euch knirscht etwas. Es sind Albedos Zähne. Ihr Lächeln bleibt dabei vollkommen.",
-    "Albedos schwarze Schwingen spreizen sich kaum merklich. Die Temperatur im Thronsaal sinkt.",
-    "»Wie schön für dich, Shalltear«, flüstert Albedo. Der Satz klingt wie eine Kriegserklärung."
    ]
   },
   "reactions": {
@@ -179,10 +167,6 @@
     "»Die Verwaltung von Nazarick läuft reibungslos«, berichtet Albedo, kommt dabei aber Stufe für Stufe näher. »Und Ihr? Fühlt Ihr Euch einsam auf diesem großen Thron?«",
     "Albedo erzählt von der Organisation der Pleiaden, den Vorräten, den Fallen. Ihr hört zu. Am Ende flüstert sie: »Das war die schönste Stunde meines Daseins.«"
    ],
-   "jealous": [
-    "Albedo lächelt. Zu breit. »Ich habe gehört, Shalltear war gestern in Euren Gemächern … um ›Euch die Haare zu kämmen‹. Ihr habt keine Haare, {lord}.« Sie atmet tief durch. »Verzeiht. Ich bin ganz ruhig.«",
-    "»Bin ich Euch nicht genug, {lord}?« Albedos Stimme bricht kaum hörbar. »Sagt mir, was diese Vampirin hat, was ich nicht habe – und ich werde es mir aneignen.«"
-   ],
    "gift": [
     "Ihr überreicht Albedo einen Ring aus der Schatzkammer. Sie erstarrt. Dann streift sie ihn – natürlich – an den Ringfinger. »Ich nehme an«, haucht sie. »Ich nehme an!«",
     "Albedo hält das Geschenk an ihre Brust gepresst. »Ich werde einen eigenen Raum dafür einrichten. Mit Altar.«"
@@ -206,12 +190,10 @@
   "accent": "#8b0016",
   "symbol": "✠",
   "female": true,
-  "rival": "albedo",
   "unlocked": true,
   "initial": {
    "favor": 62,
-   "mood": 84,
-   "jealousy": 30
+   "mood": 84
   },
   "quote": "Ich bin die Stärkste aller Wächter – und eines Tages die erste Gemahlin, nicht wahr, Eure Herrlichkeit, ~arinsu?",
   "bio": "Die Herrin der oberen Grabkammern und mächtigste Einzelkämpferin unter den Wächtern. Schön, grausam, verspielt und gefährlich impulsiv. Sie liebt ihren Herrn mit hungriger Hingabe und hält es für ihr natürliches Recht, Albedos Platz einzunehmen. Ihr Blutrausch kann ihr Urteilsvermögen verschlingen.",
@@ -293,19 +275,9 @@
     "Wenn Ihr mich lobt, kribbelt mein ganzer Körper, ~arinsu. Mein nicht schlagendes Herz schlägt fast!",
     "Eines Tages werde ich Eure erste Gemahlin sein. Ich übe schon den Knicks."
    ],
-   "jealous": [
-    "Albedo hat schon wieder gesagt, sie sei Eure ›Rechte Hand‹. Ich bin Eure linke! Und die linke ist näher am Herzen, ~arinsu!",
-    "Diese gehörnte Kuh mit ihrem Riesen-… Verzeiht, Eure Herrlichkeit. Aber sie hat mich wieder ›Lampreye‹ genannt!",
-    "Wenn Ihr Albedo noch einmal so anlächelt, werde ich … weinen. Blutige Tränen. Auf Euren Umhang."
-   ],
    "neglected": [
     "Ihr habt mich so lange nicht gelobt … Bin ich nicht mehr hübsch genug? Nicht stark genug? Sagt mir, wen ich töten soll, damit Ihr mich wieder anseht!",
     "Ich warte jede Nacht vor Euren Gemächern. Ihr kommt nie. Ist es wegen Albedo? Es ist wegen Albedo, nicht wahr?"
-   ],
-   "watching": [
-    "Aus dem Schatten einer Säule ertönt ein empörtes Fauchen. Shalltears Augen glühen blutrot.",
-    "Shalltear stampft mit dem Fuß auf. Ein Riss zieht sich durch den Marmor. »Ich hätte das besser gemacht, ~arinsu!«",
-    "»Schleimerin«, zischt Shalltear in Albedos Richtung – gerade laut genug, dass es alle hören."
    ]
   },
   "reactions": {
@@ -339,10 +311,6 @@
     "Shalltear hüpft die Stufen zum Thron hinauf und setzt sich wie selbstverständlich zu Euren Füßen. »Erzählt mir, was Ihr heute gedacht habt, Eure Herrlichkeit. Alles. Jede Kleinigkeit.«",
     "Shalltear zeigt Euch stolz ihre neue Kampfhaltung. Dann ihre neue Knickshaltung. Dann ihre neue ›Ehefrauenhaltung‹. Ihr wechselt rasch das Thema.",
     "»Wisst Ihr, was Peroroncino-sama mir einst sagte? Dass ich perfekt bin.« Sie lächelt verträumt. »Glaubt Ihr das auch, {lord}?«"
-   ],
-   "jealous": [
-    "»Warum ruft Ihr immer zuerst Albedo?«, schmollt Shalltear. »Ihre Flügel sind doch nur Federn. Ich habe Fledermäuse! Viele Fledermäuse!«",
-    "Shalltear umklammert Euren Ärmel. »Versprecht mir, dass ich wichtiger bin als diese Gorilla-Succubus. Nur ein bisschen wichtiger. Bitte.«"
    ],
    "gift": [
     "Shalltear quietscht. Dann schämt sie sich für das Quietschen. Dann quietscht sie erneut. »Ich werde es jede Nacht tragen, ~arinsu!«",
@@ -1443,6 +1411,13 @@
   "title": "Adelshaus von Re-Estize",
   "color": "#c0a040",
   "accent": "#2a200a",
+  "npc": true
+ },
+ "innkeeper": {
+  "name": "Wirt des Goldenen Pavillons",
+  "title": "Gastwirt in E-Rantel",
+  "color": "#d8a85a",
+  "accent": "#3a2a1a",
   "npc": true
  }
 }

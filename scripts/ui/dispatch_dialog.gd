@@ -70,7 +70,7 @@ func _init(d: Dictionary) -> void:
 	if cid in ["albedo", "shalltear"]:
 		var heart := Label.new()
 		var c := Game.cs(cid)
-		heart.text = "♥ Gunst %d   ⚡ Eifersucht %d" % [c.favor, c.jealousy]
+		heart.text = "♥ Gunst %d" % c.favor
 		heart.add_theme_color_override("font_color", Color("ff7aa8"))
 		heart.add_theme_font_size_override("font_size", 15)
 		heart.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -172,11 +172,11 @@ func _add_location_banner(parent: Control, ctx: Dictionary) -> void:
 func _ready() -> void:
 	super._ready()
 	Audio.sfx("page", 0.8)
-	# Musik passend zur Depesche: Kapitel → Titel-Thema, Story/Rivalität → Spannung
+	# Musik passend zur Depesche: Kapitel → Titel-Thema, Story/Kette → Spannung
 	var etype: String = dispatch.get("context", {}).get("type", "")
 	if dispatch.kind == "story":
 		Audio.play_music("title")
-	elif etype in ["story", "chain", "rivalry"]:
+	elif etype in ["story", "chain"]:
 		Audio.play_music("tension")
 	_typing = UIFx.typewriter(text, 160.0)
 
@@ -202,8 +202,6 @@ func _mood_variant(d: Dictionary, cid: String) -> String:
 		return "battle"
 	if tier == "failure":
 		return "sad"
-	if c.jealousy >= 60:
-		return "angry"
 	if tier == "triumph" or c.favor >= 80:
 		return "love"
 	if c.favor < 30:

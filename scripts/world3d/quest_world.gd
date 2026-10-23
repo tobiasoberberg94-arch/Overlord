@@ -44,7 +44,7 @@ func spawn_givers(slots: Array) -> void:
 			pos = w.anchors.spawn + Vector3(randf_range(-6, 6), 0, randf_range(-12, -4))
 		var a := Actor3D.character(gid, "", 2.25)
 		a.prompt = "Sprechen"
-		a.wander_radius = 2.0
+		a.wander_radius = 0.0 if w.loc.get("group", "") == "interior" else 2.0
 		w._add_actor(a, pos)
 	refresh_marks()
 
@@ -118,8 +118,23 @@ func spawn_discoveries() -> void:
 	var d: Dictionary = _disc.get(lid, _disc.get("_default", {}))
 	var lore: Array = d.get("lore", [])
 	var n := lore.size() + int(d.get("shrines", 1)) + int(d.get("caches", 2))
-	var spots := _spots(n + 4, hash(lid + "entdeckung"))
 	var picked := _picked()
+	# Von Hand gesetzte Entdeckungen: {"id", "kind", "title", "text", "at": [x, y, z], "yaw": Grad}
+	for e in d.get("placed", []):
+		var kind := String(e.get("kind", "lore"))
+		var key := "d:%s:%s" % [lid, String(e.get("id", e.get("title", "")))]
+		if kind == "cache" and picked.has(key):
+			continue
+		var p := Pickup.discovery(kind, String(e.get("title", "")), String(e.get("text", "")))
+		p.key = key
+		p.set_meta("done", picked.has(key) and (kind != "shrine" or int(Game.state.day) - int(picked[key]) < 1))
+		var at: Array = e.at
+		_place(p, Vector3(float(at[0]), float(at[1]), float(at[2])))
+		if e.has("yaw"):
+			p.rotation.y = deg_to_rad(float(e.yaw))
+	if n == 0:
+		return
+	var spots := _spots(n + 4, hash(lid + "entdeckung"))
 	var i := 0
 	var shrine_names := ["Schrein der Sechs Götter", "Altar des Kriegers", "Quelle des Lebens"]
 	for e in lore:
@@ -156,7 +171,7 @@ var _disc: Dictionary = {}
 func _discover(p: Pickup) -> bool:
 	var first := not _picked().has(p.key)
 	match p.kind:
-		"lore":
+		"lore", "lectern", "plaque", "note":
 			w._open(LoreDialog.new(p.label, String(p.get_meta("text", ""))))
 			if first:
 				Game.apply_effects({"res": {"info": 1}})
@@ -484,7 +499,7 @@ func refresh_marks() -> void:
 
 ## Anschlagtafel: Kopfgelder des Ortes.
 func board_menu() -> bool:
-	var qs := Quests.board_quests(w.loc.id)
+	var qs := Quests.board_quests(w.board_loc())
 	if qs.is_empty():
 		return false
 	var entries: Array = []

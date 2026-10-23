@@ -77,7 +77,8 @@ func _ready() -> void:
 #  Orte laden
 # =====================================================================
 
-func load_location(id: String, fade: bool = false) -> void:
+## arrive = {"pos": Vector3, "yaw": float}: Ankunft an einer Tür statt am Startpunkt des Ortes.
+func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> void:
 	if fade:
 		await _fade(1.0, 0.35)
 	actors.clear()
@@ -111,6 +112,9 @@ func load_location(id: String, fade: bool = false) -> void:
 	player.global_position = anchors.spawn
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
+	if not arrive.is_empty():
+		player.global_position = arrive.pos
+		player.face(float(arrive.yaw))
 	Audio.set_space(String(loc.get("kind", "")))
 	# Kampfeffekte einmal zeigen (unsichtbar), damit der erste Treffer nicht ruckelt
 	await get_tree().process_frame
@@ -146,7 +150,7 @@ func _place_actors() -> void:
 		if not here:
 			continue
 		if variant == "":
-			variant = "angry" if c.jealousy >= 60 else ("love" if c.favor >= 80 else ("sad" if c.favor < 30 else ""))
+			variant = "love" if c.favor >= 80 else ("sad" if c.favor < 30 else "")
 		var pos: Vector3
 		if loc.get("keeper", "") == cid and anchors.has("keeper"):
 			pos = anchors.keeper
@@ -179,7 +183,18 @@ func _place_actors() -> void:
 		var a := Actor3D.object("board", "Lage: " + rname, "Lage & Aufträge der Region", Palette.GOLD, 2.8)
 		_add_actor(a, anchors.board)
 		_build_board(anchors.board)
-	_add_actor(Actor3D.object("gate", "Gate", "Reisen", Color(0.75, 0.5, 1.0), 3.0), anchors.gate)
+	if anchors.has("gate"):
+		_add_actor(Actor3D.object("gate", "Gate", "Reisen", Color(0.75, 0.5, 1.0), 3.0), anchors.gate)
+	# Türen zu Innenräumen (data/locations.json → doors) und die Tür hinaus
+	for d in loc.get("doors", []):
+		var at: Array = d.at
+		var door := Actor3D.object("door:" + String(d.id), String(d.name), "Betreten", Palette.GOLD, 2.4)
+		door.set_meta("door", d)
+		_add_actor(door, Vector3(float(at[0]), float(at[1]), float(at[2])))
+		_door_sign(door, d)
+	if anchors.has("exit"):
+		var parent_loc: Dictionary = Content.location_by_id.get(String(loc.get("parent", "")), {})
+		_add_actor(Actor3D.object("exit", "Hinaus · " + String(parent_loc.get("name", "Draußen")), "Verlassen", Palette.GOLD, 2.4), anchors.exit)
 
 
 ## Heimat in Nazarick (Ebene/Raum). Wer hier fehlt, hält sich im Thronsaal bereit.
@@ -190,7 +205,7 @@ const HOME := {
 }
 
 
-## Wer im Thronsaal wartet: Albedo, wer Ainz sprechen will (verliebt, eifersüchtig, unzufrieden),
+## Wer im Thronsaal wartet: Albedo, wer Ainz sprechen will (verliebt oder unzufrieden),
 ## dazu reihum ein Wächter für die tägliche Audienz.
 func _throne_guests() -> Array:
 	var out := ["albedo"]
@@ -199,7 +214,7 @@ func _throne_guests() -> Array:
 		var c := Game.cs(cid)
 		if cid == "albedo" or _char_whereabouts(cid) != "nazarick":
 			continue
-		if not HOME.has(cid) or c.jealousy >= 60 or c.favor >= 85 or c.favor < 25:
+		if not HOME.has(cid) or c.favor >= 85 or c.favor < 25:
 			out.append(cid)
 		elif HOME.get(cid, "") != "royal":
 			pool.append(cid)
@@ -226,7 +241,7 @@ func _build_board(at: Vector3) -> void:
 	var roof := B3.box(root, Vector3(2.3, 0.06, 0.6), Vector3(0, 2.7, 0.08), BuildingLook.photo_material("roof_slate", "roof", Color(0.7, 0.7, 0.72), 0.8), false)
 	roof.rotation.x = -0.35
 	var paper := B3.mat(Color(0.86, 0.8, 0.64), 0.95)
-	var n := 3 + mini(4, Quests.board_quests(loc.id).size() * 2)
+	var n := 3 + mini(4, Quests.board_quests(board_loc()).size() * 2)
 	for i in n:
 		var w := randf_range(0.28, 0.42)
 		var note := B3.box(root, Vector3(w, w * randf_range(1.1, 1.4), 0.01), Vector3(randf_range(-0.7, 0.7), randf_range(1.2, 1.95), 0.075), paper, false)
@@ -301,7 +316,11 @@ func _animate(delta: float) -> void:
 			n.rotate_object_local(Vector3.UP, float(n.get_meta("spin")) * delta)
 	for l in _flickers:
 		if is_instance_valid(l):
-			l.light_energy = 2.0 + sin(Time.get_ticks_msec() * 0.013 + l.position.x) * 0.25 + randf() * 0.2
+			# Flackern um die Grundhelligkeit des Lichts (Kerze 0,35 … Feuerschale 2,2)
+			if not l.has_meta("base"):
+				l.set_meta("base", l.light_energy)
+			var base: float = l.get_meta("base")
+			l.light_energy = base * (1.0 + sin(Time.get_ticks_msec() * 0.013 + l.position.x) * 0.12 + randf() * 0.1)
 
 
 func _update_focus() -> void:
@@ -381,14 +400,101 @@ func _interact(a: Actor3D) -> void:
 				return
 			_open(TalkDialog.new(a.id, a.line if a.line != "" else "…"))
 		"object":
+			if a.id.begins_with("door:"):
+				_enter_door(a.get_meta("door"))
+				return
 			match a.id:
 				"throne": _time_menu()
 				"table": _war_table()
 				"desk": _desk_menu()
 				"gate": _gate_menu()
+				"exit": _leave_building()
 				"board":
 					if not quest_world.board_menu():
 						_region_menu()
+
+
+## Hängendes Wirtshausschild mit Namen, Laterne mit warmem Licht und Fußmatte vor einer Tür.
+func _door_sign(door: Actor3D, d: Dictionary) -> void:
+	var yaw := deg_to_rad(float(d.get("yaw", 180.0)))
+	var out := Basis(Vector3.UP, yaw) * Vector3(0, 0, -1)       # Richtung aus dem Haus heraus
+	var side := Vector3(-out.z, 0, out.x)
+	var wood := BuildingLook.photo_material("logs", "wood", Color(0.45, 0.36, 0.28), 0.6)
+	var iron := B3.mat(Color(0.2, 0.19, 0.18), 0.5, 0.7)
+	var holder := Node3D.new()
+	holder.position = side * 1.1 + Vector3(0, 0, 0)
+	holder.rotation.y = yaw + PI
+	door.add_child(holder)
+	# Ausleger an der Wand, Schild hängt an zwei Ketten
+	B3.box(holder, Vector3(0.06, 0.06, 1.0), Vector3(0, 2.85, -0.5), iron, false)
+	for sx in [-0.38, 0.38]:
+		B3.box(holder, Vector3(0.015, 0.3, 0.015), Vector3(sx, 2.7, -0.15), iron, false)
+	B3.box(holder, Vector3(0.95, 0.5, 0.05), Vector3(0, 2.3, -0.15), wood, false)
+	B3.box(holder, Vector3(1.0, 0.04, 0.07), Vector3(0, 2.56, -0.15), iron, false)
+	var lb := Label3D.new()
+	lb.text = String(d.name)
+	lb.font = NazarickTheme.display_font(700)
+	lb.font_size = 40
+	lb.pixel_size = 0.004
+	lb.modulate = Color(0.95, 0.85, 0.6)
+	lb.outline_size = 6
+	lb.outline_modulate = Color(0.1, 0.06, 0.03)
+	lb.position = Vector3(0, 2.3, -0.12)
+	lb.width = 230.0
+	lb.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	holder.add_child(lb)
+	var lb2 := lb.duplicate() as Label3D
+	lb2.position = Vector3(0, 2.3, -0.18)
+	lb2.rotation.y = PI
+	holder.add_child(lb2)
+	# Laterne auf der anderen Seite der Tür
+	var lh := Node3D.new()
+	lh.position = -side * 1.1 + Vector3(0, 2.4, 0)
+	door.add_child(lh)
+	B3.box(lh, Vector3(0.05, 0.05, 0.4), Vector3(0, 0.2, 0), iron, false)
+	if PhProps.attach(lh, "wooden_lantern_01", Transform3D(Basis(), Vector3(0, -0.5, 0))) == Vector3.ZERO:
+		B3.box(lh, Vector3(0.2, 0.3, 0.2), Vector3(0, -0.3, 0), iron, false)
+	B3.sphere(lh, 0.05, Vector3(0, -0.24, 0), B3.mat(Color(1.0, 0.85, 0.55), 0.3, 0.0, Color(1.0, 0.78, 0.5), 4.0))
+	var l := B3.light(lh, Vector3(0, -0.3, 0.2), Color(1.0, 0.78, 0.5), 1.2, 7.0)
+	l.shadow_enabled = false
+	l.set_meta("flicker", true)
+	# Fußmatte
+	var mat := B3.box(door, Vector3(1.2, 0.03, 0.7), out * 0.45 + Vector3(0, 0.015, 0), B3.mat(Color(0.3, 0.24, 0.16), 0.98), false)
+	mat.rotation.y = yaw
+
+
+## Ort, dessen Aushänge an der Tafel hängen: in Innenräumen die des umgebenden Ortes.
+func board_loc() -> String:
+	return String(loc.get("parent", loc.id))
+
+
+## Durch eine Tür in einen Innenraum; der Weg zurück führt vor dieselbe Tür.
+func _enter_door(d: Dictionary) -> void:
+	if _busy or not Content.location_by_id.has(String(d.to)):
+		return
+	var at: Array = d.at
+	var yaw := deg_to_rad(float(d.get("yaw", 180.0)))
+	var out := Vector3(float(at[0]), float(at[1]), float(at[2])) + Basis(Vector3.UP, yaw) * Vector3(0, 0, -1.4)
+	if not Game.state.has("world3d"):
+		Game.state["world3d"] = {}
+	Game.state.world3d["return"] = {"loc": loc.id, "pos": [out.x, out.y, out.z], "yaw": yaw}
+	Audio.sfx("page", 0.5)
+	await load_location(String(d.to), true)
+
+
+func _leave_building() -> void:
+	if _busy:
+		return
+	var r: Dictionary = Game.state.get("world3d", {}).get("return", {})
+	var target := String(loc.get("parent", r.get("loc", "throne")))
+	if not Content.location_by_id.has(target):
+		target = "throne"
+	var arrive := {}
+	if r.get("loc", "") == target and r.has("pos"):
+		arrive = {"pos": Vector3(float(r.pos[0]), float(r.pos[1]), float(r.pos[2])), "yaw": float(r.yaw)}
+	Audio.sfx("page", 0.5)
+	await load_location(target, true, arrive)
 
 
 func _refresh_actors_soft() -> void:
@@ -444,6 +550,8 @@ func _desk_menu() -> void:
 func _gate_menu() -> void:
 	var entries: Array = []
 	for l in Content.locations:
+		if l.get("group", "") == "interior":
+			continue
 		var ok := true
 		var why := ""
 		if l.group == "world":
@@ -958,7 +1066,7 @@ func _lead_battle(uid: String) -> void:
 	var b: Dictionary = Game.state.battles[uid]
 	var target := "katze"
 	for l in Content.locations:
-		if l.get("region", "") == b.region:
+		if l.get("region", "") == b.region and l.get("group", "") == "world":
 			target = l.id
 	_battle = {"uid": uid, "enemies": [], "left": 0}
 	await load_location(target, true)

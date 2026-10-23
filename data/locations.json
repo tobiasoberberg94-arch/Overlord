@@ -219,6 +219,36 @@
       "chapter": 2
      }
     }
+   ],
+   "doors": [
+    {
+     "id": "enri",
+     "to": "carne_enri",
+     "name": "Enris Haus",
+     "at": [
+      -3.0,
+      -0.3,
+      6.0
+     ],
+     "yaw": 270
+    }
+   ]
+  },
+  {
+   "id": "carne_enri",
+   "name": "Enris Haus",
+   "kind": "cottage",
+   "group": "interior",
+   "parent": "carne",
+   "region": "carne",
+   "sky": "carne_village",
+   "music": "title",
+   "desc": "Die Stube der Schwestern Emmot: ein Herd, der nie kalt wird, zwei Betten – und ein Horn, das ein Dorf gerettet hat.",
+   "npcs": [
+    {
+     "id": "nemu",
+     "line": "Onee-chan sagt, ich soll die Suppe umrühren. Die Goblins sagen, ich soll sie NICHT umrühren. Ich rühre heimlich."
+    }
    ]
   },
   {
@@ -247,7 +277,81 @@
       "chapter_max": 6
      }
     }
+   ],
+   "doors": [
+    {
+     "id": "gilde",
+     "to": "erantel_gilde",
+     "name": "Abenteurergilde",
+     "at": [
+      12.6,
+      -0.3,
+      2.9
+     ],
+     "yaw": 180
+    },
+    {
+     "id": "gasthaus",
+     "to": "erantel_gasthaus",
+     "name": "Gasthaus Goldener Pavillon",
+     "at": [
+      14.8,
+      -0.3,
+      21.5
+     ],
+     "yaw": 90
+    },
+    {
+     "id": "apotheke",
+     "to": "erantel_apotheke",
+     "name": "Apotheke Bareare",
+     "at": [
+      -4.9,
+      -0.3,
+      0.9
+     ],
+     "yaw": 180
+    }
    ]
+  },
+  {
+   "id": "erantel_gilde",
+   "name": "Abenteurergilde von E-Rantel",
+   "kind": "guild",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "title",
+   "desc": "Empfang, Auftragstafel und Schankstube der Gilde. Hier werden Kopfgelder vergeben, Ränge verliehen – und Legenden geboren."
+  },
+  {
+   "id": "erantel_gasthaus",
+   "name": "Gasthaus Goldener Pavillon",
+   "kind": "tavern",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "title",
+   "desc": "Das beste Haus am Platz – Momons Quartier in E-Rantel. Unten der Schankraum, oben die Zimmer.",
+   "npcs": [
+    {
+     "id": "innkeeper",
+     "line": "Herr Momon! Euer Zimmer ist bereit – wie immer. Eure Begleiterin hat das Fenster wieder geöffnet; sie sagt, die Luft hier drin sei ›Insektenluft‹."
+    }
+   ]
+  },
+  {
+   "id": "erantel_apotheke",
+   "name": "Apotheke Bareare",
+   "kind": "shop",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "title",
+   "desc": "Lizzie Bareares Laden: Tränke, Kräuter, ein Kessel, der nie kalt wird – und der leere Platz ihres Enkels."
   },
   {
    "id": "erantel_friedhof",

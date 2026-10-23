@@ -201,8 +201,6 @@ func _complete(q: Dictionary) -> void:
 			eff.res[k] = int(eff.res.get(k, 0)) + int(r.res[k])
 	if r.has("chars"):
 		eff["chars"] = r.chars
-	if r.has("rivalry"):
-		eff["rivalry"] = r.rivalry
 	if q.has("on_done"):
 		for k in q.on_done:
 			eff[k] = q.on_done[k]

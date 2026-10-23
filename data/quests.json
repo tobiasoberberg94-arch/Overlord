@@ -10,16 +10,16 @@
    "slot": 1
   },
   "lizzie": {
-   "loc": "e_rantel",
+   "loc": "erantel_apotheke",
    "slot": 0
   },
   "guild_clerk": {
-   "loc": "e_rantel",
-   "slot": 1
+   "loc": "erantel_gilde",
+   "slot": 0
   },
   "ainzach": {
-   "loc": "e_rantel",
-   "slot": 2
+   "loc": "erantel_gilde",
+   "slot": 1
   },
   "gravekeeper": {
    "loc": "erantel_friedhof",
@@ -794,7 +794,7 @@
      "item": "zurrernon_seal",
      "count": 1,
      "npc": "ainzach",
-     "text": "Bringt das Siegel zu Gildenmeister Ainzach (E-Rantel)"
+     "text": "Bringt das Siegel zu Gildenmeister Ainzach (Abenteurergilde in E-Rantel)"
     }
    ],
    "rewards": {
@@ -843,7 +843,6 @@
       "favor": 8
      }
     },
-    "rivalry": 3,
     "xp": {
      "shalltear": 40
     }
@@ -1084,7 +1083,7 @@
      "item": "bone_dust",
      "count": 10,
      "npc": "guild_clerk",
-     "text": "Gebt den Knochenstaub bei der Gilde ab (E-Rantel)"
+     "text": "Gebt den Knochenstaub an der Empfangstheke der Abenteurergilde ab (E-Rantel)"
     }
    ],
    "rewards": {
@@ -1272,7 +1271,6 @@
       "favor": 10
      }
     },
-    "rivalry": 4,
     "xp": {
      "shalltear": 100
     },

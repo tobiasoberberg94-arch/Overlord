@@ -60,7 +60,7 @@ static func discovery(kind_in: String, title: String, text: String) -> Pickup:
 	p.set_meta("text", text)
 	p.radius = 2.4
 	match kind_in:
-		"lore": p.color = Color(0.55, 0.85, 1.0)
+		"lore", "lectern", "plaque", "note": p.color = Color(0.55, 0.85, 1.0)
 		"shrine": p.color = Color(1.0, 0.86, 0.5)
 		_:
 			p.color = Palette.GOLD
@@ -127,6 +127,31 @@ func _ready() -> void:
 				depth = 0.45
 			for k in 4:
 				B3.box(_visual, Vector3(0.26, 0.035, 0.01), Vector3(randf_range(-0.06, 0.06), 0.62 + k * 0.22, depth * 0.5 + 0.03), B3.mat(c, 0.3, 0.0, c, 1.4), false)
+		"lectern":
+			# aufgeschlagenes Buch auf einem Lesepult (Innenräume)
+			var wood := BuildingLook.photo_material("logs", "wood", Color(0.42, 0.33, 0.25), 0.5)
+			B3.box(_visual, Vector3(0.44, 1.0, 0.44), Vector3(0, 0.5, 0), wood)
+			var top := B3.box(_visual, Vector3(0.7, 0.05, 0.6), Vector3(0, 1.06, 0.04), wood, false)
+			top.rotation_degrees.x = 22
+			var page := B3.mat(Color(0.9, 0.85, 0.7), 0.9)
+			for s in [-1.0, 1.0]:
+				var pg := B3.box(_visual, Vector3(0.27, 0.05, 0.42), Vector3(0.15 * s, 1.1, 0.05), page, false)
+				pg.rotation_degrees = Vector3(22, 0, 6 * s)
+			B3.box(_visual, Vector3(0.03, 0.06, 0.42), Vector3(0, 1.11, 0.05), B3.mat(Color(0.3, 0.1, 0.1), 0.8), false).rotation_degrees.x = 22
+		"plaque":
+			# Holztafel an der Wand mit Metallplatten (z. B. die Rangtafel der Gilde)
+			var wood := BuildingLook.photo_material("logs", "wood", Color(0.4, 0.3, 0.22), 0.5)
+			B3.box(_visual, Vector3(1.5, 1.0, 0.06), Vector3(0, 1.65, 0), wood, false)
+			B3.box(_visual, Vector3(1.56, 0.06, 0.09), Vector3(0, 2.18, 0), wood, false)
+			var ranks := [Color(0.72, 0.45, 0.2), Color(0.5, 0.5, 0.52), Color(0.85, 0.85, 0.9), Color(0.95, 0.78, 0.3), Color(0.85, 0.88, 0.92), Color(0.6, 0.75, 0.95), Color(0.95, 0.6, 0.35), Color(0.3, 0.32, 0.4)]
+			for k in ranks.size():
+				var rc: Color = ranks[k]
+				B3.box(_visual, Vector3(0.28, 0.16, 0.02), Vector3(-0.55 + (k % 4) * 0.37, 1.85 - (k / 4) * 0.32, 0.04), B3.mat(rc, 0.3, 0.85, rc * 0.2, 0.6), false)
+		"note":
+			# Aushang: Papier an einem Holzbrett
+			var paper := B3.mat(Color(0.86, 0.8, 0.64), 0.95)
+			B3.box(_visual, Vector3(0.5, 0.62, 0.012), Vector3(0, 1.55, 0.02), paper, false)
+			B3.box(_visual, Vector3(0.04, 0.04, 0.03), Vector3(0, 1.84, 0.03), B3.mat(Color(0.7, 0.1, 0.1), 0.5), false)
 		"shrine":
 			# Heiligenfigur auf Steinsockel, Kerzenleuchter davor
 			B3.box(_visual, Vector3(1.2, 0.7, 0.8), Vector3(0, 0.35, 0), B3.mat(Color(0.5, 0.48, 0.44), 0.9), true)
@@ -164,12 +189,12 @@ func _ready() -> void:
 			cr.rotation = Vector3(0.6, 0.7, 0.3)
 	_light = OmniLight3D.new()
 	_light.light_color = c
-	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0}.get(kind, 0.9)
+	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0, "lectern": 0.5, "plaque": 0.3, "note": 0.3}.get(kind, 0.9)
 	_light.omni_range = 2.2
 	_light.position.y = 0.6
 	_light.shadow_enabled = false
 	add_child(_light)
-	if Settings.particles and kind != "cache":
+	if Settings.particles and not kind in ["cache", "lectern", "plaque", "note"]:
 		var p := CPUParticles3D.new()
 		p.amount = 10
 		p.lifetime = 1.6
@@ -203,7 +228,7 @@ func _process(delta: float) -> void:
 		_visual.rotation.y += delta * 1.2
 		_visual.position.y = sin(_t * 2.0) * 0.06
 	if _light and kind != "cache":
-		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
+		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "lectern": 0.5, "plaque": 0.3, "note": 0.3}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
 	elif _light:
 		# versteckter Schatz glitzert erst aus der Nähe
 		var pl := Actor3D.player
@@ -213,4 +238,4 @@ func _process(delta: float) -> void:
 
 ## Kurztext für den Interaktionshinweis.
 func prompt() -> String:
-	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "shrine": "Beten", "cache": "Durchsuchen"}.get(kind, "Aufheben")
+	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "lectern": "Lesen", "plaque": "Lesen", "note": "Lesen", "shrine": "Beten", "cache": "Durchsuchen"}.get(kind, "Aufheben")

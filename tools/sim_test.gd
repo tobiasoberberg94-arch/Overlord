@@ -7,13 +7,28 @@ func _ready() -> void:
 	var runs := 8
 	var diffs := ["easy", "normal", "hard", "nightmare"]
 	var reached: Array = []
+	var only := int(OS.get_environment("SIMRUN")) if OS.get_environment("SIMRUN") != "" else -1
+	var debug := OS.get_environment("SIMDEBUG") != ""
 	for r in runs:
+		if only >= 0 and r != only:
+			continue
 		Game.rng.seed = 1000 + r
 		Game.new_game(diffs[r % diffs.size()])
 		var steps := 0
 		var kinds := {}
+		var last_day := 0
+		var stuck := 0
 		while steps < 3000 and not Game.has_flag("game_completed"):
 			steps += 1
+			if debug and (steps % 100 == 0 or (Game.state.day == last_day and stuck == 3)):
+				var open_now := Game.objectives().filter(func(o): return not o[1]).map(func(o): return o[0])
+				var st := {}
+				for cid in Game.unlocked_chars():
+					st[cid.substr(0, 3)] = Game.cs(cid).status
+				print("   [%d] Tag %d Kap %d · offen %s · Depeschen %d (%s) · Aufträge %d · Status %s" % [steps, Game.state.day, Game.state.chapter, open_now, Game.pending().size(),
+					", ".join(Game.pending().map(func(d): return String(d.get("kind", "")) + ":" + String(d.get("title", "")).left(30))), Game.available_missions().size(), st])
+			stuck = stuck + 1 if Game.state.day == last_day else 0
+			last_day = Game.state.day
 			while not Game.pending().is_empty():
 				var d: Dictionary = Game.pending()[0]
 				kinds[d.kind] = kinds.get(d.kind, 0) + 1
@@ -35,6 +50,14 @@ func _ready() -> void:
 			# Militär: Armee aufstellen, rekrutieren, Feldherr, Feldzug
 			if Game.state.chapter >= 2 and Game.rng.randf() < 0.15:
 				var a: Dictionary = Game.state.armies[0] if not Game.state.armies.is_empty() else Military.create_army()
+				# Ein Hauptauftrag braucht einen Wächter, der gerade ein Heer führt → abberufen (wie der Spieler am Kriegsrat)
+				for m in Game.available_missions():
+					var req: String = m.get("required_char", "")
+					if req != "" and Game.cs(req).status == Military.STATUS_CAMPAIGN and a.commander == req:
+						Military.set_commander(a.uid, "")
+				# Heer, das untätig in der Fremde steht, kehrt gelegentlich heim
+				if a.location != "nazarick" and a.path.is_empty() and Game.rng.randf() < 0.25:
+					Military.order_move(a.uid, "nazarick")
 				if a.location == "nazarick" and a.path.is_empty():
 					var us := Military.available_units()
 					for k in 2:

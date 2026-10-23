@@ -333,5 +333,177 @@
     "Pläne für die Unterwerfung von drei Königreichen. Daneben, ordentlich abgeheftet: »Pläne für den Fall, dass Ainz-sama einen besseren Plan hat«."
    ]
   ]
+ },
+ "erantel_gilde": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "ranks",
+    "kind": "plaque",
+    "at": [
+     8.55,
+     0.0,
+     -1.6
+    ],
+    "yaw": -90,
+    "title": "Rangtafel der Abenteurergilde",
+    "text": "Kupfer · Eisen · Silber · Gold · Platin · Mithril · Orichalcum · Adamantit.\n\nAcht Ränge, acht Metallplatten – die unterste blank gescheuert von tausend Fingern, die oberste so gut wie unberührt. In ganz Re-Estize tragen nur zwei Gruppen das Adamantit: die Blauen Rosen und die Roten Tropfen.\n\nDarunter hat jemand mit Kreide gekritzelt: »Momon & Nabe – Mithril nach EINER Woche?!« Die Kreide wurde dreimal weggewischt. Sie ist wieder da."
+   },
+   {
+    "id": "chronicle",
+    "kind": "lectern",
+    "at": [
+     -8.0,
+     0.0,
+     2.0
+    ],
+    "yaw": 90,
+    "title": "Chronik der Gilde von E-Rantel",
+    "text": "»Eintrag, Frühjahr: Der Abenteurer Momon, schwarze Rüstung, zwei Großschwerter, meldet sich mit seiner Begleiterin Nabe. Kupferplakette.«\n\n»Eintrag, eine Woche später: Momon vernichtet eine Untotenflut auf dem Friedhof – Kettendrachenblitz, bezeugt von der Stadtwache. Beförderung auf Mithril. Gildenmeister Ainzach bittet um Rücksprache mit der Gildenleitung in Re-Estize.«\n\n»Eintrag, Randnotiz: Der Weise König des Waldes folgt Momon wie ein Hund. Gilde hält Hamsuke für ein Reittier. Hamsuke widerspricht – ausführlich.«\n\nDie letzten Seiten sind leer. Jemand hat ein Lesezeichen aus schwarzem Stoff hineingelegt."
+   },
+   {
+    "id": "notice",
+    "kind": "note",
+    "at": [
+     -5.58,
+     0.0,
+     -4.08
+    ],
+    "yaw": 35,
+    "title": "Aushang am schwarzen Brett",
+    "text": "»Die Gilde haftet nicht für Gruppen, die sich im Wald von Tob trennen.«\n\n»Verkaufe: Mithril-Kettenhemd, kaum getragen, Vorbesitzer verstorben. Nachlass Gruppe ›Schwerter der Finsternis‹.«\n\n»GESUCHT: Jeder, der weiß, was Nfirea Bareare auf dem Friedhof wollte. Belohnung durch Lizzie Bareare – großzügig.«\n\n»Momon nimmt keine Aufträge unter Mithril an. Fragen Sie nicht. – Die Empfangsdame«"
+   }
+  ]
+ },
+ "erantel_gasthaus": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "guestbook",
+    "kind": "lectern",
+    "at": [
+     -3.3,
+     0.0,
+     -4.4
+    ],
+    "yaw": 0,
+    "title": "Gästebuch des Goldenen Pavillons",
+    "text": "»Momon, Abenteurer. Begleitung: Nabe. Zimmer 3, auf unbestimmte Zeit. Zahlt in Goldmünzen, die niemand kennt.«\n\n»Hamsuke, Weiser König des Waldes. Reittier. Schläft im Stall. Isst für drei.« – Darunter, in anderer Tinte: »Isst für SECHS.«\n\n»Die Blauen Rosen, Adamantit. Vier Zimmer, eine Rechnung, keine Fragen.«\n\nEin Eintrag ist durchgestrichen: ein Name mit dem Zusatz ›Schwerter der Finsternis‹. Dahinter steht nur: »Nicht zurückgekehrt.«"
+   },
+   {
+    "id": "room",
+    "kind": "note",
+    "at": [
+     -0.5,
+     2.55,
+     -5.3
+    ],
+    "yaw": 0,
+    "title": "Zimmer 3 – Momon & Nabe",
+    "text": "Ein Zettel am Türrahmen, in sauberer Handschrift:\n\n»Nicht stören. Nicht betreten. Nicht lüften. – N.«\n\nDarunter, mit Kohle und offensichtlich nachträglich:\n\n»Doch lüften. Und bitte freundlich zu den Leuten sein. – M.«\n\nDurch den Türspalt riecht es nach Öl, Metall – und nach gar nichts. Niemand, der hier schläft, atmet."
+   },
+   {
+    "id": "luggage",
+    "kind": "cache",
+    "at": [
+     5.4,
+     2.55,
+     -5.1
+    ],
+    "yaw": 0,
+    "title": "Vergessenes Gepäck",
+    "text": ""
+   }
+  ]
+ },
+ "erantel_apotheke": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "recipes",
+    "kind": "note",
+    "at": [
+     3.1,
+     0.0,
+     -3.9
+    ],
+    "yaw": 0,
+    "title": "Nfireas Arbeitsplatz",
+    "text": "Der Tisch ist aufgeräumt – zu aufgeräumt. Lizzie wischt ihn jeden Morgen ab, obwohl ihn seit Wochen niemand benutzt.\n\nAuf einem Zettel, mit Nfireas enger Schrift: »Versuch 41: Heiltrank, rot statt blau. Großmutter sagt, das sei unmöglich. Großmutter sagt vieles.«\n\n»Versuch 42: … siehe Carne. Enri hat mir die Kräuter gezeigt, die am Waldrand wachsen. Ich bleibe noch ein paar Tage. Oder Wochen.«\n\nDaneben eine Zeichnung: ein Mädchen mit Zopf, schlecht getroffen, mit viel Mühe."
+   },
+   {
+    "id": "ledger",
+    "kind": "lectern",
+    "at": [
+     -3.6,
+     0.0,
+     0.9
+    ],
+    "yaw": 90,
+    "title": "Lizzies Rezeptbuch",
+    "text": "»Heiltrank, blau: Mondblatt, Sumpfwasser, drei Tage. Verkauf: 1 Goldmünze. Einkauf durch die Gilde: 2 Goldmünzen, wenn Krieg ist.«\n\n»Heiltrank, ROT (Probe von Herrn Momon): Zutaten unbekannt. Wirkung sofort. Habe das Fläschchen zweimal nachgefüllt, um es zu untersuchen. Zweimal versagt. Wer immer das gebraut hat, braut nicht mit Kräutern.«\n\nAm Rand, mit zittriger Hand: »Nfirea soll das sehen. Wenn er heimkommt.«"
+   },
+   {
+    "id": "stash",
+    "kind": "cache",
+    "at": [
+     -3.4,
+     0.0,
+     -3.1
+    ],
+    "yaw": 0,
+    "title": "Lizzies Geheimvorrat",
+    "text": ""
+   }
+  ]
+ },
+ "carne_enri": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "horn",
+    "kind": "plaque",
+    "at": [
+     3.1,
+     0.0,
+     -3.0
+    ],
+    "yaw": 0,
+    "title": "Das Horn des Goblin-Generals",
+    "text": "Ein gewundenes Horn aus gelblichem Bein, an einem Lederriemen über dem Herd. Enri hat es von einem Magier in schwarzer Robe bekommen – ›für den Notfall‹.\n\nAls die Ritter kamen, blies sie hinein. Neunzehn Goblins traten aus dem Nichts, verneigten sich und nannten sie ›General‹.\n\nSeitdem hängt das Horn hier. Jugem hat angeboten, es zu polieren. Enri hat abgelehnt: »Es soll aussehen, als hätte es schon einmal geholfen.«"
+   },
+   {
+    "id": "drawings",
+    "kind": "note",
+    "at": [
+     1.65,
+     0.0,
+     3.05
+    ],
+    "yaw": 0,
+    "title": "Nemus Zeichnungen",
+    "text": "Drei Blätter mit Kohle, an die Wand geheftet:\n\n1. Ein Dorf mit sehr vielen Häusern (alle schief) und einer Sonne mit Gesicht.\n2. Ein großer schwarzer Mann mit rotem Umhang und ohne Gesicht. Darunter: »Der Magier, der uns gerettet hat. Er hat gesagt, ich soll stark werden.«\n3. Zwei Mädchen, ein Goblin und ein Junge mit Haaren vor den Augen, Hand in Hand. Darunter, in Enris Schrift: »Familie.«"
+   },
+   {
+    "id": "floorboard",
+    "kind": "cache",
+    "at": [
+     -2.2,
+     0.0,
+     2.9
+    ],
+    "yaw": 0,
+    "title": "Lose Diele",
+    "text": ""
+   }
+  ]
  }
 }

@@ -1333,16 +1333,19 @@
    }
   },
   {
-   "id": "harmony",
-   "name": "Frieden im Harem",
-   "desc": "Senkt die Rivalität zwischen Albedo und Shalltear unter 10.",
-   "icon": "☯",
+   "id": "two_hearts",
+   "name": "Zwei Herzen",
+   "desc": "Albedo und Shalltear sind Euch beide innig zugetan (Gunst 80 oder mehr).",
+   "icon": "♥",
    "tier": "gold",
    "reward": {
     "morale": 8
    },
    "cond": {
-    "rivalry_max": 9
+    "favor_min": {
+     "albedo": 80,
+     "shalltear": 80
+    }
    }
   },
   {

@@ -132,8 +132,8 @@ static func effect_chips(summary: Array) -> HFlowContainer:
 		var delta: int = int(pair[1])
 		var label: String = pair[0]
 		var good := delta > 0
-		# Mehr Aufmerksamkeit, Eifersucht, Rivalität oder Erschöpfung sind schlecht
-		for bad in ["Aufmerksamkeit", "Eifersucht", "Rivalität", "Erschöpfung"]:
+		# Mehr Aufmerksamkeit oder Erschöpfung ist schlecht
+		for bad in ["Aufmerksamkeit", "Erschöpfung"]:
 			if bad in label:
 				good = not good
 		var chip := PanelContainer.new()
