@@ -27,6 +27,17 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 - Menschen 1,6–1,85 m (vorher ~2,1 m, so groß wie Laternen): `ProcModel.HUMAN = 0.84`. Ainz, Wächter mit Modell und
   Sonderformen unverändert. Sichtfeld der Kamera 54° statt 68° (Häuser wirkten zu klein), Kameraabstand 7 m.
 
+## Entdeckungen und Ausstattung (System erledigt)
+- Entdeckungen liegen nicht mehr an beliebigen Zufallsplätzen: Inschriften und Schreine stehen frei und sichtbar
+  (mindestens 2,5 m Luft, Sicht vom Startpunkt), Verstecke liegen hinter Deckung (Fels, Mauer, Stamm in 1–2,5 m),
+  weiter draußen (ab 18 m) und ohne Sicht vom Startpunkt (`QuestWorld._spots` mit mode open/hidden). Von Hand
+  gesetzte Entdeckungen je Ort über `placed` in `data/discoveries.json` (kind lore/lectern/plaque/note/spot/cache).
+- Ausstattung aus Daten (`data/dressing.json`, `scripts/world3d/dressing.gd`): Banner (Fraktion), Feuerschalen,
+  Lagerfeuer (auch erloschen), Statuen, Kisten, Fässer, Zelte, Palisaden, Brunnen, Gedenksteine, Laternenpfähle,
+  Heuhaufen, Wäscheleinen, Überfall-Trümmer, Galgen, beliebige Fotoscans, Rauch, Staub, Licht – mit Bedingungen
+  (`requires`/`requires_not`), damit Orte sich mit der Geschichte verändern (Banner des Königreichs → Nazaricks
+  nach der Krönung, Trümmer des Überfalls auf Carne nur in Kapitel 1–2, Goblin-Lager ab Kapitel 2).
+
 ## Orte – Prüfung je Ort (laufend)
 | Ort | Stand | Offen |
 |---|---|---|

@@ -55,13 +55,23 @@
   "caches": 2,
   "lore": [
    [
-    "Gedenkstein",
-    "»Für die, die in jener Nacht fielen.« Die Namen der Dorfbewohner, die die Ritter der Theokratie erschlugen. Frische Blumen liegen davor."
-   ],
-   [
     "Goblin-Zeichen",
     "Kreidezeichen an der Wand: Jugems Goblins melden, dass der Wald ruhig ist. Darunter, krakelig: »Lob an Enri-Nee-san!«"
    ]
+  ],
+  "placed": [
+   {
+    "id": "memorial",
+    "kind": "spot",
+    "at": [
+     -6.0,
+     0.0,
+     -3.0
+    ],
+    "yaw": 60,
+    "title": "Gedenkstein",
+    "text": "»Für die, die in jener Nacht fielen.« Die Namen der Dorfbewohner, die die Ritter in Kaiserrüstung erschlugen. Frische Blumen liegen davor – jeden Morgen neue.\n\nUnter den Namen, kleiner und von anderer Hand: »Und für die Fremden, die kamen, als niemand sonst kam.«"
+   }
   ]
  },
  "e_rantel": {

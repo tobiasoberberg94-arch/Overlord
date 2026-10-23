@@ -25,6 +25,7 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	if scene:
 		a = _from_model(loc, root, scene)
 		_gate(root, a.gate)
+		Dressing.apply(loc, root)
 		return a
 	match loc.kind:
 		"throne": a = _throne(root)
@@ -49,6 +50,7 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 		_: a = _village(root)
 	if a.has("gate"):
 		_gate(root, a.gate)
+	Dressing.apply(loc, root)
 	return a
 
 

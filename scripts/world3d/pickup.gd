@@ -60,7 +60,7 @@ static func discovery(kind_in: String, title: String, text: String) -> Pickup:
 	p.set_meta("text", text)
 	p.radius = 2.4
 	match kind_in:
-		"lore", "lectern", "plaque", "note": p.color = Color(0.55, 0.85, 1.0)
+		"lore", "lectern", "plaque", "note", "spot": p.color = Color(0.55, 0.85, 1.0)
 		"shrine": p.color = Color(1.0, 0.86, 0.5)
 		_:
 			p.color = Palette.GOLD
@@ -127,6 +127,8 @@ func _ready() -> void:
 				depth = 0.45
 			for k in 4:
 				B3.box(_visual, Vector3(0.26, 0.035, 0.01), Vector3(randf_range(-0.06, 0.06), 0.62 + k * 0.22, depth * 0.5 + 0.03), B3.mat(c, 0.3, 0.0, c, 1.4), false)
+		"spot":
+			pass                               # unsichtbar: das Sichtbare steht in data/dressing.json
 		"lectern":
 			# aufgeschlagenes Buch auf einem Lesepult (Innenräume)
 			var wood := BuildingLook.photo_material("logs", "wood", Color(0.42, 0.33, 0.25), 0.5)
@@ -189,12 +191,12 @@ func _ready() -> void:
 			cr.rotation = Vector3(0.6, 0.7, 0.3)
 	_light = OmniLight3D.new()
 	_light.light_color = c
-	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0, "lectern": 0.5, "plaque": 0.3, "note": 0.3}.get(kind, 0.9)
+	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0}.get(kind, 0.9)
 	_light.omni_range = 2.2
 	_light.position.y = 0.6
 	_light.shadow_enabled = false
 	add_child(_light)
-	if Settings.particles and not kind in ["cache", "lectern", "plaque", "note"]:
+	if Settings.particles and not kind in ["cache", "lectern", "plaque", "note", "spot"]:
 		var p := CPUParticles3D.new()
 		p.amount = 10
 		p.lifetime = 1.6
@@ -228,7 +230,7 @@ func _process(delta: float) -> void:
 		_visual.rotation.y += delta * 1.2
 		_visual.position.y = sin(_t * 2.0) * 0.06
 	if _light and kind != "cache":
-		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "lectern": 0.5, "plaque": 0.3, "note": 0.3}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
+		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
 	elif _light:
 		# versteckter Schatz glitzert erst aus der Nähe
 		var pl := Actor3D.player
@@ -238,4 +240,4 @@ func _process(delta: float) -> void:
 
 ## Kurztext für den Interaktionshinweis.
 func prompt() -> String:
-	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "lectern": "Lesen", "plaque": "Lesen", "note": "Lesen", "shrine": "Beten", "cache": "Durchsuchen"}.get(kind, "Aufheben")
+	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "lectern": "Lesen", "plaque": "Lesen", "note": "Lesen", "spot": "Lesen", "shrine": "Beten", "cache": "Durchsuchen"}.get(kind, "Aufheben")

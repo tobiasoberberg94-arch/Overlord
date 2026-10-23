@@ -134,34 +134,64 @@ func spawn_discoveries() -> void:
 			p.rotation.y = deg_to_rad(float(e.yaw))
 	if n == 0:
 		return
-	var spots := _spots(n + 4, hash(lid + "entdeckung"))
+	# Inschriften und Schreine stehen frei und sichtbar (Wegrand, Lichtung); Verstecke liegen hinter Deckung
+	# (Fels, Mauer, Stamm) und weiter draußen – wer sucht, findet sie, wer nur durchläuft, nicht.
+	var open_spots := _spots(lore.size() + int(d.get("shrines", 1)) + 2, hash(lid + "entdeckung"), "open")
+	var hidden := _spots(int(d.get("caches", 2)) + 2, hash(lid + "versteck"), "hidden")
+	if hidden.size() < int(d.get("caches", 2)):
+		hidden += _spots(int(d.get("caches", 2)) - hidden.size() + 1, hash(lid + "versteck2"), "open")
 	var i := 0
+	var oi := 0
 	var shrine_names := ["Schrein der Sechs Götter", "Altar des Kriegers", "Quelle des Lebens"]
 	for e in lore:
-		if i >= spots.size():
-			return
+		if oi >= open_spots.size():
+			break
 		var p := Pickup.discovery("lore", e[0], e[1])
 		p.key = "d:%s:%d" % [lid, i]
 		p.set_meta("done", picked.has(p.key))
-		_place(p, spots[i])
+		_place(p, open_spots[oi])
+		_face_open(p)
 		i += 1
+		oi += 1
 	for k in int(d.get("shrines", 1)):
-		if i >= spots.size():
-			return
+		if oi >= open_spots.size():
+			break
 		var p := Pickup.discovery("shrine", shrine_names[k % shrine_names.size()], "")
 		p.key = "d:%s:%d" % [lid, i]
 		p.set_meta("done", picked.has(p.key) and int(Game.state.day) - int(picked[p.key]) < 1)
-		_place(p, spots[i])
+		_place(p, open_spots[oi])
+		_face_open(p)
 		i += 1
+		oi += 1
 	for k in int(d.get("caches", 2)):
-		if i >= spots.size():
-			return
+		if k >= hidden.size():
+			break
 		var key := "d:%s:%d" % [lid, i]
 		if not picked.has(key):
 			var p := Pickup.discovery("cache", "Versteckter Schatz", "")
 			p.key = key
-			_place(p, spots[i])
+			_place(p, hidden[k])
 		i += 1
+
+
+## Inschrift/Schrein zur freien Seite drehen (von der nächsten Deckung weg, sonst zum Startpunkt).
+func _face_open(p: Pickup) -> void:
+	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
+	var best := Vector3.ZERO
+	var best_d := INF
+	for k in 8:
+		var a := TAU * k / 8.0
+		var dir := Vector3(cos(a), 0.0, sin(a))
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p.global_position + Vector3.UP * 1.0, p.global_position + Vector3.UP * 1.0 + dir * 4.0, 1))
+		if not hit.is_empty():
+			var dd: float = p.global_position.distance_to(hit.position)
+			if dd < best_d:
+				best_d = dd
+				best = dir
+	var face: Vector3 = (w.anchors.spawn - p.global_position) if best == Vector3.ZERO else -best
+	face.y = 0.0
+	if face.length() > 0.01:
+		p.rotation.y = atan2(face.x, face.z)
 
 
 var _disc: Dictionary = {}
@@ -171,7 +201,7 @@ var _disc: Dictionary = {}
 func _discover(p: Pickup) -> bool:
 	var first := not _picked().has(p.key)
 	match p.kind:
-		"lore", "lectern", "plaque", "note":
+		"lore", "lectern", "plaque", "note", "spot":
 			w._open(LoreDialog.new(p.label, String(p.get_meta("text", ""))))
 			if first:
 				Game.apply_effects({"res": {"info": 1}})
@@ -224,7 +254,9 @@ func _picked() -> Dictionary:
 
 ## Begehbare Plätze: Strahl nach unten trifft flachen Boden, frei nach oben (draußen) bzw. unter der
 ## Decke (Nazarick), Sichtlinie zu einem Anker, Abstand zueinander und zum Spawn.
-func _spots(n: int, seed_v: int) -> Array:
+## mode "any": wie bisher (Sammelstellen). "open": frei stehend, Sicht vom Startpunkt, mindestens 2,5 m Luft rundum.
+## "hidden": weiter draußen (ab 18 m), nicht vom Startpunkt zu sehen, Deckung (Fels, Mauer, Stamm) in 1–2,5 m.
+func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_v
 	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
@@ -234,13 +266,15 @@ func _spots(n: int, seed_v: int) -> Array:
 		seeds.append(w.anchors.keeper)
 	var indoor: bool = w.loc.group == "nazarick" or w.loc.get("kind", "") in ["city", "palace", "cathedral"]
 	var reach := 18.0 if indoor else 48.0
+	if mode == "hidden":
+		reach = 26.0 if indoor else 80.0
 	var out: Array = []
 	var tries := 0
-	while out.size() < n and tries < n * 40:
+	while out.size() < n and tries < n * 60:
 		tries += 1
 		var s: Vector3 = seeds[rng.randi() % seeds.size()]
 		var a := rng.randf() * TAU
-		var r := rng.randf_range(3.0, reach)
+		var r := rng.randf_range(3.0 if mode != "hidden" else (8.0 if indoor else 18.0), reach)
 		var x := s.x + cos(a) * r
 		var z := s.z + sin(a) * r
 		var top := Vector3(x, s.y + (2.4 if indoor else 40.0), z)
@@ -252,10 +286,27 @@ func _spots(n: int, seed_v: int) -> Array:
 		if absf(p.y - s.y) > (2.5 if indoor else 12.0):
 			continue
 		var los := PhysicsRayQueryParameters3D.create(s + Vector3(0, 1.0, 0), p + Vector3(0, 1.0, 0))
-		if not space.intersect_ray(los).is_empty():
+		var seen := space.intersect_ray(los).is_empty()
+		if mode == "hidden":
+			if seen and not indoor:
+				continue
+		elif not seen:
 			continue
-		if p.distance_to(w.anchors.spawn) < 5.0:
+		if p.distance_to(w.anchors.spawn) < (5.0 if mode != "hidden" else 14.0):
 			continue
+		if mode != "any":
+			# Deckung ringsum messen: nächste Kollision in 8 Richtungen auf Brusthöhe
+			var near := INF
+			for k in 8:
+				var da := TAU * k / 8.0
+				var dir := Vector3(cos(da), 0.0, sin(da))
+				var h2 := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.0, p + Vector3.UP * 1.0 + dir * 3.0, 1))
+				if not h2.is_empty():
+					near = minf(near, p.distance_to(h2.position))
+			if mode == "open" and near < 2.5:
+				continue
+			if mode == "hidden" and (near < 0.9 or near > 2.5):
+				continue
 		var ok := true
 		for o in out:
 			if (o as Vector3).distance_to(p) < 4.0:

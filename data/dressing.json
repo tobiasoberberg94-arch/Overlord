@@ -1,0 +1,435 @@
+{
+ "_info": "Ausstattung je Ort (scripts/world3d/dressing.gd): kind banner|brazier|campfire|statue|crates|barrels|tent|palisade|well|memorial|lantern_post|hay|laundry|debris|gallows|ph|smoke|motes|light. at [x, z] steht auf dem Boden, [x, y, z] frei; yaw in Grad; requires/requires_not wie Game.check.",
+ "e_rantel": [
+  {
+   "kind": "campfire",
+   "at": [
+    18.5,
+    100.5
+   ]
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -15.5,
+    104.5
+   ]
+  },
+  {
+   "kind": "crates",
+   "at": [
+    22.5,
+    93.0
+   ],
+   "yaw": 30,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    -10.0,
+    99.0
+   ],
+   "yaw": 70
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    23.0,
+    70.5
+   ],
+   "yaw": 0,
+   "len": 5.0
+  },
+  {
+   "kind": "hay",
+   "at": [
+    33.0,
+    68.0
+   ],
+   "scale": 1.1
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    3.2,
+    96.0
+   ],
+   "yaw": 180
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -3.2,
+    82.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    6.2,
+    76.5
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -6.2,
+    76.5
+   ]
+  },
+  {
+   "kind": "banner",
+   "at": [
+    7.5,
+    72.0
+   ],
+   "yaw": 180,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -7.5,
+    72.0
+   ],
+   "yaw": 180,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires_not": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    7.5,
+    72.0
+   ],
+   "yaw": 180,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -7.5,
+    72.0
+   ],
+   "yaw": 180,
+   "faction": "nazarick",
+   "color": "#2a0a3a",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "well",
+   "at": [
+    0.0,
+    6.5
+   ]
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    12.5,
+    30.0
+   ],
+   "yaw": 225
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -12.5,
+    30.0
+   ],
+   "yaw": 135
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -12.0,
+    2.0
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -13.5,
+    14.5
+   ],
+   "yaw": 20,
+   "count": 3
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    13.5,
+    12.0
+   ],
+   "yaw": 110
+  },
+  {
+   "kind": "hay",
+   "at": [
+    14.5,
+    24.0
+   ],
+   "scale": 0.9
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    -26.5,
+    12.0
+   ],
+   "yaw": 100,
+   "len": 4.5
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    31.0,
+    36.0
+   ],
+   "yaw": 20,
+   "len": 4.0
+  },
+  {
+   "kind": "banner",
+   "at": [
+    10.3,
+    3.4
+   ],
+   "yaw": 180,
+   "faction": "",
+   "color": "#4a1012"
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    15.6,
+    18.2
+   ],
+   "yaw": 80
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -7.6,
+    1.6
+   ],
+   "yaw": 95,
+   "count": 2
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.2,
+    30.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -4.2,
+    30.0
+   ],
+   "color": "#b070ff",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  }
+ ],
+ "carne": [
+  {
+   "kind": "memorial",
+   "at": [
+    -6.0,
+    -3.0
+   ],
+   "yaw": 60
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    10.5,
+    -9.5
+   ],
+   "yaw": 225
+  },
+  {
+   "kind": "lantern_post",
+   "at": [
+    -3.5,
+    3.2
+   ],
+   "yaw": 45
+  },
+  {
+   "kind": "crates",
+   "at": [
+    9.8,
+    -2.0
+   ],
+   "yaw": 15,
+   "count": 2
+  },
+  {
+   "kind": "hay",
+   "at": [
+    12.0,
+    27.0
+   ],
+   "scale": 1.2
+  },
+  {
+   "kind": "hay",
+   "at": [
+    -27.0,
+    23.0
+   ],
+   "scale": 0.9
+  },
+  {
+   "kind": "laundry",
+   "at": [
+    -9.0,
+    15.5
+   ],
+   "yaw": 80,
+   "len": 5.0
+  },
+  {
+   "kind": "debris",
+   "at": [
+    4.0,
+    46.0
+   ],
+   "yaw": 30,
+   "requires": {
+    "chapter_max": 2
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    4.5,
+    44.0
+   ],
+   "cold": true,
+   "requires": {
+    "chapter_max": 2
+   }
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    -34.0,
+    18.0
+   ],
+   "yaw": 0,
+   "len": 8.0,
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "palisade",
+   "at": [
+    -40.0,
+    14.0
+   ],
+   "yaw": 90,
+   "len": 7.0,
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -36.0,
+    11.5
+   ],
+   "yaw": 20,
+   "color": "#5a6a4a",
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "tent",
+   "at": [
+    -31.5,
+    10.0
+   ],
+   "yaw": -35,
+   "color": "#6a5a3a",
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "campfire",
+   "at": [
+    -33.5,
+    14.5
+   ],
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -30.0,
+    14.0
+   ],
+   "yaw": 40,
+   "count": 3,
+   "requires": {
+    "chapter_min": 2
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -37.5,
+    17.0
+   ],
+   "yaw": 180,
+   "faction": "",
+   "color": "#3a5a2a",
+   "requires": {
+    "chapter_min": 2
+   }
+  }
+ ]
+}

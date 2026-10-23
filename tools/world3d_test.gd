@@ -120,6 +120,18 @@ func _ready() -> void:
 			w.player.cam_yaw = k * PI * 0.5
 			await _wait(0.5)
 			_shot("doors_innen_%d" % k)
+		# DOORWALK="x,z,yaw_grad,sekunden": an eine Stelle treten und geradeaus gehen (Treppen prüfen)
+		if OS.get_environment("DOORWALK") != "":
+			var dw := OS.get_environment("DOORWALK").split(",")
+			w.player.global_position = Vector3(float(dw[0]), 0.2, float(dw[1]))
+			w.player.face(deg_to_rad(float(dw[2])))
+			await _wait(0.3)
+			Input.action_press("move_forward")
+			await _wait(float(dw[3]))
+			Input.action_release("move_forward")
+			await _wait(0.4)
+			print("DOORWALK Spieler jetzt bei %s" % w.player.global_position.snapped(Vector3(0.1, 0.1, 0.1)))
+			_shot("doors_walk")
 		var ex: Actor3D = null
 		for a in w.actors:
 			if is_instance_valid(a) and a.id == "exit":
@@ -155,7 +167,37 @@ func _ready() -> void:
 				w.add_child(mc)
 				mc.look_at_from_position(Vector3(0, 320, 0.5), Vector3.ZERO, Vector3(0, 0, -1))
 				mc.current = true
+				# Karte ohne Nebel und heller (sonst versinken Wald und Nacht im Dunst)
+				var menv: Environment = null
+				for c in w.level.get_children():
+					if c is WorldEnvironment:
+						menv = (c as WorldEnvironment).environment
+				var saved := []
+				if menv:
+					saved = [menv.fog_enabled, menv.volumetric_fog_enabled, menv.tonemap_exposure, menv.ambient_light_energy]
+					menv.fog_enabled = false
+					menv.volumetric_fog_enabled = false
+					menv.tonemap_exposure = maxf(menv.tonemap_exposure, 1.0) * 1.4
+					menv.ambient_light_energy = maxf(menv.ambient_light_energy, 1.0) * 1.8
 				var marks: Array = []
+				await _wait(0.5)
+				for pk in w.quest_world.pickups:
+					if not is_instance_valid(pk) or not pk.kind in ["lore", "shrine", "cache"]:
+						continue
+					var mk2 := MeshInstance3D.new()
+					var cy2 := CylinderMesh.new()
+					cy2.top_radius = 1.5
+					cy2.bottom_radius = 1.5
+					cy2.height = 40.0
+					mk2.mesh = cy2
+					var mm2 := StandardMaterial3D.new()
+					mm2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+					mm2.albedo_color = {"lore": Color(0.3, 0.8, 1.0), "shrine": Color(1.0, 0.85, 0.3), "cache": Color(1.0, 0.2, 0.9)}[pk.kind]
+					mk2.material_override = mm2
+					w.level.add_child(mk2)
+					mk2.global_position = pk.global_position + Vector3(0, 20, 0)
+					marks.append(mk2)
+					print("ENTDECKUNG %s %s bei %s" % [lid, pk.kind, pk.global_position.snapped(Vector3(0.1, 0.1, 0.1))])
 				for gx in range(-100, 101, 50):
 					for gz in range(-100, 101, 50):
 						var mk := MeshInstance3D.new()
@@ -175,6 +217,11 @@ func _ready() -> void:
 					(cl as CanvasLayer).visible = false
 				await _wait(1.5)
 				_shot("map_%s" % lid)
+				if menv:
+					menv.fog_enabled = saved[0]
+					menv.volumetric_fog_enabled = saved[1]
+					menv.tonemap_exposure = saved[2]
+					menv.ambient_light_energy = saved[3]
 				for mk in marks:
 					mk.queue_free()
 				mc.queue_free()
@@ -246,8 +293,11 @@ func _ready() -> void:
 	for l in Content.locations:
 		if only != "" and l.id != only and not (only == "ui" and l.id == "throne"):
 			continue
+		w._time_running = false
 		await w.load_location(l.id)
 		await _wait(0.6)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
 		# ein paar Schritte vorwärts
 		w.player.velocity = Vector3.ZERO
 		Input.action_press("move_forward")
