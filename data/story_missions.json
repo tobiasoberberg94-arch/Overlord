@@ -7632,6 +7632,18 @@
      "yield_text": "…",
      "intro": [
       {
+       "player": {
+        "at": [
+         0,
+         -3.4
+        ],
+        "face": [
+         0,
+         -9
+        ]
+       }
+      },
+      {
        "fx": {
         "kind": "teleport",
         "at": [
@@ -7673,18 +7685,16 @@
       },
       {
        "cam": {
-        "at": [
-         1.4,
-         2.3,
-         6.6
-        ],
-        "look": [
-         0,
-         1.6,
-         -9
+        "ots": [
+         "player",
+         "enemy:jaldabaoth"
         ],
         "dur": 0,
-        "fov": 46
+        "fov": 44,
+        "back": 2.4,
+        "side": 0.9,
+        "h": 2.1,
+        "look_h": 1.6
        }
       },
       {
@@ -7714,15 +7724,22 @@
        "hp": 0.65,
        "steps": [
         {
+         "player": {
+          "near": "enemy:jaldabaoth",
+          "dist": 3.6
+         }
+        },
+        {
          "cam": {
-          "two": [
-           "player",
-           "enemy:jaldabaoth"
+          "near": [
+           "enemy:jaldabaoth",
+           "player"
           ],
           "dur": 0,
-          "fov": 48,
-          "dist": 4.0,
-          "h": 1.9
+          "fov": 44,
+          "dist": 3.0,
+          "h": 1.8,
+          "angle": 35
          }
         },
         {
@@ -7751,6 +7768,12 @@
       {
        "hp": 0.42,
        "steps": [
+        {
+         "player": {
+          "near": "enemy:jaldabaoth",
+          "dist": 2.6
+         }
+        },
         {
          "cam": {
           "two": [
@@ -7792,14 +7815,15 @@
       },
       {
        "cam": {
-        "two": [
-         "player",
-         "enemy:jaldabaoth"
+        "near": [
+         "enemy:jaldabaoth",
+         "player"
         ],
         "dur": 0,
-        "fov": 46,
-        "dist": 3.6,
-        "h": 1.8
+        "fov": 44,
+        "dist": 3.0,
+        "h": 1.8,
+        "angle": -35
        }
       },
       {
