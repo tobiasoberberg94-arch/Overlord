@@ -104,7 +104,9 @@ func _video_tab() -> Control:
 	p.add_child(_row("Bildrate begrenzen", _choice("max_fps", ["30 FPS", "60 FPS", "120 FPS", "Unbegrenzt"])))
 	p.add_child(_row("Partikel & Nebeleffekte", _check("particles", "anzeigen"), "Abschalten spart Leistung auf schwachen Rechnern (auch weniger Gras, Rauch und Bewohner)."))
 	p.add_child(_row("Kantenglättung", _choice("antialias", Settings.AA_MODES), "Glättet Kanten von Blättern, Gras und Gebäuden."))
-	p.add_child(_row("Grafikqualität", _choice("graphics", GraphicsQuality.NAMES), "Hoch: auf flüssige 60 FPS abgestimmt (gefilterte weiche Schatten, globale Beleuchtung in halber Auflösung).\nUltra: alles in voller Qualität mit kontaktgehärteten Schatten (PCSS) – braucht deutlich mehr Grafikleistung.\nAusgewogen: spart zusätzlich in Wäldern und Wildnis (keine Spiegelungen, kürzere Schatten)."))
+	p.add_child(_row("Grafikqualität", _choice("graphics", GraphicsQuality.NAMES), "Hoch (empfohlen): sieht aus wie Ultra und läuft 10–25 % schneller (weiche Schatten mit weniger Abtastungen, globale Beleuchtung in halber Auflösung).
+Ultra: alles in voller Qualität – braucht deutlich mehr Grafikleistung.
+Ausgewogen: für 60 FPS auch in dichten Wäldern (gefilterte Schatten, keine Spiegelungen in der Natur, Gras und Bäume dünnen etwas früher aus)."))
 	p.add_child(_row("Renderauflösung", _choice("render_scale", Settings.RENDER_SCALE_NAMES), "FSR 2 (wie DLSS, für jede Grafikkarte): rendert kleiner und rechnet scharf hoch – deutlich mehr FPS. Ersetzt die Kantenglättung."))
 	p.add_child(_row("Größe der Oberfläche", _slider("ui_scale", 0.8, 1.3, 0.05), "Wird beim Loslassen des Reglers angewendet."))
 	return p
