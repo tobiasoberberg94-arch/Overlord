@@ -23,7 +23,7 @@ const AMBIENCE_OF := {
 	"peaks": "mountain", "grassland": "meadow", "lava": "lava", "glacier": "glacier", "throne": "hall", "library": "hall",
 	"treasury": "hall", "royal": "hall", "tombs": "tombs", "guild": "interior", "tavern": "interior", "shop": "home",
 	"cottage": "home", "smithy": "forge", "forge_hall": "forge", "temple": "church", "basilica": "church",
-	"academy": "home", "inn": "interior", "court": "court",
+	"academy": "home", "inn": "interior", "court": "court", "cellar": "tombs",
 }
 const AMBIENCE_GAIN := {"hall": 0.55, "home": 0.7, "interior": 0.8, "tombs": 0.8, "town": 0.85, "church": 0.7, "forge": 0.8}
 
@@ -195,7 +195,7 @@ func set_space(kind: String) -> void:
 		"city", "palace", "wall", "village":
 			room = 0.45
 			wet = 0.14
-		"guild", "tavern", "shop", "cottage", "smithy", "academy", "inn", "interior":
+		"guild", "tavern", "shop", "cottage", "smithy", "academy", "inn", "cellar", "interior":
 			room = 0.55
 			wet = 0.22
 		"forest", "jungle", "swamp":

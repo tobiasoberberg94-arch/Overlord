@@ -27,7 +27,7 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return shop(root, loc)
 		"cottage":
 			return cottage(root, loc)
-		"smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court":
+		"smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court", "cellar":
 			return MORE.build(kind, root, loc)
 	return {}
 

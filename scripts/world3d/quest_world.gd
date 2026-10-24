@@ -472,8 +472,9 @@ func talk(a: Actor3D) -> bool:
 	# Abgabe
 	for q in Quests.turnins_at(a.id):
 		var qid: String = q.id
-		_dialog(a, q.get("progress", "…") + "\n\n[color=#d4af37]Ihr habt alles beisammen.[/color]", [
-			{"text": "⚜  Übergeben", "action": func(): _hand_in(a, qid)}])
+		var acts0 := [{"text": "⚜  Übergeben", "action": func(): _hand_in(a, qid)}]
+		_merchant_action(a, acts0)
+		_dialog(a, q.get("progress", "…") + "\n\n[color=#d4af37]Ihr habt alles beisammen.[/color]", acts0)
 		return true
 	# soeben per Gespräch abgeschlossen?
 	for qid in before:
@@ -486,8 +487,9 @@ func talk(a: Actor3D) -> bool:
 		var q: Dictionary = offers[0]
 		var qid: String = q.id
 		var acts := [{"text": "✦  Auftrag annehmen: " + q.title, "action": func(): Quests.accept(qid); w.toast("Neuer Auftrag: " + Quests.by_id[qid].title, Palette.GOLD_BRIGHT)}]
-		if a.kind == "char":
+		if a.kind == "char" and not TRADE.has(a.id):
 			acts.append({"text": "Audienz", "action": func(): w._open(CharacterView.new(a.id))})
+		_merchant_action(a, acts)
 		_dialog(a, q.offer, acts)
 		return true
 	# laufende Quest dieser Figur: Erinnerung
@@ -499,7 +501,7 @@ func talk(a: Actor3D) -> bool:
 			_merchant_action(a, acts2)
 			_dialog(a, String(q.get("progress", "")) + "\n\n[color=#8f86a3]" + Quests.step_text(q) + "[/color]", acts2)
 			return true
-	if a.id in MERCHANTS and a.kind == "npc":
+	if a.id in MERCHANTS or TRADE.has(a.id):
 		var acts3 := []
 		_merchant_action(a, acts3)
 		_dialog(a, a.line if a.line != "" else "Womit kann ich dienen, Herr Momon?", acts3)
@@ -507,7 +509,15 @@ func talk(a: Actor3D) -> bool:
 	return false
 
 
+## Handel (data/trade.json) – per preload, damit der Klassen-Cache des Editors nicht gebraucht wird.
+const TRADE := preload("res://scripts/ui/trade_dialog.gd")
+
+
 func _merchant_action(a: Actor3D, acts: Array) -> void:
+	if TRADE.has(a.id):
+		var id := String(a.id)
+		acts.append({"text": "⚖  Handeln", "action": func(): w._open(TRADE.new(id, w.player))})
+		return
 	if not a.id in MERCHANTS:
 		return
 	var value := 0

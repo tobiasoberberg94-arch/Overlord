@@ -19,7 +19,7 @@ Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäud
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-2.6.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.7.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.6.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.7.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -154,6 +154,10 @@ Wichtige Gebäude lassen sich **betreten**: ein Wirtshausschild mit Laterne mark
 | **Schmiedehalle von Feo Jera** | Azerlisia | Drei Zwergenessen mit Ambossen, Runenpfeiler mit Leuchtsteinen, Statue des Runenkönigs, Erzkarren, Zwerge bei der Arbeit, Gondo; Runentafel der Meister, Buch der Runen, Erzkiste |
 | **Thronsaal von Ro-Lente** | Re-Estize (Schloss, oben an der Rampe) | Säulenschiff mit Löwenbannern und bunten Fenstern, Podest mit Thron und Baldachin, Kriegstisch, Wachen und Adlige; König Ranpossa III., Gazef; Stammbaum der Könige, Protokoll des Thronrats, Kronschatz |
 | **Audienzsaal des Kaisers** | Arwintar (Kaiserpalast) | Weißer Marmor, rote Banner, Thron, Kriegstisch, kaiserliche Wachen und Hofstaat; Jircniv; Die Vier Kaiserlichen Ritter, Jircnivs Reformen, Geheimarchiv |
+
+| **Keller der Acht Finger** | Re-Estize (Kellerluke im Armenviertel, beim Bettlerfeuer) | Der erste Kerker einer Stadt: Pfeiler und Fackeln, Käfige mit einem Gefangenen, Zähltisch voller Gold, Schmuggelware – bewacht von Schlägern, Armbrustschützen und einem Söldner (Kampf); Schuldbuch, Liste der Schutzgelder, Kasse der Acht Finger |
+
+**Handel** (`data/trade.json`, `scripts/ui/trade_dialog.gd`): Händler bieten im Gespräch „Handeln“ an. Lizzie verkauft Heil- und Manatränke, Ringe und Handschuhe und kauft Kräuter; der Schmied verkauft Klingen und Panzer (Mithril ab Kapitel 3, Echsenschuppen nach dem Sumpf) und kauft Erz, Schuppen, Zähne; die Wirte vermieten Zimmer (alles erholt), kochen Eintopf und erzählen Gerüchte; der Priester segnet gegen Spende; Gondo handelt mit Runenwerk, Fluder mit Artefakten der Gelehrten; Gilde und Enri kaufen alle Materialien zum Grundwert. Mengen für laufende Aufträge bleiben im Beutel; abgelegte Ausrüstung lässt sich zum Schmelzwert verkaufen.
 
 **Nazarick**: Die Ebenen sind über **Treppen und Tore** verbunden (Türen in den Hallen: Grabkammern ↔ Eisgletscher ↔ Dschungel ↔ Lavahölle ↔ Königliche Gemächer ↔ Thronsaal ↔ Bibliothek / Schatzkammer, Abstieg vom Mausoleum im Grasland in die Grabkammern); man kommt jeweils vor der Gegentür an. Die Ebenen sind ausgestattet (violette Feuerschalen, Dienstmädchen, Eiskristalle, Lavaspalten, Truhen der Schatzkammer) und verändern sich mit der Geschichte: erbeutete Standarten des Königreichs nach der Krönung, Tribut der Reiche nach der Entscheidung der Welt.
 

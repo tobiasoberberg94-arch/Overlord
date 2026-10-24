@@ -851,5 +851,47 @@
     "text": "Hinter einer Marmorplatte: Berichte über jeden Adligen des Reiches, nach Nützlichkeit sortiert. Ganz oben eine neue Akte: »Ainz Ooal Gown. Nützlichkeit: absolut. Gefahr: absolut. Empfehlung: lächeln.«"
    }
   ]
+ },
+ "re_capital_keller": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "ledger",
+    "kind": "note",
+    "at": [
+     5.6,
+     0.0,
+     -9.6
+    ],
+    "yaw": 0,
+    "title": "Schuldbuch",
+    "text": "Namen, Beträge, Daten. Bäcker, Schneider, ein Priester. Hinter manchen Namen ein Kreuz, hinter manchen zwei.\n\nAuf der letzten Seite, in anderer Tinte: »Sebas Tian – Höhe unbekannt. Einzug: gescheitert. Nicht noch einmal versuchen.«"
+   },
+   {
+    "id": "protection",
+    "kind": "lectern",
+    "at": [
+     -3.5,
+     0.0,
+     -9.0
+    ],
+    "yaw": 180,
+    "title": "Liste der Schutzgelder",
+    "text": "Jede Straße des Südufers, jedes Haus, jede Summe. Die Zahlen steigen von Monat zu Monat – die Namen der Zahler werden weniger.\n\nUnten eine Notiz: »Die Frau mit der Maske hat gefragt, wer hier das Sagen hat. Niemand hat geantwortet. Sie hat gelächelt und ist gegangen. Seitdem schläft Cocco Doll nicht mehr.«"
+   },
+   {
+    "id": "coffer",
+    "kind": "cache",
+    "at": [
+     3.0,
+     0.0,
+     -9.7
+    ],
+    "title": "Kasse der Acht Finger",
+    "text": "Unter dem Zähltisch: die Kasse eines Monats Schutzgeld. Wer sie nimmt, nimmt sie Leuten weg, die sie schon verloren haben."
+   }
+  ]
  }
 }

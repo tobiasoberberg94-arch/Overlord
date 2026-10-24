@@ -13,6 +13,7 @@ var world: Node            ## world_3d.gd
 var compass := HudCompass.new()
 var loc_label := Label.new()
 var date_label := Label.new()
+var time_label := Label.new()      ## Tageszeit („☀ Nachmittag“), nur im Freien
 var day_line := HudBar.new(Palette.GOLD, 3.0, 230.0)
 var feed := VBoxContainer.new()
 var res_row := HBoxContainer.new()
@@ -140,10 +141,13 @@ func _build_top() -> void:
 	lv.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outlined(loc_label, 17, Palette.GOLD_BRIGHT, NazarickTheme.display_font(700), 6)
 	_outlined(date_label, 15, Palette.PARCHMENT.darkened(0.15), NazarickTheme.italic_font(600))
+	_outlined(time_label, 14, Palette.PARCHMENT.darkened(0.3), NazarickTheme.italic_font(600))
+	time_label.visible = false
 	day_line.show_text = false
 	day_line.tooltip_text = "Fortschritt des aktuellen Tages"
 	lv.add_child(loc_label)
 	lv.add_child(date_label)
+	lv.add_child(time_label)
 	var sp := Control.new()
 	sp.custom_minimum_size.y = 5
 	lv.add_child(sp)
@@ -593,3 +597,9 @@ func _markers() -> Array:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(world.player.global_position) < 45.0:
 			out.append({"pos": e.global_position, "glyph": "✕", "color": Palette.CRIMSON, "label": e.display_name})
 	return out
+
+
+## Tageszeit im Freien (leer = ausblenden).
+func set_time_of_day(t: String) -> void:
+	time_label.text = t
+	time_label.visible = t != ""

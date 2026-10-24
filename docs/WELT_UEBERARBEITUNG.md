@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.6.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.7.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -10,7 +10,7 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Shalltear, die Krönungs- und Schuld-Ereignisse. Errungenschaft „Frieden im Harem“ → „Zwei Herzen“.
   Alte Spielstände werden beim Laden bereinigt (`Game._normalize`).
 
-## Innenräume (System erledigt, zwölf Räume)
+## Innenräume (System erledigt, dreizehn Räume)
 - Türen in Orten: `data/locations.json` → `doors` [{id, to, name, at, yaw}]; Innenräume sind eigene Orte mit
   `group: "interior"` und `parent`. Schild mit Namen und Laterne an jeder Tür; „Verlassen“ bringt den Spieler vor
   dieselbe Tür zurück. Innenräume werden prozedural gebaut (`scripts/world3d/interiors.gd` – Baukasten und erste
@@ -33,7 +33,10 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Wappenrock, Adligen, Kriegstisch, Podest mit Thron und Baldachin.
 - Nazarick: Treppen und Tore zwischen den Ebenen als Türen (Ankunft vor der Gegentür), Abstieg vom Mausoleum im
   Grasland in die Grabkammern.
-- Offen: Acht-Finger-Keller in Re-Estize, Hütten der Echsenmenschen, Elfenbaumhäuser.
+- Version 2.7: Keller der Acht Finger (Re-Estize, Kellerluke im Armenviertel beim Bettlerfeuer) als erster Kerker – Pfeiler, Fackeln,
+  Käfige mit Gefangenem, Zähltisch, Schmuggelware; Gegner über `encounters` des Innenraums (Schläger, Armbrustschützen,
+  Söldner); Schuldbuch, Liste der Schutzgelder, Kasse.
+- Offen: Hütten der Echsenmenschen, Elfenbaumhäuser.
 
 ## Proportionen (erledigt)
 - Menschen 1,6–1,85 m (vorher ~2,1 m, so groß wie Laternen): `ProcModel.HUMAN = 0.84`. Ainz, Wächter mit Modell und
@@ -50,6 +53,15 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   (`requires`/`requires_not`), damit Orte sich mit der Geschichte verändern.
 - Prüfung: `LOC=dresscheck [DRESSLOCS=ort,ort]` lädt die Orte und meldet jedes Stück, das in einem Gebäude oder
   Fels steckt, keinen Boden unter sich hat oder am Hang steht (`AUSSTATTUNG`-Zeilen). Alle Einträge sind geprüft.
+
+## Handel und Controller (erledigt, Version 2.7)
+- `data/trade.json` + `scripts/ui/trade_dialog.gd`: Händler (Lizzie, Schmied, Wirte, Priester, Gondo, Fluder, Gilde, Enri)
+  mit Angebot (Dienste heal/mana/rest/meal/bless/heal_full/rumor, Ausrüstung mit `requires`) und Ankauf (Materialien
+  je Händlerpreis, `buys_all` zum Grundwert; Mengen laufender Aufträge bleiben), abgelegte Ausrüstung zum Schmelzwert.
+  Einstieg über `QuestWorld._merchant_action` („Handeln“ im Gespräch). Test: `LOC=trade`.
+- Controller: `scripts/autoload/pad.gd`, Belegung in `Player3D._ensure_actions`, Menüfokus in `Overlay._focus_first`,
+  Pausenmenü „Bücher, Karten & Berichte“, Steuerung-Tab. Test: `LOC=pad`.
+- HUD zeigt die Tageszeit im Freien (☀/☾ + Morgen … Nacht).
 
 ## Tag-Nacht-Wechsel und Bewohner (erledigt, Version 2.6)
 - `scripts/world3d/day_cycle.gd`: ein Sonnenlauf = acht Spieltage (World3D.DAY_SECONDS je Tag). Sonne wandert

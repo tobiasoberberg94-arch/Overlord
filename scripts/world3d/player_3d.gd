@@ -1199,6 +1199,15 @@ func face(yaw: float) -> void:
 	lock = null
 
 
+## Heilung durch Tränke, Rast oder Segen – Anteile (0–1) des jeweiligen Maximums.
+func heal(hp_frac: float, mana_frac: float = 0.0, stamina_frac: float = 0.0) -> void:
+	if state == S.DEAD:
+		return
+	hp = minf(max_hp, hp + max_hp * hp_frac)
+	mana = minf(max_mana, mana + max_mana * mana_frac)
+	stamina = minf(max_stamina, stamina + max_stamina * stamina_frac)
+
+
 func revive() -> void:
 	state = S.IDLE
 	state_time = 0.0

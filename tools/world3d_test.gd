@@ -90,6 +90,71 @@ func _ready() -> void:
 			print("PROP %-26s %s" % [n, (w2.size as Vector3).snapped(Vector3(0.01, 0.01, 0.01)) if not w2.is_empty() else "fehlt"])
 		get_tree().quit()
 		return
+	if only == "trade":
+		# Handel: in der Apotheke mit Lizzie sprechen, „Handeln“ drücken, Heiltrank kaufen, Mondkraut verkaufen
+		var TD := preload("res://scripts/ui/trade_dialog.gd")
+		await w.load_location("erantel_apotheke")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		Game.apply_effects({"res": {"gold": 100}})
+		Quests.add_item("moonleaf", 5)
+		w.player.hp = w.player.max_hp * 0.4
+		var liz: Actor3D = null
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id) == "lizzie":
+				liz = a
+		if liz == null:
+			print("TRADE: Lizzie fehlt")
+			get_tree().quit()
+			return
+		var g0 := TD.gold()
+		w.quest_world.talk(liz)
+		await _wait(0.8)
+		var dlg: Node = w.overlay_layer.get_child(w.overlay_layer.get_child_count() - 1) if w.overlay_layer.get_child_count() > 0 else null
+		var handel: Button = null
+		if dlg:
+			for b in dlg.find_children("*", "Button", true, false):
+				if String((b as Button).text).contains("Handeln"):
+					handel = b
+		print("TRADE Gespräch: %s · Knopf Handeln: %s" % [dlg != null, handel != null])
+		if handel:
+			handel.pressed.emit()
+			await _wait(1.0)
+		var trade: Node = null
+		for c in w.overlay_layer.get_children():
+			if c.get_script() == preload("res://scripts/ui/trade_dialog.gd"):
+				trade = c
+		if trade == null:
+			print("TRADE: Handelsfenster fehlt")
+			_shot("trade_fail")
+			get_tree().quit()
+			return
+		var buttons := trade.find_children("*", "Button", true, false)
+		print("TRADE Fenster: %d Knöpfe · Gold %d · Leben %.0f/%.0f" % [buttons.size(), TD.gold(), w.player.hp, w.player.max_hp])
+		_shot("trade_dialog")
+		for b in buttons:
+			if String((b as Button).text).begins_with("Heiltrank"):
+				(b as Button).pressed.emit()
+				break
+		await _wait(0.5)
+		print("TRADE Heiltrank: Gold %d (vorher %d) · Leben %.0f/%.0f" % [TD.gold(), g0 + 100, w.player.hp, w.player.max_hp])
+		for b in trade.find_children("*", "Button", true, false):
+			if String((b as Button).text).contains("Mondkraut"):
+				(b as Button).pressed.emit()
+				break
+		await _wait(0.5)
+		print("TRADE Mondkraut verkauft: Gold %d · Beutel %d" % [TD.gold(), Quests.count("moonleaf")])
+		for b in trade.find_children("*", "Button", true, false):
+			if String((b as Button).text).begins_with("Silberring"):
+				(b as Button).pressed.emit()
+				break
+		await _wait(0.5)
+		print("TRADE Kauf Silberring: Gold %d · Gegenstände %d" % [TD.gold(), Progress.inventory().size()])
+		_shot("trade_after")
+		print("TRADEDONE")
+		get_tree().quit()
+		return
 	if only == "pad":
 		# Controller-Simulation ohne Gerät: linker Stick bewegt, rechter Stick dreht, Start öffnet das Menü mit Fokus,
 		# Steuerkreuz wandert, B schließt, Back öffnet die Karte, A benutzt eine Tür.

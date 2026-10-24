@@ -25,6 +25,7 @@ var hud := WorldHud.new()
 var quest_world := QuestWorld.new(self)
 ## Tag-Nacht-Wechsel (per preload, damit der Klassen-Cache des Editors nicht gebraucht wird)
 var day_cycle: Node = preload("res://scripts/world3d/day_cycle.gd").new()
+var _time_name := ""
 var _pickup_focus: Pickup
 var hud_feedback := Label.new()
 var hud_vignette := ColorRect.new()
@@ -312,6 +313,10 @@ func _process(delta: float) -> void:
 			_advance(1, false)
 	hud.day_line.set_values(_day_timer, DAY_SECONDS)
 	day_cycle.update(float(Game.state.get("day", 1)) + _day_timer / DAY_SECONDS)
+	var tn: String = day_cycle.time_name()
+	if tn != _time_name:
+		_time_name = tn
+		hud.set_time_of_day(("☾ " if day_cycle.night else "☀ ") + tn if tn != "" else "")
 
 
 func _animate(delta: float) -> void:

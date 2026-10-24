@@ -32,6 +32,8 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return inn(root, loc)
 		"court":
 			return court(root, loc)
+		"cellar":
+			return cellar(root, loc)
 	return {}
 
 
@@ -608,3 +610,94 @@ static func court(root: Node3D, loc: Dictionary) -> Dictionary:
 		Vector3(-6.0, 0, -9.0), Vector3(5.5, 0, 9.5)], 1714 if empire else 1713, 6, "noble")
 	return {"spawn": Vector3(0, 0.2, hz - 1.8), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5),
 		"slots": [Vector3(0.6, 0.6, dz + 0.2), Vector3(-3.6, 0, dz + 7.0)]}
+
+
+# =====================================================================
+#  Keller der Acht Finger (Re-Estize): Schmuggellager und Verlies – mit Gegnern (encounters des Ortes)
+# =====================================================================
+
+## Wandfackel: Halter, Schaft, Flamme, flackerndes Licht. `side` = +1 Ostwand, -1 Westwand.
+static func _torch(root: Node3D, pos: Vector3, side: float) -> void:
+	var iron := B3.mat(Color(0.2, 0.2, 0.22), 0.5, 0.8)
+	B3.box(root, Vector3(0.12, 0.12, 0.12), pos + Vector3(-side * 0.06, 0, 0), iron, false)
+	var shaft := B3.cyl(root, 0.025, 0.03, 0.5, pos + Vector3(-side * 0.18, 0.15, 0), B3.mat(Color(0.3, 0.2, 0.12), 0.8), false, 6)
+	shaft.rotation_degrees = Vector3(0, 0, side * 25.0)
+	B3.fire(root, pos + Vector3(-side * 0.28, 0.42, 0), Color(1.0, 0.6, 0.25), 10)
+	B3.light(root, pos + Vector3(-side * 0.6, 0.5, 0), Color(1.0, 0.6, 0.3), 2.6, 10.0).set_meta("flicker", true)
+
+
+## Käfig aus Gitterstäben (2,4 × 2,2 × 2,4 m), Rückseite offen zur Wand.
+static func _cage(root: Node3D, pos: Vector3, iron: Material) -> void:
+	var n := Node3D.new()
+	n.position = pos
+	root.add_child(n)
+	for k in 9:
+		var x := -1.2 + k * 0.3
+		B3.cyl(n, 0.02, 0.02, 2.2, Vector3(x, 1.1, 1.2), iron, false, 5)
+	for k in 8:
+		var z := -1.2 + k * 0.3 + 0.15
+		B3.cyl(n, 0.02, 0.02, 2.2, Vector3(-1.2, 1.1, z), iron, false, 5)
+		B3.cyl(n, 0.02, 0.02, 2.2, Vector3(1.2, 1.1, z), iron, false, 5)
+	for y in [0.05, 2.2]:
+		B3.box(n, Vector3(2.5, 0.05, 0.05), Vector3(0, y, 1.2), iron, false)
+		B3.box(n, Vector3(0.05, 0.05, 2.5), Vector3(-1.2, y, 0), iron, false)
+		B3.box(n, Vector3(0.05, 0.05, 2.5), Vector3(1.2, y, 0), iron, false)
+	B3.wall_invisible(n, Vector3(2.5, 2.2, 0.1), Vector3(0, 1.1, 1.2))
+	B3.wall_invisible(n, Vector3(0.1, 2.2, 2.5), Vector3(-1.2, 1.1, 0))
+	B3.wall_invisible(n, Vector3(0.1, 2.2, 2.5), Vector3(1.2, 1.1, 0))
+	Interiors.prop(n, "wooden_bowl_01", Vector3(0.6, 0, 0.6), 0.0)
+	B3.box(n, Vector3(1.4, 0.08, 0.7), Vector3(-0.3, 0.04, -0.6), B3.mat(Color(0.5, 0.42, 0.3), 0.95), false)
+
+
+static func cellar(root: Node3D, _loc: Dictionary) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1801
+	var W := 16.0
+	var D := 22.0
+	var H := 4.2
+	var hx := W * 0.5
+	var hz := D * 0.5
+	var m := Interiors.shell(root, W, D, H, Color(0.58, 0.55, 0.52), Color(0.4, 0.37, 0.34), 1.8)
+	var rock := BuildingLook.photo_material("rubble", "stone", Color(0.45, 0.43, 0.42), 0.75)
+	var iron := B3.mat(Color(0.22, 0.22, 0.24), 0.5, 0.8)
+	B3.box(root, Vector3(W, 0.04, D), Vector3(0, 0.02, 0), rock, false)
+	# Pfeiler und Fackeln
+	for z in [-6.0, 0.0, 6.0]:
+		for sx in [-1.0, 1.0]:
+			B3.box(root, Vector3(0.7, H, 0.7), Vector3(sx * 4.5, H * 0.5, z), rock)
+			_torch(root, Vector3(sx * (hx - 0.1), 2.2, z + 3.0), sx)
+	# Verlies: zwei Käfige an der Westwand, ein Gefangener
+	for z in [-7.0, -3.0]:
+		_cage(root, Vector3(-hx + 1.6, 0, z), iron)
+	Townsfolk.spawn(root, [], [Vector3(-hx + 1.6, 0, -3.0)], 1802, 1, "adventurer")
+	# Zähltisch der Acht Finger: Gold, Schuldbuch, Kerzen
+	var tbl := Interiors.prop_h(root, "WoodenTable_01", Vector3(3.0, 0, -7.5), 0.78, 90.0, true)
+	var ty := tbl.y if tbl != Vector3.ZERO else 0.78
+	var goldm := B3.mat(Color(1.0, 0.82, 0.3), 0.3, 0.9, Color(0.6, 0.45, 0.1), 0.6)
+	for k in 16:
+		B3.cyl(root, 0.06, 0.06, 0.012, Vector3(3.0 + rng.randf_range(-0.6, 0.6), ty + 0.006 + (k % 3) * 0.012, -7.5 + rng.randf_range(-0.35, 0.35)), goldm, false, 10)
+	B3.sphere(root, 0.22, Vector3(2.6, ty + 0.1, -7.3), goldm, Vector3(1.3, 0.5, 1.0))
+	Interiors.prop(root, "book_encyclopedia_set_01", Vector3(3.6, ty, -7.9), 15.0)
+	Interiors.candle(root, Vector3(2.3, ty, -7.95))
+	Interiors.candle(root, Vector3(3.8, ty, -7.1), "brass_candleholders")
+	Interiors.chair_at(root, Vector3(3.0, 0, -7.5), 270.0, 0.95)
+	# Schmuggelware entlang der Ostwand, Waffen an der Westwand
+	Interiors.prop_h(root, "wooden_crate_01", Vector3(hx - 0.9, 0, 4.0), 0.55, 10.0, true)
+	Interiors.prop_h(root, "wooden_crate_02", Vector3(hx - 0.9, 0.55, 4.0), 0.5, 80.0, false)
+	Interiors.prop_h(root, "wooden_crate_02", Vector3(hx - 2.0, 0, 4.4), 0.5, 30.0, true)
+	Interiors.prop_h(root, "barrel_03", Vector3(hx - 0.8, 0, 7.5), 0.9, 0.0, true)
+	Interiors.prop_h(root, "wine_barrel_01", Vector3(hx - 0.8, 0, 1.2), 0.95, 20.0, true)
+	Interiors.prop_h(root, "wooden_barrels_01", Vector3(-hx + 1.8, 0, 6.5), 0.9, 60.0, true)
+	Interiors.prop(root, "wicker_basket_02", Vector3(hx - 2.2, 0, 7.4), 40.0)
+	_sword_rack(root, Vector3(-hx + 0.35, 0, 1.5), 90.0, m, iron, 5)
+	Interiors.prop_h(root, "kite_shield", Vector3(-hx + 0.08, 2.0, 3.5), 1.0, 90.0)
+	# Blut, Ketten, Staub
+	GroundMark.ring(root, Vector3(0.5, 0.03, -2.0), 0.9, Color(0.3, 0.02, 0.03), 3600.0, 0.6)
+	GroundMark.ring(root, Vector3(-2.5, 0.03, 5.0), 0.6, Color(0.3, 0.02, 0.03), 3600.0, 0.6)
+	for x in [-2.0, 2.0]:
+		B3.cyl(root, 0.02, 0.02, 1.6, Vector3(x, H - 0.9, 2.0), iron, false, 6)
+	B3.motes(root, Vector3(0, 2.0, 0), Vector3(6.5, 1.5, 9.0), Color(0.8, 0.75, 0.7, 0.4), 60)
+	Interiors.lantern(root, Vector3(0, 3.5, -7.0), H - 0.3, 1.4)
+	Interiors.lantern(root, Vector3(0, 3.5, 5.0), H - 0.3, 1.4)
+	B3.light(root, Vector3(0, H - 1.0, -1.0), Color(1.0, 0.75, 0.5), 2.2, 16.0)
+	return {"spawn": Vector3(0, 0.2, hz - 1.6), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(0, 0, -9.5)]}

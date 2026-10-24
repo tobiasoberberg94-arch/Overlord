@@ -1,0 +1,99 @@
+{
+ "_info": "Handel je Figur (scripts/ui/trade_dialog.gd). offers: kind item (Ausrüstung aus progression.json) oder service (heal, mana, rest, meal, bless, heal_full, rumor) mit price und optional requires (wie Game.check). buys: Material → Ankaufspreis je Stück; buys_all + factor kauft alles aus dem Beutel zum Grundwert × factor. rumors: Gerüchte für den Dienst rumor.",
+ "lizzie": {
+  "title": "Apotheke Bareare",
+  "greeting": "Tränke, Kräuter, Verbände – und ich zahle gut für frisches Mondkraut.",
+  "offers": [
+   {"kind": "service", "id": "heal", "name": "Heiltrank", "desc": "Rot, bitter, wirkt sofort: Leben vollständig wiederhergestellt.", "price": 20},
+   {"kind": "service", "id": "mana", "name": "Manatrank", "desc": "Blau und kalt: Mana vollständig wiederhergestellt.", "price": 15},
+   {"kind": "item", "id": "silver_ring", "price": 110},
+   {"kind": "item", "id": "velvet_gloves", "price": 100}
+  ],
+  "buys": {"moonleaf": 6, "bloodcap": 9, "bloodrose": 10, "glowbeetle": 4, "sunfruit": 7}
+ },
+ "smith": {
+  "title": "Schmiede zum Glühenden Amboss",
+  "greeting": "Klingen, Panzer, Beschläge. Erz nehme ich, Schuppen auch – alles, was sich schmieden lässt.",
+  "offers": [
+   {"kind": "item", "id": "iron_blade", "price": 100},
+   {"kind": "item", "id": "hook_dagger", "price": 100},
+   {"kind": "item", "id": "bone_mail", "price": 110},
+   {"kind": "item", "id": "mithril_saber", "price": 300, "requires": {"chapter_min": 3}},
+   {"kind": "item", "id": "scale_vest", "price": 280, "requires": {"flags_any": ["lizard_resolved", "lizard_conquered"]}}
+  ],
+  "buys": {"iron_ore": 5, "scale": 8, "fang": 4, "insignia": 6, "relic_shard": 20}
+ },
+ "innkeeper": {
+  "title": "Gasthaus Goldener Pavillon",
+  "greeting": "Ein Zimmer, ein Eintopf, ein Gerücht – was darf es sein, Herr Momon?",
+  "offers": [
+   {"kind": "service", "id": "rest", "name": "Ein Zimmer für die Nacht", "desc": "Schlaf im besten Haus am Platz: Leben, Mana und Ausdauer vollständig erholt.", "price": 12},
+   {"kind": "service", "id": "meal", "name": "Eintopf und Bier", "desc": "Heiß und viel. Leben und Ausdauer zur Hälfte erholt.", "price": 5},
+   {"kind": "service", "id": "rumor", "name": "Ein Gerücht hören", "desc": "Der Wirt weiß, was die Stadt flüstert.", "price": 2}
+  ],
+  "rumors": [
+   "Eine Frau in Rot hat gestern nach Euch gefragt, Herr Momon. Sie lächelte dabei. Mir gefiel das Lächeln nicht.",
+   "Khajiit, der Totenbeschwörer, soll nachts auf dem Friedhof gesehen worden sein. Die Priester sagen nichts – das sagt genug.",
+   "Die Acht Finger kaufen im Süden der Hauptstadt ganze Straßen auf. Wer nicht verkauft, dessen Haus brennt.",
+   "In Carne soll ein Dorfmädchen eine Goblin-Armee befehligen. Der Bierkutscher schwört es.",
+   "Der Gildenmeister trinkt seit Wochen nur noch Wasser. Irgendetwas macht ihm Angst, und es ist nicht die Gilde."
+  ]
+ },
+ "carne_innkeeper": {
+  "title": "Dorfschenke Carne",
+  "greeting": "Setzt Euch, es gibt Eintopf. Und wenn Ihr Kräuter habt – ich koche daraus, was Nfirea nicht braucht.",
+  "offers": [
+   {"kind": "service", "id": "rest", "name": "Ein Lager im Heu", "desc": "Nicht das Beste, aber warm. Leben, Mana und Ausdauer erholt.", "price": 6},
+   {"kind": "service", "id": "meal", "name": "Eintopf", "desc": "Mit allem, was das Dorf hergibt. Leben und Ausdauer zur Hälfte erholt.", "price": 3},
+   {"kind": "service", "id": "rumor", "name": "Dorfklatsch", "desc": "Marla hört alles.", "price": 1}
+  ],
+  "rumors": [
+   "Die Goblins haben nachts etwas im Wald gesehen – groß, weiß, mit einem Schwert im Maul. Sie sagen, es habe sich verbeugt.",
+   "Nfirea schläft nicht mehr. Er sagt, er arbeite an einem Trank. Enri sagt, er starre nur das Fenster an.",
+   "Seit dem Überfall gehen die Kinder nicht mehr allein zum Bach. Die Goblins gehen mit. Die Kinder finden das großartig."
+  ],
+  "buys": {"moonleaf": 5, "glowbeetle": 4, "wolf_pelt": 10, "fang": 4}
+ },
+ "gondo": {
+  "title": "Schmiedehalle von Feo Jera",
+  "greeting": "Runenhandwerk! Das letzte seiner Art. Erz nehme ich – gutes Erz, nicht den Schrott der Quagoa.",
+  "offers": [
+   {"kind": "item", "id": "rune_amulet", "price": 320, "requires": {"flags_all": ["dwarf_contact"]}},
+   {"kind": "item", "id": "rune_shield", "price": 700, "requires": {"flags_all": ["frost_dragon_done"]}}
+  ],
+  "buys": {"iron_ore": 8, "relic_shard": 25}
+ },
+ "fluder": {
+  "title": "Magierakademie von Arwintar",
+  "greeting": "Wissen hat seinen Preis. Ich zahle meinen – in Gold, wenn es sein muss.",
+  "offers": [
+   {"kind": "item", "id": "ink_quill", "price": 110},
+   {"kind": "item", "id": "crown_eloquence", "price": 320},
+   {"kind": "item", "id": "spy_eye", "price": 350, "requires": {"flags_all": ["empire_pact"]}}
+  ],
+  "buys": {"relic_shard": 30, "angel_feather": 15}
+ },
+ "priest": {
+  "title": "Tempel der Vier Götter",
+  "greeting": "Die Vier Götter heilen jeden, der spendet. Die Spende ist freiwillig. Die Höhe nicht.",
+  "offers": [
+   {"kind": "service", "id": "bless", "name": "Segen der Vier", "desc": "Leben und Mana zur Hälfte erholt.", "price": 10},
+   {"kind": "service", "id": "heal_full", "name": "Großes Heilgebet", "desc": "Leben und Mana vollständig erholt.", "price": 30}
+  ],
+  "buys": {"angel_feather": 12, "bone_dust": 2, "relic_shard": 15}
+ },
+ "guild_clerk": {
+  "title": "Abenteurergilde von E-Rantel",
+  "greeting": "Trophäen und Beute kauft die Gilde zum Tageskurs.",
+  "offers": [],
+  "buys_all": true,
+  "factor": 1.0
+ },
+ "enri": {
+  "title": "Dorf Carne",
+  "greeting": "Was Ihr im Wald gesammelt habt, kann das Dorf gebrauchen.",
+  "offers": [],
+  "buys_all": true,
+  "factor": 1.0
+ }
+}

@@ -646,6 +646,17 @@
       -76.0
      ],
      "yaw": 180
+    },
+    {
+     "id": "keller",
+     "to": "re_capital_keller",
+     "name": "Kellerluke der Acht Finger",
+     "at": [
+      -6.0,
+      -0.3,
+      77.5
+     ],
+     "yaw": 90
     }
    ]
   },
@@ -1119,6 +1130,43 @@
     {
      "id": "jircniv",
      "line": "Willkommen, Zauberkönig. Setzt Euch. Nein – nehmt den Thron, wenn Ihr wollt. Ich scherze. Halb."
+    }
+   ]
+  },
+  {
+   "id": "re_capital_keller",
+   "name": "Keller der Acht Finger",
+   "kind": "cellar",
+   "group": "interior",
+   "parent": "re_capital",
+   "region": "re_capital",
+   "sky": "re_estize",
+   "music": "tension",
+   "desc": "Unter dem Armenviertel: Schmuggelware, ein Zähltisch voller Gold, Käfige – und die Männer, die das alles bewachen.",
+   "encounters": [
+    {
+     "enemy": "eight_fingers",
+     "count": 3,
+     "at": [
+      0.0,
+      -3.0
+     ]
+    },
+    {
+     "enemy": "bandit_archer",
+     "count": 2,
+     "at": [
+      2.5,
+      -6.5
+     ]
+    },
+    {
+     "enemy": "mercenary",
+     "count": 1,
+     "at": [
+      -1.5,
+      -8.5
+     ]
     }
    ]
   }

@@ -130,15 +130,6 @@ func _build_ui() -> void:
 	Pad.changed.connect(func(on: bool): if on: _focus_menu())
 	if Pad.connected():
 		call_deferred("_focus_menu")
-
-
-func _focus_menu() -> void:
-	if not is_inside_tree() or ui_root.get_child_count() > 1:
-		return
-	for c in _menu.get_children():
-		if c is Button and not (c as Button).disabled:
-			(c as Button).grab_focus()
-			return
 	var foot := Label.new()
 	foot.text = "Fan-Projekt · inspiriert von „Overlord“ (Kugane Maruyama)"
 	foot.theme_type_variation = "MutedLabel"
@@ -199,3 +190,13 @@ func _go() -> void:
 	tw.tween_property(fade, "color:a", 1.0, 0.6)
 	await tw.finished
 	get_tree().change_scene_to_file(WORLD_SCENE)
+
+
+## Controller: ersten Menüknopf fokussieren (Steuerkreuz/Stick wandern, A wählt).
+func _focus_menu() -> void:
+	if not is_inside_tree() or ui_root.get_child_count() > 1:
+		return
+	for c in _menu.get_children():
+		if c is Button and not (c as Button).disabled:
+			(c as Button).grab_focus()
+			return
