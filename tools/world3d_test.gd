@@ -90,6 +90,60 @@ func _ready() -> void:
 			print("PROP %-26s %s" % [n, (w2.size as Vector3).snapped(Vector3(0.01, 0.01, 0.01)) if not w2.is_empty() else "fehlt"])
 		get_tree().quit()
 		return
+	if only == "pad":
+		# Controller-Simulation ohne Gerät: linker Stick bewegt, rechter Stick dreht, Start öffnet das Menü mit Fokus,
+		# Steuerkreuz wandert, B schließt, Back öffnet die Karte, A benutzt eine Tür.
+		await w.load_location("e_rantel")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var p0: Vector3 = w.player.global_position
+		_pad_axis(JOY_AXIS_LEFT_Y, -1.0)
+		await _wait(1.5)
+		_pad_axis(JOY_AXIS_LEFT_Y, 0.0)
+		await _wait(0.3)
+		print("PAD Bewegung: %.1f m · Controller aktiv: %s" % [w.player.global_position.distance_to(p0), Pad.active])
+		var yaw0: float = w.player.cam_yaw
+		_pad_axis(JOY_AXIS_RIGHT_X, 1.0)
+		await _wait(0.6)
+		_pad_axis(JOY_AXIS_RIGHT_X, 0.0)
+		print("PAD Kamera: Drehung %.2f rad" % absf(wrapf(w.player.cam_yaw - yaw0, -PI, PI)))
+		print("PAD HUD: Aufforderung '%s' · Hilfe Controller: %s" % [w.hud.prompt_key.text, w.hud.help_text.text.contains("Linker Stick")])
+		await _pad_button(JOY_BUTTON_START)
+		await _wait(0.7)
+		var foc := get_viewport().gui_get_focus_owner()
+		print("PAD Start: %d Fenster · Fokus: %s" % [w.overlay_layer.get_child_count(), (foc as Button).text.get_slice("\n", 0) if foc is Button else "keiner"])
+		_shot("pad_menu")
+		await _pad_button(JOY_BUTTON_DPAD_DOWN)
+		await _wait(0.3)
+		foc = get_viewport().gui_get_focus_owner()
+		print("PAD Steuerkreuz: Fokus: %s" % ((foc as Button).text.get_slice("\n", 0) if foc is Button else "keiner"))
+		await _pad_button(JOY_BUTTON_A)
+		await _wait(0.8)
+		foc = get_viewport().gui_get_focus_owner()
+		print("PAD A im Menü: %d Fenster · Fokus: %s" % [w.overlay_layer.get_child_count(), (foc as Button).text.get_slice("\n", 0) if foc is Button else "keiner"])
+		_shot("pad_submenu")
+		await _pad_button(JOY_BUTTON_B)
+		await _wait(0.6)
+		print("PAD B: %d Fenster" % w.overlay_layer.get_child_count())
+		await _pad_button(JOY_BUTTON_BACK)
+		await _wait(1.2)
+		print("PAD Back (Karte): %d Fenster" % w.overlay_layer.get_child_count())
+		await _pad_button(JOY_BUTTON_B)
+		await _wait(0.8)
+		var door: Actor3D = null
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id) == "door:gilde":
+				door = a
+		if door:
+			w.player.global_position = door.global_position + Vector3(0, 0.1, 1.2)
+			await _wait(1.0)
+			await _pad_button(JOY_BUTTON_A)
+			await _wait(4.0)
+			print("PAD A an der Tür: jetzt in %s" % w.loc.id)
+		print("PADDONE")
+		get_tree().quit()
+		return
 	if only == "probe":
 		# Bodenprobe: PROBE="ort:x,z;ort:x,z" – was liegt unter dem Punkt (Kollisionskörper, Höhe, Neigung)?
 		for spec in OS.get_environment("PROBE").split(";", false):
@@ -1828,3 +1882,26 @@ func _perf_detail(w: Node) -> void:
 	keys.sort_custom(func(a, b): return per[a] > per[b])
 	for k in keys.slice(0, 25):
 		print("PERF %-45s %d" % [k, per[k]])
+
+
+## Controller-Simulation: Taste drücken und loslassen (Input.parse_input_event braucht kein echtes Gerät).
+func _pad_button(b: JoyButton) -> void:
+	var ev := InputEventJoypadButton.new()
+	ev.device = 0
+	ev.button_index = b
+	ev.pressed = true
+	Input.parse_input_event(ev)
+	await _wait(0.1)
+	var up := InputEventJoypadButton.new()
+	up.device = 0
+	up.button_index = b
+	up.pressed = false
+	Input.parse_input_event(up)
+
+
+func _pad_axis(a: JoyAxis, v: float) -> void:
+	var ev := InputEventJoypadMotion.new()
+	ev.device = 0
+	ev.axis = a
+	ev.axis_value = v
+	Input.parse_input_event(ev)

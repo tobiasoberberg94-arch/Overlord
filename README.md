@@ -72,6 +72,26 @@ Du betrittst Nazarick und die Neue Welt **selbst** – als Ainz Ooal Gown in der
 
 Alle Umgebungen, Figuren und Himmel werden prozedural erzeugt; echte `.glb`-Modelle ersetzen sie automatisch.
 
+## Controller
+
+Das Spiel lässt sich vollständig mit Gamepad spielen (Xbox, PlayStation und kompatible; Namen hier nach Xbox, PlayStation zeigt ✕ ○ □ △ und L1/R1/L2/R2). Sobald der Controller benutzt wird, zeigen Hilfe, Aufforderungen und Zauberleiste seine Tasten, der Mauszeiger verschwindet, und in allen Fenstern ist ein Knopf fokussiert (Steuerkreuz/Stick wandern, A bestätigt, B schließt).
+
+| Taste | Wirkung |
+|---|---|
+| Linker Stick / L3 | Gehen / Rennen |
+| Rechter Stick / R3 | Kamera / Ziel fixieren |
+| X / Y | Leichter / schwerer Angriff |
+| B | Ausweichrolle · in Fenstern zurück |
+| LT | Blocken, im richtigen Moment Parade |
+| A | Sprechen, benutzen, Türen · in Fenstern bestätigen |
+| Steuerkreuz | Zauber 1–4 |
+| RB / RT | Zauber 5 / 6 |
+| LB | Superrang-Magie (Ainz) |
+| Start | Menü – darin „Bücher, Karten & Berichte“ (Zauberbuch, Questbuch, Karte, Depeschen, Zeit, Gate, Ainz ↔ Momon, Diplomatie …) |
+| Back | Weltkarte |
+
+Einstellungen → Steuerung: Kamera-Empfindlichkeit, Y-Achse umkehren, Vibration. Technik: `scripts/autoload/pad.gd` (Geräteerkennung, Symbole, Vibration), Belegung in `Player3D._ensure_actions`, Fokus in `Overlay._focus_first`. Test ohne Gerät: `LOC=pad godot res://tools/world3d_test.tscn` simuliert Stick, Tasten und Menüs.
+
 ## Kampfsystem (Third-Person, im Stil von The Witcher 3)
 
 | Aktion | Taste |

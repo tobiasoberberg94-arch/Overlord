@@ -282,7 +282,7 @@ func _build_misc() -> void:
 	ph.add_theme_constant_override("separation", 12)
 	ph.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_outlined(prompt_key, 17, Palette.GOLD_BRIGHT, NazarickTheme.display_font(800), 0)
-	prompt_key.text = "E"
+	prompt_key.text = Pad.glyph("interact") if Pad.active else "E"
 	prompt_key.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	prompt_key.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	prompt_key.custom_minimum_size = Vector2(30, 30)
@@ -301,14 +301,9 @@ func _build_misc() -> void:
 	help_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_rich(help_text, 15)
 	help_text.custom_minimum_size.x = 340
-	help_text.text = "[color=#d4af37][b]STEUERUNG[/b][/color]  [color=#8f86a3][i]F1 ein/aus[/i][/color]\n" + \
-		"[color=#f5d77a]WASD[/color] gehen · [color=#f5d77a]Shift[/color] rennen · Maus Kamera\n" + \
-		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
-		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
-		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche · [color=#c9a8ff]B[/color] Zauberbuch\n" + \
-		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
-		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
+	help_text.text = _help_bbcode()
 	help_panel.add_child(help_text)
+	Pad.changed.connect(func(_on: bool): _device_changed())
 	help_panel.visible = Settings.show_help
 	add_child(help_panel)
 	# Toasts
@@ -417,6 +412,35 @@ func toast(text: String, color: Color = Palette.GOLD_BRIGHT) -> void:
 	tw.tween_callback(p.queue_free)
 
 
+## Steuerungshilfe – Tastatur oder Controller, je nachdem, was zuletzt benutzt wurde.
+func _help_bbcode() -> String:
+	if Pad.active:
+		var g := func(a: String) -> String: return "[color=#f5d77a]" + Pad.glyph(a) + "[/color]"
+		return "[color=#d4af37][b]STEUERUNG[/b][/color]  [color=#8f86a3][i]Controller[/i][/color]\n" + \
+			"[color=#f5d77a]Linker Stick[/color] gehen · " + g.call("sprint") + " rennen · [color=#f5d77a]Rechter Stick[/color] Kamera · " + g.call("lock_on") + " Ziel\n" + \
+			"[color=#ff9a8a]" + Pad.glyph("attack_light") + "[/color] leicht · [color=#ff9a8a]" + Pad.glyph("attack_heavy") + "[/color] schwer · " + g.call("dodge") + " Rolle · " + g.call("block") + " Block/Parade\n" + \
+			"[color=#f5d77a]Steuerkreuz[/color] Zauber 1–4 · " + g.call("spell_5") + " Zauber 5 · " + g.call("spell_6") + " Zauber 6 · " + g.call("spell_super") + " Superrang\n" + \
+			g.call("interact") + " benutzen · " + g.call("menu") + " Menü (Bücher, Karten, Gate, Zeit, Momon) · " + g.call("map") + " Weltkarte"
+	return "[color=#d4af37][b]STEUERUNG[/b][/color]  [color=#8f86a3][i]F1 ein/aus[/i][/color]\n" + \
+		"[color=#f5d77a]WASD[/color] gehen · [color=#f5d77a]Shift[/color] rennen · Maus Kamera\n" + \
+		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
+		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
+		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche · [color=#c9a8ff]B[/color] Zauberbuch\n" + \
+		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
+		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
+
+
+## Gerät gewechselt (Controller ↔ Maus/Tastatur): Tastensymbole der Hilfe, der Aufforderung und der Zauberleiste anpassen.
+func _device_changed() -> void:
+	help_text.text = _help_bbcode()
+	prompt_key.text = Pad.glyph("interact") if Pad.active else "E"
+	if _spell_player and is_instance_valid(_spell_player):
+		rebuild_spells(_spell_player)
+
+
+var _spell_player: Node = null
+
+
 func toggle_help() -> void:
 	help_panel.visible = not help_panel.visible
 	Settings.set_value("show_help", help_panel.visible)
@@ -441,6 +465,7 @@ func _on_souls(_total: int, gained: int) -> void:
 
 
 func rebuild_spells(player: Node) -> void:
+	_spell_player = player
 	for c in spell_row.get_children():
 		c.queue_free()
 	slots.clear()

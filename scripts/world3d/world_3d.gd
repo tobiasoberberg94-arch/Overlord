@@ -300,7 +300,7 @@ func _process(delta: float) -> void:
 			a.process_mode = Node.PROCESS_MODE_DISABLED if freeze else Node.PROCESS_MODE_INHERIT
 	if blocked:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if Pad.active else Input.MOUSE_MODE_VISIBLE
 	_update_focus()
 	_animate(delta)
 	_update_combat_hud(blocked)
@@ -366,16 +366,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and _focus:
 		_interact(_focus)
 		return
+	# Controller: Start = Menü, Back = Weltkarte (alles Weitere über „Bücher, Karten & Berichte“ im Menü)
+	var jb := event as InputEventJoypadButton
+	if jb and jb.pressed:
+		match jb.button_index:
+			JOY_BUTTON_START: _pause_menu()
+			JOY_BUTTON_BACK: _open_map()
+		return
 	var key := event as InputEventKey
 	if key == null or not key.pressed or key.echo:
 		return
 	match key.keycode:
 		KEY_ESCAPE: _pause_menu()
 		KEY_B: _open(Grimoire.new())
-		KEY_J:
-			var qj := QuestJournal.new()
-			qj.replay_requested.connect(func(mid: String): replay_story(mid))
-			_open(qj)
+		KEY_J: _open_journal()
 		KEY_K: _open(MissionBoard.new(loc.get("region", "")))
 		KEY_M: _open_map()
 		KEY_P: _open(DiplomacyView.new())
@@ -627,9 +631,36 @@ func _region_menu() -> void:
 	], 700))
 
 
+func _open_journal() -> void:
+	var qj := QuestJournal.new()
+	qj.replay_requested.connect(func(mid: String): replay_story(mid))
+	_open(qj)
+
+
+## Alle Fenster, die sonst auf Tasten liegen – für Controller-Spieler und als Übersicht.
+func _books_menu() -> void:
+	_open(ChoiceMenu.new("Bücher, Karten & Berichte", "Alles, was sonst auf Tasten liegt", [
+		{"text": "📜  Zauberbuch", "sub": "Seelen, Zauber, Ringe (B)", "action": func(): _open(Grimoire.new())},
+		{"text": "📔  Questbuch (J)", "action": _open_journal},
+		{"text": "🗺  Weltkarte & Legionen (M)", "action": _open_map},
+		{"text": "⚔  Entsendungen der Wächter (K)", "action": func(): _open(MissionBoard.new(loc.get("region", "")))},
+		{"text": "✉  Nächste Depesche (Enter)", "action": func(): _open_next_dispatch(true)},
+		{"text": "◷  Zeit verstreichen lassen (T)", "action": _time_menu},
+		{"text": "🌀  Gate – Reisen (G)", "action": _gate_menu},
+		{"text": "🎭  Ainz ↔ Momon (X)", "action": player.toggle_style},
+		{"text": "🤝  Diplomatie (P)", "action": func(): _open(DiplomacyView.new())},
+		{"text": "🏛  Verwaltung (V)", "action": func(): _open(AdministrationView.new())},
+		{"text": "🏰  Nazarick (N)", "action": func(): _open(NazarickView.new())},
+		{"text": "👑  Wächter & Audienzen (U)", "action": func(): _open(CharacterView.new("albedo"))},
+		{"text": "📚  Chronik (C)", "action": func(): _open(ChronicleView.new())},
+		{"text": "🎯  Wochenziele (Tab)", "action": hud.toggle_goals},
+	], 700))
+
+
 func _pause_menu() -> void:
 	_open(ChoiceMenu.new("Pause", "%s · Tag %d" % [Game.state.lord_name, Game.state.day], [
 		{"text": "▶  Weiter", "action": func(): pass, "style": "ButtonPrimary"},
+		{"text": "📖  Bücher, Karten & Berichte", "sub": "Zauberbuch, Questbuch, Karte, Depeschen, Gate …", "action": _books_menu},
 		{"text": "✎  Speichern", "action": func(): _open(SaveLoadDialog.new(true))},
 		{"text": "☰  Laden", "action": _load_menu},
 		{"text": "⚙  Einstellungen", "action": _settings},

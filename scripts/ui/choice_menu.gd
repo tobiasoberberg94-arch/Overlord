@@ -20,6 +20,7 @@ func _init(title: String, subtitle: String, entries: Array, width: float = 760.0
 	var sc := ScrollContainer.new()
 	sc.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	sc.follow_focus = true
 	sc.custom_minimum_size.y = mini(entries.size(), 7) * 76
 	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_list.add_theme_constant_override("separation", 8)

@@ -126,6 +126,19 @@ func _build_ui() -> void:
 	_add_button("Chronik laden", "Button", _on_load)
 	_add_button("Optionen", "Button", func(): ui_root.add_child(SettingsDialog.new(false)))
 	_add_button("Nazarick verlassen", "ButtonGhost", func(): get_tree().quit())
+	# Controller: ersten Knopf fokussieren, sobald ein Gamepad benutzt wird (oder schon angeschlossen ist)
+	Pad.changed.connect(func(on: bool): if on: _focus_menu())
+	if Pad.connected():
+		call_deferred("_focus_menu")
+
+
+func _focus_menu() -> void:
+	if not is_inside_tree() or ui_root.get_child_count() > 1:
+		return
+	for c in _menu.get_children():
+		if c is Button and not (c as Button).disabled:
+			(c as Button).grab_focus()
+			return
 	var foot := Label.new()
 	foot.text = "Fan-Projekt · inspiriert von „Overlord“ (Kugane Maruyama)"
 	foot.theme_type_variation = "MutedLabel"

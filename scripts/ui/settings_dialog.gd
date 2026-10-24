@@ -139,6 +139,24 @@ func _game_tab() -> Control:
 
 func _controls_tab() -> Control:
 	var p := _page("Steuerung")
+	p.add_child(_row("Controller: Kamera-Empfindlichkeit", _slider("pad_sensitivity", 0.4, 2.0, 0.1, false), "Drehgeschwindigkeit des rechten Sticks (100 % = normal)."))
+	p.add_child(_row("Controller: Y-Achse umkehren", _check("pad_invert_y", "umkehren")))
+	p.add_child(_row("Controller: Vibration", _check("pad_rumble", "an"), "Bei Treffern und Paraden."))
+	var pt := RichTextLabel.new()
+	pt.bbcode_enabled = true
+	pt.fit_content = true
+	pt.scroll_active = false
+	pt.add_theme_font_size_override("normal_font_size", 16)
+	pt.add_theme_font_size_override("bold_font_size", 16)
+	var pad := [["Linker Stick / L3", "Gehen / Rennen"], ["Rechter Stick / R3", "Kamera / Ziel fixieren"],
+		["X / Y", "Leichter / schwerer Angriff"], ["B", "Ausweichrolle · in Fenstern: zurück"], ["LT", "Blocken / Parade"],
+		["A", "Sprechen / benutzen · in Fenstern: bestätigen"], ["Steuerkreuz", "Zauber 1–4"], ["RB / RT", "Zauber 5 / 6"],
+		["LB", "Superrang-Magie (Ainz)"], ["Start", "Menü – dort „Bücher, Karten & Berichte“ (Zauberbuch, Gate, Zeit, Momon …)"], ["Back", "Weltkarte"]]
+	var pout := "[color=#d4af37][b]Controller[/b][/color]  [color=#8f86a3][i](Xbox-Namen; PlayStation: ✕ ○ □ △, L1/R1/L2/R2)[/i][/color]\n"
+	for k in pad:
+		pout += "[color=#f5d77a][b]%s[/b][/color]   %s\n" % [k[0], k[1]]
+	pt.text = pout
+	p.add_child(pt)
 	var t := RichTextLabel.new()
 	t.bbcode_enabled = true
 	t.fit_content = true
@@ -152,7 +170,7 @@ func _controls_tab() -> Control:
 		["V", "Verwaltung"], ["N", "Nazarick (Ausbau, Schatzkammer)"], ["U", "Wächter & Audienzen"], ["C", "Chronik"],
 		["Tab", "Wochenziele"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"],
 		["F11", "Vollbild umschalten"], ["Esc", "Menü / Fenster schließen"]]
-	var out := ""
+	var out := "[color=#d4af37][b]Tastatur & Maus[/b][/color]\n"
 	for k in keys:
 		out += "[color=#f5d77a][b]%s[/b][/color]   %s\n" % [k[0], k[1]]
 	t.text = out

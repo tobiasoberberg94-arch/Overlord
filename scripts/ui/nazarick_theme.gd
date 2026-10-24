@@ -221,7 +221,7 @@ static func _button(t: Theme, type: String, bg: Color, border: Color, hover_bord
 	t.set_stylebox("pressed", type, pressed)
 	t.set_stylebox("hover_pressed", type, pressed)
 	t.set_stylebox("disabled", type, disabled)
-	t.set_stylebox("focus", type, box(Color.TRANSPARENT, Color(hover_border, 0.7), 1, 9, Color.TRANSPARENT, 0, 10))
+	t.set_stylebox("focus", type, box(Color.TRANSPARENT, Color(hover_border, 0.95), 2, 9, Color.TRANSPARENT, 0, 10))
 	t.set_color("font_color", type, font)
 	t.set_color("font_hover_color", type, font.lightened(0.25))
 	t.set_color("font_pressed_color", type, hover_border)

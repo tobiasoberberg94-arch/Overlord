@@ -30,6 +30,10 @@ var max_fps := 1
 var particles := true
 var day_cycle := true
 var antialias := 2
+# Controller
+var pad_sensitivity := 1.0
+var pad_invert_y := false
+var pad_rumble := true
 var render_scale := -1                 ## -1 = beim ersten Start nach Bildschirmauflösung wählen
 var graphics := 1                      ## Grafikqualität (GraphicsQuality.NAMES): 0 Ausgewogen, 1 Hoch, 2 Ultra
 var ui_scale := 1.0
@@ -72,6 +76,7 @@ func _keys() -> Array:
 		["video", "particles"], ["video", "day_cycle"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"], ["video", "graphics"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],
 		["game", "screen_shake"], ["game", "hitstop"],
+		["controls", "pad_sensitivity"], ["controls", "pad_invert_y"], ["controls", "pad_rumble"],
 	]
 
 

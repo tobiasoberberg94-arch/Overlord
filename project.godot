@@ -24,6 +24,7 @@ Game="*res://scripts/autoload/game.gd"
 Quests="*res://scripts/autoload/quests.gd"
 SaveSystem="*res://scripts/autoload/save_system.gd"
 Audio="*res://scripts/autoload/audio.gd"
+Pad="*res://scripts/autoload/pad.gd"
 
 [display]
 

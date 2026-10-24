@@ -69,14 +69,46 @@ func _draw_frame() -> void:
 
 func _ready() -> void:
 	UIFx.fade_in(_dim, 0.25)
+	Pad.changed.connect(func(on: bool): if on: _focus_first())
 	await get_tree().process_frame
 	UIFx.pop_in(panel, 0.3)
+	_focus_first()
 
 
 func _unhandled_input(event: InputEvent) -> void:
 	if closable and event.is_action_pressed("ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close()
+
+
+## Controller: den ersten Knopf fokussieren (Steuerkreuz/Stick wandern dann, A drückt, B schließt), Listen folgen dem Fokus.
+func _focus_first() -> void:
+	if not is_inside_tree() or _closing:
+		return
+	for sc in find_children("*", "ScrollContainer", true, false):
+		(sc as ScrollContainer).follow_focus = true
+	if not Pad.active:
+		return
+	var owner := get_viewport().gui_get_focus_owner()
+	if owner != null and is_ancestor_of(owner):
+		return
+	var b := _first_button(self)
+	if b:
+		b.grab_focus()
+
+
+func _first_button(n: Node) -> BaseButton:
+	for c in n.get_children():
+		if c is BaseButton:
+			var b := c as BaseButton
+			if b.visible and not b.disabled and b.focus_mode != Control.FOCUS_NONE and b.text != "✕":
+				return b
+		if c is Control and not (c as Control).visible:
+			continue
+		var deeper := _first_button(c)
+		if deeper:
+			return deeper
+	return null
 
 
 var _closing := false

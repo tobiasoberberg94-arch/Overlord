@@ -146,11 +146,80 @@ static func _ensure_actions() -> void:
 			var mb := InputEventMouseButton.new()
 			mb.button_index = spec[1]
 			InputMap.action_add_event(spec[0], mb)
+	# Controller (Xbox-Namen; PlayStation entsprechend) – Symbole und Übersicht in scripts/autoload/pad.gd
+	var pad_buttons := {"interact": JOY_BUTTON_A, "dodge": JOY_BUTTON_B, "attack_light": JOY_BUTTON_X, "attack_heavy": JOY_BUTTON_Y,
+		"spell_super": JOY_BUTTON_LEFT_SHOULDER, "spell_5": JOY_BUTTON_RIGHT_SHOULDER, "lock_on": JOY_BUTTON_RIGHT_STICK,
+		"sprint": JOY_BUTTON_LEFT_STICK, "spell_1": JOY_BUTTON_DPAD_UP, "spell_2": JOY_BUTTON_DPAD_RIGHT,
+		"spell_3": JOY_BUTTON_DPAD_DOWN, "spell_4": JOY_BUTTON_DPAD_LEFT, "ui_accept": JOY_BUTTON_A, "ui_cancel": JOY_BUTTON_B,
+		"ui_up": JOY_BUTTON_DPAD_UP, "ui_down": JOY_BUTTON_DPAD_DOWN, "ui_left": JOY_BUTTON_DPAD_LEFT, "ui_right": JOY_BUTTON_DPAD_RIGHT}
+	for action in pad_buttons:
+		_add_pad_button(action, pad_buttons[action])
+	var pad_axes := {"move_left": [JOY_AXIS_LEFT_X, -1.0], "move_right": [JOY_AXIS_LEFT_X, 1.0], "move_forward": [JOY_AXIS_LEFT_Y, -1.0],
+		"move_back": [JOY_AXIS_LEFT_Y, 1.0], "cam_left": [JOY_AXIS_RIGHT_X, -1.0], "cam_right": [JOY_AXIS_RIGHT_X, 1.0],
+		"cam_up": [JOY_AXIS_RIGHT_Y, -1.0], "cam_down": [JOY_AXIS_RIGHT_Y, 1.0], "block": [JOY_AXIS_TRIGGER_LEFT, 1.0],
+		"spell_6": [JOY_AXIS_TRIGGER_RIGHT, 1.0], "ui_up": [JOY_AXIS_LEFT_Y, -1.0], "ui_down": [JOY_AXIS_LEFT_Y, 1.0],
+		"ui_left": [JOY_AXIS_LEFT_X, -1.0], "ui_right": [JOY_AXIS_LEFT_X, 1.0]}
+	for action in pad_axes:
+		_add_pad_axis(action, pad_axes[action][0], pad_axes[action][1])
+	for action in ["move_left", "move_right", "move_forward", "move_back"]:
+		InputMap.action_set_deadzone(action, 0.25)
+	for action in ["cam_left", "cam_right", "cam_up", "cam_down"]:
+		InputMap.action_set_deadzone(action, 0.18)
 
 
-## Tastenbeschriftung einer Zauber-Aktion für die Zauberleiste (berücksichtigt das Tastaturlayout, z. B. Y/Z).
+static func _add_pad_button(action: String, button: JoyButton) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for ev in InputMap.action_get_events(action):
+		if ev is InputEventJoypadButton and (ev as InputEventJoypadButton).button_index == button:
+			return
+	var jb := InputEventJoypadButton.new()
+	jb.button_index = button
+	InputMap.action_add_event(action, jb)
+
+
+static func _add_pad_axis(action: String, axis: JoyAxis, direction: float) -> void:
+	if not InputMap.has_action(action):
+		InputMap.add_action(action)
+	for ev in InputMap.action_get_events(action):
+		var jm := ev as InputEventJoypadMotion
+		if jm and jm.axis == axis and signf(jm.axis_value) == signf(direction):
+			return
+	var m := InputEventJoypadMotion.new()
+	m.axis = axis
+	m.axis_value = direction
+	InputMap.action_add_event(action, m)
+
+
+## Rechter Stick dreht die Kamera (Empfindlichkeit und Y-Umkehr aus den Einstellungen).
+func _pad_camera(delta: float) -> void:
+	if not input_enabled:
+		return
+	var v := Input.get_vector("cam_left", "cam_right", "cam_up", "cam_down", 0.18)
+	if v == Vector2.ZERO:
+		return
+	var s: float = Settings.pad_sensitivity
+	cam_yaw -= v.x * absf(v.x) * 3.2 * s * delta
+	var dy := v.y * absf(v.y) * 2.2 * s * delta * (-1.0 if Settings.pad_invert_y else 1.0)
+	cam_pitch = clampf(cam_pitch - dy, -1.2, 0.5)
+
+
+## Ainz ↔ Momon (Taste X, Controller-Menü „Bücher, Karten & Berichte“).
+func toggle_style() -> void:
+	if not can_act():
+		return
+	if style.begins_with("g_"):
+		feedback.emit("%s kämpft für Euch – erst nach dem Einsatz zurück" % style_data.name, Color(0.8, 0.8, 0.9))
+	else:
+		set_style("momon" if style == "ainz" else "ainz")
+
+
+## Tastenbeschriftung einer Zauber-Aktion für die Zauberleiste (berücksichtigt das Tastaturlayout, z. B. Y/Z);
+## mit aktivem Controller das Tastensymbol des Gamepads.
 static func key_label(action: String) -> String:
 	_ensure_actions()
+	if Pad.active:
+		return Pad.glyph(action)
 	for ev in InputMap.action_get_events(action):
 		var k := ev as InputEventKey
 		if k:
@@ -267,11 +336,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event.is_action_pressed("lock_on"):
 		toggle_lock()
 	elif event.is_action_pressed("switch_style"):
-		if can_act():
-			if style.begins_with("g_"):
-				feedback.emit("%s kämpft für Euch – erst nach dem Einsatz zurück" % style_data.name, Color(0.8, 0.8, 0.9))
-			else:
-				set_style("momon" if style == "ainz" else "ainz")
+		toggle_style()
 	elif event.is_action_pressed("spell_super"):
 		if super_spell() != "":
 			cast(super_spell())
@@ -493,6 +558,7 @@ func _cancel_cast() -> void:
 
 
 func stagger(strength: float, src: Vector3) -> void:
+	Pad.rumble(clampf(0.3 + strength * 0.4, 0.3, 1.0), 0.2)
 	# Superrang-Magie lässt sich nicht unterbrechen, Momons Unbeugsame Haltung auch nicht
 	if state == S.CAST and String(casting.get("kind", "")) == "super":
 		return
@@ -967,6 +1033,7 @@ func _physics_process(delta: float) -> void:
 		_move_amount = 1.0
 		_update_camera(delta)
 		return
+	_pad_camera(delta)
 	if frozen():
 		velocity = Vector3.ZERO
 		_update_camera(delta)
