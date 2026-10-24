@@ -23,6 +23,8 @@ var overlay_layer := Control.new()
 var celebrations := CelebrationLayer.new()
 var hud := WorldHud.new()
 var quest_world := QuestWorld.new(self)
+## Tag-Nacht-Wechsel (per preload, damit der Klassen-Cache des Editors nicht gebraucht wird)
+var day_cycle: Node = preload("res://scripts/world3d/day_cycle.gd").new()
 var _pickup_focus: Pickup
 var hud_feedback := Label.new()
 var hud_vignette := ColorRect.new()
@@ -47,6 +49,7 @@ func _ready() -> void:
 		Game.new_game()
 	add_child(player)
 	add_child(quest_world)
+	add_child(day_cycle)
 	Actor3D.player = player
 	_build_ui()
 	player.feedback.connect(_on_feedback)
@@ -104,6 +107,7 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	anchors = LocationBuilder.build(loc, level)
 	_spinners = level.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.has_meta("spin"))
 	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
+	day_cycle.setup(level, loc)
 	_place_actors()
 	_spawn_encounters()
 	quest_world.apply_story()
@@ -307,6 +311,7 @@ func _process(delta: float) -> void:
 			_day_timer = 0.0
 			_advance(1, false)
 	hud.day_line.set_values(_day_timer, DAY_SECONDS)
+	day_cycle.update(float(Game.state.get("day", 1)) + _day_timer / DAY_SECONDS)
 
 
 func _animate(delta: float) -> void:
@@ -474,8 +479,22 @@ func board_loc() -> String:
 ## Punkt auf den Boden des Ortes setzen – Türen und Rückkehrpunkte brauchen so keine genaue Höhe in den Daten
 ## (Vorplätze liegen erhöht, Gassen gesenkt; ohne Boden darunter bleibt der Punkt, wie er ist).
 func _on_ground(p: Vector3) -> Vector3:
-	var hit := level.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 8.0, p - Vector3.UP * 8.0, 1))
-	return Vector3(p.x, float(hit.position.y), p.z) if not hit.is_empty() else p
+	# alle Flächen zwischen 8 m über und 8 m unter dem Punkt sammeln und die nehmen, die der Datenhöhe am
+	# nächsten liegt (Gemächer Nazaricks haben Stockwerke, Vorplätze liegen erhöht)
+	var space := level.get_world_3d().direct_space_state
+	var excl: Array[RID] = []
+	var best := p
+	var best_d := INF
+	for k in 4:
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 8.0, p - Vector3.UP * 8.0, 0x7FFFFFFF, excl))
+		if hit.is_empty():
+			break
+		var dd := absf(float(hit.position.y) - p.y)
+		if dd < best_d:
+			best_d = dd
+			best = Vector3(p.x, float(hit.position.y), p.z)
+		excl.append(hit.rid)
+	return best
 
 
 func _enter_door(d: Dictionary) -> void:
@@ -487,8 +506,17 @@ func _enter_door(d: Dictionary) -> void:
 	if not Game.state.has("world3d"):
 		Game.state["world3d"] = {}
 	Game.state.world3d["return"] = {"loc": loc.id, "pos": [out.x, out.y, out.z], "yaw": yaw}
+	# Führt am Ziel eine Tür zurück hierher (Treppen zwischen den Ebenen Nazaricks), kommt man vor ihr an
+	var arrive := {}
+	var target: Dictionary = Content.location_by_id[String(d.to)]
+	for back in target.get("doors", []):
+		if String(back.get("to", "")) == String(loc.id):
+			var bat: Array = back.at
+			var byaw := deg_to_rad(float(back.get("yaw", 180.0)))
+			arrive = {"pos": Vector3(float(bat[0]), float(bat[1]), float(bat[2])) + Basis(Vector3.UP, byaw) * Vector3(0, 0, -1.4), "yaw": byaw}
+			break
 	Audio.sfx("page", 0.5)
-	await load_location(String(d.to), true)
+	await load_location(String(d.to), true, arrive)
 
 
 func _leave_building() -> void:

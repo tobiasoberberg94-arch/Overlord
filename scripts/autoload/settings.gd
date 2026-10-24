@@ -28,6 +28,7 @@ var resolution := 1
 var vsync := true
 var max_fps := 1
 var particles := true
+var day_cycle := true
 var antialias := 2
 var render_scale := -1                 ## -1 = beim ersten Start nach Bildschirmauflösung wählen
 var graphics := 1                      ## Grafikqualität (GraphicsQuality.NAMES): 0 Ausgewogen, 1 Hoch, 2 Ultra
@@ -68,7 +69,7 @@ func _keys() -> Array:
 		["audio", "master_volume"], ["audio", "music_volume"], ["audio", "sfx_volume"], ["audio", "ambience_volume"],
 		["audio", "ui_sounds"],
 		["video", "window_mode"], ["video", "resolution"], ["video", "vsync"], ["video", "max_fps"],
-		["video", "particles"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"], ["video", "graphics"],
+		["video", "particles"], ["video", "day_cycle"], ["video", "ui_scale"], ["video", "antialias"], ["video", "render_scale"], ["video", "graphics"],
 		["game", "text_speed"], ["game", "auto_open"], ["game", "autosave"], ["game", "tutorial_done"], ["game", "show_help"],
 		["game", "screen_shake"], ["game", "hitstop"],
 	]

@@ -222,7 +222,7 @@ func unlocked_chars() -> Array[String]:
 
 
 func has_flag(flag: String) -> bool:
-	return flag in state.flags
+	return flag in state.get("flags", [])
 
 
 func set_flag(flag: String) -> void:
@@ -231,7 +231,7 @@ func set_flag(flag: String) -> void:
 
 
 func day_in_chapter() -> int:
-	return state.day - state.chapter_start_day
+	return int(state.get("day", 1)) - int(state.get("chapter_start_day", 1))
 
 
 func next_uid(prefix: String) -> String:
@@ -274,9 +274,11 @@ func check(cond: Variant) -> bool:
 	if cond == null or not (cond is Dictionary) or cond.is_empty():
 		return true
 	var c: Dictionary = cond
-	if c.has("chapter") and state.chapter != int(c.chapter):
+	# ohne laufendes Spiel (Titelbild, Testwerkzeuge) gilt Kapitel 1
+	var chapter := int(state.get("chapter", 1))
+	if c.has("chapter") and chapter != int(c.chapter):
 		return false
-	if state.chapter < int(c.get("chapter_min", 0)) or state.chapter > int(c.get("chapter_max", 999)):
+	if chapter < int(c.get("chapter_min", 0)) or chapter > int(c.get("chapter_max", 999)):
 		return false
 	if day_in_chapter() < int(c.get("day_in_chapter_min", 0)):
 		return false

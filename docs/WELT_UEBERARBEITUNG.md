@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-23 (Version 2.5.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.6.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -10,7 +10,7 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Shalltear, die Krönungs- und Schuld-Ereignisse. Errungenschaft „Frieden im Harem“ → „Zwei Herzen“.
   Alte Spielstände werden beim Laden bereinigt (`Game._normalize`).
 
-## Innenräume (System erledigt, zehn Räume)
+## Innenräume (System erledigt, zwölf Räume)
 - Türen in Orten: `data/locations.json` → `doors` [{id, to, name, at, yaw}]; Innenräume sind eigene Orte mit
   `group: "interior"` und `parent`. Schild mit Namen und Laterne an jeder Tür; „Verlassen“ bringt den Spieler vor
   dieselbe Tür zurück. Innenräume werden prozedural gebaut (`scripts/world3d/interiors.gd` – Baukasten und erste
@@ -28,8 +28,12 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Schmiedehalle von Feo Jera (drei Essen, Runenpfeiler, Zwerge, Gondo).
 - Neue Figuren: Harlan Eisenhand (Schmied), Priester Rolan, Wirtin Marla, Kardinal Raymond, Fluder Paradyne.
   Bewohner-Stile für Innenräume: `priest`, `mage`, `smith`, `dwarf` (`Townsfolk.spawn(..., style)`).
-- Offen: Ro-Lente-Schloss und Acht-Finger-Keller in Re-Estize, Kaiserpalast in Arwintar, Hütten der
-  Echsenmenschen, Elfenbaumhäuser, Türen in Nazarick (die Ebenen sind bereits begehbare Modelle).
+- Version 2.6: Thronsaal von Ro-Lente (Re-Estize, oben an der Schlossrampe; König Ranpossa III., Gazef) und
+  Audienzsaal des Kaisers (Arwintar; Jircniv) – ein gemeinsamer Raumtyp `court` mit Fraktionsfarben, Wachen im
+  Wappenrock, Adligen, Kriegstisch, Podest mit Thron und Baldachin.
+- Nazarick: Treppen und Tore zwischen den Ebenen als Türen (Ankunft vor der Gegentür), Abstieg vom Mausoleum im
+  Grasland in die Grabkammern.
+- Offen: Acht-Finger-Keller in Re-Estize, Hütten der Echsenmenschen, Elfenbaumhäuser.
 
 ## Proportionen (erledigt)
 - Menschen 1,6–1,85 m (vorher ~2,1 m, so groß wie Laternen): `ProcModel.HUMAN = 0.84`. Ainz, Wächter mit Modell und
@@ -47,10 +51,19 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 - Prüfung: `LOC=dresscheck [DRESSLOCS=ort,ort]` lädt die Orte und meldet jedes Stück, das in einem Gebäude oder
   Fels steckt, keinen Boden unter sich hat oder am Hang steht (`AUSSTATTUNG`-Zeilen). Alle Einträge sind geprüft.
 
+## Tag-Nacht-Wechsel und Bewohner (erledigt, Version 2.6)
+- `scripts/world3d/day_cycle.gd`: ein Sonnenlauf = acht Spieltage (World3D.DAY_SECONDS je Tag). Sonne wandert
+  (Höhe, Stärke, Farbe), nachts Mond von der Gegenseite, HDRI-Himmel über den Shader gedimmt, Umgebungslicht,
+  Nebelfarbe, Lampen/Feuer heller (Meta `base_day`), Bewohner (`Townsfolk.set_night`), Nachtklang
+  (`Audio.play_ambience_for(loc, night)`). Einstellung `day_cycle`; nur Außenorte der Welt, nicht Friedhof (Nacht-HDRI).
+- Händler hinter jedem `SM_MarketStall*` des Ortsmodells (tagsüber), zwei Wachen am Tor (Wappenrock je Fraktion);
+  Bewohner-Stile maid/guard/noble/merchant; Ausstattungsart `folk` setzt Gäste per Daten (Dienstmädchen Nazaricks).
+- Prüfen: `TOD=0.8 LOC=stageview STAGEVIEW="ort:x,z"` (0 = Sonnenaufgang, 0,25 Mittag, 0,5 Abend, 0,8 Nacht).
+
 ## Umgebungsklänge (erledigt)
-- `assets/audio/ambience/<art>.ogg` (17 nahtlose Schleifen à 24 s, prozedural aus `tools/audio/ambience.py`):
+- `assets/audio/ambience/<art>.ogg` (23 nahtlose Schleifen à 24 s, prozedural aus `tools/audio/ambience.py`):
   forest, jungle, village, town, cemetery, swamp, lava, glacier, mountain, battlefield, meadow, interior, home,
-  hall, tombs, church, forge. Zuordnung je Ortsart in `Audio.AMBIENCE_OF` (ein Ort kann mit `"ambience"` eine
+  hall, tombs, church, forge, court sowie Nachtvarianten village/town/forest/meadow/mountain (`_night`). Zuordnung je Ortsart in `Audio.AMBIENCE_OF` (ein Ort kann mit `"ambience"` eine
   andere nennen), Überblendung 2,4 s beim Ortswechsel, eigener Regler „Umgebungsklänge“ in den Einstellungen.
 
 ## Orte – Prüfung je Ort
@@ -70,4 +83,4 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 | Friedhof E-Rantel | Kapelle mit grünem Totenlicht während Khajiits Ritual (Kapitel ≤ 3), danach Feuerschalen; Laternen am Tor und an den Wegen, frisches Grab, Häuser davor | Krypta begehbar |
 | Grasland um Nazarick | Mausoleum mit Bannern Nazaricks, violetten Flammen, Statuen und Lichtstaub; Felder der untoten Arbeiter ab Kapitel 3 (Zaun, Heu, Brunnen), Wolfsrevier, Felsen | – |
 | Großer Wald von Tob | Hamsukes Revier im Norden, verlassenes Jägerlager, Auras Patrouillenposten ab Kapitel 2 mit Banner Nazaricks, Wolfsbau, Stümpfe, Blütenstaub | – |
-| Nazarick-Ebenen | unverändert (eigene Modelle); Umgebungsklang hall/tombs/lava/glacier/jungle | Ausstattung nach Kapitel (Banner, Gäste) |
+| Nazarick-Ebenen | Treppen/Tore zwischen allen Ebenen; Thronsaal mit violetten Feuerschalen, Dienstmädchen, erbeuteten Standarten (nach der Krönung) und Tribut (nach der Entscheidung); Gemächer mit Dienstmädchen und Blumen; Bibliothek mit Leselichtern und Gelehrten; Schatzkammer mit Truhen, Goldkristall und Tribut; Grabkammern mit Totenlicht und Nebel; Gletscher mit Eiskristallen; Dschungel mit Lichtern und Feuer; Lavahölle mit Lavaspalten und Glut | – |

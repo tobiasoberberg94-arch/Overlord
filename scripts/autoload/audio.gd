@@ -23,7 +23,7 @@ const AMBIENCE_OF := {
 	"peaks": "mountain", "grassland": "meadow", "lava": "lava", "glacier": "glacier", "throne": "hall", "library": "hall",
 	"treasury": "hall", "royal": "hall", "tombs": "tombs", "guild": "interior", "tavern": "interior", "shop": "home",
 	"cottage": "home", "smithy": "forge", "forge_hall": "forge", "temple": "church", "basilica": "church",
-	"academy": "home", "inn": "interior",
+	"academy": "home", "inn": "interior", "court": "court",
 }
 const AMBIENCE_GAIN := {"hall": 0.55, "home": 0.7, "interior": 0.8, "tombs": 0.8, "town": 0.85, "church": 0.7, "forge": 0.8}
 
@@ -186,7 +186,7 @@ func set_space(kind: String) -> void:
 	var room := 0.35
 	var wet := 0.12
 	match kind:
-		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava", "temple", "basilica", "forge_hall":
+		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava", "temple", "basilica", "forge_hall", "court":
 			room = 0.85
 			wet = 0.3
 		"glacier", "mountain", "peaks", "cemetery":
@@ -246,9 +246,13 @@ func play_ambience(name: String, gain := 1.0) -> void:
 
 
 ## Umgebungsklang passend zur Ortsart (siehe AMBIENCE_OF); ein Ort kann mit "ambience" einen anderen nennen.
-func play_ambience_for(loc: Dictionary) -> void:
+## night = true: Nachtvariante „<name>_night“, falls vorhanden (Grillen, Eule, ferner Hund statt Tagesvögel).
+func play_ambience_for(loc: Dictionary, night: bool = false) -> void:
 	var name := String(loc.get("ambience", AMBIENCE_OF.get(String(loc.get("kind", "")), "")))
-	play_ambience(name, float(AMBIENCE_GAIN.get(name, 1.0)))
+	var gain := float(AMBIENCE_GAIN.get(name, 1.0))
+	if night and name != "" and ResourceLoader.exists(AMBIENCE_DIR + name + "_night.ogg"):
+		name += "_night"
+	play_ambience(name, gain)
 
 
 func stop_ambience() -> void:

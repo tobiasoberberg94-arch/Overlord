@@ -104,6 +104,7 @@ func _video_tab() -> Control:
 	p.add_child(_row("Vertikale Synchronisation", _check("vsync", "VSync")))
 	p.add_child(_row("Bildrate begrenzen", _choice("max_fps", ["30 FPS", "60 FPS", "120 FPS", "Unbegrenzt"])))
 	p.add_child(_row("Partikel & Nebeleffekte", _check("particles", "anzeigen"), "Abschalten spart Leistung auf schwachen Rechnern (auch weniger Gras, Rauch und Bewohner)."))
+	p.add_child(_row("Tag-Nacht-Wechsel", _check("day_cycle", "an"), "Im Freien wandert die Sonne, nachts leuchten Laternen und Feuer, Händler schließen. Ein Sonnenlauf dauert acht Spieltage."))
 	p.add_child(_row("Kantenglättung", _choice("antialias", Settings.AA_MODES), "Glättet Kanten von Blättern, Gras und Gebäuden."))
 	p.add_child(_row("Grafikqualität", _choice("graphics", GraphicsQuality.NAMES), "Hoch (empfohlen): sieht aus wie Ultra und läuft 10–25 % schneller (weiche Schatten mit weniger Abtastungen, globale Beleuchtung in halber Auflösung).
 Ultra: alles in voller Qualität – braucht deutlich mehr Grafikleistung.

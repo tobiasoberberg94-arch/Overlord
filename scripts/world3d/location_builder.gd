@@ -46,7 +46,7 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 		"battlefield": a = _battlefield(root)
 		"mountain": a = _mountain(root)
 		"peaks": a = _peaks(root)
-		"guild", "tavern", "shop", "cottage", "smithy", "temple", "basilica", "academy", "forge_hall", "inn": a = Interiors.build(loc.kind, root, loc)
+		"guild", "tavern", "shop", "cottage", "smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court": a = Interiors.build(loc.kind, root, loc)
 		_: a = _village(root)
 	if a.has("gate"):
 		_gate(root, a.gate)
@@ -960,7 +960,7 @@ static func preset(kind: String) -> Dictionary:
 		"forest": return {"hdri": "kloofendal_28d_misty_puresky", "sky_top": Color(0.22, 0.4, 0.62), "sky_energy": 0.9, "sky_ambient": true, "lamp": 0.6, "lamp_range": 10.0, "gi": 1.0, "vol_fog": 1.1, "ambient": Color(0.45, 0.55, 0.42), "ambient_energy": 0.75, "fog": Color(0.55, 0.62, 0.48), "fog_density": 0.012, "sun": Color(1.0, 0.9, 0.7), "sun_energy": 1.5, "sun_rot": Vector3(-38, 60, 0), "shadow_dist": 110.0, "saturation": 1.22, "contrast": 1.12, "exposure": 1.05}
 		"swamp": return {"hdri": "evening_road_01_puresky", "sky_top": Color(0.32, 0.42, 0.48), "sky_energy": 0.85, "sky_ambient": true, "ambient": Color(0.5, 0.58, 0.48), "ambient_energy": 0.7, "fog": Color(0.55, 0.62, 0.52), "fog_density": 0.018, "vol_fog": 1.8, "gi": 1.0, "lamp": 0.7, "lamp_range": 9.0, "sun": Color(1.0, 0.86, 0.62), "sun_energy": 1.2, "sun_rot": Vector3(-22, 70, 0), "shadow_dist": 90.0, "saturation": 1.05, "contrast": 1.08, "exposure": 1.05}
 		"battlefield": return {"hdri": "overcast_soil_puresky", "sky_top": Color(0.36, 0.38, 0.46), "sky_energy": 0.8, "sky_ambient": true, "ambient": Color(0.55, 0.55, 0.62), "ambient_energy": 0.7, "fog": Color(0.58, 0.58, 0.66), "fog_density": 0.014, "vol_fog": 1.5, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(0.92, 0.86, 0.82), "sun_energy": 1.0, "sun_rot": Vector3(-24, 130, 0), "shadow_dist": 90.0, "saturation": 0.8, "contrast": 1.1, "exposure": 0.82, "hdri_energy": 0.55, "haze": 1.6}
-		"guild", "tavern", "shop", "cottage", "smithy", "temple", "basilica", "academy", "forge_hall", "inn": return {"sky": false, "bg": Color(0.03, 0.02, 0.015), "ambient": Color(0.62, 0.52, 0.4), "ambient_energy": 0.75, "fog": Color(0.14, 0.1, 0.07), "fog_density": 0.005, "vol_fog": 0.4, "gi": 1.0, "lamp": 0.9, "lamp_range": 9.0, "sun_energy": 0.12, "sun_rot": Vector3(-40, 160, 0), "saturation": 1.08, "contrast": 1.05, "exposure": 1.0}
+		"guild", "tavern", "shop", "cottage", "smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court": return {"sky": false, "bg": Color(0.03, 0.02, 0.015), "ambient": Color(0.62, 0.52, 0.4), "ambient_energy": 0.75, "fog": Color(0.14, 0.1, 0.07), "fog_density": 0.005, "vol_fog": 0.4, "gi": 1.0, "lamp": 0.9, "lamp_range": 9.0, "sun_energy": 0.12, "sun_rot": Vector3(-40, 160, 0), "saturation": 1.08, "contrast": 1.05, "exposure": 1.0}
 		"mountain", "peaks": return {"hdri": "farm_field_puresky", "sky_top": Color(0.18, 0.38, 0.72), "sky_energy": 1.1, "sky_ambient": true, "ambient": Color(0.62, 0.66, 0.74), "ambient_energy": 0.7, "exposure": 1.0, "fog": Color(0.7, 0.76, 0.86), "fog_density": 0.0025, "vol_fog": 0.35, "gi": 1.0, "lamp": 0.7, "lamp_range": 10.0, "sun": Color(1.0, 0.95, 0.88), "sun_energy": 1.7, "sun_rot": Vector3(-36, 50, 0), "shadow_dist": 100.0, "saturation": 1.12, "contrast": 1.12, "clouds": 0.35}
 	return {}
 
@@ -1352,6 +1352,20 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 	var crowd := {"city": 40, "palace": 34, "cathedral": 34, "village": 22, "wall": 16}
 	if (not walk.is_empty() or not idle.is_empty()) and crowd.has(loc.get("kind", "")):
 		Townsfolk.spawn(root, walk, idle, hash(loc.id), int(crowd[loc.kind]))
+	if crowd.has(loc.get("kind", "")):
+		# Händler hinter den Marktständen des Modells (tagsüber) und zwei Wachen am Tor in den Farben der Fraktion
+		var stalls: Array = []
+		for s in root.find_children("SM_MarketStall*", "MeshInstance3D", true, false):
+			var t: Transform3D = (s as Node3D).global_transform
+			stalls.append(t.origin + t.basis.z.normalized() * 1.1)
+		print("Bewohner %s: %d Marktstände mit Händlern" % [loc.id, stalls.size()])
+		if not stalls.is_empty():
+			Townsfolk.spawn(root, [], stalls, hash(loc.id) + 7, stalls.size(), "merchant").name = "Townsfolk_merchant"
+		if a.has("gate"):
+			var tab: String = {"re_capital": "#1d2f6b", "e_rantel": "#1d2f6b", "baharuth": "#8a1a1a", "theokratie": "#e8dcc0",
+				"roble": "#2a4a7a", "carne": "#3a5a2a"}.get(String(loc.id), "#4a4a4a")
+			var g: Vector3 = a.gate
+			Townsfolk.spawn(root, [], [g + Vector3(-2.6, 0, 0), g + Vector3(2.6, 0, 0)], hash(loc.id) + 9, 2, "guard", tab).name = "Townsfolk_guard"
 	if loc.kind == "glacier":
 		# Schneefall rund um den Spieler-Startbereich und über dem Tempel
 		B3.motes(root, a.spawn + Vector3(0, 8, -20), Vector3(45, 8, 45), Color(0.95, 0.97, 1.0), 900 if Settings.particles else 250, 1.2)

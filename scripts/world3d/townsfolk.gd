@@ -15,14 +15,16 @@ var _rng := RandomNumberGenerator.new()
 
 
 ## Erzeugt die Bewohner. count = 0 → automatisch nach Anzahl Wegpunkte.
-## style = "adventurer": Rüstung, Helme, Waffen und Umhänge (Gäste der Abenteurergilde) statt Dorftracht.
-static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: int = 0, style: String = "") -> Townsfolk:
+## style: "" Dorftracht · "adventurer" Rüstung, Helme, Waffen (Gilde) · "priest" · "mage" · "smith" · "dwarf" ·
+## "maid" (Nazarick) · "guard" (Wachen, Wappenrock in `tabard`) · "noble" · "merchant".
+static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: int = 0, style: String = "", tabard: String = "#1d2f6b") -> Townsfolk:
 	var t := Townsfolk.new()
 	t.name = "Townsfolk"
 	parent.add_child(t)
 	t._rng.seed = seed_v
 	t._walk = walk
 	t._style = style
+	t._tabard = tabard
 	var n := count if count > 0 else clampi(walk.size() + idle.size(), 6, 28)
 	if not Settings.particles:
 		n = mini(n, 8)
@@ -34,6 +36,7 @@ static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: 
 
 
 var _style := ""
+var _tabard := "#1d2f6b"      ## Wappenrock der Wachen (Fraktionsfarbe), siehe spawn()
 const ARMOR := ["#8a8f98", "#6a6e78", "#a8aeb8", "#5a4a3a"]
 const CAPE := ["#5a1414", "#1a3a5a", "#2a4a2a", "#3a2a4a", "#6a5a2a"]
 
@@ -91,17 +94,60 @@ func _add(pos: Vector3, standing: bool) -> void:
 		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
 		f["beard"] = ["#8a5a2a", "#c9a25a", "#5a3a20", "#b9b0a5"][_rng.randi() % 4]
 		f["apron"] = _rng.randf() < 0.6
+	elif _style == "maid":
+		# Dienstmädchen Nazaricks: schwarzes Kleid, weiße Schürze, Haube (helles Haar hochgesteckt)
+		f["top"] = "#15121a"
+		f["bottom"] = ["dress", "#15121a"]
+		f["trim"] = "#f0ece4"
+		f["apron"] = true
+		f["hair"] = [HAIR[_rng.randi() % HAIR.size()], "bun"]
+		f["scale"] = _rng.randf_range(0.9, 0.98)
+	elif _style == "guard":
+		# Wachen: Rüstung, Helm, Wappenrock in der Farbe der Fraktion (_tabard)
+		f["bottom"] = ["pants", "#3a3a40"]
+		f["apron"] = false
+		f["armor"] = true
+		f["helmet"] = ARMOR[_rng.randi() % ARMOR.size()]
+		f["tabard"] = _tabard
+		f["scale"] = _rng.randf_range(0.98, 1.06)
+		f["weapon"] = [["spear", "#9a9a9a"], ["sword_shield", "#d0d0d8"]][_rng.randi() % 2]
+	elif _style == "noble":
+		# Adlige: reiche Stoffe, goldene Säume, Umhänge
+		var rich := ["#5a1a2a", "#1a2a5a", "#3a1a4a", "#6a4a10", "#1a4a3a"]
+		f["top"] = rich[_rng.randi() % rich.size()]
+		f["bottom"] = ["dress" if _rng.randf() < 0.5 else "pants", rich[_rng.randi() % rich.size()]]
+		f["trim"] = "#d8b860"
+		f["apron"] = false
+		if _rng.randf() < 0.6:
+			f["cape"] = rich[_rng.randi() % rich.size()]
+	elif _style == "merchant":
+		# Händler hinter ihren Ständen: Schürze, aufgekrempelt, kräftige Farben
+		f["apron"] = true
+		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
+		f["trim"] = ["#a07a4a", "#8a3a2a", "#3a4a6a"][_rng.randi() % 3]
 	var rig := CharacterRig.create("", func(r: CharacterRig) -> void: ProcModel._person(r, f))
 	add_child(rig)
 	rig.position = pos
 	rig.rotation.y = _rng.randf() * TAU
+	# nachts bleiben Händler fort und zwei Drittel der anderen Bewohner – Wachen bleiben
+	var hides: bool = _style == "merchant" or (_style != "guard" and _rng.randf() < 0.66)
 	_people.append({"rig": rig, "target": pos, "speed": _rng.randf_range(1.0, 1.6),
-		"wait": _rng.randf_range(0.0, 6.0) if not standing else 1e9, "talk": standing})
+		"wait": _rng.randf_range(0.0, 6.0) if not standing else 1e9, "talk": standing, "night_hide": hides})
+
+
+## Nacht: ein Teil der Bewohner verschwindet (siehe _add), am Morgen sind alle wieder da.
+func set_night(on: bool) -> void:
+	for p in _people:
+		if p.night_hide and is_instance_valid(p.rig):
+			(p.rig as Node3D).visible = not on
+			(p.rig as Node3D).process_mode = Node.PROCESS_MODE_DISABLED if on else Node.PROCESS_MODE_INHERIT
 
 
 func _process(delta: float) -> void:
 	for p in _people:
 		var rig: CharacterRig = p.rig
+		if not rig.visible:
+			continue
 		if p.talk:
 			# Gesprächsgruppe: leicht wippen und sich gelegentlich umdrehen
 			rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)

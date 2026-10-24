@@ -767,5 +767,89 @@
     "text": "Eine Kiste mit Erz, das keiner mehr schmelzen kann: schwer, kalt, und es summt leise, wenn man die Hand darauf legt."
    }
   ]
+ },
+ "re_capital_schloss": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "lineage",
+    "kind": "plaque",
+    "at": [
+     -9.6,
+     0.0,
+     8.0
+    ],
+    "yaw": 90,
+    "title": "Stammbaum der Könige",
+    "text": "Siebzehn Generationen Vaiself, in Gold auf Marmor. Die letzten Namen sind kleiner gemeißelt – der Platz wurde knapp, und niemand wollte den Stein verbreitern.\n\nNeben Ranpossa III. ein leerer Platz. Zwei Söhne, eine Tochter. Jemand hat mit dem Fingernagel ein R in den Stein gekratzt – Renner oder Rache, so klein, dass man raten muss."
+   },
+   {
+    "id": "council",
+    "kind": "lectern",
+    "at": [
+     7.5,
+     0.0,
+     -8.0
+    ],
+    "yaw": -135,
+    "title": "Protokoll des Thronrats",
+    "text": "»Punkt 4: Die Verteidigung E-Rantels. Vertagt (Marquis Raeven abwesend).«\n»Punkt 5: Steuern der Acht-Finger-Gilden. Vertagt (Marquis Boullope anwesend).«\n»Punkt 6: Der Zauberkönig. Keine Wortmeldung.«\n\nAnmerkung des Protokollanten: »Der König hat lange geschwiegen und dann gefragt, wie viele Soldaten wir noch haben. Niemand wusste es.«"
+   },
+   {
+    "id": "crown",
+    "kind": "cache",
+    "at": [
+     9.0,
+     0.6,
+     -15.8
+    ],
+    "title": "Kronschatz",
+    "text": "Hinter dem Thron, unter einer losen Bodenplatte: der Kronschatz – oder was davon übrig ist. Ein paar Goldmünzen, ein Siegelring und ein Brief mit Prinzessin Renners Siegel, nie abgeschickt."
+   }
+  ]
+ },
+ "baharuth_palast": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "knights",
+    "kind": "plaque",
+    "at": [
+     -9.6,
+     0.0,
+     8.0
+    ],
+    "yaw": 90,
+    "title": "Die Vier Kaiserlichen Ritter",
+    "text": "»Leinas Rockbruise. Baziwood Peshmel. Nimble Arc Dale Anoch. Nazami Enec. Bei Bedrohung des Kaisers: alle Mittel.«\n\nDarunter, kleiner, mit Bleistift: »Außer gegen den Zauberkönig. Da hilft kein Mittel. – J.«"
+   },
+   {
+    "id": "reforms",
+    "kind": "lectern",
+    "at": [
+     7.5,
+     0.0,
+     -8.0
+    ],
+    "yaw": -135,
+    "title": "Jircnivs Reformen",
+    "text": "»Reform 12: Adlige, die Steuern hinterziehen, verlieren den Titel.«\n»Reform 31: Fluder Paradyne erhält die Akademie, dafür die Treue.«\n»Reform 40, neu: Das Kaiserreich wird Vasall des Zauberkönigreichs. Begründung: siehe Katze-Ebene. Weitere Begründungen: keine nötig.«"
+   },
+   {
+    "id": "archive",
+    "kind": "cache",
+    "at": [
+     9.0,
+     0.6,
+     -15.8
+    ],
+    "title": "Geheimarchiv",
+    "text": "Hinter einer Marmorplatte: Berichte über jeden Adligen des Reiches, nach Nützlichkeit sortiert. Ganz oben eine neue Akte: »Ainz Ooal Gown. Nützlichkeit: absolut. Gefahr: absolut. Empfehlung: lächeln.«"
+   }
+  ]
  }
 }

@@ -3255,5 +3255,781 @@
    ],
    "yaw": 180
   }
+ ],
+ "throne": [
+  {
+   "kind": "brazier",
+   "at": [
+    -3.2,
+    0.0,
+    21.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    3.2,
+    0.0,
+    21.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    -4.6,
+    0.0,
+    -16.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.6,
+    0.0,
+    -16.0
+   ],
+   "color": "#b070ff"
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    3.0,
+    -5.0
+   ],
+   "color": "#d8c0ff",
+   "r": 8.0,
+   "amount": 50
+  },
+  {
+   "kind": "folk",
+   "at": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "style": "maid",
+   "idle": [
+    [
+     -6.0,
+     0.0,
+     6.0
+    ],
+    [
+     6.0,
+     0.0,
+     6.0
+    ],
+    [
+     -6.0,
+     0.0,
+     -6.0
+    ],
+    [
+     6.0,
+     0.0,
+     -6.0
+    ]
+   ]
+  },
+  {
+   "kind": "banner",
+   "at": [
+    -7.0,
+    0.0,
+    20.0
+   ],
+   "yaw": 90,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "banner",
+   "at": [
+    7.0,
+    0.0,
+    20.0
+   ],
+   "yaw": 270,
+   "faction": "kingdom",
+   "color": "#1d2f6b",
+   "requires": {
+    "flags_all": [
+     "crowned"
+    ]
+   }
+  },
+  {
+   "kind": "chest",
+   "at": [
+    -7.0,
+    0.0,
+    22.5
+   ],
+   "yaw": 20,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "chest",
+   "at": [
+    7.0,
+    0.0,
+    22.5
+   ],
+   "yaw": -30,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -9.0,
+    0.0,
+    19.0
+   ],
+   "yaw": 10,
+   "count": 3,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    9.0,
+    0.0,
+    19.0
+   ],
+   "yaw": 70,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  }
+ ],
+ "royal": [
+  {
+   "kind": "folk",
+   "at": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "style": "maid",
+   "count": 5,
+   "walk": [
+    [
+     -12.0,
+     0.0,
+     2.0
+    ],
+    [
+     -4.0,
+     0.0,
+     1.0
+    ],
+    [
+     3.0,
+     0.0,
+     -1.0
+    ],
+    [
+     7.0,
+     0.0,
+     2.0
+    ]
+   ],
+   "idle": [
+    [
+     -6.0,
+     0.0,
+     -1.5
+    ],
+    [
+     1.0,
+     0.0,
+     2.5
+    ]
+   ]
+  },
+  {
+   "kind": "light",
+   "at": [
+    -6.0,
+    2.5,
+    0.0
+   ],
+   "color": "#ffd8a0",
+   "energy": 1.2,
+   "range": 9.0,
+   "flicker": false
+  },
+  {
+   "kind": "light",
+   "at": [
+    3.0,
+    2.5,
+    0.0
+   ],
+   "color": "#ffd8a0",
+   "energy": 1.2,
+   "range": 9.0,
+   "flicker": false
+  },
+  {
+   "kind": "ph",
+   "model": "anthurium_botany_01",
+   "at": [
+    -11.0,
+    0.0,
+    -1.5
+   ],
+   "yaw": 30
+  },
+  {
+   "kind": "ph",
+   "model": "calathea_orbifolia_01",
+   "at": [
+    7.0,
+    0.0,
+    -2.3
+   ],
+   "yaw": 100
+  },
+  {
+   "kind": "ph",
+   "model": "ceramic_vase_01",
+   "at": [
+    -3.0,
+    0.0,
+    -2.5
+   ],
+   "yaw": 0
+  }
+ ],
+ "library": [
+  {
+   "kind": "folk",
+   "at": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "style": "mage",
+   "idle": [
+    [
+     -4.0,
+     0.0,
+     4.0
+    ],
+    [
+     4.0,
+     0.0,
+     4.0
+    ],
+    [
+     -4.0,
+     0.0,
+     -8.0
+    ]
+   ]
+  },
+  {
+   "kind": "light",
+   "at": [
+    -2.6,
+    1.6,
+    10.0
+   ],
+   "color": "#ffc880",
+   "energy": 0.9,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    2.6,
+    1.6,
+    10.0
+   ],
+   "color": "#ffc880",
+   "energy": 0.9,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    -2.6,
+    1.6,
+    -14.0
+   ],
+   "color": "#ffc880",
+   "energy": 0.9,
+   "range": 6.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    2.6,
+    1.6,
+    -14.0
+   ],
+   "color": "#ffc880",
+   "energy": 0.9,
+   "range": 6.0
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    3.0,
+    0.0
+   ],
+   "color": "#e8e0c8",
+   "r": 12.0,
+   "amount": 50
+  },
+  {
+   "kind": "ph",
+   "model": "book_encyclopedia_set_01",
+   "at": [
+    -4.0,
+    0.0,
+    -2.0
+   ],
+   "yaw": 20
+  },
+  {
+   "kind": "ph",
+   "model": "book_encyclopedia_set_01",
+   "at": [
+    4.2,
+    0.0,
+    -6.0
+   ],
+   "yaw": 110
+  }
+ ],
+ "treasury": [
+  {
+   "kind": "chest",
+   "at": [
+    0.0,
+    2.5,
+    -66.0
+   ],
+   "yaw": 10
+  },
+  {
+   "kind": "chest",
+   "at": [
+    4.0,
+    2.5,
+    -70.0
+   ],
+   "yaw": -20
+  },
+  {
+   "kind": "chest",
+   "at": [
+    -2.0,
+    2.5,
+    -60.0
+   ],
+   "yaw": 40
+  },
+  {
+   "kind": "chest",
+   "at": [
+    6.0,
+    2.5,
+    -60.0
+   ],
+   "yaw": 0
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    -4.0,
+    2.5,
+    -68.0
+   ],
+   "color": "#ffd27a",
+   "h": 1.2,
+   "energy": 1.4
+  },
+  {
+   "kind": "motes",
+   "at": [
+    2.0,
+    4.0,
+    -66.0
+   ],
+   "color": "#ffe0a0",
+   "r": 10.0,
+   "amount": 80
+  },
+  {
+   "kind": "light",
+   "at": [
+    2.0,
+    4.0,
+    -70.0
+   ],
+   "color": "#ffd080",
+   "energy": 2.0,
+   "range": 14.0,
+   "flicker": false
+  },
+  {
+   "kind": "chest",
+   "at": [
+    -4.0,
+    2.5,
+    -55.0
+   ],
+   "yaw": 60,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "chest",
+   "at": [
+    6.0,
+    2.5,
+    -55.0
+   ],
+   "yaw": -50,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "crates",
+   "at": [
+    -2.0,
+    2.5,
+    -56.0
+   ],
+   "yaw": 15,
+   "count": 3,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  },
+  {
+   "kind": "barrels",
+   "at": [
+    6.0,
+    2.5,
+    -56.0
+   ],
+   "yaw": 80,
+   "requires": {
+    "flags_all": [
+     "world_decided"
+    ]
+   }
+  }
+ ],
+ "tombs": [
+  {
+   "kind": "brazier",
+   "at": [
+    -4.0,
+    0.0,
+    -42.0
+   ],
+   "color": "#60ff90"
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    4.0,
+    0.0,
+    -42.0
+   ],
+   "color": "#60ff90"
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    1.5,
+    10.0
+   ],
+   "color": "#80ffa0",
+   "energy": 1.0,
+   "range": 10.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    1.5,
+    -20.0
+   ],
+   "color": "#80ffa0",
+   "energy": 1.0,
+   "range": 10.0
+  },
+  {
+   "kind": "smoke",
+   "at": [
+    0.0,
+    0.2,
+    15.0
+   ],
+   "h": 0.2,
+   "amount": 20
+  },
+  {
+   "kind": "smoke",
+   "at": [
+    0.0,
+    0.2,
+    -15.0
+   ],
+   "h": 0.2,
+   "amount": 20
+  },
+  {
+   "kind": "motes",
+   "at": [
+    0.0,
+    2.0,
+    0.0
+   ],
+   "color": "#9aa0b0",
+   "r": 15.0,
+   "amount": 40
+  }
+ ],
+ "glacier": [
+  {
+   "kind": "crystal",
+   "at": [
+    -8.0,
+    0.0,
+    20.0
+   ],
+   "color": "#8ad0ff",
+   "h": 1.6
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    8.0,
+    -0.38,
+    20.0
+   ],
+   "color": "#8ad0ff",
+   "h": 1.6
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    -8.0,
+    0.3,
+    -10.0
+   ],
+   "color": "#8ad0ff",
+   "h": 1.8
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    8.0,
+    0.3,
+    -10.0
+   ],
+   "color": "#8ad0ff",
+   "h": 1.8
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    -6.0,
+    0.5,
+    -40.0
+   ],
+   "color": "#b0e0ff",
+   "h": 1.4
+  },
+  {
+   "kind": "crystal",
+   "at": [
+    6.0,
+    0.5,
+    -40.0
+   ],
+   "color": "#b0e0ff",
+   "h": 1.4
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    3.0,
+    -30.0
+   ],
+   "color": "#9ad8ff",
+   "energy": 1.5,
+   "range": 16.0,
+   "flicker": false
+  }
+ ],
+ "jungle": [
+  {
+   "kind": "light",
+   "at": [
+    -8.0,
+    2.0,
+    20.0
+   ],
+   "color": "#a0ffb0",
+   "energy": 1.0,
+   "range": 9.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    8.0,
+    2.0,
+    20.0
+   ],
+   "color": "#a0ffb0",
+   "energy": 1.0,
+   "range": 9.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    0.0,
+    2.5,
+    -20.0
+   ],
+   "color": "#a0ffb0",
+   "energy": 1.0,
+   "range": 9.0
+  },
+  {
+   "kind": "fire",
+   "at": [
+    6.0,
+    0.0,
+    30.0
+   ],
+   "amount": 24,
+   "energy": 1.8
+  }
+ ],
+ "lava": [
+  {
+   "kind": "fire",
+   "at": [
+    46.0,
+    1.6,
+    12.0
+   ],
+   "color": "#ff7030",
+   "amount": 36,
+   "energy": 2.2
+  },
+  {
+   "kind": "fire",
+   "at": [
+    50.0,
+    1.45,
+    16.0
+   ],
+   "color": "#ff7030",
+   "amount": 36,
+   "energy": 2.2
+  },
+  {
+   "kind": "fire",
+   "at": [
+    42.0,
+    3.14,
+    -22.0
+   ],
+   "color": "#ff7030",
+   "amount": 30,
+   "energy": 2.0
+  },
+  {
+   "kind": "light",
+   "at": [
+    44.0,
+    2.0,
+    20.0
+   ],
+   "color": "#ff5020",
+   "energy": 2.0,
+   "range": 12.0
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    38.0,
+    2.06,
+    -10.0
+   ]
+  },
+  {
+   "kind": "brazier",
+   "at": [
+    44.0,
+    1.53,
+    -12.0
+   ]
+  },
+  {
+   "kind": "smoke",
+   "at": [
+    48.0,
+    0.6,
+    12.0
+   ],
+   "h": 0.2,
+   "amount": 20
+  },
+  {
+   "kind": "motes",
+   "at": [
+    46.0,
+    2.0,
+    8.0
+   ],
+   "color": "#ffa040",
+   "r": 10.0,
+   "amount": 60
+  }
  ]
 }

@@ -19,7 +19,7 @@ Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäud
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-2.5.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.6.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.5.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.6.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -132,12 +132,20 @@ Wichtige Gebäude lassen sich **betreten**: ein Wirtshausschild mit Laterne mark
 | **Kathedrale der Sechs Götter** | Slane-Theokratie | Großes Schiff mit Bannern, sechs Statuen, goldener Altar, Kardinal Raymond; Tafel der Sechs Götter, Lehren der Sechs (Bericht über Nigun), Schatz der Kardinäle |
 | **Magierakademie** | Arwintar | Fluders Studierzimmer: Bücherwände mit Leiter, Beschwörungskreis, Kristall, Sternkarte, Fernrohr, Trankregal, Magier; Fluders Forschungen, Stundenplan, versiegelte Truhe |
 | **Schmiedehalle von Feo Jera** | Azerlisia | Drei Zwergenessen mit Ambossen, Runenpfeiler mit Leuchtsteinen, Statue des Runenkönigs, Erzkarren, Zwerge bei der Arbeit, Gondo; Runentafel der Meister, Buch der Runen, Erzkiste |
+| **Thronsaal von Ro-Lente** | Re-Estize (Schloss, oben an der Rampe) | Säulenschiff mit Löwenbannern und bunten Fenstern, Podest mit Thron und Baldachin, Kriegstisch, Wachen und Adlige; König Ranpossa III., Gazef; Stammbaum der Könige, Protokoll des Thronrats, Kronschatz |
+| **Audienzsaal des Kaisers** | Arwintar (Kaiserpalast) | Weißer Marmor, rote Banner, Thron, Kriegstisch, kaiserliche Wachen und Hofstaat; Jircniv; Die Vier Kaiserlichen Ritter, Jircnivs Reformen, Geheimarchiv |
+
+**Nazarick**: Die Ebenen sind über **Treppen und Tore** verbunden (Türen in den Hallen: Grabkammern ↔ Eisgletscher ↔ Dschungel ↔ Lavahölle ↔ Königliche Gemächer ↔ Thronsaal ↔ Bibliothek / Schatzkammer, Abstieg vom Mausoleum im Grasland in die Grabkammern); man kommt jeweils vor der Gegentür an. Die Ebenen sind ausgestattet (violette Feuerschalen, Dienstmädchen, Eiskristalle, Lavaspalten, Truhen der Schatzkammer) und verändern sich mit der Geschichte: erbeutete Standarten des Königreichs nach der Krönung, Tribut der Reiche nach der Entscheidung der Welt.
 
 Jeder Raum hat eigene **Entdeckungen** (`data/discoveries.json` → `placed`: Lesepult, Tafel, Aushang, Versteck) mit fester Position – Lesen bringt Wissen, Durchsuchen Beute. Der Stand der Welt-Überarbeitung je Ort steht in `docs/WELT_UEBERARBEITUNG.md`.
 
 **Ausstattung der Orte** (`data/dressing.json`, `scripts/world3d/dressing.gd`): Banner, Feuerschalen, Lagerfeuer, Statuen, Kisten, Fässer, Zelte, Palisaden, Brunnen, Gedenksteine, Laternen, Wäscheleinen, Trümmer, Galgen, Fotoscans, Rauch, Staub und Lichter je Ort – mit Bedingungen (`requires`/`requires_not`), sodass sich die Orte mit der Geschichte verändern: Banner des Königreichs werden nach der Krönung zu Bannern Nazaricks, auf der Katze-Ebene stehen vor der Schlacht die Lager beider Heere und danach erloschene Feuer, Trümmer und Blut, vor der Mauer von Roble lagert in Kapitel 9 Jaldabaoths Horde. Prüfen: `LOC=dresscheck godot res://tools/world3d_test.tscn` meldet jedes Stück, das in einem Gebäude steckt oder am Hang steht.
 
-**Umgebungsklänge** (`assets/audio/ambience/`, erzeugt von `tools/audio/ambience.py`): jeder Ort hat eine nahtlose Klangschleife seiner Art – Wind und Vögel im Wald, Stimmengewirr und Hammerschläge in der Stadt, Hühner im Dorf, Frösche im Sumpf, Krähen über dem Schlachtfeld, Eule und Grillen auf dem Friedhof, Grollen in der Lavahölle, Chor und Kerzen im Tempel, Blasebalg und Hammer in der Schmiede, Kaminknistern in Gasthaus und Stube. Lautstärke: Einstellungen → Audio → Umgebungsklänge.
+**Tag-Nacht-Wechsel** (`scripts/world3d/day_cycle.gd`, Einstellungen → Grafik): Im Freien wandert die Sonne – ein Sonnenlauf dauert acht Spieltage. Abends wird das Licht warm und flach, nachts wird die Sonne zum Mond, der Himmel dunkel und blau, Laternen und Feuer leuchten heller, Händler schließen ihre Stände und zwei Drittel der Bewohner gehen heim (Wachen bleiben), und der Umgebungsklang wechselt zur Nachtvariante (Grillen, Eule, ferner Hund). Innenräume, Nazarick und der Friedhof (immer Nacht) bleiben unberührt. Bilder zu fester Tageszeit: `TOD=0.8 LOC=stageview STAGEVIEW="e_rantel:0,14"`.
+
+**Bewohner**: Städte und Dörfer haben neben den Passanten **Händler hinter jedem Marktstand** des Ortsmodells (tagsüber) und **zwei Wachen am Tor** im Wappenrock ihrer Fraktion (Königreich blau, Kaiserreich rot, Theokratie weiß, Roble blau, Carne grün). Innenräume bekommen passende Bewohner-Stile (`Townsfolk.spawn(..., style)`: `adventurer`, `priest`, `mage`, `smith`, `dwarf`, `maid`, `guard`, `noble`, `merchant`).
+
+**Umgebungsklänge** (`assets/audio/ambience/`, erzeugt von `tools/audio/ambience.py`): jeder Ort hat eine nahtlose Klangschleife seiner Art – Wind und Vögel im Wald, Stimmengewirr und Hammerschläge in der Stadt, Hühner im Dorf, Frösche im Sumpf, Krähen über dem Schlachtfeld, Eule und Grillen auf dem Friedhof, Grollen in der Lavahölle, Chor und Kerzen im Tempel, Blasebalg und Hammer in der Schmiede, Kaminknistern in Gasthaus und Stube, Hofgemurmel im Thronsaal – nachts Grillen, Eule und ferner Hund oder Wolf (`<art>_night`). Lautstärke: Einstellungen → Audio → Umgebungsklänge.
 
 ---
 

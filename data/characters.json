@@ -1454,5 +1454,12 @@
   "color": "#d8c8a0",
   "accent": "#5a4a2a",
   "npc": true
+ },
+ "ranpossa": {
+  "name": "Ranpossa III.",
+  "title": "König von Re-Estize",
+  "color": "#2a3a7a",
+  "accent": "#d8b860",
+  "npc": true
  }
 }

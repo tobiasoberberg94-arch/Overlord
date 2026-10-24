@@ -416,6 +416,34 @@ def amb_forge():
     return reverb(glow + bellows + b, 1.1, 0.22, 0.6)
 
 
+def amb_night(kind):
+    """Nachtvarianten: Wind, Grillen, Eule, ferner Hund (Dorf/Stadt), Wolf (Wald/Wiese) – keine Tagesvögel."""
+    x = wind(70, 500, 0.5, 0.4) * 0.5
+    cr = insects(8, 3600, 4800) * 0.14
+    b = np.zeros(N)
+    scatter(b, owl, 2, 0.35)
+    if kind in ("village", "town"):
+        scatter(b, lambda: tone(0.5, 420, 300, kind="saw", vib=0.05, vrate=14) * ad(0.5, 0.02, 0.3, 0.3, 0.1) * 0.3, 3, 0.25)   # Hund bellt fern
+        scatter(b, creak, 4, 0.25)
+        if kind == "town":
+            env_at(b, bell(620, 4.0), 6.0, 0.2)
+    else:
+        howl = tone(2.2, 380, 300, vib=0.02, vrate=1.5) * ad(2.2, 0.4, 1.2, 0.6, 0.5)
+        env_at(b, band(howl, 200, 2000, 1) * 0.25, 13.0, 0.35)
+        scatter(b, creak, 5, 0.3)
+    return reverb(x + cr + b, 2.0, 0.25, 0.65)
+
+
+def amb_court():
+    """Thronsaal eines Menschenreiches: gedämpftes Gemurmel des Hofes, Schritte auf Stein, Rüstungsklirren, Hall."""
+    m = band(murmur(14, 150, 800), 140, 1400) * 0.14
+    b = np.zeros(N)
+    scatter(b, lambda: band(rng.standard_normal(int(0.12 * SR)), 150, 900) * ad(0.12, 0.004, 0.05, 0.1, 0.03) * 0.5, 10, 0.2)
+    scatter(b, lambda: tone(0.3, rng.uniform(2200, 3200)) * ad(0.3, 0.002, 0.1, 0.1, 0.1) * 0.25, 5, 0.2)
+    flame = crackle(10, 400, 3000) * 0.04
+    return reverb(m + b + flame, 3.2, 0.4, 0.5)
+
+
 if __name__ == "__main__":
     import sys
     os.makedirs(OUT, exist_ok=True)
@@ -425,7 +453,10 @@ if __name__ == "__main__":
                      ("cemetery", amb_cemetery), ("swamp", amb_swamp), ("lava", amb_lava), ("glacier", amb_glacier),
                      ("mountain", amb_mountain), ("battlefield", amb_battlefield), ("interior", amb_interior),
                      ("hall", amb_hall), ("tombs", amb_tombs), ("meadow", amb_meadow), ("home", amb_home),
-                     ("church", amb_church), ("forge", amb_forge)]:
+                     ("church", amb_church), ("forge", amb_forge), ("court", amb_court),
+                     ("village_night", lambda: amb_night("village")), ("town_night", lambda: amb_night("town")),
+                     ("forest_night", lambda: amb_night("forest")), ("meadow_night", lambda: amb_night("meadow")),
+                     ("mountain_night", lambda: amb_night("mountain"))]:
         if only and name not in only:
             continue
         write_ogg(name, fn())

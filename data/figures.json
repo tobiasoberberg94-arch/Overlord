@@ -1026,6 +1026,24 @@
    ],
    "trim": "#c8a040",
    "eyes": "#3a3a3a"
+  },
+  "ranpossa": {
+   "scale": 0.95,
+   "skin": "#e4c4a8",
+   "hair": [
+    "#d0c8c0",
+    "short"
+   ],
+   "beard": "#d0c8c0",
+   "top": "#2a3a7a",
+   "bottom": [
+    "dress",
+    "#1d2f6b"
+   ],
+   "trim": "#d8b860",
+   "cape": "#5a1a2a",
+   "crown": true,
+   "eyes": "#4a4a4a"
   }
  }
 }

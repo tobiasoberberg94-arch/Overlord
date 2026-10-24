@@ -134,7 +134,7 @@ func _ready() -> void:
 				var nd := n as Node3D
 				var pos := nd.global_position
 				var e: Dictionary = nd.get_meta("entry", {})
-				if String(e.get("kind", "")) in Dressing.SOFT:
+				if String(e.get("kind", "")) in Dressing.SOFT or String(e.get("kind", "")) == "folk" or String(nd.name).begins_with("Townsfolk"):
 					continue
 				var own: Array[RID] = [w.player.get_rid()]
 				for b in nd.find_children("*", "StaticBody3D", true, false):
@@ -154,7 +154,7 @@ func _ready() -> void:
 					if col is Node:
 						var par := (col as Node).get_parent()
 						names.append(String((col as Node).name) if par == null else "%s/%s" % [par.name, (col as Node).name])
-				var ground := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 2.0, pos - Vector3.UP * 4.0, 1, own))
+				var ground := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 2.0, pos - Vector3.UP * 4.0, 0x7FFFFFFF, own))
 				var note := ""
 				if ground.is_empty():
 					note = "KEIN BODEN"
@@ -238,6 +238,11 @@ func _ready() -> void:
 				await w.load_location(lid)
 				for c in w.overlay_layer.get_children():
 					c.queue_free()
+				if OS.get_environment("TOD") != "":
+					# feste Tageszeit für Bilder (0 = Sonnenaufgang, 0,25 = Mittag, 0,5 = Abend, 0,8 = Nacht)
+					w.day_cycle.force = float(OS.get_environment("TOD"))
+					w.day_cycle.update(0.0)
+					print("TAGESZEIT %s: Phase %.2f (%s), aktiv %s" % [lid, w.day_cycle.phase, w.day_cycle.time_name(), w.day_cycle.active])
 				await _wait(1.0)
 				for gm in w.level.find_children("*", "MeshInstance3D", true, false):
 					if String(gm.name).to_lower().begins_with("ground"):
@@ -325,7 +330,7 @@ func _ready() -> void:
 			cam.current = true
 			for cl in w.find_children("*", "CanvasLayer", true, false):
 				(cl as CanvasLayer).visible = false
-			var interior: bool = w.loc.get("group", "") == "interior"
+			var interior: bool = w.loc.get("group", "") in ["interior", "nazarick"]
 			if interior:
 				cam.current = false
 				w.player.camera.current = true     # drinnen: die Spielerkamera (eine frische Kamera bleibt dort dunkel)
@@ -355,6 +360,9 @@ func _ready() -> void:
 				var v: Variant = a[k]
 				keys.append("%s=%s" % [k, (v as Vector3).snapped(Vector3(0.1, 0.1, 0.1)) if v is Vector3 else (str((v as Array).size()) + " Plätze" if v is Array else str(v))])
 			print("ANKER %s: %s" % [lid, ", ".join(keys)])
+			for k in a:
+				if a[k] is Array:
+					print("ANKER %s %s: %s" % [lid, k, ", ".join((a[k] as Array).map(func(p): return str((p as Vector3).snapped(Vector3(0.1, 0.1, 0.1)))))])
 			var cam := Camera3D.new()
 			cam.far = 3000.0
 			cam.fov = 60.0

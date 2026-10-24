@@ -10,6 +10,8 @@ class_name InteriorsMore
 ##               Sternkarte, Fernrohr, Trankregal, Magier.
 ##   forge_hall  Schmiedehalle von Feo Jera: drei Zwergenessen, Runenpfeiler, Erzkarren, Statue des Runenkönigs.
 ##   inn         Dorfschenke in Carne: kleine Schankstube mit Herd, Tresen, Spinnrad und Dorfbewohnern.
+##   court       Thronsaal eines Menschenreiches (loc.faction = kingdom | empire): Säulenschiff mit Bannern, Teppich,
+##               Podest mit Thron, Statuen, Kriegstisch, Wachen und Hofstaat – Ro-Lente-Schloss und Kaiserpalast.
 
 const WARM := Color(1.0, 0.78, 0.5)
 
@@ -28,6 +30,8 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return forge_hall(root, loc)
 		"inn":
 			return inn(root, loc)
+		"court":
+			return court(root, loc)
 	return {}
 
 
@@ -518,3 +522,89 @@ static func inn(root: Node3D, _loc: Dictionary) -> Dictionary:
 	Townsfolk.spawn(root, [], [Vector3(-2.3, 0, 0.6), Vector3(2.9, 0, 1.3), Vector3(0.8, 0, -3.2), Vector3(-0.6, 0, 2.6)], 1602, 4)
 	return {"spawn": Vector3(0, 0.2, hz - 1.2), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5),
 		"slots": [Vector3(bar_x - 1.0, 0, -1.4), Vector3(2.4, 0, -0.2)]}
+
+
+# =====================================================================
+#  Thronsaal (Ro-Lente-Schloss in Re-Estize, Kaiserpalast in Arwintar)
+# =====================================================================
+
+static func court(root: Node3D, loc: Dictionary) -> Dictionary:
+	var empire: bool = String(loc.get("faction", "kingdom")) == "empire"
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1702 if empire else 1701
+	var W := 20.0
+	var D := 34.0
+	var H := 10.0
+	var hx := W * 0.5
+	var hz := D * 0.5
+	var m := Interiors.shell(root, W, D, H, Color(0.9, 0.88, 0.84) if empire else Color(0.78, 0.74, 0.68), Color(0.6, 0.55, 0.48), 2.4)
+	var stone: Material = B3.mat(Color(0.92, 0.9, 0.86), 0.25) if empire else BuildingLook.photo_material("limestone", "stone", Color(0.84, 0.8, 0.72), 0.5)
+	var gold := B3.mat(Color(0.95, 0.78, 0.35), 0.3, 0.9)
+	var crest: Texture2D = null if empire else Palette.icon("faction_kingdom")
+	var col := Color(0.55, 0.08, 0.08) if empire else Color(0.11, 0.18, 0.42)
+	var carpet := B3.mat(Color(0.5, 0.08, 0.1) if not empire else Color(0.55, 0.1, 0.08), 0.95)
+	B3.box(root, Vector3(W, 0.04, D), Vector3(0, 0.02, 0), stone, false)
+	B3.box(root, Vector3(3.0, 0.015, D - 6.0), Vector3(0, 0.045, 2.0), carpet, false)
+	# Säulen mit Bannern, hohe Fenster dazwischen
+	var nz := 6
+	var gap := (D - 8.0) / (nz - 1)
+	for i in nz:
+		var z := -hz + 4.0 + i * gap
+		for sx in [-1.0, 1.0]:
+			B3.pillar(root, Vector3(sx * 6.5, 0, z), H - 0.3, 0.45, stone, gold)
+			B3.banner(root, Vector3(sx * 5.9, H * 0.6, z), col, crest, 3.4, 0.0)
+			if i < nz - 1:
+				var wz := z + gap * 0.5
+				var glass_cols := [Color(0.9, 0.3, 0.3), Color(0.3, 0.45, 0.9), Color(0.95, 0.8, 0.3)]
+				var wcol: Color = Color(0.9, 0.92, 1.0) if empire else glass_cols[i % 3]
+				B3.box(root, Vector3(0.06, 3.4, 1.4), Vector3(sx * (hx - 0.03), H * 0.5, wz), m.timber, false)
+				B3.box(root, Vector3(0.04, 3.2, 1.2), Vector3(sx * (hx - 0.06), H * 0.5, wz), B3.mat(wcol, 0.4, 0.0, wcol, 1.5), false)
+				B3.light(root, Vector3(sx * (hx - 1.4), H * 0.5 - 1.0, wz), wcol.lerp(Color.WHITE, 0.4), 1.6, 10.0)
+	# Podest mit drei Stufen, Thron, Baldachin
+	var dz := -hz + 3.2
+	for k in 3:
+		B3.box(root, Vector3(10.0 - k * 1.2, 0.2, 5.2 - k * 0.9), Vector3(0, 0.1 + k * 0.2, dz + 0.6 + k * 0.45), stone)
+	Interiors._slope(root, Vector3(0, 0.05, dz + 3.6), Vector3(0, 0.62, dz + 1.6), 9.0)
+	var tz := dz - 0.6
+	var velvet := B3.mat(Color(0.45, 0.06, 0.1), 0.9)
+	B3.box(root, Vector3(1.4, 2.6, 0.3), Vector3(0, 0.6 + 1.3, tz - 0.55), gold)
+	B3.box(root, Vector3(1.2, 2.2, 0.08), Vector3(0, 0.6 + 1.2, tz - 0.36), velvet, false)
+	B3.box(root, Vector3(1.4, 0.6, 1.1), Vector3(0, 0.6 + 0.3, tz), gold)
+	B3.box(root, Vector3(1.2, 0.12, 1.0), Vector3(0, 0.6 + 0.66, tz), velvet, false)
+	for sx in [-1.0, 1.0]:
+		B3.box(root, Vector3(0.14, 0.7, 1.1), Vector3(sx * 0.67, 0.6 + 0.95, tz), gold, false)
+	B3.box(root, Vector3(4.0, 0.12, 3.0), Vector3(0, H - 2.2, tz), gold, false)
+	B3.box(root, Vector3(3.8, 0.4, 2.8), Vector3(0, H - 2.4, tz), B3.mat(col, 0.9), false)
+	B3.light(root, Vector3(0, 3.6, tz + 1.2), Color(1.0, 0.85, 0.6), 2.0, 9.0)
+	for sx in [-1.0, 1.0]:
+		B3.brazier(root, Vector3(sx * 4.4, 0.6, dz + 0.4), Color(1.0, 0.8, 0.4))
+		B3.box(root, Vector3(1.2, 0.6, 1.2), Vector3(sx * 8.4, 0.3, dz + 1.0), stone)
+		Interiors.prop_h(root, "gothic_statue", Vector3(sx * 8.4, 0.6, dz + 1.0), 2.4, -sx * 90.0)
+		B3.light(root, Vector3(sx * 7.6, 1.6, dz + 1.6), WARM, 0.9, 5.0).set_meta("flicker", true)
+	# Kriegstisch mit Karte und Figuren, Schreibpult des Kanzlers
+	var wt := Interiors.prop_h(root, "WoodenTable_03", Vector3(-8.2, 0, 4.0), 0.82, 90.0, true)
+	var wty := wt.y if wt != Vector3.ZERO else 0.82
+	B3.box(root, Vector3(1.6, 0.01, 1.1), Vector3(-8.2, wty + 0.005, 4.0), B3.noise_mat(Color(0.86, 0.8, 0.62), Color(0.6, 0.55, 0.4), 0.3, 0.9), false)
+	for k in 6:
+		B3.cyl(root, 0.04, 0.05, 0.12, Vector3(-8.2 + rng.randf_range(-0.6, 0.6), wty + 0.06, 4.0 + rng.randf_range(-0.4, 0.4)), B3.mat(col if k % 2 == 0 else Color(0.2, 0.2, 0.2), 0.6), false, 8)
+	Interiors.candle(root, Vector3(-8.9, wty, 3.5), "brass_candleholders")
+	Interiors.chair_at(root, Vector3(-8.2, 0, 4.0), 90.0, 1.0)
+	Interiors.chair_at(root, Vector3(-8.2, 0, 4.0), 270.0, 1.0)
+	var dk := Interiors.prop_h(root, "WoodenTable_02", Vector3(8.0, 0, -2.0), 0.85, 0.0, true)
+	var dky := dk.y if dk != Vector3.ZERO else 0.85
+	Interiors.prop(root, "book_encyclopedia_set_01", Vector3(7.6, dky, -2.0), 20.0)
+	Interiors.prop(root, "metal_jug", Vector3(8.6, dky, -2.3), 0.0)
+	Interiors.candle(root, Vector3(8.4, dky, -1.6))
+	# Kronleuchter, Lichtstaub, Wachen und Hofstaat
+	for z in [-9.0, -1.0, 7.0, 13.0]:
+		for sx in [-1.0, 1.0]:
+			Interiors.lantern(root, Vector3(sx * 2.8, H - 1.8, z), H - 0.3, 1.7)
+	B3.light(root, Vector3(0, H - 3.5, -2.0), WARM, 2.4, 20.0)
+	B3.motes(root, Vector3(0, H * 0.45, 0), Vector3(hx * 0.7, H * 0.3, hz * 0.6), Color(1.0, 0.95, 0.8, 0.4), 80)
+	var tab := "#8a1a1a" if empire else "#1d2f6b"
+	Townsfolk.spawn(root, [], [Vector3(-3.0, 0, dz + 5.5), Vector3(3.0, 0, dz + 5.5), Vector3(-8.5, 0, 0.0), Vector3(8.5, 0, 9.0),
+		Vector3(-2.6, 0, hz - 2.6), Vector3(2.6, 0, hz - 2.6)], 1712 if empire else 1711, 6, "guard", tab)
+	Townsfolk.spawn(root, [], [Vector3(-5.0, 0, 2.0), Vector3(-4.0, 0, 4.2), Vector3(5.0, 0, -3.0), Vector3(6.2, 0, -1.2),
+		Vector3(-6.0, 0, -9.0), Vector3(5.5, 0, 9.5)], 1714 if empire else 1713, 6, "noble")
+	return {"spawn": Vector3(0, 0.2, hz - 1.8), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5),
+		"slots": [Vector3(0.6, 0.6, dz + 0.2), Vector3(-3.6, 0, dz + 7.0)]}

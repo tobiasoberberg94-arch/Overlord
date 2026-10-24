@@ -15,7 +15,7 @@ const TILT := ["ph", "hay", "debris", "memorial"]
 ## Boden unter (x, z): erster Treffer von oben – liegt knapp darunter (bis 1,4 m) noch eine Fläche, zählt die untere
 ## (Büsche, Brüstungen und Geländer sind kein Boden; Dächer schon, die liegen höher über dem Hausboden).
 static func _ground(space: PhysicsDirectSpaceState3D, pos: Vector3) -> Dictionary:
-	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 60.0, pos - Vector3.UP * 60.0, 1))
+	var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 60.0, pos - Vector3.UP * 60.0, 0x7FFFFFFF))
 	var excl: Array[RID] = []
 	for k in 3:
 		if hit.is_empty() or (hit.collider is Node and String((hit.collider as Node).name).begins_with("Ground")):
@@ -257,5 +257,32 @@ static func _build(kind: String, n: Node3D, e: Dictionary, rng: RandomNumberGene
 			B3.motes(n, Vector3(0, 1.5, 0), Vector3(float(e.get("r", 6.0)), 1.5, float(e.get("r", 6.0))), Color(String(e.get("color", "#fff2b0"))), int(e.get("amount", 60)))
 		"light":
 			B3.light(n, Vector3(0, float(e.get("h", 2.0)), 0), Color(String(e.get("color", "#ffc880"))), float(e.get("energy", 1.5)), float(e.get("range", 8.0))).set_meta("flicker", e.get("flicker", true))
+		"crystal":
+			# leuchtender Kristall (Gletscher, Schatzkammer, Runen): {"color", "h", "energy"}
+			var cc := Color(String(e.get("color", "#8ad0ff")))
+			B3.crystal(n, Vector3.ZERO, cc, float(e.get("h", 1.6)))
+			B3.light(n, Vector3(0, float(e.get("h", 1.6)) * 0.6, 0), cc, float(e.get("energy", 1.2)), float(e.get("range", 7.0))).set_meta("flicker", false)
+		"fire":
+			# offenes Feuer ohne Steinring (Lavaspalten, Opferschalen im Boden): {"color", "amount", "energy"}
+			var fc := Color(String(e.get("color", "#ff8c38")))
+			B3.fire(n, Vector3(0, float(e.get("h", 0.2)), 0), fc, int(e.get("amount", 30)))
+			B3.light(n, Vector3(0, float(e.get("h", 0.2)) + 1.0, 0), fc, float(e.get("energy", 2.0)), float(e.get("range", 9.0))).set_meta("flicker", true)
+			if e.get("smoke", true):
+				B3.smoke(n, Vector3(0, float(e.get("h", 0.2)) + 0.6, 0), 8)
+		"chest":
+			# Truhe (Fotoscan), geschlossen: {"scale"}
+			if PhProps.attach(n, "treasure_chest", Transform3D(Basis().scaled(Vector3.ONE * sc), Vector3.ZERO)) != Vector3.ZERO:
+				B3.wall_invisible(n, Vector3(1.0, 0.7, 0.7) * sc, Vector3(0, 0.35 * sc, 0))
+		"folk":
+			# Bewohner/Gäste: {"style": maid|guard|noble|merchant|priest|mage|adventurer|"", "idle": [[x,y,z]…],
+			# "walk": [[x,y,z]…], "count": n, "tabard": "#…"} – Positionen relativ zu `at`
+			var idle: Array = []
+			for q in e.get("idle", []):
+				idle.append(n.position + Vector3(float(q[0]), float(q[1]), float(q[2])))
+			var walk: Array = []
+			for q in e.get("walk", []):
+				walk.append(n.position + Vector3(float(q[0]), float(q[1]), float(q[2])))
+			var t := Townsfolk.spawn(n.get_parent(), walk, idle, rng.randi(), int(e.get("count", idle.size())), String(e.get("style", "")), String(e.get("tabard", "#1d2f6b")))
+			t.name = "Townsfolk_%s" % String(e.get("style", "folk"))
 		_:
 			push_warning("Dressing: unbekannte Art '%s'" % kind)

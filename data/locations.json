@@ -7,7 +7,42 @@
    "group": "nazarick",
    "sky": "throne_room",
    "music": "throne",
-   "desc": "Das Herz des Großen Grabes. Hier empfangt Ihr Eure Wächter, plant Feldzüge und lasst die Zeit verstreichen."
+   "desc": "Das Herz des Großen Grabes. Hier empfangt Ihr Eure Wächter, plant Feldzüge und lasst die Zeit verstreichen.",
+   "doors": [
+    {
+     "id": "ebene9",
+     "to": "royal",
+     "name": "Treppe: 9. Ebene",
+     "at": [
+      -4.0,
+      0.0,
+      25.0
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "bibliothek",
+     "to": "library",
+     "name": "Zur Bibliothek",
+     "at": [
+      4.0,
+      0.0,
+      25.0
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "schatzkammer",
+     "to": "treasury",
+     "name": "Tor: Schatzkammer",
+     "at": [
+      -8.0,
+      0.0,
+      25.0
+     ],
+     "yaw": 0
+    }
+   ]
   },
   {
    "id": "tombs",
@@ -36,6 +71,30 @@
       -3.0
      ]
     }
+   ],
+   "doors": [
+    {
+     "id": "ausgang",
+     "to": "nazarick_land",
+     "name": "Aufstieg: Mausoleum",
+     "at": [
+      -4.0,
+      0.0,
+      49.5
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "ebene5",
+     "to": "glacier",
+     "name": "Treppe: 5. Ebene",
+     "at": [
+      4.0,
+      0.0,
+      49.5
+     ],
+     "yaw": 0
+    }
    ]
   },
   {
@@ -47,7 +106,31 @@
    "keeper": "cocytus",
    "floor": "glacier",
    "music": "tension",
-   "desc": "Ewiges Eis. Cocytus' Reich und Übungsfeld seiner Krieger."
+   "desc": "Ewiges Eis. Cocytus' Reich und Übungsfeld seiner Krieger.",
+   "doors": [
+    {
+     "id": "ebene1",
+     "to": "tombs",
+     "name": "Treppe: Grabkammern",
+     "at": [
+      4.0,
+      0.1,
+      44.0
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "ebene6",
+     "to": "jungle",
+     "name": "Treppe: 6. Ebene",
+     "at": [
+      -4.0,
+      0.1,
+      44.0
+     ],
+     "yaw": 0
+    }
+   ]
   },
   {
    "id": "jungle",
@@ -74,6 +157,30 @@
       -10
      ]
     }
+   ],
+   "doors": [
+    {
+     "id": "ebene5",
+     "to": "glacier",
+     "name": "Treppe: 5. Ebene",
+     "at": [
+      4.0,
+      0.6,
+      54.0
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "ebene7",
+     "to": "lava",
+     "name": "Treppe: 7. Ebene",
+     "at": [
+      -4.0,
+      0.6,
+      54.0
+     ],
+     "yaw": 0
+    }
    ]
   },
   {
@@ -94,6 +201,30 @@
       0,
       -24
      ]
+    }
+   ],
+   "doors": [
+    {
+     "id": "ebene6",
+     "to": "jungle",
+     "name": "Treppe: 6. Ebene",
+     "at": [
+      58.0,
+      0.4,
+      25.0
+     ],
+     "yaw": 0
+    },
+    {
+     "id": "ebene9",
+     "to": "royal",
+     "name": "Treppe: 9. Ebene",
+     "at": [
+      50.0,
+      0.4,
+      25.0
+     ],
+     "yaw": 0
     }
    ]
   },
@@ -116,6 +247,30 @@
      "id": "lupusregina",
      "line": "Hehe~ Langweilig hier, oder? Schickt mich doch nach Carne!"
     }
+   ],
+   "doors": [
+    {
+     "id": "ebene7",
+     "to": "lava",
+     "name": "Treppe: 7. Ebene",
+     "at": [
+      -13.0,
+      0.0,
+      2.2
+     ],
+     "yaw": 270
+    },
+    {
+     "id": "ebene10",
+     "to": "throne",
+     "name": "Treppe: Thronsaal",
+     "at": [
+      -13.0,
+      0.0,
+      -2.2
+     ],
+     "yaw": 270
+    }
    ]
   },
   {
@@ -127,7 +282,20 @@
    "keeper": "",
    "floor": "library",
    "music": "throne",
-   "desc": "Das gesammelte Wissen Yggdrasils, bewacht von Golems und Untoten Bibliothekaren."
+   "desc": "Das gesammelte Wissen Yggdrasils, bewacht von Golems und Untoten Bibliothekaren.",
+   "doors": [
+    {
+     "id": "thronsaal",
+     "to": "throne",
+     "name": "Zum Thronsaal",
+     "at": [
+      -4.0,
+      0.0,
+      31.5
+     ],
+     "yaw": 0
+    }
+   ]
   },
   {
    "id": "treasury",
@@ -138,7 +306,20 @@
    "keeper": "pandora",
    "floor": "treasury",
    "music": "throne",
-   "desc": "Berge aus Gold, Weltgegenstände – und Pandora's Actor, der jeden Fund katalogisiert."
+   "desc": "Berge aus Gold, Weltgegenstände – und Pandora's Actor, der jeden Fund katalogisiert.",
+   "doors": [
+    {
+     "id": "thronsaal",
+     "to": "throne",
+     "name": "Tor: Thronsaal",
+     "at": [
+      -2.0,
+      1.0,
+      112.0
+     ],
+     "yaw": 0
+    }
+   ]
   },
   {
    "id": "nazarick_land",
@@ -157,6 +338,19 @@
       20.0,
       40.0
      ]
+    }
+   ],
+   "doors": [
+    {
+     "id": "grabkammern",
+     "to": "tombs",
+     "name": "Abstieg: Grabkammern",
+     "at": [
+      0.0,
+      -0.3,
+      -22.0
+     ],
+     "yaw": 180
     }
    ]
   },
@@ -440,6 +634,19 @@
       "chapter_max": 6
      }
     }
+   ],
+   "doors": [
+    {
+     "id": "schloss",
+     "to": "re_capital_schloss",
+     "name": "Ro-Lente-Schloss",
+     "at": [
+      0.0,
+      13.0,
+      -76.0
+     ],
+     "yaw": 180
+    }
    ]
   },
   {
@@ -471,6 +678,17 @@
       -40.0
      ],
      "yaw": 270
+    },
+    {
+     "id": "palast",
+     "to": "baharuth_palast",
+     "name": "Kaiserpalast",
+     "at": [
+      0.0,
+      -0.3,
+      -70.0
+     ],
+     "yaw": 180
     }
    ]
   },
@@ -858,6 +1076,49 @@
     {
      "id": "gondo",
      "line": "Runenhandwerk! Niemand will es mehr. Aber Ihr … Ihr fragt danach. Setzt Euch, Zauberkönig. Ich zeige Euch, was mein Vater mir zeigte."
+    }
+   ]
+  },
+  {
+   "id": "re_capital_schloss",
+   "name": "Thronsaal von Ro-Lente",
+   "kind": "court",
+   "faction": "kingdom",
+   "group": "interior",
+   "parent": "re_capital",
+   "region": "re_capital",
+   "sky": "re_estize",
+   "music": "title",
+   "desc": "Der große Saal des Königs: Säulen, Banner mit dem Löwen, ein alter Mann auf einem zu großen Thron – und Adlige, die auf seinen Tod warten.",
+   "npcs": [
+    {
+     "id": "ranpossa",
+     "line": "Ihr seid also der Zauberkönig. Mein Sohn sagt, Ihr seid ein Ungeheuer. Mein Stratege sagt, Ihr seid unsere einzige Hoffnung. Ich bin alt genug, um beiden zu glauben."
+    },
+    {
+     "id": "gazef",
+     "line": "Mein König hört Euch zu. Das tun nicht mehr viele.",
+     "requires": {
+      "chapter_max": 6
+     }
+    }
+   ]
+  },
+  {
+   "id": "baharuth_palast",
+   "name": "Audienzsaal des Kaisers",
+   "kind": "court",
+   "faction": "empire",
+   "group": "interior",
+   "parent": "baharuth",
+   "region": "baharuth",
+   "sky": "baharuth",
+   "music": "title",
+   "desc": "Weißer Marmor, rote Banner, ein junger Kaiser, der nichts dem Zufall überlässt – bis ein Untoter in seinen Saal tritt.",
+   "npcs": [
+    {
+     "id": "jircniv",
+     "line": "Willkommen, Zauberkönig. Setzt Euch. Nein – nehmt den Thron, wenn Ihr wollt. Ich scherze. Halb."
     }
    ]
   }
