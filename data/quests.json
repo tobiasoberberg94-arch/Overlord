@@ -426,6 +426,26 @@
     0.9,
     "epic"
    ]
+  ],
+  "skeletal_dragon": [
+   [
+    "bone_dust",
+    0.9,
+    2,
+    4
+   ],
+   [
+    "gold",
+    0.8,
+    20,
+    40
+   ],
+   [
+    "relic_shard",
+    0.3,
+    1,
+    2
+   ]
   ]
  },
  "pickups": {

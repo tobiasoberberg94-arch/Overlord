@@ -346,6 +346,61 @@ func _ready() -> void:
 		print("WOLFDONE")
 		get_tree().quit()
 		return
+	if only == "dragon":
+		# Skelettdrache als Gegner auf dem Friedhof: Modell, Anlauf, Angriffe, Tod
+		w._time_running = false
+		await w.load_location("erantel_friedhof")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var p0: Vector3 = w.player.global_position
+		var e: Enemy3D = w.spawn_enemy("skeletal_dragon", p0 + Vector3(0, 0.2, -14.0))
+		await _wait(0.3)
+		print("DRAGON Modell: %s · Animationen: %s" % [e.rig.has_model, str(e.rig.anim_map.keys()) if e.rig.anim else "-"])
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.1
+		for k in 5:
+			await _wait(1.0)
+			if is_instance_valid(e):
+				print("DRAGON Bild %d: Zustand %d · Animation %s · Abstand %.1f m" % [k, e.state, e.rig._current, e.global_position.distance_to(w.player.global_position)])
+			_shot("dragon_%d" % k)
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD:
+			e.die()
+			await _wait(1.8)
+			_shot("dragon_death")
+			print("DRAGON tot: Animation %s" % e.rig._current)
+		print("DRAGONDONE")
+		get_tree().quit()
+		return
+	if only == "darkyoung":
+		# Dunkles Junges mit echtem Modell: aufsteigen, stapfen, brüllen
+		w._time_running = false
+		await w.load_location("katze")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var p0: Vector3 = w.player.global_position
+		var d := DarkYoung.spawn(w.level, p0 + Vector3(0, 0, -28.0), 0.0, 1.0)
+		print("DARKYOUNG Modell: %s · Animation: %s" % [d._model != null, d._anim.current_animation if d._anim else "-"])
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = 0.12
+		d.rise(2.0)
+		await _wait(3.2)
+		_shot("darkyoung_0")
+		d.walk_to(p0 + Vector3(0, 0, -12.0), 6.0)
+		await _wait(2.5)
+		print("DARKYOUNG geht: Animation %s · läuft %s" % [d._anim.current_animation if d._anim else "-", d.walking])
+		_shot("darkyoung_1")
+		await _wait(4.0)
+		d.roar()
+		await _wait(0.5)
+		print("DARKYOUNG brüllt: Animation %s" % (d._anim.current_animation if d._anim else "-"))
+		_shot("darkyoung_2")
+		await _wait(1.5)
+		print("DARKYOUNG danach: Animation %s" % (d._anim.current_animation if d._anim else "-"))
+		print("DARKYOUNGDONE")
+		get_tree().quit()
+		return
 	if only == "kodex":
 		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
 		var MEM := preload("res://scripts/world3d/mementos.gd")

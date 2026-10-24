@@ -659,6 +659,18 @@
       0.0,
       -16.0
      ]
+    },
+    {
+     "enemy": "skeletal_dragon",
+     "count": 1,
+     "at": [
+      -10.0,
+      -22.0
+     ],
+     "night": true,
+     "requires": {
+      "chapter_min": 3
+     }
     }
    ]
   },
@@ -1070,6 +1082,18 @@
       14.0
      ],
      "night": true
+    },
+    {
+     "enemy": "skeletal_dragon",
+     "count": 1,
+     "at": [
+      10.0,
+      -30.0
+     ],
+     "night": true,
+     "requires": {
+      "chapter_min": 5
+     }
     }
    ],
    "doors": [

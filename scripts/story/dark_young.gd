@@ -15,6 +15,8 @@ var stomp_shake := 0.12            ## Beben je Huftritt (in der Nähe der Kamera
 var on_stomp: Callable             ## (Welt-Position) – z. B. Soldaten zertrampeln
 
 var _body: Node3D
+var _model: Node3D                 ## echtes Modell (assets/models/characters/dark_young.glb), sonst null
+var _anim: AnimationPlayer         ## Animationen des Modells: Idle, Walk, Roar, Hit, Death
 var _hips: Array[Node3D] = []
 var _knees: Array[Node3D] = []
 var _hooves: Array[Node3D] = []
@@ -58,6 +60,23 @@ func _mi(parent: Node3D, mesh: Mesh, mat: Material, pos: Vector3, scl: Vector3 =
 func _build(seed_v: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_v
+	# Echtes Modell (10 m hoch, Tripo-Modell mit Tentakel- und Beinrig aus tools/pipeline/build_darkyoung.py):
+	# Gang, Stampfen, Beben und Brüllen laufen weiter über dieses Skript, die Glieder über die Animationen des Modells.
+	_model = ModelLib.instance("characters", "dark_young")
+	if _model:
+		_body = Node3D.new()
+		add_child(_body)
+		_body.add_child(_model)
+		var players := _model.find_children("*", "AnimationPlayer", true, false)
+		if not players.is_empty():
+			_anim = players[0]
+			for n in ["Idle", "Walk"]:
+				if _anim.has_animation(n):
+					_anim.get_animation(n).loop_mode = Animation.LOOP_LINEAR
+			_anim.play("Idle")
+		for i in LEGS:
+			_down.append(true)
+		return
 	var body_mat := _material(0)
 	var tent_mat := _material(1)
 	var leg_mat := _material(2)
@@ -207,7 +226,20 @@ func _process(delta: float) -> void:
 	_body.rotation.z = sin(_t * 0.7) * 0.03
 	if walking:
 		_walk += delta * 3.2
-	for i in LEGS:
+	if _anim:
+		# Modell: Gang-/Ruheanimation nach Zustand, Brüllen läuft zu Ende; Huftritte im Takt des Gangs
+		var want := "Walk" if walking else "Idle"
+		var roaring := _anim.current_animation == "Roar" and _anim.is_playing()
+		if not roaring and _anim.current_animation != want and _anim.has_animation(want):
+			_anim.play(want, 0.3)
+		for i in LEGS:
+			var ph := _walk + i * TAU * 2.0 / LEGS
+			var down := (maxf(0.0, sin(ph)) if walking else 0.0) < 0.05
+			if down and not _down[i] and walking:
+				var a := TAU * i / LEGS + 0.3
+				_stomp(global_position + Basis(Vector3.UP, rotation.y) * Vector3(cos(a) * 2.6 * scale.x, 0.0, sin(a) * 2.6 * scale.z))
+			_down[i] = down
+	for i in (0 if _anim else LEGS):
 		var ph := _walk + i * TAU * 2.0 / LEGS
 		var lift := maxf(0.0, sin(ph)) if walking else 0.0
 		# Grundhaltung: Oberschenkel nach außen, Unterschenkel zurück (Ziegenbein); beim Heben stärker angewinkelt
@@ -261,6 +293,12 @@ func roar() -> void:
 
 
 func _set_pulse(v: float) -> void:
+	if _anim:
+		# Modell: beim Brüllen die Brüll-Animation anstoßen, der Körper bläht sich leicht
+		if v > 0.5 and _anim.current_animation != "Roar" and _anim.has_animation("Roar"):
+			_anim.play("Roar", 0.15)
+		_body.scale = Vector3.ONE * (1.0 + v * 0.06)
+		return
 	for m in _mats:
 		m.set_shader_parameter("pulse", v)
 		m.set_shader_parameter("writhe", 1.0 + v * 0.9)

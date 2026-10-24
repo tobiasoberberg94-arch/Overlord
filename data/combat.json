@@ -5174,6 +5174,73 @@
      "color": "#4a6ad0"
     }
    ]
+  },
+  "skeletal_dragon": {
+   "name": "Skelettdrache",
+   "hp": 900,
+   "armor": 35,
+   "speed": 3.6,
+   "poise": 140,
+   "aggro": 22,
+   "model": "skeletal_dragon",
+   "color": "#c8c4b8",
+   "gold": 120,
+   "elite": true,
+   "resist": {
+    "negative": 0.6,
+    "fire": 1.2
+   },
+   "ai": "brute",
+   "material": "bone",
+   "height": 2.4,
+   "barks": {
+    "alert": [
+     "…",
+     "(Knochen knirschen)"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "bite",
+     "name": "Knochenbiss",
+     "windup": 0.8,
+     "active": 0.2,
+     "recovery": 0.8,
+     "damage": 26,
+     "range": 3.4,
+     "stagger": 50,
+     "arc": 90,
+     "lunge": 1.5,
+     "next": "tail",
+     "next_chance": 0.35
+    },
+    {
+     "id": "wing_slam",
+     "name": "Flügelschlag",
+     "windup": 1.3,
+     "active": 0.25,
+     "recovery": 1.1,
+     "damage": 38,
+     "range": 4.0,
+     "stagger": 110,
+     "arc": 200,
+     "unblockable": true,
+     "armor": true,
+     "knockback": 7
+    },
+    {
+     "id": "tail",
+     "name": "Schwanzhieb",
+     "windup": 0.9,
+     "active": 0.2,
+     "recovery": 0.9,
+     "damage": 30,
+     "range": 3.6,
+     "stagger": 80,
+     "arc": 180,
+     "knockback": 5
+    }
+   ]
   }
  }
 }

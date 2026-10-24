@@ -154,6 +154,47 @@
     "stagger": "Stagger",
     "death": "Death"
    }
+  },
+  "skeletal_dragon": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "run": "Run",
+    "attack_light": "Attack_Light",
+    "attack_heavy": "Attack_Heavy",
+    "dodge": "Dodge",
+    "block": "Block",
+    "hit": "Hit",
+    "stagger": "Stagger",
+    "death": "Death"
+   }
+  },
+  "victim": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "run": "Walk",
+    "hit": "Hit",
+    "death": "Death"
+   }
+  },
+  "dark_young": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "run": "Walk",
+    "hit": "Hit",
+    "death": "Death"
+   }
   }
  },
  "props": {
