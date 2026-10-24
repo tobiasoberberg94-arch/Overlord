@@ -320,6 +320,32 @@ func _ready() -> void:
 		print("PROPSDONE")
 		get_tree().quit()
 		return
+	if only == "wolf":
+		# Wolf-Modell als echter Gegner im Tob-Wald: Bemerken, Anlauf, Angriff, Tod
+		w._time_running = false
+		await w.load_location("tob_wald")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var p0: Vector3 = w.player.global_position
+		var e: Enemy3D = w.spawn_enemy("wolf", p0 + Vector3(0, 0.2, -9.0))
+		await _wait(0.3)
+		print("WOLF Modell: %s · Animationen: %s" % [e.rig.has_model, str(e.rig.anim_map.keys()) if e.rig.anim else "-"])
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.2
+		for k in 4:
+			await _wait(0.9)
+			if is_instance_valid(e):
+				print("WOLF Bild %d: Zustand %d · Animation %s · Abstand %.1f m" % [k, e.state, e.rig._current, e.global_position.distance_to(w.player.global_position)])
+			_shot("wolf_%d" % k)
+		if is_instance_valid(e) and e.state != Fighter.S.DEAD:
+			e.die()
+			await _wait(1.6)
+			_shot("wolf_death")
+			print("WOLF tot: Animation %s" % e.rig._current)
+		print("WOLFDONE")
+		get_tree().quit()
+		return
 	if only == "kodex":
 		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
 		var MEM := preload("res://scripts/world3d/mementos.gd")
