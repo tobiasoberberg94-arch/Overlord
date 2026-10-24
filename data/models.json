@@ -139,7 +139,18 @@
    }
   }
  },
- "props": {},
+ "props": {
+  "jaldabaoth_mask": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0
+  },
+  "frost_pain": {
+   "scale": 1.0,
+   "rot_y": 0,
+   "y": 0
+  }
+ },
  "locations": {},
  "expected": {
   "characters": [

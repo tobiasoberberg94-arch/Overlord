@@ -368,15 +368,21 @@ static func model_of(cid: String) -> String:
 
 
 ## Zubehör, das auch an echten Modellen hängt (figures.json): "mask" = Farbe der Maske (Jaldabaoth).
+## Liegt assets/models/props/jaldabaoth_mask.glb vor (Drehpunkt auf Augenhöhe an der Rückseite, Blick nach +Z,
+## Maße eingebacken), wird das echte Modell genommen, sonst die prozedurale Porzellanmaske.
 static func accessories(r: CharacterRig, cid: String) -> void:
 	var f := figure_spec(cid)
 	if not f.has("mask"):
 		return
-	var mask := _mask(_c(f.mask))
+	var mask: Node3D = ModelLib.instance("props", "jaldabaoth_mask")
+	var real := mask != null
+	if mask == null:
+		mask = _mask(_c(f.mask))
+	mask.name = "mask"
 	if r.has_model:
 		var put := func() -> void:
 			if r.attach_to_bone("mixamorig_Head", mask):
-				mask.position = Vector3(0, 0.1, 0.085)
+				mask.position = Vector3(0, 0.09, 0.075) if real else Vector3(0, 0.1, 0.085)
 			else:
 				mask.queue_free()
 		if r.is_inside_tree():
@@ -667,10 +673,17 @@ static func _hand_weapon(r: CharacterRig, arm: Node3D, spec: Array, sc: float) -
 			var len := 0.9 if spec[0] == "sword" else 0.35
 			B3.box(w, Vector3(0.06, len, 0.02) * sc, Vector3(0, len / 2.0, 0.05) * sc, m, false, Vector3(70, 0, 0))
 		"frost_sword":
-			# Frost Pain: eisblaue, leuchtende Klinge
-			var ice := B3.mat(_c(spec[1]), 0.1, 0.3, _c(spec[1]), 1.6)
-			B3.box(w, Vector3(0.07, 0.95, 0.02) * sc, Vector3(0, 0.48, 0.05) * sc, ice, false, Vector3(70, 0, 0))
-			B3.box(w, Vector3(0.2, 0.04, 0.05) * sc, Vector3(0, 0.02, 0.05) * sc, B3.mat(Color(0.5, 0.55, 0.6), 0.3, 0.9), false, Vector3(70, 0, 0))
+			# Frost Pain: echtes Modell (props/frost_pain.glb – Griff im Ursprung, Klinge nach +Y), sonst eisblaue Leuchtklinge
+			var fp: Node3D = ModelLib.instance("props", "frost_pain")
+			if fp:
+				fp.position = Vector3(0, 0.04, 0.05) * sc
+				fp.rotation_degrees = Vector3(70, 0, 0)
+				fp.scale = Vector3.ONE * sc
+				w.add_child(fp)
+			else:
+				var ice := B3.mat(_c(spec[1]), 0.1, 0.3, _c(spec[1]), 1.6)
+				B3.box(w, Vector3(0.07, 0.95, 0.02) * sc, Vector3(0, 0.48, 0.05) * sc, ice, false, Vector3(70, 0, 0))
+				B3.box(w, Vector3(0.2, 0.04, 0.05) * sc, Vector3(0, 0.02, 0.05) * sc, B3.mat(Color(0.5, 0.55, 0.6), 0.3, 0.9), false, Vector3(70, 0, 0))
 			var gl := B3.light(w, Vector3(0, 0.5, 0.2) * sc, _c(spec[1]), 0.6, 2.5)
 			gl.shadow_enabled = false
 		"spear":

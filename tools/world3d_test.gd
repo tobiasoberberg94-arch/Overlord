@@ -282,6 +282,44 @@ func _ready() -> void:
 		print("HAMSUKEDONE")
 		get_tree().quit()
 		return
+	if only == "props":
+		# Requisiten an Figuren: Jaldabaoths Maske am Demiurge-Modell, Frost Pain in Zaryusus Hand
+		print("PROPS Modelle: Maske %s · Frost Pain %s" % [ModelLib.has("props", "jaldabaoth_mask"), ModelLib.has("props", "frost_pain")])
+		w.queue_free()
+		await _wait(0.5)
+		var root := Node3D.new()
+		get_tree().root.add_child.call_deferred(root)
+		await _wait(0.2)
+		LocationBuilder.environment(root, {}, LocationBuilder.preset("royal"))
+		B3.ground(root, 30, B3.mat(Color(0.2, 0.18, 0.22)))
+		var cam := Camera3D.new()
+		root.add_child(cam)
+		cam.current = true
+		cam.fov = 45
+		var jal := CharacterRig.create(ProcModel.model_of("jaldabaoth"), func(rr): ProcModel.figure(rr, "jaldabaoth"))
+		root.add_child(jal)
+		ProcModel.accessories(jal, "jaldabaoth")
+		jal.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+		var zar := CharacterRig.create(ProcModel.model_of("zaryusu"), func(rr): ProcModel.figure(rr, "zaryusu"))
+		zar.position = Vector3(3.0, 0, 0)
+		root.add_child(zar)
+		zar.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+		B3.light(root, Vector3(0, 4, 4), Color(1, 0.95, 0.9), 2.5, 20.0)
+		await _wait(1.0)
+		var masks := jal.find_children("mask", "", true, false)
+		print("PROPS Maske am Rig: %d · Knoten darunter: %d" % [masks.size(), masks[0].get_child_count() if masks.size() > 0 else 0])
+		cam.look_at_from_position(Vector3(0.6, 1.75, 1.4), Vector3(0, 1.6, 0))
+		await _wait(0.4)
+		_shot("props_mask")
+		cam.look_at_from_position(Vector3(4.6, 1.5, 2.6), Vector3(3.0, 1.0, 0))
+		await _wait(0.4)
+		_shot("props_frost_pain")
+		cam.look_at_from_position(Vector3(1.5, 1.6, 5.5), Vector3(1.5, 1.0, 0))
+		await _wait(0.4)
+		_shot("props_both")
+		print("PROPSDONE")
+		get_tree().quit()
+		return
 	if only == "kodex":
 		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
 		var MEM := preload("res://scripts/world3d/mementos.gd")
