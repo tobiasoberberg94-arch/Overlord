@@ -120,6 +120,23 @@
    "rot_y": 0,
    "y": 0,
    "anims": {}
+  },
+  "hamsuke": {
+   "scale": 1.2,
+   "rot_y": 0,
+   "y": 0,
+   "anims": {
+    "idle": "Idle",
+    "walk": "Walk",
+    "run": "Run",
+    "attack_light": "Attack_Light",
+    "attack_heavy": "Attack_Heavy",
+    "dodge": "Dodge",
+    "block": "Block",
+    "hit": "Hit",
+    "stagger": "Stagger",
+    "death": "Death"
+   }
   }
  },
  "props": {},

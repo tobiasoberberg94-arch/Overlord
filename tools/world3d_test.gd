@@ -251,6 +251,37 @@ func _ready() -> void:
 		print("DUNGEONDONE")
 		get_tree().quit()
 		return
+	if only == "hamsuke":
+		# Hamsuke-Modell im Tob-Wald: Figur suchen, davorstellen, Bilder über einige Sekunden (Leerlauf, Umherlaufen, Kopfblick)
+		w._time_running = false
+		var ham: Actor3D = null
+		for lid in ["jungle", "tob_wald"]:
+			await w.load_location(lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(1.0)
+			for a in w.actors:
+				if a.id == "hamsuke":
+					ham = a
+			if ham:
+				break
+		if ham == null:
+			print("HAMSUKE FEHLT (Dschungel und Tob-Wald)")
+			get_tree().quit()
+			return
+		print("HAMSUKE Modell: %s · Animationen: %s · aktuell: %s" % [ham.rig.has_model, str(ham.rig.anim_map.keys()) if ham.rig.anim else "-", ham.rig._current])
+		var fwd: Vector3 = ham.global_basis.z
+		for k in 3:
+			w.player.global_position = ham.global_position + fwd * 4.5 + Vector3(0, 0.3, 0)
+			w.player.cam_yaw = atan2(-(ham.global_position.x - w.player.global_position.x), -(ham.global_position.z - w.player.global_position.z))
+			w.player.cam_pitch = -0.25
+			await _wait(1.6)
+			print("HAMSUKE Bild %d: Animation %s · Abstand %.1f m" % [k, ham.rig._current, ham.global_position.distance_to(w.player.global_position)])
+			_shot("hamsuke_%d" % k)
+			fwd = ham.global_basis.z
+		print("HAMSUKEDONE")
+		get_tree().quit()
+		return
 	if only == "kodex":
 		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
 		var MEM := preload("res://scripts/world3d/mementos.gd")

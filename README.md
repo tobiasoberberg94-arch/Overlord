@@ -239,6 +239,7 @@ Zusätzlich lädt das Spiel Modelle **zur Laufzeit ohne Neu-Export** aus `<Spiel
   Angriffs-Animationen werden automatisch auf die Dauer des jeweiligen Angriffs gestreckt.
 - Pro Modell optional in `data/models.json`: `{"characters": {"albedo": {"scale": 1.0, "rot_y": 180, "y": 0, "anims": {"attack_light": "Albedo_Slash"}}}}`.
 - Requisiten erhalten automatisch eine Kollision aus ihren Meshes.
+- **Nicht-Menschen ohne Mixamo** (Beispiel Hamsuke, `tools/pipeline/build_hamsuke.py`): Mixamo riggt nur Zweibeiner. Für den Weisen König des Waldes baut das Skript aus dem Tripo-FBX (Quellen in `C:\Projekte\Overlord\Hamsuke`) ein eigenes Skelett (Hüfte, Rumpf, Kopf, Ohren, Pfoten, vierteilige Schwanzkette entlang der aus dem Mesh berechneten Mittellinie), verteilt die Gewichte (nächster Knochen, geglättet; Schwanz als Zeltfunktion entlang der Kette) und erzeugt zehn Animationen per Schlüsselbildern (Idle, Walk, Run, Attack_Light, Attack_Heavy, Hit, Stagger, Death, Dodge, Block) – Namen in `data/models.json → characters.hamsuke.anims`. Ausrichtung: Blick nach -Y in Blender (= +Z im Spiel), Füße auf 0, Höhe 2,2 m, Texturen eingebettet (Godot legt sie beim Import daneben ab).
 - Orts-Modelle können Ankerpunkte als benannte Knoten (Empty/Marker) enthalten: `Spawn`, `Gate`, `Throne`, `Table`, `Desk`, `Board`, `Keeper`, `Slot1` … `SlotN`.
 - Quellen: selbst modelliert (Blender), lizenzfreie Pakete oder KI-Generatoren mit passender Lizenz; Animationen z. B. über Mixamo. Keine Modelle aus offiziellen Spielen/Anime ohne Rechte.
 
