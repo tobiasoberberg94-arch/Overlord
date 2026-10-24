@@ -946,11 +946,140 @@ func _pause_menu() -> void:
 		{"text": "▶  Weiter", "action": func(): pass, "style": "ButtonPrimary"},
 		{"text": "📖  Bücher, Karten & Berichte", "sub": "Zauberbuch, Questbuch, Karte, Depeschen, Gate …", "action": _books_menu},
 		{"text": "📷  Fotomodus", "sub": "Freie Kamera, Filter, Foto speichern (F9)", "action": func(): await get_tree().create_timer(0.3).timeout; photo.toggle()},
+		{"text": "🧪  Testmodus", "sub": "Alle Orte, Gegner, Story-Einsätze, Tageszeit, Wetter – zum Prüfen", "action": _test_menu},
 		{"text": "✎  Speichern", "action": func(): _open(SaveLoadDialog.new(true))},
 		{"text": "☰  Laden", "action": _load_menu},
 		{"text": "⚙  Einstellungen", "action": _settings},
 		{"text": "?  Einführung erneut zeigen", "action": start_tutorial},
 		{"text": "✕  Zum Titelbildschirm", "action": func(): get_tree().change_scene_to_file(TITLE_SCENE)},
+	], 620))
+
+
+# =====================================================================
+#  Testmodus: Orte, Gegner und Story-Einsätze ohne Freischaltung prüfen
+# =====================================================================
+
+func _test_menu() -> void:
+	var tw: bool = Game.state.get("testwelt", false)
+	_open(ChoiceMenu.new("Testmodus", "Zum Prüfen von Orten und Kämpfen – ohne Folgen für die Geschichte." if tw else "Nur zum Prüfen. Tipp: „Alles freischalten“ öffnet Gate, Wächter und Kapitel-Momente.", [
+		{"text": "✧  Zu einem Ort reisen …", "sub": "Alle Außenorte, Nazarick-Ebenen und Innenräume", "action": _test_travel_menu, "style": "ButtonPrimary"},
+		{"text": "⚔  Gegner beschwören …", "sub": "Jeder Gegner aus data/combat.json erscheint vor Euch", "action": _test_enemy_menu},
+		{"text": "⚜  Story-Einsatz starten …", "sub": "Alle Kapitel-Momente als Erinnerung (ohne Folgen)", "action": _test_story_menu},
+		{"text": "☀  Tageszeit: Tag / ☾ Nacht / ◐ Abend", "sub": "Sonnenstand sofort umstellen", "action": _test_time_menu},
+		{"text": "☂  Wetter: klar / Regen / Nebel / Schnee / Sand", "sub": "Wetter des Ortes sofort umstellen", "action": _test_weather_menu},
+		{"text": "❤  Heilen & Gegner entfernen", "sub": "Volle Werte, alle Gegner verschwinden", "action": _test_heal},
+		{"text": "✦  Alles freischalten", "sub": "Letztes Kapitel, alle Wächter, alle Gegenden, alle Kapitel-Momente, 5000 Gold", "action": _test_unlock, "disabled": tw},
+	], 760))
+
+
+func _test_heal() -> void:
+	player.heal(1.0, 1.0, 1.0)
+	for e in enemies.duplicate():
+		if is_instance_valid(e):
+			e.queue_free()
+	enemies.clear()
+	toast("Geheilt – keine Gegner mehr.", Palette.GOLD_BRIGHT)
+
+
+func _test_unlock() -> void:
+	Game.unlock_everything()
+	_refresh_hud()
+	toast("Testwelt: alles freigeschaltet.", Palette.GOLD_BRIGHT)
+
+
+func _test_travel_menu() -> void:
+	var entries: Array = []
+	for grp in ["world", "nazarick", "interior"]:
+		for l in Content.locations:
+			if l.get("group", "") != grp:
+				continue
+			var mark := "✧  " if grp == "world" else ("☗  " if grp == "nazarick" else "⌂  ")
+			var sub := String(l.get("kind", ""))
+			if grp == "interior":
+				sub += " · in " + String(Content.location_by_id.get(String(l.get("parent", "")), {}).get("name", "?"))
+			entries.append({"text": mark + l.name + ("   (hier)" if l.id == loc.id else ""), "sub": sub, "disabled": l.id == loc.id,
+				"action": func(): _test_travel(l.id)})
+	_open(ChoiceMenu.new("Testreise", "Alle %d Orte – Ankunft am Startpunkt des Ortes." % entries.size(), entries, 980))
+
+
+func _test_travel(id: String) -> void:
+	if _busy:
+		return
+	Audio.sfx("gong", 0.5)
+	await load_location(id, true)
+
+
+func _test_enemy_menu() -> void:
+	var entries: Array = []
+	var ids: Array = Content.combat.enemies.keys()
+	ids.sort()
+	for id in ids:
+		var d: Dictionary = Content.combat.enemies[id]
+		if String(d.get("team", "")) == "ally" or String(id).ends_with("_ally"):
+			continue
+		var boss: bool = d.get("boss", false)
+		var elite: bool = d.get("elite", false)
+		entries.append({"text": ("☠  " if boss else ("◆  " if elite else "•  ")) + String(d.get("name", id)), "sub": "%s · %d LP%s" % [id, int(d.get("hp", 0)), "  · Boss" if boss else ("  · Elite" if elite else "")],
+			"action": func(): test_spawn(String(id), 1 if (boss or elite) else 3)})
+	_open(ChoiceMenu.new("Gegner beschwören", "%d Gegnerarten – Bosse und Eliten einzeln, andere zu dritt." % entries.size(), entries, 940))
+
+
+## Gegner vor dem Spieler erscheinen lassen (Testmodus und Testwerkzeug).
+func test_spawn(id: String, n: int = 1) -> Array:
+	var out: Array = []
+	if not Content.combat.enemies.has(id) or level == null:
+		return out
+	var fwd := Basis(Vector3.UP, player.cam_yaw) * Vector3(0, 0, -1)
+	for i in n:
+		var side := Vector3(-fwd.z, 0, fwd.x) * float(i - (n - 1) * 0.5) * 2.5
+		var p := player.global_position + fwd * 9.0 + side
+		p = _on_ground(p) + Vector3(0, 0.2, 0)
+		out.append(spawn_enemy(id, p))
+	toast("%d × %s erscheint." % [n, String(Content.combat.enemies[id].get("name", id))], Palette.GOLD_BRIGHT)
+	return out
+
+
+func _test_story_menu() -> void:
+	var entries: Array = []
+	var all := StoryMission.load_all()
+	for mid in all:
+		var m: Dictionary = all[mid]
+		var where: String = String(Content.location_by_id.get(String(m.get("loc", "")), {}).get("name", ""))
+		entries.append({"text": "⚜  " + String(m.get("title", mid)), "sub": "%s · %s" % [String(mid), where],
+			"action": func(): replay_story(String(mid))})
+	_open(ChoiceMenu.new("Story-Einsatz starten", "Als Erinnerung: ohne Lohn und ohne Folgen; Esc überspringt Szenen.", entries, 900))
+
+
+func _test_time_menu() -> void:
+	var set_tod := func(f: float, name: String) -> void:
+		if day_cycle.active:
+			day_cycle.force = f
+			day_cycle.update(f)
+			toast("Tageszeit: %s" % name, Palette.GOLD_BRIGHT)
+		else:
+			toast("Hier gibt es keinen Tag-Nacht-Wechsel (Innenraum oder feste Nacht).", Palette.MUTED)
+	_open(ChoiceMenu.new("Tageszeit", "Sofort umstellen – wirkt bis zur nächsten Reise.", [
+		{"text": "☀  Mittag", "action": func(): set_tod.call(0.5, "Mittag")},
+		{"text": "◐  Abend", "action": func(): set_tod.call(0.78, "Abend")},
+		{"text": "☾  Nacht", "action": func(): set_tod.call(0.95, "Nacht")},
+		{"text": "☼  Morgen", "action": func(): set_tod.call(0.22, "Morgen")},
+		{"text": "↺  Wieder nach Spielzeit", "action": func(): day_cycle.force = -1.0; toast("Tageszeit folgt wieder der Spielzeit.", Palette.MUTED)},
+	], 620))
+
+
+func _test_weather_menu() -> void:
+	var set_w := func(kind: String, name: String) -> void:
+		weather.force = kind
+		weather.refresh(int(Game.state.get("day", 1)), true)
+		toast("Wetter: %s" % name, Palette.GOLD_BRIGHT)
+	_open(ChoiceMenu.new("Wetter", "Sofort umstellen – wirkt bis zur nächsten Reise.", [
+		{"text": "☀  Klar", "action": func(): set_w.call("clear", "klar")},
+		{"text": "☁  Bedeckt", "action": func(): set_w.call("overcast", "bedeckt")},
+		{"text": "☂  Regen (mit Gewitter)", "action": func(): set_w.call("rain", "Regen")},
+		{"text": "≋  Nebel", "action": func(): set_w.call("fog", "Nebel")},
+		{"text": "❄  Schneefall", "action": func(): set_w.call("snow", "Schneefall")},
+		{"text": "≈  Sandsturm", "action": func(): set_w.call("sand", "Sandsturm")},
+		{"text": "↺  Wieder nach Tag und Gegend", "action": func(): weather.force = ""; weather.refresh(int(Game.state.get("day", 1)), true); toast("Wetter folgt wieder Tag und Gegend.", Palette.MUTED)},
 	], 620))
 
 

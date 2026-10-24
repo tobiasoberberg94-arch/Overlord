@@ -106,6 +106,28 @@ func load_state(data: Dictionary) -> void:
 	state_changed.emit()
 
 
+## Testwelt: alles freischalten – letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle Kapitel-Momente als
+## Erinnerung spielbar, viel Gold. Für Prüfungen von Orten und Kämpfen (Titelbild „Testwelt“, Pausenmenü „Testmodus“).
+func unlock_everything() -> void:
+	state.chapter = Content.chapters.size()
+	state.chapter_start_day = state.day
+	for cid in Content.character_order:
+		var c := cs(cid)
+		c.unlocked = true
+		if c.status == STATUS_LOCKED:
+			c.status = STATUS_READY
+	for rid in state.get("regions", {}):
+		state.regions[rid].discovered = true
+	for mid in StoryMission.load_all():
+		set_flag("story_" + String(mid))
+	for f in ["scouted", "slane_known", "kingdom_intel", "dwarf_contact", "platinum_met", "hamsuke", "momon_rank", "zurrernon_entdeckt"]:
+		set_flag(f)
+	state.resources["gold"] = maxi(int(state.resources.get("gold", 0)), 5000)
+	state["testwelt"] = true
+	log_msg("Testwelt: alle Orte, Wächter und Kapitel-Momente stehen offen.", "story")
+	state_changed.emit()
+
+
 func _new_char_state(cid: String) -> Dictionary:
 	var cd := Content.char_data(cid)
 	var init: Dictionary = cd.get("initial", {})

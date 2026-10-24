@@ -124,6 +124,7 @@ func _build_ui() -> void:
 		_add_button("Fortsetzen", "ButtonPrimary", _on_continue)
 	_add_button("Neues Spiel", "ButtonPrimary" if not SaveSystem.has_any_save() else "Button", _on_new)
 	_add_button("Chronik laden", "Button", _on_load)
+	_add_button("Testwelt (alles frei)", "ButtonGhost", func(): Game.new_game("normal"); Game.unlock_everything(); _go())
 	_add_button("Optionen", "Button", func(): ui_root.add_child(SettingsDialog.new(false)))
 	_add_button("Nazarick verlassen", "ButtonGhost", func(): get_tree().quit())
 	# Controller: ersten Knopf fokussieren, sobald ein Gamepad benutzt wird (oder schon angeschlossen ist)

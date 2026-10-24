@@ -1,7 +1,7 @@
 # Dunkles Junges (Tripo-FBX) → GLB mit radialem Rig: Körper, fünf Beine (unterer Teil, nach Winkelsektoren) und acht
 # Tentakel (oberer Teil, nach Winkelsektoren). Aktionen: Idle (Tentakel wogen, Körper atmet), Walk (Beine heben sich
 # reihum, Körper schaukelt), Roar (Tentakel peitschen hoch), Hit, Death (sackt zusammen).
-# assets/models/characters/dark_young.glb – Höhe im Spiel 10 m (scripts/story/dark_young.gd skaliert).
+# assets/models/characters/dark_young.glb – Höhe im Spiel 13 m (scripts/story/dark_young.gd skaliert).
 #   blender.exe -b --python tools/pipeline/build_darkyoung.py [-- <Quellordner> [<Ziel-GLB>]]
 import bpy, math, mathutils, time, os, sys, subprocess
 import numpy as np
@@ -12,7 +12,7 @@ REPO = os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 GLB = (argv[1] if len(argv) > 1 else REPO + "/assets/models/characters/dark_young.glb").replace("\\", "/")
 OUT = SRC + "build/"
 os.makedirs(OUT, exist_ok=True)
-SC = 10.0               # 1,0 Einheit → 10 m
+SC = 13.0               # 1,0 Einheit → 13 m (haushoch wie in der Serie)
 LEGS = 5
 TENTACLES = 8
 t0 = time.time()

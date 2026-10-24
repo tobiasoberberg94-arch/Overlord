@@ -1242,7 +1242,7 @@
    "ai": "brute",
    "material": "dark_armor",
    "undying": true,
-   "height": 2.3
+   "height": 3.0
   },
   "soldier": {
    "name": "Ritter der Schrift",
@@ -2585,7 +2585,7 @@
    "ai": "brute",
    "material": "dark_armor",
    "undying": true,
-   "height": 2.3,
+   "height": 3.0,
    "attacks": [
     {
      "id": "cleave",
@@ -5181,7 +5181,7 @@
    "armor": 35,
    "speed": 3.6,
    "poise": 140,
-   "aggro": 22,
+   "aggro": 26,
    "model": "skeletal_dragon",
    "color": "#c8c4b8",
    "gold": 120,
@@ -5192,7 +5192,7 @@
    },
    "ai": "brute",
    "material": "bone",
-   "height": 2.4,
+   "height": 3.3,
    "barks": {
     "alert": [
      "…",

@@ -237,7 +237,7 @@ func _process(delta: float) -> void:
 			var down := (maxf(0.0, sin(ph)) if walking else 0.0) < 0.05
 			if down and not _down[i] and walking:
 				var a := TAU * i / LEGS + 0.3
-				_stomp(global_position + Basis(Vector3.UP, rotation.y) * Vector3(cos(a) * 2.6 * scale.x, 0.0, sin(a) * 2.6 * scale.z))
+				_stomp(global_position + Basis(Vector3.UP, rotation.y) * Vector3(cos(a) * 3.6 * scale.x, 0.0, sin(a) * 3.6 * scale.z))
 			_down[i] = down
 	for i in (0 if _anim else LEGS):
 		var ph := _walk + i * TAU * 2.0 / LEGS
@@ -285,6 +285,8 @@ func rise(dur: float = 3.0) -> void:
 ## Brüllen: der Körper bläht sich, die Tentakel peitschen.
 func roar() -> void:
 	CombatFX.sound("dark_young_roar", global_position + Vector3.UP * 6.0, 1.3, 0.0)
+	if _anim and _anim.has_animation("Roar"):
+		_anim.play("Roar", 0.15)
 	var tw := create_tween()
 	tw.tween_method(_set_pulse, 0.0, 1.0, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tw.tween_interval(0.8)
@@ -294,9 +296,7 @@ func roar() -> void:
 
 func _set_pulse(v: float) -> void:
 	if _anim:
-		# Modell: beim Brüllen die Brüll-Animation anstoßen, der Körper bläht sich leicht
-		if v > 0.5 and _anim.current_animation != "Roar" and _anim.has_animation("Roar"):
-			_anim.play("Roar", 0.15)
+		# Modell: der Körper bläht sich leicht (die Brüll-Animation startet roar() genau einmal)
 		_body.scale = Vector3.ONE * (1.0 + v * 0.06)
 		return
 	for m in _mats:

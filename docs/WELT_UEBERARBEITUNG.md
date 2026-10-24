@@ -58,6 +58,15 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 - Prüfung: `LOC=dresscheck [DRESSLOCS=ort,ort]` lädt die Orte und meldet jedes Stück, das in einem Gebäude oder
   Fels steckt, keinen Boden unter sich hat oder am Hang steht (`AUSSTATTUNG`-Zeilen). Alle Einträge sind geprüft.
 
+## Testmodus und Größen (erledigt, Version 2.9)
+- Titelbild „Testwelt (alles frei)“ (`Game.unlock_everything`: letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle
+  Kapitel-Momente als Erinnerung, 5000 Gold) und Pausenmenü „🧪 Testmodus“ (`World3D._test_menu`: Testreise zu jedem Ort,
+  Gegner beschwören, Story-Einsatz starten, Tageszeit, Wetter, Heilen, Alles freischalten). Prüfung `LOC=testmenu`.
+- Größen nach Serienmaßstab: Gebäude der Baukästen beim Laden 30 % höher (`LocationBuilder._enlarge_buildings`),
+  Todesritter 1,4 (Höhe 3,0), Hamsuke 1,6, Skelettdrache 1,35 (Höhe 3,3), Dunkles Junges 13 m.
+- Echte Modelle aus Tripo (Oktober 2026): Hamsuke, Wolf, Skelettdrache, Victim, Dunkles Junges, Maske, Frost Pain;
+  13 Figuren für Mixamo vorbereitet (siehe README › 3D-Modelle).
+
 ## Verliese und Schlüssel (erledigt, Version 2.8)
 - Türen mit `key` (Beutelgegenstand) bleiben verschlossen (Aufforderung „Verschlossen“, Hinweis `hint`), bis der Schlüssel im
   Beutel liegt; einmal aufgeschlossen (Flagge `unlocked_<ziel>`, Zähler `unlocked`) bleiben sie offen. Eingänge mit

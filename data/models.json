@@ -110,7 +110,7 @@
    "anims": {}
   },
   "death_knight": {
-   "scale": 1.1,
+   "scale": 1.4,
    "rot_y": 0,
    "y": 0,
    "anims": {}
@@ -122,7 +122,7 @@
    "anims": {}
   },
   "hamsuke": {
-   "scale": 1.2,
+   "scale": 1.6,
    "rot_y": 0,
    "y": 0,
    "anims": {
@@ -156,7 +156,7 @@
    }
   },
   "skeletal_dragon": {
-   "scale": 1.0,
+   "scale": 1.35,
    "rot_y": 0,
    "y": 0,
    "anims": {

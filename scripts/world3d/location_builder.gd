@@ -98,6 +98,7 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	for l in scene.find_children("*", "SpotLight3D", true, false):
 		(l as SpotLight3D).light_energy = 1.5
 		(l as SpotLight3D).shadow_enabled = false
+	print("Gebäude vergrößert: %d" % _enlarge_buildings(scene))
 	var named := {}
 	for n in scene.find_children("*", "Node3D", true, false):
 		named[String(n.name).to_lower()] = n
@@ -1326,6 +1327,30 @@ static func _desk(root: Node3D, desk: Vector3) -> void:
 ## Ausstattung eines Ortsmodells über benannte Anker:
 ##   Banner_n (Gildenbanner), Fire_n (Feuer), Lamp_n (warmes Licht), Violet_n (violettes Licht)
 ## Im Thronsaal zusätzlich roter Teppich zum Thron, Kriegstisch (Table) und Pult (Desk).
+## Gebäude des Baukastens wirken größer: Häuser und Türme um 30 % höher, der Grundriss bleibt (Häuserzeilen stehen
+## Wand an Wand). Die Unterkante bleibt am Boden; die Kollision hängt als Kind am Mesh und wächst mit.
+const BUILDING_SCALE_Y := 1.3
+static func _enlarge_buildings(scene: Node3D) -> int:
+	var n := 0
+	for h in scene.find_children("*", "MeshInstance3D", true, false):
+		var hn := String(h.name)
+		if not (hn.begins_with("SM_House") or hn.begins_with("FV_house") or hn.begins_with("SM_Build") or hn.begins_with("SM_Tower")):
+			continue
+		var mi := h as MeshInstance3D
+		if mi.mesh == null or mi.has_meta("enlarged"):
+			continue
+		mi.set_meta("enlarged", true)
+		# Die Baukasten-Meshes stehen mit dem Ursprung auf dem Boden (Fundamente/Keller reichen darunter), also um den
+		# Ursprung skalieren. Nur wenn die Hülle über dem Ursprung beginnt, die Unterkante wieder auf Bodenhöhe ziehen.
+		var bottom := mi.get_aabb().position.y
+		var old_scale := mi.scale.y
+		mi.scale.y *= BUILDING_SCALE_Y
+		if bottom > 0.0:
+			mi.position -= mi.transform.basis.y.normalized() * (bottom * old_scale * (BUILDING_SCALE_Y - 1.0))
+		n += 1
+	return n
+
+
 static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a: Dictionary) -> void:
 	var crest: Texture2D = Palette.icon("faction_nazarick")
 	var walk: Array = []

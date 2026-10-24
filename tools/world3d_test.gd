@@ -401,6 +401,66 @@ func _ready() -> void:
 		print("DARKYOUNGDONE")
 		get_tree().quit()
 		return
+	if only == "testmenu":
+		# Testmodus: Freischalten, Testmenü, Gegner beschwören, Testreise, Tageszeit und Wetter
+		w._time_running = false
+		await _wait(0.5)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		var before := [int(Game.state.chapter), Game.unlocked_chars().size()]
+		Game.unlock_everything()
+		var disc := 0
+		for rid in Game.state.regions:
+			if Game.state.regions[rid].discovered:
+				disc += 1
+		var stories := 0
+		for f in Game.state.flags:
+			if String(f).begins_with("story_"):
+				stories += 1
+		print("TESTMENU Freischalten: Kapitel %d → %d · Wächter %d → %d · Gegenden erkundet %d/%d · Kapitel-Momente %d · Gold %d" % [before[0], int(Game.state.chapter), before[1], Game.unlocked_chars().size(), disc, Game.state.regions.size(), stories, int(Game.state.resources.gold)])
+		w._test_menu()
+		await _wait(0.4)
+		print("TESTMENU Menü offen: %d Fenster" % w.overlay_layer.get_child_count())
+		_shot("testmenu_menu")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(0.3)
+		var sp: Array = w.test_spawn("skeleton", 3)
+		await _wait(0.5)
+		print("TESTMENU Gegner: %d beschworen · gesamt %d" % [sp.size(), w.enemies.size()])
+		w._gate_menu()
+		await _wait(0.3)
+		var gate: Node = w.overlay_layer.get_child(0) if w.overlay_layer.get_child_count() > 0 else null
+		var disabled := 0
+		var total := 0
+		if gate:
+			for b in gate.find_children("*", "Button", true, false):
+				total += 1
+				if (b as Button).disabled:
+					disabled += 1
+		print("TESTMENU Gate: %d Knöpfe, %d gesperrt" % [total, disabled])
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(0.3)
+		await w._test_travel("erantel_kanal")
+		await _wait(1.0)
+		print("TESTMENU Testreise: Ort %s" % w.loc.id)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await w._test_travel("tob_wald")
+		await _wait(1.0)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		w.day_cycle.force = 0.95
+		w.day_cycle.update(0.95)
+		w.weather.force = "snow"
+		w.weather.refresh(int(Game.state.day), true)
+		await _wait(0.6)
+		print("TESTMENU Tob-Wald: Nacht %s · Wetter %s" % [w.day_cycle.night, w.weather.kind])
+		_shot("testmenu_night_snow")
+		print("TESTMENUDONE")
+		get_tree().quit()
+		return
 	if only == "kodex":
 		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
 		var MEM := preload("res://scripts/world3d/mementos.gd")
@@ -620,6 +680,102 @@ func _ready() -> void:
 			await _wait(4.0)
 			print("PAD A an der Tür: jetzt in %s" % w.loc.id)
 		print("PADDONE")
+		get_tree().quit()
+		return
+	if only == "buildings":
+		# Gebäude-Knoten nach der Vergrößerung: Drehung, Skalierung, Hülle – Verdacht auf gedrehte Knoten (seitlich gestreckt)
+		var blocs := OS.get_environment("BUILDLOCS")
+		for lid in (blocs if blocs != "" else "carne,re_capital,drachen").split(","):
+			await w.load_location(lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(0.5)
+			var cnt := 0
+			var odd := 0
+			for h in w.find_children("*", "MeshInstance3D", true, false):
+				var mi := h as MeshInstance3D
+				if not mi.has_meta("enlarged"):
+					continue
+				cnt += 1
+				var rd := mi.rotation_degrees
+				var tilted := absf(rd.x) > 1.0 or absf(rd.z) > 1.0
+				var ab := mi.get_aabb()
+				if tilted or cnt <= 3 or absf(ab.position.y) > 0.05:
+					var col := ""
+					for c in mi.get_children():
+						if c is StaticBody3D:
+							col = " Kollision %s rot (%.0f, %.0f, %.0f)" % [c.name, (c as Node3D).rotation_degrees.x, (c as Node3D).rotation_degrees.y, (c as Node3D).rotation_degrees.z]
+					print("BUILDINGS %s %s rot (%.0f, %.0f, %.0f) scale (%.2f, %.2f, %.2f) aabb %.1f x %.1f x %.1f unten %.2f%s%s" % [lid, mi.name, rd.x, rd.y, rd.z, mi.scale.x, mi.scale.y, mi.scale.z, ab.size.x, ab.size.y, ab.size.z, ab.position.y, col, " GEDREHT" if tilted else ""])
+				if tilted:
+					odd += 1
+			print("BUILDINGS %s: %d vergrößert, %d gedreht" % [lid, cnt, odd])
+		print("BUILDINGSDONE")
+		get_tree().quit()
+		return
+	if only == "villagers":
+		# Dorfbewohner-Modelle: Bewohner aller Stile und benannte Figuren in einer Reihe vor der Kamera, Nahaufnahme, Gang
+		await w.load_location("carne")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(0.5)
+		w._time_running = false
+		var base: Vector3 = w.player.global_position
+		var d := Vector3(0, 0, -1)
+		var right := Vector3(1, 0, 0)
+		var root := Node3D.new()
+		w.add_child(root)
+		var styles := ["", "", "adventurer", "guard", "priest", "mage", "maid", "noble", "merchant", "smith"]
+		var models := 0
+		var rigs: Array = []
+		for i in styles.size():
+			var p: Vector3 = w._on_ground(base + d * 5.0 + right * ((i - (styles.size() - 1) / 2.0) * 0.95))
+			var t := Townsfolk.spawn(root, [], [p], 100 + i, 1, styles[i])
+			for e in t._people:
+				var rig: CharacterRig = e.rig
+				rig.rotation.y = 0.0
+				rigs.append(rig)
+				if rig.has_model:
+					models += 1
+		print("VILLAGERS Bewohner: %d von %d mit Modell" % [models, rigs.size()])
+		w.player.global_position = base
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.12
+		await _wait(1.2)
+		_shot("villagers_styles")
+		w.player.global_position = base + d * 3.2
+		await _wait(0.6)
+		_shot("villagers_close")
+		root.queue_free()
+		root = Node3D.new()
+		w.add_child(root)
+		var ids := ["enri", "nfirea", "gazef", "sebas", "jircniv", "clementine", "neia", "carne_knight", "priest", "fluder", "ranpossa", "child"]
+		var named := 0
+		for i in ids.size():
+			var cid: String = ids[i]
+			var rig := CharacterRig.create(ProcModel.model_of(cid), func(r: CharacterRig) -> void: ProcModel.figure(r, cid))
+			root.add_child(rig)
+			ProcModel.accessories(rig, cid)
+			rig.global_position = w._on_ground(base + d * 5.0 + right * ((i - (ids.size() - 1) / 2.0) * 0.9))
+			rig.rotation.y = 0.0
+			if rig.has_model:
+				named += 1
+			print("VILLAGERS Figur %s: Modell %s (%s)" % [cid, rig.has_model, rig.model_id])
+		print("VILLAGERS Figuren: %d von %d mit Modell" % [named, ids.size()])
+		w.player.global_position = base
+		await _wait(1.0)
+		_shot("villagers_figures")
+		root.queue_free()
+		var walkers := Townsfolk.spawn(w, [w._on_ground(base + d * 4.0 + right * 3.0), w._on_ground(base + d * 4.0 - right * 3.0)], [], 7, 2, "")
+		for e in walkers._people:
+			e.wait = 0.0
+		await _wait(2.0)
+		var anim := ""
+		for e in walkers._people:
+			var rig: CharacterRig = e.rig
+			anim = rig._current if rig.has_model else "proc"
+		print("VILLAGERS Gang: Animation %s" % anim)
+		_shot("villagers_walk")
+		print("VILLAGERSDONE")
 		get_tree().quit()
 		return
 	if only == "probe":
