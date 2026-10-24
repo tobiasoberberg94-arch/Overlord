@@ -8,6 +8,8 @@ uniform vec3 base_col : source_color = vec3(0.10, 0.17, 0.04);
 uniform vec3 tip_col : source_color = vec3(0.42, 0.55, 0.16);
 uniform vec3 dry_col : source_color = vec3(0.62, 0.56, 0.28);
 uniform float wind = 0.18;
+// Spielerposition (RenderingServer-Global, World3D setzt sie je Bild): Halme weichen dem Spieler aus
+global uniform vec3 player_pos;
 
 varying vec3 v_col;
 
@@ -18,6 +20,9 @@ void vertex() {
 	float t = TIME * 1.8 + wp.x * 0.3 + wp.z * 0.23;
 	float gust = 0.6 + 0.4 * sin(TIME * 0.35 + wp.x * 0.05);
 	vec2 bend = vec2(sin(t) + 0.35 * sin(t * 2.7 + COLOR.g * 6.0), cos(t * 0.7) * 0.5) * wind * gust * h * h;
+	vec2 dp = wp.xz - player_pos.xz;
+	float push = (1.0 - smoothstep(0.0, 1.15, length(dp))) * h * h * 0.9;
+	bend += normalize(dp + vec2(0.001, 0.0)) * push;
 	VERTEX.xz += bend;
 	VERTEX.y -= dot(bend, bend) * 0.5;
 	float patch = sin(wp.x * 0.09 + 1.3) * cos(wp.z * 0.11) * 0.5 + 0.5;

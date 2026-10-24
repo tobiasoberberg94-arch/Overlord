@@ -4948,6 +4948,232 @@
      ]
     }
    ]
+  },
+  "zurrernorn_cultist": {
+   "name": "Kultist der Zurrernon",
+   "hp": 85,
+   "armor": 8,
+   "speed": 4.0,
+   "poise": 30,
+   "aggro": 16,
+   "model": "soldier",
+   "color": "#4a2a6a",
+   "gold": 10,
+   "ai": "skirmisher",
+   "material": "flesh",
+   "barks": {
+    "alert": [
+     "Für die Todesperle!",
+     "Der Meister wird uns erheben!"
+    ],
+    "hurt": [
+     "Noch nicht … noch nicht …"
+    ],
+    "death": [
+     "Erhebe … mich …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "dagger",
+     "name": "Opferdolch",
+     "windup": 0.45,
+     "active": 0.14,
+     "recovery": 0.5,
+     "damage": 14,
+     "range": 1.8,
+     "stagger": 20,
+     "arc": 100,
+     "next": "dark_touch",
+     "next_chance": 0.3
+    },
+    {
+     "id": "dark_touch",
+     "name": "Negative Berührung",
+     "windup": 0.7,
+     "active": 0.18,
+     "recovery": 0.8,
+     "damage": 20,
+     "range": 2.0,
+     "stagger": 30,
+     "arc": 60,
+     "type": "negative"
+    }
+   ]
+  },
+  "zurrernorn_priest": {
+   "name": "Priester der Zurrernon",
+   "hp": 260,
+   "armor": 12,
+   "speed": 3.4,
+   "poise": 60,
+   "aggro": 30,
+   "model": "soldier",
+   "color": "#7a40c0",
+   "gold": 60,
+   "elite": true,
+   "ai": "caster",
+   "material": "flesh",
+   "resist": {
+    "negative": 0.5
+   },
+   "barks": {
+    "alert": [
+     "Erhebt euch, Kinder der Gruft!",
+     "Khajit ist fort – doch sein Werk lebt!"
+    ],
+    "hurt": [
+     "Die Perle … sie schweigt …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "dark_bolt",
+     "name": "Negativer Strahl",
+     "windup": 0.9,
+     "active": 0.05,
+     "recovery": 0.7,
+     "damage": 16,
+     "range": 18,
+     "kind": "projectile",
+     "fx": "dark",
+     "type": "negative",
+     "speed": 17,
+     "homing": 1.0,
+     "stagger": 20,
+     "color": "#b070ff"
+    },
+    {
+     "id": "raise",
+     "name": "Untote erheben",
+     "windup": 1.6,
+     "active": 0.2,
+     "recovery": 1.0,
+     "damage": 0,
+     "range": 30,
+     "kind": "summon",
+     "summon": "skeleton",
+     "count": 2,
+     "max": 3,
+     "cooldown": 14,
+     "color": "#b070ff"
+    }
+   ]
+  },
+  "fallen_general": {
+   "name": "General der Gefallenen",
+   "hp": 1200,
+   "armor": 50,
+   "speed": 3.3,
+   "poise": 140,
+   "aggro": 30,
+   "model": "death_knight",
+   "scale": 1.12,
+   "height": 2.5,
+   "color": "#2a3a5a",
+   "gold": 220,
+   "boss": true,
+   "elite": true,
+   "ai": "boss",
+   "material": "dark_armor",
+   "resist": {
+    "negative": 0.6,
+    "fire": 1.1
+   },
+   "barks": {
+    "alert": [
+     "Wer stört die Ruhe der Gefallenen?",
+     "Zweihunderttausend starben hier. Einer mehr fällt nicht auf."
+    ],
+    "hurt": [
+     "Die Linie … hält …"
+    ],
+    "death": [
+     "Endlich … Ruhe …"
+    ]
+   },
+   "attacks": [
+    {
+     "id": "cleave",
+     "name": "Spaltung der Gefallenen",
+     "windup": 1.0,
+     "active": 0.22,
+     "recovery": 0.9,
+     "damage": 34,
+     "range": 2.7,
+     "stagger": 60,
+     "arc": 140,
+     "armor": true,
+     "next": "bash",
+     "next_chance": 0.45
+    },
+    {
+     "id": "bash",
+     "name": "Schildstoß",
+     "windup": 0.5,
+     "active": 0.15,
+     "recovery": 0.6,
+     "damage": 14,
+     "range": 1.9,
+     "stagger": 80,
+     "arc": 90,
+     "knockback": 6
+    },
+    {
+     "id": "overhead",
+     "name": "Urteil der Ebene",
+     "windup": 1.4,
+     "active": 0.25,
+     "recovery": 1.2,
+     "damage": 52,
+     "range": 2.9,
+     "stagger": 120,
+     "arc": 50,
+     "unblockable": true,
+     "lunge": 2.5,
+     "armor": true
+    },
+    {
+     "id": "wave",
+     "name": "Hass der Gefallenen",
+     "windup": 1.2,
+     "active": 0.2,
+     "recovery": 1.1,
+     "damage": 28,
+     "range": 12,
+     "kind": "aoe",
+     "fx": "dark",
+     "type": "negative",
+     "radius": 3.4,
+     "unblockable": true,
+     "stagger": 70,
+     "color": "#6a8ad0",
+     "cooldown": 9
+    }
+   ],
+   "phases": [
+    {
+     "at": 0.65,
+     "say": "Erhebt euch! Noch einmal in die Schlacht!",
+     "summon": [
+      "skeleton",
+      3
+     ],
+     "speed": 1.05,
+     "cd": 0.9
+    },
+    {
+     "at": 0.3,
+     "say": "Der Nebel gehört mir!",
+     "summon": [
+      "skeleton_archer",
+      2
+     ],
+     "speed": 1.12,
+     "cd": 0.8,
+     "color": "#4a6ad0"
+    }
+   ]
   }
  }
 }

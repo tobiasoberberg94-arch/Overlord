@@ -191,6 +191,91 @@ static func _add_pad_axis(action: String, axis: JoyAxis, direction: float) -> vo
 	InputMap.action_add_event(action, m)
 
 
+## Schritte: Klang je Untergrund (Stein, Gras, Holz, Schnee, Sand) im Takt der Bewegung, Fußspuren in Schnee und Sand.
+var _step_acc := 0.0
+var _surface := "grass"
+var _surface_t := 0.0
+var _foot_left := false
+var _prints: Array = []
+static var step_count := 0
+
+
+func _footsteps(delta: float) -> void:
+	if not is_on_floor() or frozen():
+		_step_acc = 0.0
+		return
+	var sp := Vector2(velocity.x, velocity.z).length()
+	if sp < 0.8:
+		_step_acc = 0.0
+		return
+	_surface_t -= delta
+	if _surface_t <= 0.0:
+		_surface_t = 0.5
+		_surface = _detect_surface()
+	_step_acc += sp * delta
+	var stride := 2.1 if _sprinting else 1.55
+	if _step_acc >= stride:
+		_step_acc = 0.0
+		_foot_left = not _foot_left
+		step_count += 1
+		Audio.sfx("step_%s_%d" % [_surface, randi_range(1, 3)], 0.5 if _sprinting else 0.35)
+		if _surface in ["snow", "sand"]:
+			_footprint()
+
+
+func _detect_surface() -> String:
+	var w: Node = get_tree().get_first_node_in_group("world3d")
+	var kind := String(w.loc.get("kind", "")) if w else ""
+	var group := String(w.loc.get("group", "")) if w else ""
+	if kind == "glacier" or (w and String(w.weather.kind) == "snow"):
+		return "snow"
+	if kind == "peaks":
+		return "sand"
+	if group == "interior":
+		return "wood" if kind in ["tavern", "inn", "guild", "cottage", "shop", "academy"] else "stone"
+	if group == "nazarick":
+		return "stone"
+	var hit := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(global_position + Vector3.UP * 0.4, global_position - Vector3.UP * 1.2, 0x7FFFFFFF, [get_rid()]))
+	if hit and hit.collider is Node:
+		var nm := String((hit.collider as Node).name)
+		if nm.begins_with("SM_") or nm.contains("Fotoscan") or nm.to_lower().contains("road") or nm.contains("Treppe"):
+			return "stone"
+	if kind in ["city", "palace", "cathedral"]:
+		return "stone"
+	return "grass"
+
+
+## Fußspur: dunkler, weicher Abdruck neben der Laufachse, verblasst in 25 s; höchstens 60 Spuren.
+func _footprint() -> void:
+	var side := Basis(Vector3.UP, rotation.y) * Vector3(0.17 if _foot_left else -0.17, 0, 0)
+	var hit := get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(global_position + side + Vector3.UP * 0.5, global_position + side - Vector3.UP * 1.0, 0x7FFFFFFF, [get_rid()]))
+	if hit.is_empty():
+		return
+	var q := MeshInstance3D.new()
+	var qm := QuadMesh.new()
+	qm.size = Vector2(0.22, 0.42)
+	qm.orientation = PlaneMesh.FACE_Y
+	q.mesh = qm
+	var m := StandardMaterial3D.new()
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.albedo_color = Color(0.0, 0.0, 0.05, 0.35 if _surface == "snow" else 0.22)
+	q.material_override = m
+	q.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	get_parent().add_child(q)
+	q.global_position = (hit.position as Vector3) + Vector3(0, 0.02, 0)
+	q.rotation.y = rotation.y
+	_prints.append(q)
+	if _prints.size() > 60:
+		var old: Node = _prints.pop_front()
+		if is_instance_valid(old):
+			old.queue_free()
+	var tw := q.create_tween()
+	tw.tween_interval(18.0)
+	tw.tween_property(m, "albedo_color:a", 0.0, 7.0)
+	tw.tween_callback(q.queue_free)
+
+
 ## Rechter Stick dreht die Kamera (Empfindlichkeit und Y-Umkehr aus den Einstellungen).
 func _pad_camera(delta: float) -> void:
 	if not input_enabled:
@@ -1034,6 +1119,7 @@ func _physics_process(delta: float) -> void:
 		_update_camera(delta)
 		return
 	_pad_camera(delta)
+	_footsteps(delta)
 	if frozen():
 		velocity = Vector3.ZERO
 		_update_camera(delta)

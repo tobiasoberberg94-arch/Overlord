@@ -62,6 +62,8 @@ static func discovery(kind_in: String, title: String, text: String) -> Pickup:
 	match kind_in:
 		"lore", "lectern", "plaque", "note", "spot": p.color = Color(0.55, 0.85, 1.0)
 		"shrine": p.color = Color(1.0, 0.86, 0.5)
+		"memento": p.color = Color(1.0, 0.85, 0.45)
+		"key": p.color = Color(1.0, 0.82, 0.4)
 		_:
 			p.color = Palette.GOLD
 			p.entries = [["gold", "", randi_range(30, 80)], ["item", Progress.roll_item("rare" if randf() < 0.4 else "uncommon"), 1]]
@@ -97,6 +99,25 @@ func _ready() -> void:
 				var r := B3.box(_visual, Vector3(0.28, 0.22, 0.24) * randf_range(0.7, 1.2), Vector3(randf_range(-0.15, 0.15), 0.1, randf_range(-0.15, 0.15)), B3.mat(Color(0.32, 0.3, 0.3), 0.9), false)
 				r.rotation = Vector3(randf(), randf() * TAU, randf())
 			B3.box(_visual, Vector3(0.08, 0.16, 0.08), Vector3(0.05, 0.28, 0.0), B3.mat(c, 0.2, 0.8, c, 1.5), false)
+		"memento":
+			# Erinnerungsstück der 41: kleiner Sockel, darüber ein schwebendes, goldglühendes Fragment
+			B3.cyl(_visual, 0.22, 0.26, 0.12, Vector3(0, 0.06, 0), B3.mat(Color(0.3, 0.28, 0.3), 0.85), false, 10)
+			var frag := B3.box(_visual, Vector3(0.16, 0.16, 0.16), Vector3(0, 0.55, 0), B3.mat(Color(1.0, 0.85, 0.45), 0.25, 0.8, Color(1.0, 0.75, 0.3), 2.2), false)
+			frag.rotation_degrees = Vector3(35, 20, 45)
+			frag.set_meta("spin", 0.9)
+		"key":
+			# Schlüssel eines Verlieses: Steinsockel, darüber ein schwebender, sich drehender Schlüssel (Schaft, Bart, Ring)
+			B3.cyl(_visual, 0.2, 0.24, 0.1, Vector3(0, 0.05, 0), B3.mat(Color(0.3, 0.28, 0.3), 0.85), false, 10)
+			var km := B3.mat(c, 0.35, 0.9, c, 0.8)
+			var kh := Node3D.new()
+			kh.position = Vector3(0, 0.55, 0)
+			kh.rotation_degrees = Vector3(0, 0, 25)
+			kh.set_meta("spin", 1.2)
+			_visual.add_child(kh)
+			B3.cyl(kh, 0.03, 0.03, 0.42, Vector3.ZERO, km, false, 8)
+			B3.box(kh, Vector3(0.12, 0.05, 0.03), Vector3(0.06, -0.17, 0), km, false)
+			B3.box(kh, Vector3(0.08, 0.05, 0.03), Vector3(0.04, -0.08, 0), km, false)
+			B3.cyl(kh, 0.1, 0.1, 0.03, Vector3(0, 0.28, 0), km, false, 12).rotation_degrees = Vector3(90, 0, 0)
 		"chest":
 			B3.box(_visual, Vector3(0.9, 0.5, 0.55), Vector3(0, 0.25, 0), B3.mat(Color(0.32, 0.18, 0.08), 0.75), false)
 			B3.box(_visual, Vector3(0.94, 0.16, 0.6), Vector3(0, 0.58, 0), B3.mat(Color(0.36, 0.2, 0.09), 0.75), false)
@@ -191,7 +212,7 @@ func _ready() -> void:
 			cr.rotation = Vector3(0.6, 0.7, 0.3)
 	_light = OmniLight3D.new()
 	_light.light_color = c
-	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0}.get(kind, 0.9)
+	_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "cache": 0.0, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0, "memento": 1.0, "key": 1.1}.get(kind, 0.9)
 	_light.omni_range = 2.2
 	_light.position.y = 0.6
 	_light.shadow_enabled = false
@@ -230,7 +251,7 @@ func _process(delta: float) -> void:
 		_visual.rotation.y += delta * 1.2
 		_visual.position.y = sin(_t * 2.0) * 0.06
 	if _light and kind != "cache":
-		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
+		_light.light_energy = {"chest": 0.6, "lore": 1.2, "shrine": 1.6, "lectern": 0.5, "plaque": 0.3, "note": 0.3, "spot": 0.0, "memento": 1.0, "key": 1.1}.get(kind, 0.9) * (0.8 + 0.2 * sin(_t * 3.0))
 	elif _light:
 		# versteckter Schatz glitzert erst aus der Nähe
 		var pl := Actor3D.player
@@ -240,4 +261,4 @@ func _process(delta: float) -> void:
 
 ## Kurztext für den Interaktionshinweis.
 func prompt() -> String:
-	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "lectern": "Lesen", "plaque": "Lesen", "note": "Lesen", "spot": "Lesen", "shrine": "Beten", "cache": "Durchsuchen"}.get(kind, "Aufheben")
+	return {"chest": "Öffnen", "bag": "Beute aufheben", "lore": "Lesen", "lectern": "Lesen", "plaque": "Lesen", "note": "Lesen", "spot": "Lesen", "shrine": "Beten", "cache": "Durchsuchen", "memento": "An sich nehmen", "key": "Nehmen"}.get(kind, "Aufheben")

@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.7.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.8.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -10,7 +10,7 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Shalltear, die Krönungs- und Schuld-Ereignisse. Errungenschaft „Frieden im Harem“ → „Zwei Herzen“.
   Alte Spielstände werden beim Laden bereinigt (`Game._normalize`).
 
-## Innenräume (System erledigt, dreizehn Räume)
+## Innenräume (System erledigt, fünfzehn Räume)
 - Türen in Orten: `data/locations.json` → `doors` [{id, to, name, at, yaw}]; Innenräume sind eigene Orte mit
   `group: "interior"` und `parent`. Schild mit Namen und Laterne an jeder Tür; „Verlassen“ bringt den Spieler vor
   dieselbe Tür zurück. Innenräume werden prozedural gebaut (`scripts/world3d/interiors.gd` – Baukasten und erste
@@ -36,6 +36,10 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 - Version 2.7: Keller der Acht Finger (Re-Estize, Kellerluke im Armenviertel beim Bettlerfeuer) als erster Kerker – Pfeiler, Fackeln,
   Käfige mit Gefangenem, Zähltisch, Schmuggelware; Gegner über `encounters` des Innenraums (Schläger, Armbrustschützen,
   Söldner); Schuldbuch, Liste der Schutzgelder, Kasse.
+- Version 2.8: Kanalisation von E-Rantel (`sewer`: Wasserrinne, Bögen, Gitter, Schleim, Gebeine, Kultaltar der Zurrernon) und
+  Gruft der Gefallenen (`crypt`: Säulenhalle, Sarkophage, kalte Feuerschalen, Podest des Generals) als Verliese hinter
+  verschlossenen Türen; Steingewölbe-Baukasten `InteriorsMore._vault`, Gebeine `_bones`. Begrenzung langer Räume
+  (`B3.bounds` mit der größeren Halbseite) korrigiert.
 - Offen: Hütten der Echsenmenschen, Elfenbaumhäuser.
 
 ## Proportionen (erledigt)
@@ -53,6 +57,62 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   (`requires`/`requires_not`), damit Orte sich mit der Geschichte verändern.
 - Prüfung: `LOC=dresscheck [DRESSLOCS=ort,ort]` lädt die Orte und meldet jedes Stück, das in einem Gebäude oder
   Fels steckt, keinen Boden unter sich hat oder am Hang steht (`AUSSTATTUNG`-Zeilen). Alle Einträge sind geprüft.
+
+## Verliese und Schlüssel (erledigt, Version 2.8)
+- Türen mit `key` (Beutelgegenstand) bleiben verschlossen (Aufforderung „Verschlossen“, Hinweis `hint`), bis der Schlüssel im
+  Beutel liegt; einmal aufgeschlossen (Flagge `unlocked_<ziel>`, Zähler `unlocked`) bleiben sie offen. Eingänge mit
+  `style: grate` (Kanalgitter im Boden) oder `crypt` (Portal mit Schädeln) statt Wirtshausschild (`World3D._dungeon_entrance`).
+- Schlüssel als Entdeckungen (`placed`, `kind: "key"`, `item`): Pickup-Art `key` (Sockel mit drehendem Schlüssel), Text beim
+  Nehmen, einzigartige Beutelgegenstände (`data/quests.json` → `materials`, `unique` → unverkäuflich). Entdeckungen im
+  Freien werden jetzt auf den Boden gesetzt (`World3D._on_ground`).
+- Kette: Friedhof von E-Rantel (Schlüssel aus dem Mausoleum, beim Ältesten Leichnam) → Kanalgitter E-Rantel (30, 28) →
+  Kanalisation (Skelette, Kultisten, Priester der Zurrernon; Zeichen, Khajits Aufzeichnungen, Opfergaben, Siegel der
+  Gefallenen auf dem Altar → Zähler `dungeons`) → Gruftportal Katze-Ebene (20, 16) → Gruft der Gefallenen (Skelette,
+  Schützen, General der Gefallenen: Boss mit Phasen und Beschwörungen; nach dem Sieg Flagge `gruft_general`, Schatz des
+  Generals mit legendärem Stück, Zähler `dungeon_bosses`, kein Wiedererscheinen).
+- Neue Gegner (`data/combat.json`): `zurrernorn_cultist`, `zurrernorn_priest`, `fallen_general`. Errungenschaften:
+  Unter der Stadt, Bezwinger der Gruft, Schlüsselmeister. Test: `LOC=dungeon`.
+- Offen: weitere Verliese (Khajits Mausoleum als eigener Raum, Schmugglerstollen unter Re-Estize), Schlüssel als Beute von Gegnern.
+
+## Feinschliff (erledigt, Version 2.8)
+- Fotomodus `scripts/world3d/photo_mode.gd` (F9 / Pausenmenü / Controller): freie Kamera, Welt hält an (`cinematic`), HUD aus,
+  Filter über `Environment.adjustment_*`, Foto nach `user://screenshots/`, Steuerung mit Maus/Tastatur und Controller.
+- Schritte (`Player3D._footsteps`): Untergrund aus Ortsart, Gruppe, Wetter und Strahl auf den Boden (Fotoscan/SM_/Straße →
+  Stein); `step_<stone|grass|wood|snow|sand>_1..3.ogg` aus `tools/audio/ambience.py steps`; Fußspuren (Quads) in Schnee
+  und Sand, höchstens 60, verblassen nach 18 s. Test: `LOC=polish` (Tob-Wald Gras, Gletscher Schnee mit Spuren).
+- Gras weicht aus: `global uniform vec3 player_pos` in `grass.gdshader`, Shader-Global in `project.godot`, gesetzt je
+  Bild in `World3D._process`. Blätter (forest, jungle, village, grassland) und Schmetterlinge (village, grassland, forest,
+  swamp) als CPUParticles, die dem Spieler folgen (`_ambient_particles`). Nasse Wände bei Regen (`overlord_weather.z`).
+- Dynamische Musik `World3D._music_tick` (alle 0,5 s): ruhig → `tension` (< 30 m) → `battle` (Gegner greift an oder
+  < 10 m), zurück erst nach 6 s Ruhe; nicht in Story-Einsätzen und Filmszenen.
+- Ankunftsschwenk `_arrival_pan` (3,2 s, nur Außenorte ohne Türankunft, `arrival_pans` im Testwerkzeug aus); während
+  des Schwenks ist die Eingabe gesperrt (`_panning` in `blocked`).
+
+## Erkunden mit Overlord-Herz (erledigt, Version 2.8)
+- **41 Erinnerungsstücke von Ainz Ooal Gown** (`data/mementos.json`, `scripts/world3d/mementos.gd`): je Ort an versteckten
+  Plätzen (`QuestWorld._spawn_mementos`, hidden-Heuristik, Innenräume als indoor), Pickup-Art `memento` (Sockel mit
+  schwebendem Goldfragment), Text beim Aufheben, Stand in `Game.state.mementos`, Errungenschaften bei 10/20/41.
+- **Kodex** im Questbuch: Sammelliste (gefunden/„? ? ?“ mit Ortshinweis), Ortskundig-Fortschritt je Ort
+  (`Mementos.location_progress`: Inschriften, Schreine, Verstecke, feste Entdeckungen, Erinnerungsstücke), Gelesenes.
+  „Ortskundig“ (alles an einem Ort gefunden): +60 Gold, Errungenschaften bei 5/15 Orten.
+- **Runenrätsel** in der Schmiedehalle von Feo Jera: vier Pfeiler (Wasser, Erde, Luft, Feuer), Reihenfolge im Buch der
+  Runen (Feuer, Erde, Luft, Wasser) → Kammer der Runenmeister: Runenschild der Zwerge, 300 Gold, Errungenschaft.
+  Test: `LOC=kodex`.
+
+## Nacht und Wetter (erledigt, Version 2.8)
+- `scripts/world3d/weather.gd`: Wetterart je Spieltag und Gegend (`pick`, deterministisch), Faktoren über
+  `DayCycle.set_weather` (Himmel, Sonne, Umgebungslicht, Nebel, Sonnentönung), Partikel um den Spieler (Regen, Schnee,
+  Sand), Klangschleife (rain/storm/snowwind), Blitz (`DayCycle.flash`) und Donner (`sfx/thunder.ogg`). Nur bei aktivem
+  Tag-Nacht-Wechsel. Test: `WEATHER=rain`.
+- Nacht: Begegnungen mit `"night": true` erscheinen beim Dunkelwerden (`World3D._night_changed` → `_spawn_encounters(true)`),
+  Fensterlichter je Haus (Gruppe `window_glow`, `location_builder._model_dressing`), Fackeln der Wachen (`Townsfolk.set_torches`).
+
+## Eine Welt, die reagiert (erledigt, Version 2.8)
+- `data/barks.json` + `scripts/world3d/barks.gd`: Bemerkungen der Bewohner nach Gruppe (`Barks.group_for`: Stil des
+  Bewohners, Ortsart, Gestalt des Spielers Ainz/Momon, Krönung, Carne, Nacht, Katze-Massaker, Hof Königreich/Kaiserreich)
+  und der Figuren je Id (`Barks.for_char`, Einträge mit `requires`). Townsfolk: Sprechblase (Label3D), Abkühlzeit je
+  Person 18–30 s und global 1,6 s, Schreck-Flucht (`ainz_human`), Wachen/Dienerschaft wenden sich zu, Dienstmädchen
+  verneigen sich. Actor3D.say für Figuren (World3D prüft alle 0,5 s im Umkreis von 5 m, 25–40 s Pause). Test `LOC=barks`.
 
 ## Handel und Controller (erledigt, Version 2.7)
 - `data/trade.json` + `scripts/ui/trade_dialog.gd`: Händler (Lizzie, Schmied, Wirte, Priester, Gondo, Fluder, Gilde, Enri)

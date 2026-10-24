@@ -38,6 +38,7 @@ func _ready() -> void:
 		Game.apply_effects({"unlock_chars": [cid]})
 	Game.state.dispatches.clear()
 	var w: Node = load("res://scenes/world_3d.tscn").instantiate()
+	w.arrival_pans = false
 	get_tree().root.add_child.call_deferred(w)
 	await _wait(2.5)
 	for c in w.overlay_layer.get_children():
@@ -88,6 +89,268 @@ func _ready() -> void:
 				"folding_wooden_stool", "wooden_stool_01", "wooden_stool_02", "wooden_bucket_01", "rusted_spade_01", "wooden_broom", "hatchet", "wooden_axe", "modular_wooden_pier"]:
 			var w2 := PhProps.whole(n)
 			print("PROP %-26s %s" % [n, (w2.size as Vector3).snapped(Vector3(0.01, 0.01, 0.01)) if not w2.is_empty() else "fehlt"])
+		get_tree().quit()
+		return
+	if only == "polish":
+		# Feinschliff: Schritte und Gras-Ausweichen, dynamische Musik, Ankunftskamera, Fotomodus
+		w._time_running = false
+		await w.load_location("tob_wald")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var s0 := Player3D.step_count
+		Input.action_press("move_forward")
+		await _wait(3.0)
+		Input.action_release("move_forward")
+		print("POLISH Schritte: %d (Untergrund %s)" % [Player3D.step_count - s0, w.player._surface])
+		var e: Enemy3D = w.spawn_enemy("wolf", w.player.global_position + Vector3(6, 0, 0))
+		await _wait(1.5)
+		print("POLISH Musik bei Gegner: %s (Zustand %s)" % [Audio._current, w._music_state])
+		if is_instance_valid(e):
+			e.queue_free()
+			w.enemies.clear()
+		await _wait(7.5)
+		print("POLISH Musik danach: %s (Zustand %s)" % [Audio._current, w._music_state])
+		w.photo.toggle()
+		await _wait(0.5)
+		w.photo.set_filter(1)
+		await _wait(0.4)
+		_shot("polish_photo_sepia")
+		print("POLISH Fotomodus: aktiv %s · Kamera %s · HUD aus %s" % [w.photo.active, w.photo._cam != null, w.cinematic])
+		w.photo.toggle()
+		await _wait(0.3)
+		w.arrival_pans = true
+		w.load_location("carne")
+		await _wait(2.5)
+		print("POLISH Ankunft: Schwenk läuft %s" % w._panning)
+		_shot("polish_arrival")
+		await _wait(4.0)
+		print("POLISH Ankunft danach: Schwenk %s · Spielerkamera %s · Partikel %d" % [w._panning, w.player.camera.current, w._ambient.size()])
+		w.arrival_pans = false
+		await w.load_location("glacier")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		s0 = Player3D.step_count
+		Input.action_press("move_forward")
+		await _wait(2.5)
+		Input.action_release("move_forward")
+		print("POLISH Schnee: %d Schritte · Spuren %d · Untergrund %s" % [Player3D.step_count - s0, w.player._prints.size(), w.player._surface])
+		_shot("polish_snow")
+		print("POLISHDONE")
+		get_tree().quit()
+		return
+	if only == "dungeon":
+		# Verliese: Schlüssel auf dem Friedhof, verschlossenes Kanalgitter, Kanalisation, Siegel, Gruft mit General
+		w._time_running = false
+		if not Game.state.has("flags"):
+			Game.state["flags"] = []
+		for f in ["unlocked_erantel_kanal", "unlocked_katze_gruft", "gruft_general"]:
+			Game.state.flags.erase(f)
+		Quests.bag().erase("key_kanal")
+		Quests.bag().erase("key_gruft")
+		var picked: Dictionary = Game.state.get("picked", {})
+		for k in ["d:erantel_friedhof:key_kanal", "d:erantel_kanal:key_gruft"]:
+			picked.erase(k)
+		await w.load_location("erantel_friedhof")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var keyp: Pickup = null
+		for p in w.quest_world.pickups:
+			if p.kind == "key":
+				keyp = p
+		print("DUNGEON Friedhof: Schlüssel %s" % ("bei " + str(keyp.global_position) if keyp else "FEHLT"))
+		if keyp:
+			w.quest_world.collect(keyp)
+			await _wait(0.4)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+		print("DUNGEON Beutel: key_kanal %d" % Quests.count("key_kanal"))
+		await w.load_location("e_rantel")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var door: Actor3D = null
+		for a in w.actors:
+			if a.id == "door:kanal":
+				door = a
+		print("DUNGEON Kanalgitter: %s" % ("bei " + str(door.global_position) + " · " + door.prompt if door else "FEHLT"))
+		w.player.global_position = door.global_position + Vector3(-4, 0.5, 0)
+		w.player.cam_yaw = -PI * 0.5
+		w.player.cam_pitch = -0.35
+		await _wait(0.5)
+		_shot("dungeon_gitter")
+		Quests.bag().erase("key_kanal")
+		w._enter_door(door.get_meta("door"))
+		await _wait(1.0)
+		print("DUNGEON ohne Schlüssel: Ort %s" % w.loc.id)
+		Quests.add_item("key_kanal")
+		await w._enter_door(door.get_meta("door"))
+		await _wait(1.5)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		print("DUNGEON mit Schlüssel: Ort %s · Gegner %d · Entdeckungen %d · Flagge %s" % [w.loc.id, w.enemies.size(), w.quest_world.pickups.size(), Game.has_flag("unlocked_erantel_kanal")])
+		_shot("dungeon_kanal")
+		var s0: Vector3 = w.player.global_position
+		Input.action_press("move_forward")
+		await _wait(2.0)
+		Input.action_release("move_forward")
+		print("DUNGEON Gang begehbar: %.1f m" % s0.distance_to(w.player.global_position))
+		keyp = null
+		for p in w.quest_world.pickups:
+			if p.kind == "key":
+				keyp = p
+		w.player.global_position = Vector3(0, 0.2, -11.5)
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.15
+		await _wait(0.6)
+		_shot("dungeon_kanal_altar")
+		if keyp:
+			w.quest_world.collect(keyp)
+			await _wait(0.4)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+		print("DUNGEON Siegel: key_gruft %d" % Quests.count("key_gruft"))
+		await w.load_location("katze")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		door = null
+		for a in w.actors:
+			if a.id == "door:gruft":
+				door = a
+		print("DUNGEON Gruftportal: %s" % ("bei " + str(door.global_position) + " · " + door.prompt if door else "FEHLT"))
+		w.player.global_position = door.global_position + Vector3(-6, 0.5, 0)
+		w.player.cam_yaw = -PI * 0.5
+		w.player.cam_pitch = -0.1
+		await _wait(0.5)
+		_shot("dungeon_gruft_portal")
+		await w._enter_door(door.get_meta("door"))
+		await _wait(1.5)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		var boss: Enemy3D = null
+		for e in w.enemies:
+			if e.type_id == "fallen_general":
+				boss = e
+		print("DUNGEON Gruft: Ort %s · Gegner %d · General %s" % [w.loc.id, w.enemies.size(), boss != null])
+		_shot("dungeon_gruft")
+		if boss:
+			w.player.global_position = Vector3(0, 0.2, -4.0)
+			w.player.cam_yaw = 0.0
+			await _wait(0.6)
+			_shot("dungeon_gruft_general")
+			boss.die()
+			await _wait(2.5)
+		var chests := 0
+		for p in w.quest_world.pickups:
+			if p.kind == "chest":
+				chests += 1
+		print("DUNGEON General besiegt: Flagge %s · Truhen %d · Gegner %d" % [Game.has_flag("gruft_general"), chests, w.enemies.size()])
+		print("DUNGEONDONE")
+		get_tree().quit()
+		return
+	if only == "kodex":
+		# Erinnerungsstücke, Kodex und Runenrätsel: Stück im Wald von Tob finden und aufheben, Kodex öffnen, Runen in Feo Jera
+		var MEM := preload("res://scripts/world3d/mementos.gd")
+		w._time_running = false
+		await w.load_location("tob_wald")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.5)
+		var ms: Array = []
+		for pk in w.quest_world.pickups:
+			if is_instance_valid(pk) and pk.kind == "memento":
+				ms.append(pk)
+		print("KODEX Tob-Wald: %d Erinnerungsstücke platziert (erwartet %d)" % [ms.size(), MEM.by_loc("tob_wald").size()])
+		if not ms.is_empty():
+			var pk: Pickup = ms[0]
+			w.player.global_position = pk.global_position + Vector3(1.2, 0.1, 0)
+			await _wait(0.8)
+			_shot("kodex_memento")
+			w.quest_world.collect(pk)
+			await _wait(0.8)
+			print("KODEX aufgehoben: %d gefunden · Stat %d" % [MEM.found().size(), Progress.stat("mementos")])
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(0.5)
+		w._open_journal()
+		await _wait(1.0)
+		var qj: Node = w.overlay_layer.get_child(w.overlay_layer.get_child_count() - 1) if w.overlay_layer.get_child_count() > 0 else null
+		var tabs: TabContainer = null
+		if qj:
+			for t in qj.find_children("*", "TabContainer", true, false):
+				tabs = t
+		if tabs:
+			for i in tabs.get_tab_count():
+				if tabs.get_tab_title(i) == "Kodex":
+					tabs.current_tab = i
+		await _wait(0.8)
+		print("KODEX Questbuch: Tab Kodex %s · Fortschritt Tob-Wald %s" % [tabs != null, str(MEM.location_progress("tob_wald"))])
+		_shot("kodex_page")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await w.load_location("azerlisia_schmiedehalle")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var runes := {}
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id).begins_with("rune:"):
+				runes[String(a.id).trim_prefix("rune:")] = a
+		print("KODEX Runen: %d Pfeiler" % runes.size())
+		if runes.size() == 4:
+			w.quest_world.rune_touch(runes["wasser"])
+			w.quest_world.rune_touch(runes["feuer"])
+			print("KODEX falsche Reihenfolge: Schritt %d" % w.quest_world._rune_step)
+			w.quest_world._rune_step = 0
+			for rid in ["feuer", "erde", "luft", "wasser"]:
+				w.quest_world.rune_touch(runes[rid])
+				await _wait(0.3)
+			print("KODEX gelöst: %s · Gegenstände %d · Rätsel-Stat %d" % [Game.has_flag("runen_geloest"), Progress.inventory().size(), Progress.stat("puzzles")])
+			_shot("kodex_runes")
+		print("KODEXDONE")
+		get_tree().quit()
+		return
+	if only == "barks":
+		# Bemerkungen: Markt von E-Rantel als Momon (Jubel) und als Ainz (Schrecken, Flucht), dann Thronsaal (Dienerschaft, Albedo)
+		w._time_running = false
+		await w.load_location("e_rantel")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		w.player.set_style("momon", true)
+		w.player.global_position = Vector3(6, 0.2, 16)
+		await _wait(5.0)
+		print("BARKS Momon: %d Bemerkungen, %d Fluchten" % [Townsfolk.bark_count, Townsfolk.flee_count])
+		_shot("barks_momon")
+		var b0 := Townsfolk.bark_count
+		w.player.set_style("ainz", true)
+		w.player.global_position = Vector3(-6, 0.2, 22)
+		await _wait(5.0)
+		print("BARKS Ainz: %d neue Bemerkungen, %d Fluchten" % [Townsfolk.bark_count - b0, Townsfolk.flee_count])
+		_shot("barks_ainz")
+		await w.load_location("throne")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		b0 = Townsfolk.bark_count
+		w.player.global_position = Vector3(-5.5, 0.2, 6.5)
+		await _wait(4.0)
+		_shot("barks_maid")
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id) == "albedo":
+				w.player.global_position = a.global_position + Vector3(1.6, 0.1, 0.0)
+		await _wait(4.0)
+		var alb: Actor3D = null
+		for a in w.actors:
+			if is_instance_valid(a) and String(a.id) == "albedo":
+				alb = a
+		print("BARKS Debug: Fenster %d · busy %s · cinematic %s · Albedo %s · Abstand %.1f · Zeile '%s'" % [w.overlay_layer.get_child_count(), w._busy, w.cinematic, alb != null, w.player.global_position.distance_to(alb.global_position) if alb else -1.0, w.BARKS.for_char("albedo")])
+		print("BARKS Nazarick: %d Bemerkungen der Dienerschaft · Figuren: %d" % [Townsfolk.bark_count - b0, Actor3D.bark_count])
+		_shot("barks_throne")
+		print("BARKSDONE")
 		get_tree().quit()
 		return
 	if only == "trade":
@@ -362,6 +625,14 @@ func _ready() -> void:
 					w.day_cycle.force = float(OS.get_environment("TOD"))
 					w.day_cycle.update(0.0)
 					print("TAGESZEIT %s: Phase %.2f (%s), aktiv %s" % [lid, w.day_cycle.phase, w.day_cycle.time_name(), w.day_cycle.active])
+				if OS.get_environment("WEATHER") != "":
+					# festes Wetter für Bilder (clear, overcast, rain, fog, snow, sand)
+					w.weather.force = OS.get_environment("WEATHER")
+					w.weather.refresh(int(Game.state.get("day", 1)), true)
+					print("WETTER %s: %s (Partikel %s)" % [lid, w.weather.kind, w.weather._particles != null])
+				if OS.get_environment("TOD") != "":
+					await _wait(0.5)
+					print("NACHT %s: Gegner %d · Fensterlichter %d" % [lid, w.enemies.size(), get_tree().get_nodes_in_group("window_glow").size()])
 				await _wait(1.0)
 				for gm in w.level.find_children("*", "MeshInstance3D", true, false):
 					if String(gm.name).to_lower().begins_with("ground"):

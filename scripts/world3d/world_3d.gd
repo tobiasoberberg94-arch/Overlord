@@ -26,6 +26,19 @@ var quest_world := QuestWorld.new(self)
 ## Tag-Nacht-Wechsel (per preload, damit der Klassen-Cache des Editors nicht gebraucht wird)
 var day_cycle: Node = preload("res://scripts/world3d/day_cycle.gd").new()
 var _time_name := ""
+const BARKS := preload("res://scripts/world3d/barks.gd")
+var _bark_t := 0.0
+## Wetter je Spieltag (scripts/world3d/weather.gd)
+var weather: Node = preload("res://scripts/world3d/weather.gd").new()
+var _weather_day := -1
+## Fotomodus (F9), Ankunftskamera, dynamische Musik, Blätter und Schmetterlinge
+var photo: Node = preload("res://scripts/world3d/photo_mode.gd").new()
+var arrival_pans := true
+var _panning := false
+var _music_t := 0.0
+var _music_state := "calm"
+var _music_calm_t := 0.0
+var _ambient: Array = []
 var _pickup_focus: Pickup
 var hud_feedback := Label.new()
 var hud_vignette := ColorRect.new()
@@ -46,11 +59,14 @@ var _cine_ui: CinematicUI
 
 
 func _ready() -> void:
+	add_to_group("world3d")
 	if Game.state.is_empty():
 		Game.new_game()
 	add_child(player)
 	add_child(quest_world)
 	add_child(day_cycle)
+	add_child(weather)
+	add_child(photo)
 	Actor3D.player = player
 	_build_ui()
 	player.feedback.connect(_on_feedback)
@@ -109,6 +125,8 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	_spinners = level.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.has_meta("spin"))
 	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
 	day_cycle.setup(level, loc)
+	weather.setup(self, loc)
+	_weather_day = int(Game.state.get("day", 1))
 	_place_actors()
 	_spawn_encounters()
 	quest_world.apply_story()
@@ -130,11 +148,159 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 		Game.state["world3d"] = {}
 	Game.state.world3d["loc"] = id
 	Audio.play_music(loc.get("music", "throne"))
+	_music_state = "calm"
+	_music_calm_t = 0.0
 	hud.set_location(loc.name)
+	_ambient_particles()
 	if story == null:
 		_show_banner(loc.name, loc.get("desc", ""))
+	if arrival_pans and arrive.is_empty() and story == null and loc.group == "world":
+		_arrival_pan()
 	if fade:
 		await _fade(0.0, 0.5)
+
+
+## Ankunft: kurzer Kameraschwenk von oben hinter dem Spieler hinunter in die Spielkamera (nur Außenorte).
+func _arrival_pan() -> void:
+	if _panning:
+		return
+	_panning = true
+	var cam := Camera3D.new()
+	cam.far = player.camera.far
+	cam.fov = 58.0
+	add_child(cam)
+	var fwd := Basis(Vector3.UP, player.cam_yaw) * Vector3(0, 0, -1)
+	var p0 := player.global_position
+	var start := p0 - fwd * 24.0 + Vector3(0, 15.0, 0)
+	var look0 := p0 + fwd * 36.0 + Vector3(0, 5.0, 0)
+	cam.look_at_from_position(start, look0)
+	cam.current = true
+	var tw := create_tween()
+	tw.tween_method(_pan_step.bind(cam, start, look0), 0.0, 1.0, 3.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tw.finished
+	if is_instance_valid(player) and not photo.active:
+		player.camera.current = true
+	if is_instance_valid(cam):
+		cam.queue_free()
+	_panning = false
+
+
+func _pan_step(t: float, cam: Camera3D, start: Vector3, look0: Vector3) -> void:
+	if not is_instance_valid(cam) or not is_instance_valid(player):
+		return
+	var end_xf: Transform3D = player.camera.global_transform
+	var pos := start.lerp(end_xf.origin, t)
+	var look := look0.lerp(end_xf.origin - end_xf.basis.z * 20.0, t)
+	if pos.distance_to(look) > 0.1:
+		cam.look_at_from_position(pos, look)
+
+
+## Blätter im Wald, Schmetterlinge über Wiesen und Dörfern (folgen dem Spieler, siehe _process).
+func _ambient_particles() -> void:
+	for a in _ambient:
+		if is_instance_valid(a):
+			a.queue_free()
+	_ambient.clear()
+	var kind := String(loc.get("kind", ""))
+	if not Settings.particles or (loc.group != "world" and kind != "jungle"):
+		return
+	if kind in ["forest", "jungle", "village", "grassland"]:
+		var leaves := CPUParticles3D.new()
+		var qm := QuadMesh.new()
+		qm.size = Vector2(0.14, 0.09)
+		var mat := StandardMaterial3D.new()
+		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
+		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
+		mat.albedo_color = Color(0.72, 0.5, 0.2)
+		mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		qm.material = mat
+		leaves.mesh = qm
+		leaves.amount = 70 if kind != "jungle" else 110
+		leaves.lifetime = 9.0
+		leaves.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		leaves.emission_box_extents = Vector3(22, 2, 22)
+		leaves.direction = Vector3(0.3, -1, 0.2)
+		leaves.spread = 40.0
+		leaves.initial_velocity_min = 0.4
+		leaves.initial_velocity_max = 1.2
+		leaves.gravity = Vector3(0, -0.7, 0)
+		leaves.angular_velocity_min = -120.0
+		leaves.angular_velocity_max = 120.0
+		var ramp := Gradient.new()
+		ramp.set_color(0, Color(0.85, 0.6, 0.2))
+		ramp.set_color(1, Color(0.45, 0.55, 0.15) if kind == "jungle" else Color(0.6, 0.25, 0.1))
+		leaves.color_initial_ramp = ramp
+		leaves.set_meta("offset", Vector3(0, 10.0, 0))
+		level.add_child(leaves)
+		_ambient.append(leaves)
+	if kind in ["village", "grassland", "forest", "swamp"]:
+		var flies := CPUParticles3D.new()
+		var qm2 := QuadMesh.new()
+		qm2.size = Vector2(0.11, 0.09)
+		var mat2 := StandardMaterial3D.new()
+		mat2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		mat2.albedo_color = Color(1.0, 0.95, 0.75)
+		mat2.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		qm2.material = mat2
+		flies.mesh = qm2
+		flies.amount = 14
+		flies.lifetime = 12.0
+		flies.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+		flies.emission_box_extents = Vector3(14, 0.8, 14)
+		flies.direction = Vector3(1, 0.2, 0)
+		flies.spread = 180.0
+		flies.initial_velocity_min = 0.6
+		flies.initial_velocity_max = 1.4
+		flies.gravity = Vector3.ZERO
+		flies.damping_min = 0.2
+		flies.damping_max = 0.6
+		flies.scale_amount_min = 0.7
+		flies.scale_amount_max = 1.2
+		var ramp2 := Gradient.new()
+		ramp2.set_color(0, Color(1.0, 0.95, 0.7))
+		ramp2.set_color(1, Color(0.95, 0.6, 0.3))
+		flies.color_initial_ramp = ramp2
+		flies.set_meta("offset", Vector3(0, 1.3, 0))
+		level.add_child(flies)
+		_ambient.append(flies)
+
+
+## Dynamische Musik: ruhig (Ortsmusik) → Spannung, wenn Gegner nahe sind → Schlacht, wenn gekämpft wird; zurück mit Nachhall.
+func _music_tick(delta: float) -> void:
+	_music_t += delta
+	if _music_t < 0.5 or story != null or cinematic or level == null:
+		return
+	_music_t = 0.0
+	var near := INF
+	var engaged := false
+	for e in enemies:
+		if not is_instance_valid(e) or e.state == Fighter.S.DEAD:
+			continue
+		near = minf(near, player.global_position.distance_to(e.global_position))
+		if e.engaged:
+			engaged = true
+	var want := "calm"
+	if engaged or near < 10.0:
+		want = "combat"
+	elif near < 30.0:
+		want = "alert"
+	# nach dem Kampf nicht sofort abblenden
+	if want == "calm" or (want == "alert" and _music_state == "combat"):
+		_music_calm_t += 0.5
+		if _music_calm_t < 6.0:
+			return
+	else:
+		_music_calm_t = 0.0
+	if want == _music_state:
+		return
+	_music_state = want
+	match want:
+		"combat":
+			Audio.play_music("battle")
+		"alert":
+			Audio.play_music("tension")
+		_:
+			Audio.play_music(loc.get("music", "throne"))
 
 
 func _place_actors() -> void:
@@ -194,10 +360,23 @@ func _place_actors() -> void:
 	# Türen zu Innenräumen (data/locations.json → doors) und die Tür hinaus
 	for d in loc.get("doors", []):
 		var at: Array = d.at
-		var door := Actor3D.object("door:" + String(d.id), String(d.name), "Betreten", Palette.GOLD, 2.4)
+		var locked := _door_locked(d)
+		var prompt := "Betreten"
+		if locked:
+			prompt = "Aufschließen" if Quests.count(String(d.key)) > 0 else "Verschlossen"
+		var door := Actor3D.object("door:" + String(d.id), String(d.name), prompt, Palette.GOLD if not locked else Color(0.78, 0.72, 0.6), 2.4)
 		door.set_meta("door", d)
 		_add_actor(door, _on_ground(Vector3(float(at[0]), float(at[1]), float(at[2]))))
-		_door_sign(door, d)
+		match String(d.get("style", "sign")):
+			"grate": _dungeon_entrance(door, d, true)
+			"crypt": _dungeon_entrance(door, d, false)
+			_: _door_sign(door, d)
+	if String(loc.get("kind", "")) == "forge_hall":
+		# Runenrätsel: vier Pfeiler mit Runen (Reihenfolge im Buch der Runen), siehe QuestWorld.rune_touch
+		var runes := [["wasser", "Rune des Wassers", -7.0], ["erde", "Rune der Erde", -2.3], ["luft", "Rune der Luft", 2.3], ["feuer", "Rune des Feuers", 7.0]]
+		for r in runes:
+			var ra := Actor3D.object("rune:" + String(r[0]), String(r[1]), "Berühren", Color(0.45, 0.9, 1.0), 2.0)
+			_add_actor(ra, Vector3(float(r[2]), 0, 2.6))
 	if anchors.has("exit"):
 		var parent_loc: Dictionary = Content.location_by_id.get(String(loc.get("parent", "")), {})
 		_add_actor(Actor3D.object("exit", "Hinaus · " + String(parent_loc.get("name", "Draußen")), "Verlassen", Palette.GOLD, 2.4), anchors.exit)
@@ -286,7 +465,13 @@ func _add_actor(a: Actor3D, pos: Vector3) -> void:
 # =====================================================================
 
 func _process(delta: float) -> void:
-	var blocked := overlay_layer.get_child_count() > 0 or _busy or cinematic
+	var blocked := overlay_layer.get_child_count() > 0 or _busy or cinematic or _panning
+	# Gras weicht dem Spieler aus (Shader-Global), Blätter und Schmetterlinge folgen ihm, Musik folgt der Gefahr
+	RenderingServer.global_shader_parameter_set("player_pos", player.global_position)
+	for a in _ambient:
+		if is_instance_valid(a):
+			(a as Node3D).global_position = player.global_position + (a.get_meta("offset") as Vector3)
+	_music_tick(delta)
 	player.input_enabled = not blocked
 	# Während ein Fenster offen ist, steht der Kampf still. In Filmszenen ruhen die Kämpfer nur
 	# (atmen, Flammen lodern weiter, niemand greift an), und Namensschilder verschwinden.
@@ -299,7 +484,7 @@ func _process(delta: float) -> void:
 	for a in allies:
 		if is_instance_valid(a):
 			a.process_mode = Node.PROCESS_MODE_DISABLED if freeze else Node.PROCESS_MODE_INHERIT
-	if blocked:
+	if blocked and not photo.active and not _panning:
 		if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if Pad.active else Input.MOUSE_MODE_VISIBLE
 	_update_focus()
@@ -313,10 +498,27 @@ func _process(delta: float) -> void:
 			_advance(1, false)
 	hud.day_line.set_values(_day_timer, DAY_SECONDS)
 	day_cycle.update(float(Game.state.get("day", 1)) + _day_timer / DAY_SECONDS)
+	# Figuren sprechen, wenn man nahe vorbeigeht (data/barks.json → chars)
+	_bark_t += delta
+	if _bark_t >= 0.5 and not blocked:
+		_bark_t = 0.0
+		var now := Time.get_ticks_msec() / 1000.0
+		for a in actors:
+			if is_instance_valid(a) and a.kind in ["char", "npc"] and float(a.get_meta("bark_cool", 0.0)) < now 					and player.global_position.distance_to(a.global_position) < 5.0:
+				a.set_meta("bark_cool", now + randf_range(25.0, 40.0))
+				a.say(BARKS.for_char(String(a.id)))
+	var today := int(Game.state.get("day", 1))
+	if today != _weather_day:
+		_weather_day = today
+		weather.refresh(today)
 	var tn: String = day_cycle.time_name()
-	if tn != _time_name:
-		_time_name = tn
-		hud.set_time_of_day(("☾ " if day_cycle.night else "☀ ") + tn if tn != "" else "")
+	var wl: String = weather.label()
+	if tn + wl != _time_name:
+		_time_name = tn + wl
+		var txt := ""
+		if tn != "":
+			txt = ("☾ " if day_cycle.night else "☀ ") + tn + (" · " + wl if wl != "" else "")
+		hud.set_time_of_day(txt)
 
 
 func _animate(delta: float) -> void:
@@ -395,6 +597,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_G: _gate_menu()
 		KEY_T: _time_menu()
 		KEY_H, KEY_F1: hud.toggle_help()
+		KEY_F9: photo.toggle()
 		KEY_TAB: hud.toggle_goals()
 		KEY_ENTER, KEY_KP_ENTER: _open_next_dispatch(true)
 		KEY_F5:
@@ -417,6 +620,9 @@ func _interact(a: Actor3D) -> void:
 		"object":
 			if a.id.begins_with("door:"):
 				_enter_door(a.get_meta("door"))
+				return
+			if a.id.begins_with("rune:"):
+				quest_world.rune_touch(a)
 				return
 			match a.id:
 				"throne": _time_menu()
@@ -479,6 +685,68 @@ func _door_sign(door: Actor3D, d: Dictionary) -> void:
 	mat.rotation.y = yaw
 
 
+## Verschlossene Tür (doors → "key": Gegenstand im Beutel): bleibt zu, bis sie einmal aufgeschlossen wurde.
+func _door_locked(d: Dictionary) -> bool:
+	return d.has("key") and not Game.has_flag("unlocked_" + String(d.to))
+
+
+## Eingang eines Verlieses statt Wirtshausschild: Kanalgitter im Boden (grate) oder Gruftportal mit dunkler Öffnung;
+## daneben ein Steinpfosten mit Namenstafel. Lokal zeigt -z aus dem Eingang heraus (wie bei den Türen).
+func _dungeon_entrance(door: Actor3D, d: Dictionary, grate: bool) -> void:
+	var holder := Node3D.new()
+	holder.rotation.y = deg_to_rad(float(d.get("yaw", 180.0)))
+	door.add_child(holder)
+	var iron := B3.mat(Color(0.18, 0.17, 0.16), 0.55, 0.8)
+	var stone := BuildingLook.photo_material("rubble", "stone", Color(0.42, 0.41, 0.4), 0.85)
+	var bone := B3.mat(Color(0.8, 0.76, 0.66), 0.8)
+	if grate:
+		# Steinrahmen, schwarzer Schacht, Gitterstäbe, Ring zum Heben, fauliger Dunst
+		B3.box(holder, Vector3(2.4, 0.14, 2.4), Vector3(0, 0.07, 0), stone, false)
+		B3.box(holder, Vector3(1.8, 0.08, 1.8), Vector3(0, 0.1, 0), B3.mat(Color(0.01, 0.01, 0.01), 1.0), false)
+		for k in 7:
+			B3.box(holder, Vector3(0.07, 0.07, 1.8), Vector3(-0.75 + k * 0.25, 0.17, 0), iron, false)
+		for k in 3:
+			B3.box(holder, Vector3(1.8, 0.07, 0.07), Vector3(0, 0.17, -0.6 + k * 0.6), iron, false)
+		B3.cyl(holder, 0.14, 0.14, 0.035, Vector3(0, 0.22, 0.7), iron, false, 12).rotation_degrees = Vector3(90, 0, 0)
+		B3.motes(holder, Vector3(0, 0.6, 0), Vector3(0.7, 0.3, 0.7), Color(0.5, 0.75, 0.5, 0.3), 14)
+		var gl := B3.light(holder, Vector3(0, 0.35, 0), Color(0.45, 0.9, 0.5), 0.7, 4.0)
+		gl.shadow_enabled = false
+	else:
+		# Portal: zwei Pfeiler, Sturz mit Schädeln, dunkle Öffnung, Erdwall dahinter, Schwelle, kaltes Licht
+		for sx in [-1.0, 1.0]:
+			B3.box(holder, Vector3(0.7, 3.2, 0.7), Vector3(sx * 1.4, 1.6, 0.6), stone)
+			B3.sphere(holder, 0.13, Vector3(sx * 1.4, 3.84, 0.6), bone, Vector3(1, 1.1, 1.15))
+		B3.box(holder, Vector3(3.6, 0.6, 0.9), Vector3(0, 3.4, 0.6), stone, false)
+		B3.box(holder, Vector3(2.1, 3.0, 0.2), Vector3(0, 1.5, 0.95), B3.mat(Color(0.01, 0.01, 0.015), 1.0), false)
+		B3.box(holder, Vector3(3.8, 1.6, 1.4), Vector3(0, 0.8, 1.7), stone)
+		B3.box(holder, Vector3(2.1, 0.1, 0.5), Vector3(0, 0.05, 0.2), stone, false)
+		var l := B3.light(holder, Vector3(0, 2.2, 0.0), Color(0.5, 0.65, 1.0), 1.0, 6.0)
+		l.shadow_enabled = false
+		l.set_meta("flicker", true)
+		B3.motes(holder, Vector3(0, 1.0, 0.3), Vector3(1.0, 0.8, 0.5), Color(0.55, 0.65, 0.9, 0.35), 16)
+		# kalte Feuerschalen vor den Pfeilern – im Nebel der Ebene von Weitem zu sehen
+		for sx in [-1.0, 1.0]:
+			B3.brazier(holder, Vector3(sx * 2.7, 0, -1.7), Color(0.45, 0.65, 1.0))
+	# Steinpfosten mit Namenstafel neben dem Eingang
+	var px := 1.5 if grate else 2.4
+	B3.box(holder, Vector3(0.28, 1.3, 0.28), Vector3(px, 0.65, -0.3), stone, false)
+	B3.box(holder, Vector3(0.9, 0.5, 0.08), Vector3(px, 1.45, -0.3), stone, false)
+	var lb := Label3D.new()
+	lb.text = String(d.name)
+	lb.font = NazarickTheme.display_font(700)
+	lb.font_size = 36
+	lb.pixel_size = 0.004
+	lb.modulate = Color(0.88, 0.84, 0.74)
+	lb.outline_size = 6
+	lb.outline_modulate = Color(0.05, 0.05, 0.05)
+	lb.position = Vector3(px, 1.45, -0.35)
+	lb.rotation.y = PI
+	lb.width = 210.0
+	lb.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	holder.add_child(lb)
+
+
 ## Ort, dessen Aushänge an der Tafel hängen: in Innenräumen die des umgebenden Ortes.
 func board_loc() -> String:
 	return String(loc.get("parent", loc.id))
@@ -509,6 +777,17 @@ func _on_ground(p: Vector3) -> Vector3:
 func _enter_door(d: Dictionary) -> void:
 	if _busy or not Content.location_by_id.has(String(d.to)):
 		return
+	# Verschlossene Türen (Verliese): ohne den passenden Schlüssel im Beutel bleibt es beim Hinweis
+	if _door_locked(d):
+		var key := String(d.key)
+		if Quests.count(key) <= 0:
+			Audio.sfx("click", 0.6)
+			toast(String(d.get("hint", "Verschlossen. Irgendwo muss ein Schlüssel sein.")), Palette.MUTED)
+			return
+		Game.set_flag("unlocked_" + String(d.to))
+		Progress.bump("unlocked")
+		toast("Aufgeschlossen: %s" % String(Quests.material(key).get("name", key)), Palette.GOLD_BRIGHT)
+		Audio.sfx("loot", 0.5)
 	var at: Array = d.at
 	var yaw := deg_to_rad(float(d.get("yaw", 180.0)))
 	var out := Vector3(float(at[0]), float(at[1]), float(at[2])) + Basis(Vector3.UP, yaw) * Vector3(0, 0, -1.4)
@@ -666,6 +945,7 @@ func _pause_menu() -> void:
 	_open(ChoiceMenu.new("Pause", "%s · Tag %d" % [Game.state.lord_name, Game.state.day], [
 		{"text": "▶  Weiter", "action": func(): pass, "style": "ButtonPrimary"},
 		{"text": "📖  Bücher, Karten & Berichte", "sub": "Zauberbuch, Questbuch, Karte, Depeschen, Gate …", "action": _books_menu},
+		{"text": "📷  Fotomodus", "sub": "Freie Kamera, Filter, Foto speichern (F9)", "action": func(): await get_tree().create_timer(0.3).timeout; photo.toggle()},
 		{"text": "✎  Speichern", "action": func(): _open(SaveLoadDialog.new(true))},
 		{"text": "☰  Laden", "action": _load_menu},
 		{"text": "⚙  Einstellungen", "action": _settings},
@@ -883,10 +1163,23 @@ func _fade(to: float, t: float) -> void:
 #  Kampf
 # =====================================================================
 
-func _spawn_encounters() -> void:
+## Nachts wird die Welt gefährlicher: Begegnungen mit "night": true erscheinen erst, wenn es dunkel wird.
+func _night_changed(night: bool) -> void:
+	if night:
+		_spawn_encounters(true)
+	for t in level.find_children("Townsfolk_guard", "Townsfolk", true, false):
+		(t as Townsfolk).set_torches(night)
+
+
+func _spawn_encounters(night_only: bool = false) -> void:
 	if suppress_encounters:
 		return
 	for enc in loc.get("encounters", []):
+		var at_night: bool = enc.get("night", false)
+		if night_only and not at_night:
+			continue
+		if at_night and not night_only and not day_cycle.night:
+			continue
 		if not Game.check(enc.get("requires", {})):
 			continue
 		var at: Array = enc.get("at", [0, 0])
@@ -922,6 +1215,8 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 	var memory := story != null and story.replay        # Erinnerungen bringen keinen Lohn
 	if not memory:
 		quest_world.on_enemy_defeated(e)
+		if e.type_id == "fallen_general":
+			quest_world.dungeon_boss_defeated(e)
 	var gold := 0 if memory else int(e.data.get("gold", 0))
 	if gold > 0 and not e.ally:
 		Game.apply_effects({"res": {"gold": gold}})

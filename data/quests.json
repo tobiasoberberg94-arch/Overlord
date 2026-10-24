@@ -159,6 +159,22 @@
    "color": "#7fd8ff",
    "value": 12,
    "desc": "Splitter eines alten Artefakts – Pandora's Actor sammelt sie."
+  },
+  "key_kanal": {
+   "name": "Schlüssel aus dem Mausoleum",
+   "icon": "✧",
+   "color": "#c9a85a",
+   "value": 0,
+   "unique": true,
+   "desc": "Schwerer Eisenschlüssel mit dem Zeichen der Zurrernon – er passt auf das Kanalgitter im Osten E-Rantels."
+  },
+  "key_gruft": {
+   "name": "Siegel der Gefallenen",
+   "icon": "✧",
+   "color": "#9fb4d8",
+   "value": 0,
+   "unique": true,
+   "desc": "Steinernes Siegel vom Altar der Zurrernon. Es öffnet die Gruft der Gefallenen unter der Katze-Ebene."
   }
  },
  "loot": {

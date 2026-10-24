@@ -104,6 +104,20 @@
     "Kerzen auf einem Grab",
     "Jemand besucht dieses Grab jede Nacht. Die Kerzen brennen noch."
    ]
+  ],
+  "placed": [
+   {
+    "id": "key_kanal",
+    "kind": "key",
+    "item": "key_kanal",
+    "at": [
+     -8.0,
+     0.0,
+     -14.0
+    ],
+    "title": "Schlüssel aus dem Mausoleum",
+    "text": "Zwischen umgestürzten Grabplatten, neben einem erloschenen Bannkreis der Zurrernon: ein schwerer Eisenschlüssel mit dem Zeichen der Sekte.\n\nKhajit und seine Leute kamen nicht durch das Stadttor nach E-Rantel. Sie kamen von unten – durch die Kanalisation. Irgendwo in der Stadt muss ihr Gitter sein."
+   }
   ]
  },
  "sumpf": {
@@ -753,7 +767,7 @@
     ],
     "yaw": -45,
     "title": "Buch der Runen",
-    "text": "Zwanzig Runen, die einst jedes Zwergenkind kannte. Neben jeder steht: ›Wirkung: vergessen.‹\n\nNeben der zwölften, mit frischer Tinte: »Wirkt wieder. Der Zauberkönig hat sie gelesen, als wäre sie Kinderschrift. Dann hat er gefragt, ob wir Lehrlinge brauchen.«"
+    "text": "Zwanzig Runen, die einst jedes Zwergenkind kannte. Neben jeder steht: ›Wirkung: vergessen.‹\n\nNeben der zwölften, mit frischer Tinte: »Wirkt wieder. Der Zauberkönig hat sie gelesen, als wäre sie Kinderschrift. Dann hat er gefragt, ob wir Lehrlinge brauchen.«\n\nAuf dem Einband, eingeritzt: »Die Pfeiler der Halle hören auf die Ordnung der Meister – erst das Feuer, dann die Erde, dann die Luft, zuletzt das Wasser. Wer sie so berührt, dem öffnet sich die Kammer.«"
    },
    {
     "id": "ore",
@@ -891,6 +905,102 @@
     ],
     "title": "Kasse der Acht Finger",
     "text": "Unter dem Zähltisch: die Kasse eines Monats Schutzgeld. Wer sie nimmt, nimmt sie Leuten weg, die sie schon verloren haben."
+   }
+  ]
+ },
+ "erantel_kanal": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "zeichen",
+    "kind": "plaque",
+    "at": [
+     -4.6,
+     0.0,
+     12.0
+    ],
+    "yaw": 90,
+    "title": "Zeichen an der Wand",
+    "text": "Mit Ruß und etwas Dunklerem auf den Stein gemalt: das Siegel der Zurrernon, darunter Striche – gezählt wurden hier Nächte. Oder Opfer.\n\nDie Zeichen führen nach Norden, tiefer in den Gang."
+   },
+   {
+    "id": "aufzeichnungen",
+    "kind": "note",
+    "at": [
+     1.9,
+     0.0,
+     -18.4
+    ],
+    "yaw": 180,
+    "title": "Khajits Aufzeichnungen",
+    "text": "»Die Todesperle braucht Tote, viele Tote. Der Friedhof liefert sie, die Kanäle verbergen uns. Clementine lacht über meine Vorsicht – sie wird noch sehen, wer von uns beiden überlebt.«\n\nDie letzte Seite ist leer bis auf ein einziges Wort: »Momon?«"
+   },
+   {
+    "id": "key_gruft",
+    "kind": "key",
+    "item": "key_gruft",
+    "at": [
+     0.0,
+     1.1,
+     -19.8
+    ],
+    "title": "Siegel der Gefallenen",
+    "text": "Auf dem Altar liegt ein steinernes Siegel, kalt wie der Nebel der Katze-Ebene. Die Zurrernon haben es aus einer Gruft geborgen, die sie selbst nie zu öffnen wagten.\n\n»Zweihunderttausend Gefallene«, steht am Rand eingeritzt, »und einer, der nicht liegen bleibt.«"
+   },
+   {
+    "id": "opfergaben",
+    "kind": "cache",
+    "at": [
+     -3.0,
+     0.0,
+     -20.5
+    ],
+    "title": "Opfergaben der Zurrernon",
+    "text": "Hinter dem Altar: Münzen, Ringe, ein Beutel Reliquiensplitter – Grabbeigaben, die der Sekte als Lohn für ihre Toten galten."
+   }
+  ]
+ },
+ "katze_gruft": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "grabinschrift",
+    "kind": "plaque",
+    "at": [
+     -8.3,
+     0.0,
+     -6.0
+    ],
+    "yaw": 90,
+    "title": "Grabinschrift",
+    "text": "»Hier ruhen die Hauptleute des Königreichs, gefallen auf der Katze-Ebene im Jahr der Drei Siege. Der Nebel nahm ihre Namen, der Stein bewahrt sie.«\n\nDie Namen darunter sind weggeschlagen worden. Sorgfältig. Einer nach dem anderen."
+   },
+   {
+    "id": "letzter_befehl",
+    "kind": "note",
+    "at": [
+     3.0,
+     0.0,
+     10.0
+    ],
+    "yaw": 0,
+    "title": "Letzter Befehl",
+    "text": "Ein Pergament unter einem Helm: »Die Linie hält. Die Linie hält. Die Linie hält.« – dreißigmal, mit immer zittrigerer Hand.\n\nDarunter in anderer Schrift: »Der General gibt den Befehl noch immer. Jede Nacht. Geht nicht hinunter.«"
+   },
+   {
+    "id": "thron",
+    "kind": "spot",
+    "at": [
+     2.4,
+     0.15,
+     -9.2
+    ],
+    "title": "Steinthron des Generals",
+    "text": "Ein Thron aus Grabplatten, davor ein aufgebrochener Sarkophag. Wer hier saß, hat Jahrhunderte auf den nächsten Krieg gewartet.\n\nAinz-sama würde sagen: ein Untoter, der seinen Platz kennt. Fast bewundernswert."
    }
   ]
  }

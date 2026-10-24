@@ -1471,6 +1471,114 @@
    },
    "stat": "rings_found",
    "target": 12
+  },
+  {
+   "id": "mementos_10",
+   "name": "Erinnerung",
+   "desc": "Zehn Erinnerungsstücke von Ainz Ooal Gown gefunden.",
+   "icon": "✦",
+   "tier": "bronze",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "mementos",
+   "target": 10
+  },
+  {
+   "id": "mementos_20",
+   "name": "Die halbe Gilde",
+   "desc": "Zwanzig Erinnerungsstücke gefunden.",
+   "icon": "✦",
+   "tier": "silver",
+   "reward": {
+    "gold": 400
+   },
+   "stat": "mementos",
+   "target": 20
+  },
+  {
+   "id": "mementos_41",
+   "name": "Ainz Ooal Gown",
+   "desc": "Alle 41 Erinnerungsstücke gefunden. Niemand ist vergessen.",
+   "icon": "✦",
+   "tier": "gold",
+   "reward": {
+    "gold": 1200
+   },
+   "stat": "mementos",
+   "target": 41
+  },
+  {
+   "id": "puzzle_runes",
+   "name": "Runenmeister",
+   "desc": "Das Runenrätsel in der Schmiedehalle von Feo Jera gelöst.",
+   "icon": "◈",
+   "tier": "silver",
+   "reward": {
+    "gold": 200
+   },
+   "stat": "puzzles",
+   "target": 1
+  },
+  {
+   "id": "ortskundig_5",
+   "name": "Ortskundig",
+   "desc": "An fünf Orten alles entdeckt.",
+   "icon": "◎",
+   "tier": "silver",
+   "reward": {
+    "gold": 300
+   },
+   "stat": "ortskundig",
+   "target": 5
+  },
+  {
+   "id": "ortskundig_15",
+   "name": "Weltenkenner",
+   "desc": "An fünfzehn Orten alles entdeckt.",
+   "icon": "◎",
+   "tier": "gold",
+   "reward": {
+    "gold": 900
+   },
+   "stat": "ortskundig",
+   "target": 15
+  },
+  {
+   "id": "kanal_altar",
+   "name": "Unter der Stadt",
+   "desc": "Den Altar der Zurrernon in der Kanalisation von E-Rantel gefunden.",
+   "icon": "✧",
+   "tier": "bronze",
+   "reward": {
+    "gold": 120
+   },
+   "stat": "dungeons",
+   "target": 1
+  },
+  {
+   "id": "gruft_general",
+   "name": "Bezwinger der Gruft",
+   "desc": "Den General der Gefallenen unter der Katze-Ebene besiegt.",
+   "icon": "☠",
+   "tier": "gold",
+   "reward": {
+    "gold": 500
+   },
+   "stat": "dungeon_bosses",
+   "target": 1
+  },
+  {
+   "id": "schluesselmeister",
+   "name": "Schlüsselmeister",
+   "desc": "Zwei verschlossene Türen der Welt aufgeschlossen.",
+   "icon": "✧",
+   "tier": "silver",
+   "reward": {
+    "gold": 150
+   },
+   "stat": "unlocked",
+   "target": 2
   }
  ],
  "loot_chance": {

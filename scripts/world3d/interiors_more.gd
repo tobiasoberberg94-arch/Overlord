@@ -12,6 +12,11 @@ class_name InteriorsMore
 ##   inn         Dorfschenke in Carne: kleine Schankstube mit Herd, Tresen, Spinnrad und Dorfbewohnern.
 ##   court       Thronsaal eines Menschenreiches (loc.faction = kingdom | empire): Säulenschiff mit Bannern, Teppich,
 ##               Podest mit Thron, Statuen, Kriegstisch, Wachen und Hofstaat – Ro-Lente-Schloss und Kaiserpalast.
+##   cellar      Keller der Acht Finger (Re-Estize): Kerker mit Käfigen, Zähltisch, Schmuggelware.
+##   sewer       Kanalisation von E-Rantel: langes Steingewölbe mit Wasserrinne, Bögen, Gittern, Schleim, Gebeinen
+##               und dem Kultaltar der Zurrernon am Nordende (Verlies, nur mit Schlüssel).
+##   crypt       Gruft der Gefallenen unter der Katze-Ebene: Säulenhalle mit Sarkophagen, kalten Feuerschalen,
+##               Bannern beider Reiche und dem Podest des Generals (Bosskampf, nur mit Siegel).
 
 const WARM := Color(1.0, 0.78, 0.5)
 
@@ -34,6 +39,10 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return court(root, loc)
 		"cellar":
 			return cellar(root, loc)
+		"sewer":
+			return sewer(root, loc)
+		"crypt":
+			return crypt(root, loc)
 	return {}
 
 
@@ -699,5 +708,179 @@ static func cellar(root: Node3D, _loc: Dictionary) -> Dictionary:
 	B3.motes(root, Vector3(0, 2.0, 0), Vector3(6.5, 1.5, 9.0), Color(0.8, 0.75, 0.7, 0.4), 60)
 	Interiors.lantern(root, Vector3(0, 3.5, -7.0), H - 0.3, 1.4)
 	Interiors.lantern(root, Vector3(0, 3.5, 5.0), H - 0.3, 1.4)
-	B3.light(root, Vector3(0, H - 1.0, -1.0), Color(1.0, 0.75, 0.5), 2.2, 16.0)
+	B3.light(root, Vector3(0, H - 1.0, -1.0), Color(1.0, 0.75, 0.5), 3.0, 18.0)
+	Interiors.lantern(root, Vector3(0, 3.5, 8.5), H - 0.3, 1.4)
 	return {"spawn": Vector3(0, 0.2, hz - 1.6), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(0, 0, -9.5)]}
+
+
+# =====================================================================
+#  Verliese: Steingewölbe, Gebeine, Kanalisation, Gruft
+# =====================================================================
+
+## Steingewölbe: Boden, Wände, Decke, Türöffnung mit Steingewände in der Südwand (+z), unsichtbare Grenzen.
+static func _vault(root: Node3D, W: float, D: float, H: float, wall: Material, floor_m: Material, ceil_m: Material, door_w: float = 1.8) -> void:
+	var hx := W * 0.5
+	var hz := D * 0.5
+	B3.box(root, Vector3(W + 0.8, 0.2, D + 0.8), Vector3(0, -0.1, 0), floor_m)
+	B3.box(root, Vector3(0.4, H, D + 0.8), Vector3(-hx - 0.2, H * 0.5, 0), wall)
+	B3.box(root, Vector3(0.4, H, D + 0.8), Vector3(hx + 0.2, H * 0.5, 0), wall)
+	B3.box(root, Vector3(W + 0.8, H, 0.4), Vector3(0, H * 0.5, -hz - 0.2), wall)
+	var side := (W - door_w) * 0.5
+	B3.box(root, Vector3(side + 0.4, H, 0.4), Vector3(-(door_w * 0.5 + side * 0.5) - 0.2, H * 0.5, hz + 0.2), wall)
+	B3.box(root, Vector3(side + 0.4, H, 0.4), Vector3((door_w * 0.5 + side * 0.5) + 0.2, H * 0.5, hz + 0.2), wall)
+	B3.box(root, Vector3(door_w, H - 2.6, 0.4), Vector3(0, 2.6 + (H - 2.6) * 0.5, hz + 0.2), wall)
+	B3.box(root, Vector3(W + 0.8, 0.3, D + 0.8), Vector3(0, H + 0.15, 0), ceil_m)
+	var trim := B3.mat(Color(0.3, 0.29, 0.28), 0.9)
+	for sx in [-1.0, 1.0]:
+		B3.box(root, Vector3(0.25, 2.7, 0.5), Vector3(sx * (door_w * 0.5 + 0.12), 1.35, hz + 0.2), trim, false)
+	B3.box(root, Vector3(door_w + 0.5, 0.25, 0.5), Vector3(0, 2.72, hz + 0.2), trim, false)
+	B3.box(root, Vector3(door_w, 0.05, 0.9), Vector3(0, 0.025, hz), trim, false)
+	B3.bounds(root, maxf(hx, hz) + 0.3, H + 1.0)
+
+
+## Gebeine: Schädel und ein paar Knochen in einem kleinen Haufen.
+static func _bones(root: Node3D, pos: Vector3, rng: RandomNumberGenerator) -> void:
+	var bone := B3.mat(Color(0.82, 0.78, 0.68), 0.8)
+	B3.sphere(root, 0.12, pos + Vector3(0.1, 0.11, 0.05), bone, Vector3(1, 1.1, 1.15))
+	for k in 6:
+		var b := B3.cyl(root, 0.025, 0.03, rng.randf_range(0.3, 0.55), pos + Vector3(rng.randf_range(-0.35, 0.35), 0.03, rng.randf_range(-0.35, 0.35)), bone, false, 6)
+		b.rotation = Vector3(PI * 0.5 + rng.randf_range(-0.2, 0.2), rng.randf() * TAU, 0.0)
+
+
+static func sewer(root: Node3D, _loc: Dictionary) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1901
+	var W := 11.0
+	var D := 46.0
+	var H := 4.2
+	var hx := W * 0.5
+	var hz := D * 0.5
+	var wall := BuildingLook.photo_material("rubble", "stone", Color(0.36, 0.38, 0.35), 0.85)
+	var floor_m := BuildingLook.photo_material("rubble", "stone", Color(0.3, 0.31, 0.29), 0.9)
+	var iron := B3.mat(Color(0.2, 0.2, 0.22), 0.55, 0.8)
+	_vault(root, W, D, H, wall, floor_m, wall, 1.8)
+	# Wasserrinne in der Mitte (endet vor dem Südende): trübes Wasser zwischen zwei Bordsteinen
+	var water := B3.mat(Color(0.06, 0.13, 0.11, 0.82), 0.12, 0.5)
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	var cl := D - 6.0
+	var cz := -2.0
+	B3.box(root, Vector3(3.2, 0.03, cl), Vector3(0, 0.03, cz), water, false)
+	var curb := B3.mat(Color(0.25, 0.26, 0.24), 0.95)
+	for sx in [-1.0, 1.0]:
+		B3.box(root, Vector3(0.25, 0.16, cl), Vector3(sx * 1.72, 0.08, cz), curb, false)
+	B3.box(root, Vector3(3.7, 0.16, 0.25), Vector3(0, 0.08, cz + cl * 0.5), curb, false)
+	# Bögen alle 5,5 m, Fackeln wechselseitig, vergitterte Nischen
+	var nb := int(D / 5.5)
+	for i in nb:
+		var z := -hz + 3.0 + i * 5.5
+		for sx in [-1.0, 1.0]:
+			B3.box(root, Vector3(0.6, H, 0.6), Vector3(sx * (hx - 0.3), H * 0.5, z), wall)
+		B3.box(root, Vector3(W, 0.5, 0.6), Vector3(0, H - 0.25, z), wall, false)
+		var ts := -1.0 if i % 2 == 0 else 1.0
+		_torch(root, Vector3(ts * (hx - 0.1), 2.1, z + 2.7), ts)
+		if i % 3 == 1:
+			B3.box(root, Vector3(0.15, 1.2, 1.2), Vector3(-ts * (hx - 0.1), 1.4, z - 2.0), B3.mat(Color(0.03, 0.03, 0.03), 1.0), false)
+			for k in 5:
+				B3.cyl(root, 0.02, 0.02, 1.2, Vector3(-ts * (hx - 0.14), 1.4, z - 2.5 + k * 0.25), iron, false, 5)
+	# Schleim und leuchtende Pilze an den Rändern
+	for k in 7:
+		var p := Vector3(rng.randf_range(2.3, hx - 1.0) * (1.0 if k % 2 == 0 else -1.0), 0.0, rng.randf_range(-hz + 5.0, hz - 5.0))
+		GroundMark.ring(root, p + Vector3(0, 0.035, 0), rng.randf_range(0.4, 0.8), Color(0.35, 0.9, 0.4), 3600.0, 0.3)
+		for j in 3:
+			var q := p + Vector3(rng.randf_range(-0.3, 0.3), 0, rng.randf_range(-0.3, 0.3))
+			B3.cyl(root, 0.03, 0.04, 0.16, q + Vector3(0, 0.08, 0), B3.mat(Color(0.8, 0.85, 0.7), 0.8), false, 6)
+			B3.sphere(root, 0.07, q + Vector3(0, 0.18, 0), B3.mat(Color(0.5, 1.0, 0.5), 0.5, 0.0, Color(0.4, 1.0, 0.45), 2.5), Vector3(1, 0.6, 1))
+		B3.light(root, p + Vector3(0, 0.5, 0), Color(0.45, 1.0, 0.5), 0.7, 4.5)
+	# Gebeine, Kisten und Fässer der Schmuggler
+	for k in 4:
+		_bones(root, Vector3(rng.randf_range(2.4, hx - 1.0) * (1.0 if k % 2 == 0 else -1.0), 0, rng.randf_range(-hz + 6.0, hz - 6.0)), rng)
+	Interiors.prop_h(root, "wooden_crate_01", Vector3(hx - 1.2, 0, hz - 6.0), 0.55, 20.0, true)
+	Interiors.prop_h(root, "wooden_crate_02", Vector3(hx - 1.3, 0.55, hz - 6.0), 0.5, 70.0, false)
+	Interiors.prop_h(root, "barrel_03", Vector3(-hx + 1.1, 0, hz - 9.0), 0.9, 0.0, true)
+	# Tropfen von der Decke, fauliger Dunst
+	B3.motes(root, Vector3(0, H - 0.4, 0), Vector3(hx - 0.5, 0.2, hz - 1.0), Color(0.6, 0.75, 0.7, 0.5), 50, 2.2)
+	B3.motes(root, Vector3(0, 1.2, 0), Vector3(hx - 0.5, 0.8, hz - 1.0), Color(0.5, 0.7, 0.5, 0.25), 40)
+	# Kultaltar der Zurrernon am Nordende: Steinblock, Runenkreis, Kerzen, Schädel, Banner, violettes Licht
+	var az := -hz + 3.2
+	B3.box(root, Vector3(2.4, 1.0, 1.1), Vector3(0, 0.5, az), B3.mat(Color(0.2, 0.18, 0.22), 0.8))
+	B3.box(root, Vector3(2.6, 0.1, 1.3), Vector3(0, 1.05, az), B3.mat(Color(0.12, 0.1, 0.14), 0.7), false)
+	GroundMark.rune(root, Vector3(0, 0.04, az + 2.4), 1.7, Color(0.7, 0.35, 1.0), 3600.0, "a", null, 0.15)
+	for x in [-0.95, 0.95]:
+		Interiors.candle(root, Vector3(x, 1.1, az - 0.3), "brass_candleholders")
+	B3.sphere(root, 0.13, Vector3(0.0, 1.23, az - 0.2), B3.mat(Color(0.85, 0.8, 0.7), 0.7), Vector3(1, 1.1, 1))
+	for x in [-3.2, 3.2]:
+		B3.banner(root, Vector3(x, 0, az - 1.4), Color(0.3, 0.1, 0.4), null, 2.6, 0.0)
+	B3.light(root, Vector3(0, 2.0, az + 1.0), Color(0.7, 0.4, 1.0), 2.2, 9.0).set_meta("flicker", true)
+	B3.motes(root, Vector3(0, 1.5, az + 1.5), Vector3(2.0, 1.0, 2.0), Color(0.75, 0.45, 1.0, 0.5), 30)
+	for z in [-hz + 10.0, 0.0, hz - 10.0]:
+		B3.light(root, Vector3(0, H - 0.8, z), Color(0.6, 0.75, 0.65), 1.4, 16.0)
+	return {"spawn": Vector3(0, 0.2, hz - 2.0), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(2.8, 0, hz - 8.0)]}
+
+
+static func crypt(root: Node3D, _loc: Dictionary) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1902
+	var W := 20.0
+	var D := 32.0
+	var H := 6.5
+	var hx := W * 0.5
+	var hz := D * 0.5
+	var wall := BuildingLook.photo_material("rubble", "stone", Color(0.4, 0.4, 0.42), 0.8)
+	var floor_m := BuildingLook.photo_material("rubble", "stone", Color(0.33, 0.33, 0.36), 0.85)
+	var dark := B3.mat(Color(0.22, 0.22, 0.25), 0.9)
+	var sarc := B3.mat(Color(0.45, 0.44, 0.46), 0.75)
+	var bone := B3.mat(Color(0.82, 0.78, 0.68), 0.8)
+	_vault(root, W, D, H, wall, floor_m, wall, 2.2)
+	# Säulen in zwei Reihen mit Kapitellen
+	for z in [-9.0, -2.0, 5.0, 12.0]:
+		for sx in [-1.0, 1.0]:
+			var p := Vector3(sx * 5.5, 0, z)
+			B3.box(root, Vector3(0.9, H, 0.9), p + Vector3(0, H * 0.5, 0), wall)
+			B3.box(root, Vector3(1.3, 0.3, 1.3), p + Vector3(0, 0.15, 0), dark, false)
+			B3.box(root, Vector3(1.3, 0.3, 1.3), p + Vector3(0, H - 0.15, 0), dark, false)
+	# Sarkophage entlang der Wände, manche aufgebrochen, Kerzen mit kaltem Licht
+	var k := 0
+	for z in [-8.0, -3.5, 1.0, 5.5, 10.0]:
+		for sx in [-1.0, 1.0]:
+			var p := Vector3(sx * (hx - 1.6), 0, z)
+			B3.box(root, Vector3(1.1, 0.9, 2.3), p + Vector3(0, 0.45, 0), sarc)
+			var broken := k % 3 == 1
+			var lid := B3.box(root, Vector3(1.2, 0.16, 2.4), p + Vector3(0.35 if broken else 0.0, 1.1 if broken else 0.98, 0.3 if broken else 0.0), dark, false)
+			if broken:
+				lid.rotation_degrees = Vector3(4.0, 0, sx * 14.0)
+				B3.sphere(root, 0.12, p + Vector3(-0.2, 1.0, -0.4), bone, Vector3(1, 1.1, 1.15))
+			if k % 2 == 0:
+				for c in 3:
+					var cp := p + Vector3(rng.randf_range(-0.4, 0.4), 0.98, rng.randf_range(-0.9, 0.9))
+					B3.cyl(root, 0.025, 0.025, 0.14, cp + Vector3(0, 0.07, 0), B3.mat(Color(0.92, 0.9, 0.82), 0.6), false, 6)
+					B3.sphere(root, 0.02, cp + Vector3(0, 0.17, 0), B3.mat(Color(0.7, 0.8, 1.0), 0.3, 0.0, Color(0.6, 0.75, 1.0), 5.0))
+				B3.light(root, p + Vector3(0, 1.4, 0), Color(0.6, 0.75, 1.0), 0.8, 5.0).set_meta("flicker", true)
+			k += 1
+	# Gebeine, altes Blut, zerrissene Banner beider Reiche
+	for i in 5:
+		_bones(root, Vector3(rng.randf_range(-4.0, 4.0), 0, rng.randf_range(-6.0, hz - 4.0)), rng)
+	GroundMark.ring(root, Vector3(1.5, 0.03, 3.0), 1.1, Color(0.25, 0.02, 0.03), 3600.0, 0.7)
+	for z in [-4.0, 4.0]:
+		B3.banner(root, Vector3(-(hx - 0.6), 0, z), Color(0.11, 0.18, 0.42), null, 3.2, PI * 0.5)
+		B3.banner(root, Vector3(hx - 0.6, 0, z), Color(0.55, 0.1, 0.1), null, 3.2, -PI * 0.5)
+	# Kalte Feuerschalen (blaue Flammen) am Mittelgang
+	for z in [-6.0, 2.0, 10.0]:
+		for sx in [-1.0, 1.0]:
+			B3.brazier(root, Vector3(sx * 3.0, 0, z), Color(0.45, 0.65, 1.0))
+	# Podest mit Steinthron des Generals, sein aufgebrochener Sarkophag, Wächterstatuen
+	var dz := -hz + 4.5
+	B3.box(root, Vector3(10.0, 0.15, 6.0), Vector3(0, 0.075, dz), dark)
+	B3.box(root, Vector3(1.4, 0.6, 1.2), Vector3(0, 0.45, dz - 1.8), sarc)
+	B3.box(root, Vector3(1.4, 1.6, 0.3), Vector3(0, 1.55, dz - 2.35), sarc)
+	for sx in [-1.0, 1.0]:
+		B3.box(root, Vector3(0.25, 0.8, 1.2), Vector3(sx * 0.82, 0.8, dz - 1.8), sarc, false)
+	B3.box(root, Vector3(2.4, 1.0, 1.2), Vector3(-3.6, 0.65, dz - 1.5), sarc)
+	var lid2 := B3.box(root, Vector3(2.5, 0.16, 1.3), Vector3(-2.4, 0.5, dz - 0.4), dark, false)
+	lid2.rotation_degrees = Vector3(0, 20, -60)
+	Interiors.prop(root, "gothic_statue", Vector3(-4.6, 0.15, dz - 2.4), 20.0, 1.3)
+	Interiors.prop(root, "gothic_statue", Vector3(4.6, 0.15, dz - 2.4), -20.0, 1.3)
+	B3.light(root, Vector3(0, 3.2, dz), Color(0.55, 0.7, 1.0), 2.6, 12.0).set_meta("flicker", true)
+	B3.motes(root, Vector3(0, 1.0, 0), Vector3(hx - 1.0, 0.8, hz - 1.0), Color(0.6, 0.7, 0.9, 0.3), 70)
+	for z in [-6.0, 4.0, 12.0]:
+		B3.light(root, Vector3(0, H - 1.0, z), Color(0.55, 0.62, 0.8), 1.5, 16.0)
+	return {"spawn": Vector3(0, 0.2, hz - 2.0), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(0, 0, dz + 3.0)]}

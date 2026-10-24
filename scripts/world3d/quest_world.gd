@@ -120,16 +120,23 @@ func spawn_discoveries() -> void:
 	var n := lore.size() + int(d.get("shrines", 1)) + int(d.get("caches", 2))
 	var picked := _picked()
 	# Von Hand gesetzte Entdeckungen: {"id", "kind", "title", "text", "at": [x, y, z], "yaw": Grad}
+	_rune_step = 0
+	_spawn_mementos(lid)
 	for e in d.get("placed", []):
 		var kind := String(e.get("kind", "lore"))
 		var key := "d:%s:%s" % [lid, String(e.get("id", e.get("title", "")))]
-		if kind == "cache" and picked.has(key):
+		if kind in ["cache", "key"] and picked.has(key):
 			continue
 		var p := Pickup.discovery(kind, String(e.get("title", "")), String(e.get("text", "")))
 		p.key = key
 		p.set_meta("done", picked.has(key) and (kind != "shrine" or int(Game.state.day) - int(picked[key]) < 1))
+		if e.has("item"):
+			p.set_meta("item", String(e.item))
 		var at: Array = e.at
-		_place(p, Vector3(float(at[0]), float(at[1]), float(at[2])))
+		var pos := Vector3(float(at[0]), float(at[1]), float(at[2]))
+		if w.loc.group == "world":
+			pos = w._on_ground(pos)
+		_place(p, pos)
 		if e.has("yaw"):
 			p.rotation.y = deg_to_rad(float(e.yaw))
 	if n == 0:
@@ -236,7 +243,125 @@ func _discover(p: Pickup) -> bool:
 		"cache":
 			Progress.bump("discoveries")
 			w._show_banner("Versteckter Schatz", "Unter den Steinen lag etwas verborgen …")
+			_check_ortskundig(String(w.loc.id))
+		"memento":
+			var m: Dictionary = p.get_meta("memento", {})
+			var fnd: Array = Game.state.get("mementos", [])
+			var mid := String(m.get("id", ""))
+			if not mid in fnd:
+				fnd.append(mid)
+				Game.state["mementos"] = fnd
+				Progress.bump("mementos")
+			w._open(LoreDialog.new("%s · %s" % [p.label, String(m.get("member", ""))],
+				String(p.get_meta("text", "")) + "\n\n[color=#d4af37]Erinnerungsstück %d von 41 – Kodex im Questbuch.[/color]" % fnd.size()))
+			w.toast("Erinnerungsstück: %s" % p.label, Palette.GOLD_BRIGHT)
+			Audio.sfx("loot", 0.7)
+			pickups.erase(p)
+			p.queue_free()
+			_check_ortskundig(String(w.loc.id))
+			return true
+		"key":
+			# Schlüssel eines Verlieses: in den Beutel (einmalig), Text dazu; das Siegel vom Altar zählt als Verlies erkundet
+			var item := String(p.get_meta("item", ""))
+			if item != "":
+				Quests.add_item(item)
+			var mname := String(Quests.material(item).get("name", item))
+			_picked()[p.key] = int(Game.state.day)
+			w._open(LoreDialog.new(p.label, String(p.get_meta("text", "")) + "\n\n[color=#d4af37]Im Beutel: %s[/color]" % mname))
+			w.toast("Gefunden: %s" % mname, Palette.GOLD_BRIGHT)
+			Audio.sfx("loot", 0.7)
+			Progress.bump("discoveries")
+			if item == "key_gruft":
+				Progress.bump("dungeons")
+			pickups.erase(p)
+			p.queue_free()
+			_check_ortskundig(String(w.loc.id))
+			return true
 	return false
+
+
+## Der General der Gefallenen ist besiegt: Flagge (er erhebt sich nicht wieder), Errungenschaft, Schatz auf dem Podest.
+func dungeon_boss_defeated(e: Enemy3D) -> void:
+	if Game.has_flag("gruft_general"):
+		return
+	Game.set_flag("gruft_general")
+	Progress.bump("dungeon_bosses")
+	var p := Pickup.chest()
+	p.label = "Schatz des Generals"
+	p.entries = [["gold", "", 400], ["item", Progress.roll_item("legendary"), 1], ["relic_shard", "", 3]]
+	_place(p, Vector3(e.global_position.x, 0.15, e.global_position.z))
+	w._show_banner("Die Gruft ist still", "Der General der Gefallenen hat seinen letzten Krieg verloren.")
+	Audio.sfx("levelup", 0.6)
+
+
+## Die 41 Erinnerungsstücke (data/mementos.json): die noch fehlenden dieses Ortes an versteckten Plätzen.
+func _spawn_mementos(lid: String) -> void:
+	var fnd: Array = Game.state.get("mementos", [])
+	var todo: Array = []
+	for m in MEMENTOS.by_loc(lid):
+		if not String(m.get("id", "")) in fnd:
+			todo.append(m)
+	if todo.is_empty():
+		return
+	var spots := _spots(todo.size() + 1, hash(lid + "erinnerung"), "hidden")
+	if spots.size() < todo.size():
+		spots += _spots(todo.size() - spots.size() + 1, hash(lid + "erinnerung2"), "open")
+	for k in todo.size():
+		if k >= spots.size():
+			break
+		var m: Dictionary = todo[k]
+		var p := Pickup.discovery("memento", String(m.get("name", "")), String(m.get("text", "")))
+		p.key = "m:" + String(m.get("id", ""))
+		p.set_meta("memento", m)
+		_place(p, spots[k])
+
+
+## Alles an einem Ort gefunden? Dann „Ortskundig“ (einmalig je Ort): Gold und Zähler für die Errungenschaft.
+func _check_ortskundig(lid: String) -> void:
+	var pr: Array = MEMENTOS.location_progress(lid)
+	if int(pr[1]) < 3 or int(pr[0]) < int(pr[1]):
+		return
+	var done: Array = Game.state.get("ortskundig", [])
+	if lid in done:
+		return
+	done.append(lid)
+	Game.state["ortskundig"] = done
+	Progress.bump("ortskundig")
+	Game.apply_effects({"res": {"gold": 60}})
+	w.toast("Ortskundig: %s – alles entdeckt (+60 Gold)" % String(w.loc.get("name", lid)), Palette.GOLD_BRIGHT)
+
+
+## Runenrätsel in der Schmiedehalle von Feo Jera: die vier Pfeiler in der Reihenfolge des Buchs der Runen berühren.
+const RUNE_ORDER := ["feuer", "erde", "luft", "wasser"]
+var _rune_step := 0
+
+
+func rune_touch(a: Actor3D) -> void:
+	var id := String(a.id).trim_prefix("rune:")
+	if Game.has_flag("runen_geloest"):
+		w.toast("Die Runen leuchten ruhig. Die Kammer der Runenmeister steht offen.", Palette.MUTED)
+		return
+	if id == RUNE_ORDER[_rune_step]:
+		_rune_step += 1
+		B3.light(a, Vector3(0, 2.0, 0), Color(0.4, 0.9, 1.0), 3.0, 8.0)
+		GroundMark.ring(w.level, a.global_position + Vector3(0, 0.03, 0), 1.4, Color(0.4, 0.9, 1.0), 2.5, 0.12)
+		Audio.sfx("gong", 0.5)
+		if _rune_step >= RUNE_ORDER.size():
+			Game.set_flag("runen_geloest")
+			Progress.bump("puzzles")
+			Progress.grant_item("rune_shield", "Kammer der Runenmeister")
+			Game.apply_effects({"res": {"gold": 300}})
+			w._open(LoreDialog.new("Kammer der Runenmeister", "Die vierte Rune antwortet, und hinter dem Pfeiler schiebt sich eine Steinplatte zur Seite. Dahinter: die Werkstatt der alten Meister, unberührt seit zweihundert Jahren – und auf dem Amboss ein Schild, dessen Runen noch glühen.\n\n[color=#d4af37]Runenschild der Zwerge und 300 Gold erhalten. Gondo wird davon hören.[/color]"))
+			w.toast("Rätsel gelöst: Kammer der Runenmeister", Palette.GOLD_BRIGHT)
+		else:
+			w.toast("Die Rune antwortet. (%d von 4)" % _rune_step, Color(0.5, 0.9, 1.0))
+	else:
+		_rune_step = 0
+		w.toast("Die Runen verlöschen – die Reihenfolge stimmt nicht. Das Buch der Runen weiß sie.", Palette.MUTED)
+		Audio.sfx("page", 0.5)
+
+
+const MEMENTOS := preload("res://scripts/world3d/mementos.gd")
 
 
 func _place(p: Pickup, pos: Vector3) -> void:
@@ -266,7 +391,7 @@ func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 		seeds.append(w.anchors.keeper)
 	# indoor: Hallen Nazaricks (Decke über allem, kurze Strahlen); dense: Städte – unter freiem Himmel, aber eng,
 	# darum kurze Reichweiten wie drinnen. Der Strahl kommt in Städten von oben, damit Dächer erkannt werden.
-	var indoor: bool = w.loc.group == "nazarick"
+	var indoor: bool = w.loc.group in ["nazarick", "interior"]
 	var dense: bool = indoor or w.loc.get("kind", "") in ["city", "palace", "cathedral"]
 	var reach := 18.0 if dense else 48.0
 	if mode == "hidden":
@@ -419,7 +544,7 @@ func nearest(pos: Vector3) -> Pickup:
 
 
 func collect(p: Pickup) -> void:
-	if p.kind in ["lore", "shrine", "cache"] and _discover(p):
+	if p.kind in ["lore", "shrine", "cache", "memento", "key"] and _discover(p):
 		return
 	var lines := PackedStringArray()
 	for e in p.entries:

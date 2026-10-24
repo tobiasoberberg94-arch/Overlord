@@ -21,6 +21,35 @@ var force := -1.0
 var night := false
 var _loc: Dictionary = {}
 var _last := -10.0
+## Wetter (scripts/world3d/weather.gd): Faktoren für Himmel, Sonne, Umgebungslicht, Nebel und eine Tönung der Sonne.
+var weather: Dictionary = {}
+var _flash := 0.0
+
+
+## Wetterfaktoren setzen und sofort anwenden.
+func set_weather(w: Dictionary) -> void:
+	weather = w
+	_last = -10.0
+	if active and is_instance_valid(sun):
+		_apply()
+
+
+## Blitz: Sonne und Himmel für einen Augenblick grell (Gewitter).
+func flash(secs: float = 0.12) -> void:
+	if not active or not is_instance_valid(sun):
+		return
+	_flash = secs
+	sun.light_energy = maxf(sun.light_energy, 1.0) * 5.0
+	sun.light_color = Color(0.9, 0.92, 1.0)
+	sky_mat.set_shader_parameter("energy", float(base.sky_energy) * 1.6)
+
+
+func _process(delta: float) -> void:
+	if _flash > 0.0:
+		_flash -= delta
+		if _flash <= 0.0:
+			_last = -10.0
+			_apply()
 
 
 ## Nach dem Ortsaufbau aufrufen: sucht Himmel, Sonne, Lampen und Bewohner und merkt sich die Tageswerte.
@@ -50,7 +79,8 @@ func setup(level: Node3D, loc: Dictionary) -> void:
 	base = {"sun_energy": sun.light_energy, "sun_color": sun.light_color, "sun_rot": sun.rotation,
 		"ambient": env.ambient_light_energy, "sky_energy": float(sky_mat.get_shader_parameter("energy")),
 		"sun_boost": float(sky_mat.get_shader_parameter("sun_boost")), "fog_light": env.fog_light_color,
-		"vol_albedo": env.volumetric_fog_albedo, "shadow": sun.shadow_enabled}
+		"vol_albedo": env.volumetric_fog_albedo, "shadow": sun.shadow_enabled,
+		"fog_density": env.fog_density, "vol_density": env.volumetric_fog_density}
 	for l in level.find_children("*", "OmniLight3D", true, false):
 		if not l.has_meta("base_day"):
 			l.set_meta("base_day", float(l.get_meta("base")) if l.has_meta("base") else (l as OmniLight3D).light_energy)
@@ -61,7 +91,8 @@ func setup(level: Node3D, loc: Dictionary) -> void:
 
 ## Jeden Frame: `day_f` = Spieltag mit Bruchteil (Game.state.day + Tageszeit); wendet nur bei Änderung an.
 func update(day_f: float) -> void:
-	if not active:
+	if not active or not is_instance_valid(sun) or not is_instance_valid(env):
+		active = false
 		return
 	if not Settings.day_cycle:
 		if _last != -1.0:
@@ -83,24 +114,36 @@ func _apply() -> void:
 	var w := clampf(1.0 - absf(s) * 4.0, 0.0, 1.0)
 	var rot: Vector3 = base.sun_rot
 	var elev0 := -rot.x
+	# Wetterfaktoren (bedeckt, Regen, Nebel, Schnee, Sand) dämpfen Himmel und Sonne und verdichten den Nebel
+	var wk_sky := float(weather.get("sky", 1.0))
+	var wk_sun := float(weather.get("sun", 1.0))
+	var wk_amb := float(weather.get("ambient", 1.0))
+	var wk_fog := float(weather.get("fog", 1.0))
+	var tint: Color = weather.get("tint", Color.WHITE)
+	var tint_amount := float(weather.get("tint_amount", 0.0))
 	if s >= 0.0:
 		# Tag: Sonne steigt von 3° bis über die Höhe des Fotos und sinkt wieder; tief stehend warm und schwach
 		sun.rotation = Vector3(-lerpf(deg_to_rad(3.0), elev0 + deg_to_rad(12.0), s), rot.y, rot.z)
-		sun.light_energy = float(base.sun_energy) * lerpf(0.12, 1.0, d)
-		sun.light_color = (base.sun_color as Color).lerp(Color(1.0, 0.55, 0.3), w * 0.75)
-		sun.shadow_enabled = bool(base.shadow)
+		sun.light_energy = float(base.sun_energy) * lerpf(0.12, 1.0, d) * wk_sun
+		sun.light_color = (base.sun_color as Color).lerp(Color(1.0, 0.55, 0.3), w * 0.75).lerp(tint, tint_amount)
+		sun.shadow_enabled = bool(base.shadow) and wk_sun > 0.45
 	else:
 		# Nacht: die Sonne wird zum Mond (blau, schwach, von der Gegenseite)
 		sun.rotation = Vector3(-lerpf(deg_to_rad(3.0), deg_to_rad(38.0), n), rot.y + PI, rot.z)
-		sun.light_energy = lerpf(0.12, 0.3, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy))
+		sun.light_energy = lerpf(0.12, 0.3, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy)) * wk_sun
 		sun.light_color = Color(0.62, 0.7, 1.0)
 		sun.shadow_enabled = bool(base.shadow)
-	sky_mat.set_shader_parameter("energy", float(base.sky_energy) * lerpf(0.06, 1.0, d))
-	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost) * d)
-	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 3.5, n)
-	env.fog_light_color = (base.fog_light as Color).lerp(Color(0.06, 0.08, 0.14), n * 0.85).lerp(Color(0.6, 0.35, 0.2), w * 0.35)
+	sky_mat.set_shader_parameter("energy", float(base.sky_energy) * lerpf(0.06, 1.0, d) * wk_sky)
+	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost) * d * wk_sun)
+	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 3.5, n) * wk_amb
+	var fog_c := (base.fog_light as Color).lerp(Color(0.06, 0.08, 0.14), n * 0.85).lerp(Color(0.6, 0.35, 0.2), w * 0.35)
+	if weather.has("fog_color"):
+		fog_c = fog_c.lerp(weather.fog_color, 0.6)
+	env.fog_light_color = fog_c
+	env.fog_density = float(base.fog_density) * wk_fog
 	if env.volumetric_fog_enabled:
 		env.volumetric_fog_albedo = (base.vol_albedo as Color).lerp(Color(0.3, 0.35, 0.5), n)
+		env.volumetric_fog_density = float(base.vol_density) * lerpf(1.0, wk_fog, 0.6)
 	for l in lamps:
 		if is_instance_valid(l):
 			var bd: float = l.get_meta("base_day")
@@ -115,7 +158,11 @@ func _apply() -> void:
 		for t in folk:
 			if is_instance_valid(t):
 				(t as Townsfolk).set_night(night)
+		for g in get_tree().get_nodes_in_group("window_glow"):
+			(g as OmniLight3D).light_energy = 1.3 if night else 0.0
 		Audio.play_ambience_for(_loc, night)
+		if get_parent() and get_parent().has_method("_night_changed"):
+			get_parent()._night_changed(night)
 
 
 func _restore() -> void:
@@ -128,6 +175,9 @@ func _restore() -> void:
 	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost))
 	env.ambient_light_energy = float(base.ambient)
 	env.fog_light_color = base.fog_light
+	env.fog_density = float(base.fog_density)
+	if env.volumetric_fog_enabled:
+		env.volumetric_fog_density = float(base.vol_density)
 	for l in lamps:
 		if is_instance_valid(l):
 			var bd: float = l.get_meta("base_day")

@@ -338,6 +338,15 @@
       20.0,
       40.0
      ]
+    },
+    {
+     "enemy": "wolf",
+     "count": 3,
+     "at": [
+      -10.0,
+      60.0
+     ],
+     "night": true
     }
    ],
    "doors": [
@@ -412,6 +421,15 @@
      "requires": {
       "chapter": 2
      }
+    },
+    {
+     "enemy": "wolf",
+     "count": 3,
+     "at": [
+      -20.0,
+      40.0
+     ],
+     "night": true
     }
    ],
    "doors": [
@@ -538,6 +556,34 @@
       -14.5
      ],
      "yaw": 180
+    },
+    {
+     "id": "kanal",
+     "to": "erantel_kanal",
+     "name": "Kanalgitter",
+     "at": [
+      30.0,
+      -0.3,
+      28.0
+     ],
+     "yaw": 270,
+     "key": "key_kanal",
+     "style": "grate",
+     "hint": "Das Gitter ist verriegelt. Ein Schlüssel mit dem Zeichen der Zurrernon müsste passen – wo trafen die sich?"
+    }
+   ],
+   "encounters": [
+    {
+     "enemy": "eight_fingers",
+     "count": 2,
+     "at": [
+      -26.0,
+      20.0
+     ],
+     "night": true,
+     "requires": {
+      "chapter_min": 3
+     }
     }
    ]
   },
@@ -658,6 +704,26 @@
      ],
      "yaw": 90
     }
+   ],
+   "encounters": [
+    {
+     "enemy": "eight_fingers",
+     "count": 3,
+     "at": [
+      10.0,
+      70.0
+     ],
+     "night": true
+    },
+    {
+     "enemy": "bandit_archer",
+     "count": 1,
+     "at": [
+      12.0,
+      74.0
+     ],
+     "night": true
+    }
    ]
   },
   {
@@ -720,6 +786,20 @@
       "chapter_min": 9
      }
     }
+   ],
+   "encounters": [
+    {
+     "enemy": "gehenna_demon",
+     "count": 2,
+     "at": [
+      -30.0,
+      30.0
+     ],
+     "night": true,
+     "requires": {
+      "chapter": 9
+     }
+    }
    ]
   },
   {
@@ -761,6 +841,18 @@
       0.0,
       -2.0
      ]
+    },
+    {
+     "enemy": "scripture_archer",
+     "count": 2,
+     "at": [
+      -40.0,
+      30.0
+     ],
+     "night": true,
+     "requires": {
+      "chapter_min": 3
+     }
     }
    ],
    "doors": [
@@ -811,6 +903,15 @@
       14,
       -16
      ]
+    },
+    {
+     "enemy": "wolf",
+     "count": 4,
+     "at": [
+      20.0,
+      20.0
+     ],
+     "night": true
     }
    ]
   },
@@ -840,6 +941,15 @@
       0.0,
       -18.0
      ]
+    },
+    {
+     "enemy": "elf_archer",
+     "count": 2,
+     "at": [
+      20.0,
+      30.0
+     ],
+     "night": true
     }
    ]
   },
@@ -874,6 +984,15 @@
      "requires": {
       "chapter_max": 5
      }
+    },
+    {
+     "enemy": "hellhound",
+     "count": 2,
+     "at": [
+      -30.0,
+      40.0
+     ],
+     "night": true
     }
    ]
   },
@@ -933,6 +1052,40 @@
       4.0,
       -24.0
      ]
+    },
+    {
+     "enemy": "skeleton",
+     "count": 4,
+     "at": [
+      -20.0,
+      10.0
+     ],
+     "night": true
+    },
+    {
+     "enemy": "skeleton_archer",
+     "count": 2,
+     "at": [
+      -24.0,
+      14.0
+     ],
+     "night": true
+    }
+   ],
+   "doors": [
+    {
+     "id": "gruft",
+     "to": "katze_gruft",
+     "name": "Gruft der Gefallenen",
+     "at": [
+      20.0,
+      0.0,
+      16.0
+     ],
+     "yaw": 90,
+     "key": "key_gruft",
+     "style": "crypt",
+     "hint": "Das Portal ist versiegelt. Das Siegel der Gefallenen fehlt – die Zurrernon sollen es in ihre Kanäle verschleppt haben."
     }
    ]
   },
@@ -953,6 +1106,15 @@
       0,
       -10
      ]
+    },
+    {
+     "enemy": "quagoa",
+     "count": 3,
+     "at": [
+      -20.0,
+      10.0
+     ],
+     "night": true
     }
    ],
    "doors": [
@@ -985,6 +1147,17 @@
      "requires": {
       "chapter_min": 10
      }
+    }
+   ],
+   "encounters": [
+    {
+     "enemy": "hellhound",
+     "count": 2,
+     "at": [
+      30.0,
+      20.0
+     ],
+     "night": true
     }
    ]
   },
@@ -1167,6 +1340,98 @@
       -1.5,
       -8.5
      ]
+    }
+   ]
+  },
+  {
+   "id": "erantel_kanal",
+   "name": "Kanalisation von E-Rantel",
+   "kind": "sewer",
+   "group": "interior",
+   "parent": "e_rantel",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "tension",
+   "desc": "Faulige Gänge unter der Festungsstadt. Die Zurrernon trafen sich hier – und etwas von ihnen ist geblieben.",
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 3,
+     "at": [
+      0.0,
+      2.0
+     ]
+    },
+    {
+     "enemy": "skeleton_archer",
+     "count": 2,
+     "at": [
+      3.0,
+      -8.0
+     ]
+    },
+    {
+     "enemy": "zurrernorn_cultist",
+     "count": 2,
+     "at": [
+      -2.0,
+      -14.0
+     ]
+    },
+    {
+     "enemy": "zurrernorn_priest",
+     "count": 1,
+     "at": [
+      0.0,
+      -17.0
+     ]
+    }
+   ]
+  },
+  {
+   "id": "katze_gruft",
+   "name": "Gruft der Gefallenen",
+   "kind": "crypt",
+   "group": "interior",
+   "parent": "katze",
+   "region": "katze",
+   "sky": "battlefield",
+   "music": "battle",
+   "desc": "Unter der Katze-Ebene liegen die Hauptleute vergessener Kriege. Einer von ihnen hat nie aufgehört zu kämpfen.",
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 4,
+     "at": [
+      0.0,
+      4.0
+     ]
+    },
+    {
+     "enemy": "skeleton_archer",
+     "count": 2,
+     "at": [
+      -6.0,
+      -4.0
+     ],
+     "requires": {
+      "flags_none": [
+       "gruft_general"
+      ]
+     }
+    },
+    {
+     "enemy": "fallen_general",
+     "count": 1,
+     "at": [
+      0.0,
+      -11.0
+     ],
+     "requires": {
+      "flags_none": [
+       "gruft_general"
+      ]
+     }
     }
    ]
   }

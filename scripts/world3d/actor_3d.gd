@@ -103,6 +103,40 @@ func _make_standee(cid: String, variant: String, _height: float) -> void:
 
 
 ## Quest-Markierung über dem Kopf: "!" neue Quest, "?" Abgabe, "…" läuft, "" keine.
+## Bemerkung über dem Namen (data/barks.json → chars), blendet nach ein paar Sekunden aus.
+static var bark_count := 0
+var _speech: Label3D
+var _speech_tw: Tween
+
+
+func say(text: String) -> void:
+	if text == "":
+		return
+	if _speech == null or not is_instance_valid(_speech):
+		_speech = Label3D.new()
+		_speech.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_speech.font = NazarickTheme.italic_font(600)
+		_speech.font_size = 38
+		_speech.outline_size = 9
+		_speech.modulate = Color(0.97, 0.94, 0.86)
+		_speech.outline_modulate = Color(0, 0, 0, 0.88)
+		_speech.pixel_size = 0.0055
+		_speech.position = Vector3(0, 3.15, 0)
+		_speech.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_speech.width = 480
+		add_child(_speech)
+	if _speech_tw and _speech_tw.is_valid():
+		_speech_tw.kill()
+	_speech.text = text
+	_speech.modulate.a = 1.0
+	_speech.visible = true
+	_speech_tw = create_tween()
+	_speech_tw.tween_interval(3.0 + text.length() * 0.03)
+	_speech_tw.tween_property(_speech, "modulate:a", 0.0, 0.6)
+	_speech_tw.tween_callback(func(): if is_instance_valid(_speech): _speech.visible = false)
+	bark_count += 1
+
+
 func set_quest_mark(m: String) -> void:
 	if m == "":
 		if _mark:

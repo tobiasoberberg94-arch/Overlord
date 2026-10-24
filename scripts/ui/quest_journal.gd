@@ -35,6 +35,7 @@ func _init() -> void:
 	ds.add_child(_detail)
 	page.add_child(ds)
 	tabs.add_child(_bag_page())
+	tabs.add_child(_kodex_page())
 	tabs.add_child(_story_page())
 	_sel = Quests.tracked
 	_rebuild()
@@ -247,3 +248,102 @@ func _bag_page() -> Control:
 	sum.theme_type_variation = "GoldLabel"
 	vb.add_child(sum)
 	return vb
+
+
+## Kodex: Erinnerungsstücke der 41, Entdeckungs-Fortschritt je Ort, Gelesenes.
+const MEMENTOS := preload("res://scripts/world3d/mementos.gd")
+
+
+func _kodex_page() -> Control:
+	var sc := ScrollContainer.new()
+	sc.name = "Kodex"
+	sc.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	var vb := VBoxContainer.new()
+	vb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vb.add_theme_constant_override("separation", 8)
+	sc.add_child(vb)
+	var fnd: Array = MEMENTOS.found()
+	var h := Label.new()
+	h.text = "Erinnerungsstücke von Ainz Ooal Gown  ·  %d von 41" % fnd.size()
+	h.theme_type_variation = "HeaderLabel"
+	h.add_theme_font_size_override("font_size", 22)
+	vb.add_child(h)
+	var intro := Label.new()
+	intro.text = "Versteckt in der ganzen Welt, abseits der Wege. Belohnungen bei 10, 20 und 41 Stücken (Errungenschaften)."
+	intro.theme_type_variation = "MutedLabel"
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vb.add_child(intro)
+	var grid := GridContainer.new()
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 22)
+	grid.add_theme_constant_override("v_separation", 8)
+	for m in MEMENTOS.all():
+		var l := RichTextLabel.new()
+		l.bbcode_enabled = true
+		l.fit_content = true
+		l.custom_minimum_size.x = 520
+		var loc_name := String(Content.location_by_id.get(String(m.get("loc", "")), {}).get("name", "?"))
+		if String(m.get("id", "")) in fnd:
+			l.text = "[color=#f5d77a]✦ %s[/color]  [color=#8f86a3]%s[/color]\n%s" % [m.get("name", ""), m.get("member", ""), m.get("text", "")]
+		else:
+			l.text = "[color=#5a5468]✧ ? ? ?[/color]  [color=#5a5468]%s[/color]\n[color=#5a5468]Irgendwo in: %s[/color]" % [m.get("member", ""), loc_name]
+		grid.add_child(l)
+	vb.add_child(grid)
+	var h2 := Label.new()
+	h2.text = "Ortskundig  ·  Entdeckungen je Ort"
+	h2.theme_type_variation = "HeaderLabel"
+	h2.add_theme_font_size_override("font_size", 22)
+	vb.add_child(h2)
+	var g2 := GridContainer.new()
+	g2.columns = 3
+	g2.add_theme_constant_override("h_separation", 22)
+	g2.add_theme_constant_override("v_separation", 4)
+	var done: Array = Game.state.get("ortskundig", [])
+	for loc in Content.locations:
+		var pr: Array = MEMENTOS.location_progress(String(loc.id))
+		if int(pr[1]) == 0:
+			continue
+		var l := RichTextLabel.new()
+		l.bbcode_enabled = true
+		l.fit_content = true
+		l.custom_minimum_size.x = 340
+		var full: bool = int(pr[0]) >= int(pr[1])
+		l.text = "[color=%s]%s[/color] %s  [color=#8f86a3]%d/%d[/color]" % ["#f5d77a" if full else "#c9c2d8", "✓" if (String(loc.id) in done or full) else "·", String(loc.get("name", loc.id)), int(pr[0]), int(pr[1])]
+		g2.add_child(l)
+	vb.add_child(g2)
+	# Gelesenes: Inschriften, Bücher und Tafeln, die bereits gelesen wurden
+	var h3 := Label.new()
+	h3.text = "Gelesenes"
+	h3.theme_type_variation = "HeaderLabel"
+	h3.add_theme_font_size_override("font_size", 22)
+	vb.add_child(h3)
+	var picked: Dictionary = Game.state.get("picked", {})
+	var disc: Dictionary = MEMENTOS.discoveries()
+	var any := false
+	for loc in Content.locations:
+		var lid := String(loc.id)
+		var d: Dictionary = disc.get(lid, {})
+		var lore: Array = d.get("lore", [])
+		for i in lore.size():
+			if picked.has("d:%s:%d" % [lid, i]):
+				any = true
+				_kodex_entry(vb, String(loc.get("name", lid)), String(lore[i][0]), String(lore[i][1]))
+		for e in d.get("placed", []):
+			if String(e.get("kind", "")) in ["lore", "lectern", "plaque", "note", "spot"] and picked.has("d:%s:%s" % [lid, String(e.get("id", e.get("title", "")))]):
+				any = true
+				_kodex_entry(vb, String(loc.get("name", lid)), String(e.get("title", "")), String(e.get("text", "")))
+	if not any:
+		var l := Label.new()
+		l.text = "Noch nichts gelesen. Inschriften, Lesepulte, Tafeln und Aushänge in der Welt landen hier."
+		l.theme_type_variation = "MutedLabel"
+		vb.add_child(l)
+	return sc
+
+
+func _kodex_entry(vb: VBoxContainer, where: String, title: String, text: String) -> void:
+	var l := RichTextLabel.new()
+	l.bbcode_enabled = true
+	l.fit_content = true
+	l.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	l.text = "[color=#f5d77a][b]%s[/b][/color]  [color=#8f86a3]%s[/color]\n%s" % [title, where, text]
+	vb.add_child(l)

@@ -104,7 +104,7 @@ func _video_tab() -> Control:
 	p.add_child(_row("Vertikale Synchronisation", _check("vsync", "VSync")))
 	p.add_child(_row("Bildrate begrenzen", _choice("max_fps", ["30 FPS", "60 FPS", "120 FPS", "Unbegrenzt"])))
 	p.add_child(_row("Partikel & Nebeleffekte", _check("particles", "anzeigen"), "Abschalten spart Leistung auf schwachen Rechnern (auch weniger Gras, Rauch und Bewohner)."))
-	p.add_child(_row("Tag-Nacht-Wechsel", _check("day_cycle", "an"), "Im Freien wandert die Sonne, nachts leuchten Laternen und Feuer, Händler schließen. Ein Sonnenlauf dauert acht Spieltage."))
+	p.add_child(_row("Tag-Nacht-Wechsel & Wetter", _check("day_cycle", "an"), "Im Freien wandert die Sonne, nachts leuchten Laternen, Fenster und Fackeln, Händler schließen, Gefahr wächst; je Spieltag Regen, Nebel, Schnee oder Sandsturm. Ein Sonnenlauf dauert acht Spieltage."))
 	p.add_child(_row("Kantenglättung", _choice("antialias", Settings.AA_MODES), "Glättet Kanten von Blättern, Gras und Gebäuden."))
 	p.add_child(_row("Grafikqualität", _choice("graphics", GraphicsQuality.NAMES), "Hoch (empfohlen): sieht aus wie Ultra und läuft 10–25 % schneller (weiche Schatten mit weniger Abtastungen, globale Beleuchtung in halber Auflösung).
 Ultra: alles in voller Qualität – braucht deutlich mehr Grafikleistung.
@@ -151,7 +151,8 @@ func _controls_tab() -> Control:
 	var pad := [["Linker Stick / L3", "Gehen / Rennen"], ["Rechter Stick / R3", "Kamera / Ziel fixieren"],
 		["X / Y", "Leichter / schwerer Angriff"], ["B", "Ausweichrolle · in Fenstern: zurück"], ["LT", "Blocken / Parade"],
 		["A", "Sprechen / benutzen · in Fenstern: bestätigen"], ["Steuerkreuz", "Zauber 1–4"], ["RB / RT", "Zauber 5 / 6"],
-		["LB", "Superrang-Magie (Ainz)"], ["Start", "Menü – dort „Bücher, Karten & Berichte“ (Zauberbuch, Gate, Zeit, Momon …)"], ["Back", "Weltkarte"]]
+		["LB", "Superrang-Magie (Ainz)"], ["Start", "Menü – dort „Bücher, Karten & Berichte“ (Zauberbuch, Gate, Zeit, Momon …) und „Fotomodus“"], ["Back", "Weltkarte"],
+		["Fotomodus", "Sticks bewegen/schauen · LT/RT ab/auf · L3 schnell · Steuerkreuz ◄► Filter · A Foto · B zurück"]]
 	var pout := "[color=#d4af37][b]Controller[/b][/color]  [color=#8f86a3][i](Xbox-Namen; PlayStation: ✕ ○ □ △, L1/R1/L2/R2)[/i][/color]\n"
 	for k in pad:
 		pout += "[color=#f5d77a][b]%s[/b][/color]   %s\n" % [k[0], k[1]]
@@ -168,7 +169,7 @@ func _controls_tab() -> Control:
 		["1–5, R", "Zauber"], [Player3D.key_label("spell_super"), "Superrang-Magie (Ainz)"], ["X", "Ainz ↔ Momon"], ["E", "Sprechen / benutzen"], ["G", "Gate (Reisen)"], ["T", "Zeit verstreichen lassen"],
 		["Enter", "Nächste Depesche"], ["B", "Zauberbuch (Seelen, Zauber, Ringe)"], ["J", "Questbuch"], ["K", "Entsendungen der Wächter"], ["M", "Weltkarte & Legionen"], ["P", "Diplomatie"],
 		["V", "Verwaltung"], ["N", "Nazarick (Ausbau, Schatzkammer)"], ["U", "Wächter & Audienzen"], ["C", "Chronik"],
-		["Tab", "Wochenziele"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"],
+		["Tab", "Wochenziele"], ["F1 / H", "Steuerungshilfe ein/aus"], ["F5", "Speichern"], ["F9", "Fotomodus: freie Kamera (WASD, Q/E, Shift), Maus schauen, Rad Brennweite, 1–4 Filter, Leertaste Foto, Esc zurück"],
 		["F11", "Vollbild umschalten"], ["Esc", "Menü / Fenster schließen"]]
 	var out := "[color=#d4af37][b]Tastatur & Maus[/b][/color]\n"
 	for k in keys:

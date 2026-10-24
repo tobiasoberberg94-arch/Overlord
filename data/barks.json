@@ -1,0 +1,270 @@
+{
+ "_info": "Bemerkungen der Bewohner (folk, nach Gruppe – siehe scripts/world3d/barks.gd group_for) und der Figuren (chars, nach Figuren-Id; Einträge sind Texte oder {text, requires}). Werden über den Köpfen gezeigt, wenn der Spieler nahe vorbeigeht.",
+ "folk": {
+  "momon_city": [
+   "Momon! Der dunkle Held!",
+   "Das ist er – der Adamantit-Abenteurer!",
+   "Herr Momon! Meine Tochter will auch Abenteurerin werden – Eure Schuld.",
+   "Hat er wirklich den Vampir besiegt? Allein?",
+   "Die schwarze Rüstung … man sagt, er nimmt sie nie ab.",
+   "Gott segne Euch, Herr Momon. Die Stadt steht noch wegen Euch.",
+   "Schaut nicht so, Kinder. Verbeugt euch.",
+   "Seine Begleiterin, die Schöne mit den kalten Augen – ist sie seine Frau?",
+   "Zwei Großschwerter! Ich hab schon eins kaum heben können.",
+   "Herr Momon, ein Bier geht auf mich. Heute. Morgen. Immer."
+  ],
+  "momon_village": [
+   "Der Held von Carne!",
+   "Herr Momon! Enri hat von Euch erzählt!",
+   "Die Goblins sagen, Ihr riecht nach Nazarick. Was immer das heißt.",
+   "Bleibt zum Essen, Herr. Es gibt Eintopf. Es gibt immer Eintopf.",
+   "Meine Kinder spielen Momon. Der Kleine ist immer der Vampir.",
+   "Ohne Euch gäbe es dieses Dorf nicht mehr."
+  ],
+  "ainz_carne": [
+   "Der Herr der Dunkelheit … er hat uns gerettet.",
+   "Ainz-sama! So nennt Euch Enri, nicht wahr?",
+   "Die Ritter kamen, und Ihr kamt. Das vergisst hier keiner.",
+   "Habt keine Angst, Kinder. Das ist der Zauberer vom Berg.",
+   "Lupusregina sagt, wir sollen uns verneigen. Also verneigen wir uns."
+  ],
+  "ainz_human": [
+   "E-ein Untoter!",
+   "Bei den Vier Göttern – lauft!",
+   "Wache! WACHE!",
+   "Seht ihn nicht an. Seht ihn nicht an.",
+   "Die Kinder! Holt die Kinder rein!",
+   "Das ist kein Mensch. Das ist kein Mensch.",
+   "Er grinst. Er grinst immer. Es ist ein Schädel!",
+   "Weg hier – der Tempel! Zum Tempel!",
+   "Mutter … Mutter, da ist ein Skelett in Roben …"
+  ],
+  "ainz_crowned": [
+   "Der Zauberkönig!",
+   "Heil dem Zauberkönig!",
+   "Er beschützt uns. Sagt man. Ich glaube es sogar.",
+   "Verneigt euch, Kinder. Das ist der König.",
+   "Seit er herrscht, sind die Straßen sicher. Und die Steuern niedriger.",
+   "Ein Untoter als König. Mein Vater hätte sich im Grab umgedreht – wenn er noch eins hätte.",
+   "Majestät … danke für das Brot. Für alles.",
+   "Die Untoten pflügen die Felder. Mein Rücken dankt ihm jeden Morgen."
+  ],
+  "guard_ainz": [
+   "Halt! Keinen Schritt weiter, Untoter!",
+   "Bleib, wo du bist! Alarm!",
+   "Waffen raus! Es ist eins von denen!",
+   "Zurück! Ich warne dich – zurück!"
+  ],
+  "guard_crowned": [
+   "Majestät.",
+   "Der Zauberkönig – Haltung, Männer!",
+   "Alles ruhig, Majestät. Nichts zu melden.",
+   "Zu Euren Diensten, Zauberkönig."
+  ],
+  "guard_momon": [
+   "Herr Momon. Gute Reise.",
+   "Der Adamantit. Lasst ihn durch.",
+   "Passt auf Euch auf, Herr Momon. Die Straßen sind unruhig.",
+   "Wenn Ihr Zeit habt – die Gilde sucht Euch."
+  ],
+  "night": [
+   "Spät unterwegs, Herr.",
+   "Nachts sollte man drinnen sein.",
+   "Hört Ihr die Wölfe?",
+   "Nach Mitternacht gehe ich nicht am Friedhof vorbei. Keiner tut das.",
+   "Die Laternen gehen aus, wenn das Öl knapp wird. Heute ist es knapp.",
+   "Gute Nacht, Herr. Schließt die Tür zweimal ab."
+  ],
+  "merchant": [
+   "Frische Ware! Frisch wie der Morgen!",
+   "Für Euch mache ich einen Preis, Herr!",
+   "Kräuter, Tränke, Verbände – alles, was ein Abenteurer braucht!",
+   "Äpfel! Letzte Ernte vor dem Winter!",
+   "Kommt näher, schaut, fasst an – kaufen könnt Ihr danach.",
+   "Beste Wolle aus Re-Estize! Kratzt kaum!"
+  ],
+  "after_katze": [
+   "Siebzigtausend, sagen sie. Siebzigtausend.",
+   "Mein Bruder war auf der Katze-Ebene. Er ist nicht zurück.",
+   "Sprecht nicht von der Ebene. Nicht hier.",
+   "Schwarze Ziegen, groß wie Häuser. Mein Vetter hat sie gesehen und spricht seitdem nicht mehr.",
+   "Der König hat sie hingeschickt. Der König."
+  ],
+  "nazarick_maid": [
+   "Ainz-sama!",
+   "Willkommen zurück, Ainz-sama.",
+   "Wünscht Ihr etwas, Herrscher?",
+   "Der Herr! Haltung!",
+   "Ainz-sama, Lady Albedo hat nach Euch gefragt. Dreimal.",
+   "Der Tee ist bereit, Herrscher. Falls Ihr … nun … Tee wünscht.",
+   "Sebas-sama lässt ausrichten, der Thronsaal ist poliert.",
+   "Es ist eine Ehre, Ainz-sama."
+  ],
+  "nazarick_guard": [
+   "Für Ainz Ooal Gown!",
+   "Herrscher.",
+   "Alles sicher, Ainz-sama.",
+   "Die Ebene ist ruhig, Herrscher."
+  ],
+  "noble": [
+   "Ein Untoter im Thronsaal. Wie weit ist es gekommen.",
+   "Haltet Abstand. Er sieht einen an.",
+   "Der König empfängt ihn. Den da.",
+   "Raeven hat das eingefädelt. Natürlich Raeven.",
+   "Lächelt. Immer lächeln. Es sieht alles.",
+   "Wie viel Land besitzt er? Wie viel Land besitzt ein Skelett?"
+  ],
+  "noble_empire": [
+   "Der Kaiser hat ihn eingeladen. Freiwillig, heißt es.",
+   "Lächelt. Der Kaiser lächelt auch.",
+   "Fluder kniet vor ihm. Fluder kniet vor niemandem.",
+   "Man sagt, der Kaiser schläft nicht mehr. Seit dem Besuch.",
+   "Vasall. Das Wort ist gefallen. In diesem Saal."
+  ],
+  "priest": [
+   "Die Götter sehen alles.",
+   "Spenden werden am Altar angenommen.",
+   "Betet für die auf dem Friedhof. Sie brauchen es.",
+   "Wer heilt, braucht Kräuter. Wer Kräuter hat, braucht Gold."
+  ],
+  "mage": [
+   "Stufe zehn? Unmöglich. Fluder sagt, es sei nur der Anfang.",
+   "Nicht den Kreis betreten! Nicht, solange er leuchtet!",
+   "Dreihundert Seiten für einen Feuerball. Dreihundert.",
+   "Der Meister weint manchmal in seinem Studierzimmer. Vor Glück, sagt er."
+  ],
+  "dwarf": [
+   "Erz! Bringt mir Erz!",
+   "Runen, Runen, nur Runen. Keiner kann sie mehr.",
+   "Zweihundert Jahre Glut. Die Esse ging nie aus.",
+   "Die Quagoa kommen nicht mehr. Fragt nicht, warum."
+  ],
+  "smith": [
+   "Heiß! Zurück!",
+   "Das Eisen wartet nicht.",
+   "Schwarzer Stahl … den habe ich nie geschmiedet. Wer hat Eure Klingen gemacht, Herr?",
+   "Zwanzig Speerspitzen für die Wache. Zahlen tun sie die Hälfte."
+  ],
+  "adventurer": [
+   "Habt Ihr vom Adamantit-Team gehört? Zwei Leute. Zwei!",
+   "Noch ein Auftrag, dann reicht's für Kupfer.",
+   "Die Grabkammern im Süden – keiner kommt zurück.",
+   "Ich hab die Riesenratte erlegt. Allein. Fast allein.",
+   "Momon hat einen Vampir besiegt. Ich hab gestern einen Wolf verfehlt.",
+   "Die Gilde zahlt wieder schlechter. Krieg, sagen sie."
+  ]
+ },
+ "chars": {
+  "albedo": [
+   "Ainz-sama! Ich habe auf Euch gewartet.",
+   "Mein Herr. Alles in Nazarick läuft nach Euren Wünschen.",
+   {"text": "Die Menschen nennen Euch jetzt Zauberkönig. Endlich ein Titel, der Euch annähernd gerecht wird.", "requires": {"flags_all": ["crowned"]}},
+   "Soll ich Euch die Berichte vorlesen, Ainz-sama? Hier? Jetzt?"
+  ],
+  "shalltear": [
+   "Ainz-sama~! Habt Ihr mich vermisst?",
+   "Die Grabkammern sind bereit, Herr. Für alles.",
+   {"text": "Ich … danke Euch, Ainz-sama. Für die Vergebung.", "requires": {"flags_all": ["shalltear_forgiven"]}}
+  ],
+  "demiurge": [
+   "Ainz-sama. Alles verläuft nach Eurem Plan.",
+   "Ich habe die Rechnungen geprüft. Die Zahlen gefallen mir.",
+   {"text": "Das Heilige Königreich erinnert sich an Euch, Herr. Genau so, wie Ihr es wolltet.", "requires": {"flags_all": ["roble_saved"]}}
+  ],
+  "cocytus": [
+   "Herr. Die. Wachen. Stehen.",
+   "Ainz-sama. Ich. Bin. Bereit.",
+   {"text": "Die Echsenmenschen. Dienen. Gut. Herr.", "requires": {"flags_any": ["lizard_resolved", "lizard_conquered"]}}
+  ],
+  "pandora": [
+   "AINZ-SAMA! Welche Freude! Welche EHRE!",
+   "Die Schatzkammer ist geordnet, mein Schöpfer. Nach Farbe, Gewicht und Gefühl.",
+   "Soll ich Euch etwas vorspielen? Nein? Ein andermal!"
+  ],
+  "sebas": [
+   "Ainz-sama. Die Gemächer sind bereit.",
+   "Darf ich Tee anbieten, Herr? Aus Gewohnheit.",
+   {"text": "Tsuare lässt danken, Herr. Jeden Tag.", "requires": {"flags_all": ["sebas_resolved"]}}
+  ],
+  "aura": [
+   "Ainz-sama! Schaut, wie brav die Bestien sind!",
+   "Mare versteckt sich wieder hinter dem Baum. Mare!",
+   "Der Wald gehört uns, Herr. Jeder Baum."
+  ],
+  "mare": [
+   "A-Ainz-sama … willkommen.",
+   "Die Mauern halten, Herr. Ich … ich habe nachgemessen.",
+   "Aura sagt, ich soll lauter sprechen. Ainz-sama."
+  ],
+  "narberal": [
+   "Herr. Die Insekten in E-Rantel werden täglich dreister.",
+   "Soll ich jemanden … entfernen, Ainz-sama?",
+   "Die Rüstung steht Euch, Herr Momon. Für einen Menschen."
+  ],
+  "lupusregina": [
+   "Ainz-sama~! Carne ist langweilig. Darf ich etwas anzünden? Nur ein bisschen?",
+   "Die Dorfbewohner sind so leicht zu erschrecken. Ich liebe sie.",
+   "Enri hat heute wieder zwanzig Goblins mehr. Ich zähle nicht mehr mit."
+  ],
+  "yuri": [
+   "Herr. Die Pleiaden sind vollzählig.",
+   "Lupusregina braucht einen Rüffel, Ainz-sama. Wieder."
+  ],
+  "gazef": [
+   "Herr Gown. Ich vergesse nicht, was ich Euch schulde.",
+   {"text": "Der König wird älter. Das Reich auch.", "requires": {"chapter_max": 6}},
+   "Ein Schwert, das man nicht zieht, rostet. Meins rostet nicht."
+  ],
+  "enri": [
+   "Ainz-sama! Die Goblins fragen, ob Ihr zum Essen bleibt.",
+   "Nemu hat Euch gemalt. Mit mehr Zähnen, als Ihr habt.",
+   {"text": "Dorfvorsteherin. Ich. Nfirea lacht immer noch darüber.", "requires": {"chapter_min": 3}}
+  ],
+  "nfirea": [
+   "Herr Momon! Verzeiht – Ainz-sama. Verzeiht. Beides.",
+   "Großmutter sagt, mein Trank ist falsch. Großmutter sagt vieles.",
+   "Enri ist – ich meine, das Dorf ist – alles in Ordnung!"
+  ],
+  "jircniv": [
+   "Zauberkönig. Ihr seid früh. Oder spät. Bei Euch weiß man nie.",
+   "Der Palast steht Euch offen. Wie alles andere.",
+   "Fluder spricht nur noch von Euch. Es ist … ermüdend."
+  ],
+  "ranpossa": [
+   "Zauberkönig. Setzt Euch. Alte Männer stehen ungern allein.",
+   "Gazef sagt, Ihr seid gefährlich. Gazef sagt das von jedem, den er respektiert."
+  ],
+  "fluder": [
+   "Herr! Der Abgrund – ich sehe ihn jeden Tag klarer!",
+   "Lehrt mich. Nur einen Zauber. Einen!"
+  ],
+  "innkeeper": [
+   "Herr Momon! Euer Zimmer ist frei. Es ist immer frei.",
+   "Ein Bier? Zwei? Die Begleiterin trinkt nicht, ich weiß."
+  ],
+  "lizzie": [
+   "Mondkraut, Herr Momon. Habt Ihr Mondkraut?",
+   "Nfirea ist in Carne. Natürlich ist er in Carne."
+  ],
+  "smith": [
+   "Herr Momon! Wenn die Klingen stumpf werden – ich schleife umsonst.",
+   "Schwarzer Stahl. Ich werde nicht fragen."
+  ],
+  "priest": [
+   "Die Vier Götter grüßen Euch, Herr Momon.",
+   "Spendet, was Ihr könnt. Die Tränke sind teuer geworden."
+  ],
+  "gondo": [
+   "Zauberkönig! Die Runen – sie wirken wieder!",
+   "Erz? Gutes Erz? Her damit."
+  ],
+  "hamsuke": [
+   "Herr! Diese Untertanin hat das Revier bewacht, de gozaru!",
+   "Keine Wölfe heute, Herr. Diese Untertanin war gründlich."
+  ],
+  "zaryusu": [
+   "Herr des Todes. Das Dorf lebt. Das vergessen wir nicht.",
+   "Crusch lässt grüßen. Das heißt: Sie hat Angst, Euch zu grüßen."
+  ]
+ }
+}

@@ -19,7 +19,7 @@ Alles ist 3D: Orte, Figuren, Weltkarte, Titelbildschirm. Die Figuren und Gebäud
 
 ## Installieren (Windows)
 
-1. `OverlordNazarick-Setup-2.7.0.exe` ausführen (liegt nach dem Build unter `build/`).
+1. `OverlordNazarick-Setup-2.8.0.exe` ausführen (liegt nach dem Build unter `build/`).
 2. Windows SmartScreen meldet evtl. „Unbekannter Herausgeber“ (die Datei ist nicht signiert) → **Weitere Informationen → Trotzdem ausführen**.
 3. Installation durchklicken – danach gibt es Verknüpfungen auf dem Desktop und im Startmenü. Deinstallieren über „Apps & Features“.
 
@@ -28,7 +28,7 @@ Selbst bauen (Linux/macOS/WSL mit Godot 4.3, Windows-Exportvorlage und NSIS):
 ```bash
 GODOT=/pfad/zu/godot ./tools/build_windows.sh
 # → build/windows/OverlordNazarick.exe        (portable Einzeldatei, kein Installer nötig)
-# → build/OverlordNazarick-Setup-2.7.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
+# → build/OverlordNazarick-Setup-2.8.0.exe    (Installer mit Startmenü/Desktop-Verknüpfung)
 ```
 
 ---
@@ -156,8 +156,12 @@ Wichtige Gebäude lassen sich **betreten**: ein Wirtshausschild mit Laterne mark
 | **Audienzsaal des Kaisers** | Arwintar (Kaiserpalast) | Weißer Marmor, rote Banner, Thron, Kriegstisch, kaiserliche Wachen und Hofstaat; Jircniv; Die Vier Kaiserlichen Ritter, Jircnivs Reformen, Geheimarchiv |
 
 | **Keller der Acht Finger** | Re-Estize (Kellerluke im Armenviertel, beim Bettlerfeuer) | Der erste Kerker einer Stadt: Pfeiler und Fackeln, Käfige mit einem Gefangenen, Zähltisch voller Gold, Schmuggelware – bewacht von Schlägern, Armbrustschützen und einem Söldner (Kampf); Schuldbuch, Liste der Schutzgelder, Kasse der Acht Finger |
+| **Kanalisation von E-Rantel** | E-Rantel (Kanalgitter im Osten der Stadt – verschlossen, Schlüssel auf dem Friedhof) | Verlies: langes Steingewölbe mit Wasserrinne, Bögen, vergitterten Nischen, Schleim, leuchtenden Pilzen und Gebeinen; Skelette, Kultisten und ein Priester der Zurrernon (Kampf); Zeichen an der Wand, Khajits Aufzeichnungen, Opfergaben – und das Siegel der Gefallenen auf dem Kultaltar |
+| **Gruft der Gefallenen** | Katze-Ebene (Portal im Osten – versiegelt, Siegel aus der Kanalisation) | Verlies: Säulenhalle mit Sarkophagen, kalten Feuerschalen, Bannern beider Reiche, Gebeinen; Skelette und der **General der Gefallenen** – ein Boss mit Phasen, der Gefallene aus dem Nebel ruft; Grabinschrift, Letzter Befehl, Steinthron; nach dem Sieg der Schatz des Generals |
 
 **Handel** (`data/trade.json`, `scripts/ui/trade_dialog.gd`): Händler bieten im Gespräch „Handeln“ an. Lizzie verkauft Heil- und Manatränke, Ringe und Handschuhe und kauft Kräuter; der Schmied verkauft Klingen und Panzer (Mithril ab Kapitel 3, Echsenschuppen nach dem Sumpf) und kauft Erz, Schuppen, Zähne; die Wirte vermieten Zimmer (alles erholt), kochen Eintopf und erzählen Gerüchte; der Priester segnet gegen Spende; Gondo handelt mit Runenwerk, Fluder mit Artefakten der Gelehrten; Gilde und Enri kaufen alle Materialien zum Grundwert. Mengen für laufende Aufträge bleiben im Beutel; abgelegte Ausrüstung lässt sich zum Schmelzwert verkaufen.
+
+**Verliese und Schlüssel** (`doors` → `key`, `hint`, `style: grate | crypt`): Verschlossene Eingänge zeigen „Verschlossen“ und einen Hinweis, bis der passende Schlüssel im Beutel liegt (einmalig aufschließen, danach offen). Schlüssel sind eigene Entdeckungen (`data/discoveries.json` → `placed`, `kind: "key"`, `item`) und einzigartige Beutelgegenstände (`data/quests.json` → `materials`, `unique`, unverkäuflich). Die Kette: Schlüssel aus dem Mausoleum auf dem **Friedhof von E-Rantel** → **Kanalgitter** in E-Rantel → Siegel der Gefallenen auf dem Altar der **Kanalisation** → **Gruft der Gefallenen** unter der Katze-Ebene mit dem General (Boss; danach erhebt er sich nicht mehr, der Schatz bleibt). Errungenschaften: Unter der Stadt, Bezwinger der Gruft, Schlüsselmeister. Test: `LOC=dungeon`.
 
 **Nazarick**: Die Ebenen sind über **Treppen und Tore** verbunden (Türen in den Hallen: Grabkammern ↔ Eisgletscher ↔ Dschungel ↔ Lavahölle ↔ Königliche Gemächer ↔ Thronsaal ↔ Bibliothek / Schatzkammer, Abstieg vom Mausoleum im Grasland in die Grabkammern); man kommt jeweils vor der Gegentür an. Die Ebenen sind ausgestattet (violette Feuerschalen, Dienstmädchen, Eiskristalle, Lavaspalten, Truhen der Schatzkammer) und verändern sich mit der Geschichte: erbeutete Standarten des Königreichs nach der Krönung, Tribut der Reiche nach der Entscheidung der Welt.
 
@@ -167,11 +171,25 @@ Jeder Raum hat eigene **Entdeckungen** (`data/discoveries.json` → `placed`: Le
 
 **Tag-Nacht-Wechsel** (`scripts/world3d/day_cycle.gd`, Einstellungen → Grafik): Im Freien wandert die Sonne – ein Sonnenlauf dauert acht Spieltage. Abends wird das Licht warm und flach, nachts wird die Sonne zum Mond, der Himmel dunkel und blau, Laternen und Feuer leuchten heller, Händler schließen ihre Stände und zwei Drittel der Bewohner gehen heim (Wachen bleiben), und der Umgebungsklang wechselt zur Nachtvariante (Grillen, Eule, ferner Hund). Innenräume, Nazarick und der Friedhof (immer Nacht) bleiben unberührt. Bilder zu fester Tageszeit: `TOD=0.8 LOC=stageview STAGEVIEW="e_rantel:0,14"`.
 
+**Eine Welt, die reagiert** (`data/barks.json`, `scripts/world3d/barks.gd`): Wer nahe vorbeigeht, bekommt etwas zu hören. Als **Momon** jubeln die Städter („Der dunkle Held!“), Wachen grüßen, Händler preisen an; als **Ainz** in einer Menschenstadt schreien sie, rufen die Wache und weichen zurück, Wachen stellen sich – bis zur Krönung, danach „Heil dem Zauberkönig!“. In Carne kennt man den Retter in beiden Gestalten. Nachts, nach dem Massaker auf der Katze-Ebene, im Thronsaal des Königs oder im Kaisersaal fallen andere Sätze. In Nazarick verneigen sich die Dienstmädchen („Ainz-sama!“), und die Figuren selbst – Albedo, Shalltear, Demiurge, Cocytus, Pandora's Actor, Sebas, Aura, Mare, die Pleiaden, Gazef, Enri, Nfirea, Jircniv, Fluder, Gondo, Hamsuke, Zaryusu … – sprechen eigene Zeilen, manche nur nach bestimmten Ereignissen. Test: `LOC=barks`.
+
+**Erkunden mit Overlord-Herz**: In der ganzen Welt liegen die **41 Erinnerungsstücke von Ainz Ooal Gown** versteckt – Touch Mes Schildsplitter, Ulberts Ziegenmaske, Peroroncinos Pfeilfeder, Tabulas Entwürfe, Bukubukuchagamas Stimmkristall, Momongas erster Ring … jedes mit einem Text über das Gildenmitglied, abseits der Wege und hinter Deckung, in Städten, Wäldern, Ebenen und den Hallen Nazaricks. Der **Kodex** im Questbuch zeigt die Sammlung (fehlende Stücke mit Ortshinweis), den Entdeckungs-Fortschritt je Ort („Ortskundig“ – alles gefunden bringt Gold) und alles bereits Gelesene. Belohnungen und Errungenschaften bei 10, 20 und 41 Stücken sowie 5 und 15 ortskundigen Orten. Und Lesen lohnt sich: Das **Buch der Runen** in Feo Jera nennt die Reihenfolge, in der die vier Runenpfeiler der Schmiedehalle zu berühren sind – wer sie findet, öffnet die Kammer der Runenmeister (Runenschild der Zwerge). Test: `LOC=kodex`.
+
+**Nacht und Wetter als Spielfaktor** (`scripts/world3d/weather.gd`): Nachts glühen die Fenster der Häuser, Wachen tragen Fackeln – und die Welt wird gefährlicher: Wölfe im Grasland, im Wald von Tob und vor Carne, Schläger der Acht Finger in den Gassen von E-Rantel und Re-Estize, Untote auf der Katze-Ebene, Höllenhunde im Sumpf und in den Drachenlanden, Quagoa im Gebirge, Elfenschützen im Wald, Dämonen vor der Mauer von Roble (Kapitel 9). Das Wetter wird je Spieltag und Gegend ausgewürfelt: klar, bedeckt, Regen mit Blitz und Donner, Nebelmorgen, Schneefall im Gebirge, Sandsturm in den Drachenlanden – mit eigenen Klängen (`rain`, `storm`, `snowwind`, Donner) und Wirkung auf Himmel, Sonne und Nebel. Bilder zu festem Wetter: `WEATHER=rain TOD=0.25 LOC=stageview STAGEVIEW="e_rantel:0,14"`.
+
 **Bewohner**: Städte und Dörfer haben neben den Passanten **Händler hinter jedem Marktstand** des Ortsmodells (tagsüber) und **zwei Wachen am Tor** im Wappenrock ihrer Fraktion (Königreich blau, Kaiserreich rot, Theokratie weiß, Roble blau, Carne grün). Innenräume bekommen passende Bewohner-Stile (`Townsfolk.spawn(..., style)`: `adventurer`, `priest`, `mage`, `smith`, `dwarf`, `maid`, `guard`, `noble`, `merchant`).
 
 **Umgebungsklänge** (`assets/audio/ambience/`, erzeugt von `tools/audio/ambience.py`): jeder Ort hat eine nahtlose Klangschleife seiner Art – Wind und Vögel im Wald, Stimmengewirr und Hammerschläge in der Stadt, Hühner im Dorf, Frösche im Sumpf, Krähen über dem Schlachtfeld, Eule und Grillen auf dem Friedhof, Grollen in der Lavahölle, Chor und Kerzen im Tempel, Blasebalg und Hammer in der Schmiede, Kaminknistern in Gasthaus und Stube, Hofgemurmel im Thronsaal – nachts Grillen, Eule und ferner Hund oder Wolf (`<art>_night`). Lautstärke: Einstellungen → Audio → Umgebungsklänge.
 
 ---
+
+## Feinschliff: Fotomodus, Schritte, Musik
+
+- **Fotomodus** (`F9`, Pausenmenü, Controller: Start → Fotomodus; `scripts/world3d/photo_mode.gd`): Die Welt hält an, das HUD verschwindet, die Kamera fliegt frei (WASD / linker Stick, Q/E bzw. LT/RT auf und ab, Shift / L3 schnell, Mausrad Brennweite). Vier Filter (Natur, Sepia, Noir, Kräftig – Tasten 1–4 oder Steuerkreuz), Leertaste / A speichert ein Foto ohne Einblendungen nach `user://screenshots/` (Windows: `%APPDATA%\Godot\app_userdata\Overlord\screenshots`).
+- **Schritte und Spuren** (`Player3D._footsteps`): Schrittgeräusche im Takt der Bewegung je Untergrund (Stein in Städten, Nazarick und Gewölben, Holz in Schenken und Stuben, Gras im Freien, Schnee auf dem Gletscher und bei Schneefall, Sand in den Drachenlanden – `assets/audio/sfx/step_<art>_1..3.ogg`, erzeugt mit `tools/audio/ambience.py steps`); in Schnee und Sand bleiben Fußspuren zurück, die nach einer halben Minute verblassen.
+- **Lebendige Wiesen**: Gras weicht dem Spieler aus (Shader-Global `player_pos`, `assets/shaders/grass.gdshader`), in Wäldern und Dörfern fallen Blätter, über Wiesen tanzen Schmetterlinge; bei Regen werden die Hauswände nass (`overlord_weather.z`).
+- **Dynamische Musik** (`World3D._music_tick`): Ortsmusik in Ruhe, „Spannung“ sobald Gegner näher als 30 m sind, „Schlacht“ im Kampf – mit Nachhall nach dem letzten Treffer, nie während Story-Einsätzen.
+- **Ankunft**: Beim Betreten eines Außenortes (Reise, Spielstart) schwenkt die Kamera von oben hinter dem Spieler in die Spielkamera. Test: `LOC=polish`.
 
 ## Story-Einsätze: die großen Momente selbst erleben
 
@@ -434,6 +452,10 @@ godot --headless --path . --script res://tools/build_theme.gd
 godot --headless --path . res://tools/sim_test.tscn
 # 3D-Rauchtest: Titel, alle Orte, Kampf, Audienz, Kriegstisch, persönliche Schlacht; Screenshots nach tools/screenshots3d/
 godot --path . res://tools/world3d_test.tscn     # LOC=<ort> | combat | title | gallery (alle Figuren + Portraits)
+# Welt-Prüfungen: Türen, Ausstattung, Controller, Handel, Bemerkungen, Kodex, Feinschliff, Verliese, freie Bodenpunkte
+LOC=doors DOORLOC=e_rantel DOORID=gilde godot --path . res://tools/world3d_test.tscn   # LOC=dresscheck | pad | trade | barks | kodex | polish | dungeon
+LOC=probe PROBE="e_rantel:30,28;katze:20,16" godot --path . res://tools/world3d_test.tscn   # Strahl auf den Boden (Körpername, Höhe, Neigung)
+TOD=0.8 WEATHER=rain LOC=stageview STAGEVIEW="e_rantel:0,14;katze:map" godot --path . res://tools/world3d_test.tscn   # Rundblicke zu fester Tageszeit/Wetter
 godot --headless --path . res://tools/combat_test.tscn   # Kampfsystem + .glb-Laden
 # Story-Einsatz automatisch durchspielen (Szenen, Kämpfe, Entscheidung; Screenshots alle n Zeilen)
 LOC=story STORY=sm_carne STORYCHOICE=0 STORYSHOTS=3 godot --path . res://tools/world3d_test.tscn   # STORYDISPATCH=1 | STORYREPLAY=1

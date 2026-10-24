@@ -434,6 +434,46 @@ def amb_night(kind):
     return reverb(x + cr + b, 2.0, 0.25, 0.65)
 
 
+def amb_rain():
+    """Regen: breites Rauschen, einzelne Tropfen auf Holz und Stein, Rinnsale."""
+    base = noise(400, 6000, 2) * slow_lfo(0.09, 0.25, 0.75) * 0.5
+    low = noise(80, 400, 2) * slow_lfo(0.13, 0.3, 0.6) * 0.25
+    b = np.zeros(N)
+    scatter(b, lambda: band(rng.standard_normal(int(0.03 * SR)), 1500, 7000) * np.exp(-np.arange(int(0.03 * SR)) / (0.006 * SR)) * 0.8, 160, 0.35)
+    scatter(b, drip, 24, 0.25)
+    return reverb(base + low + b, 1.2, 0.2, 0.6)
+
+
+def amb_storm():
+    """Sandsturm: heulender Wind in Böen, Körner prasseln, tiefes Rumpeln."""
+    x = wind(60, 2500, 0.8, 0.5) * 0.9
+    howl = tone(DUR, 420, 420, vib=0.12, vrate=0.25) * slow_lfo(0.17, 0.6, 0.4) * 0.05
+    grains = crackle(300, 2500, 9000) * slow_lfo(0.2, 0.5, 0.5) * 0.12
+    rumble = noise(30, 120, 2) * slow_lfo(0.11, 0.5, 0.6) * 0.5
+    return reverb(x + howl + grains + rumble, 1.6, 0.25, 0.7)
+
+
+def amb_snowwind():
+    """Schneefall im Gebirge: leiser, hoher Wind, gedämpft, gelegentliches Knirschen."""
+    x = wind(150, 1800, 0.5, 0.4) * 0.55
+    soft = noise(2000, 6000, 2) * slow_lfo(0.15, 0.4, 0.5) * 0.06
+    b = np.zeros(N)
+    scatter(b, lambda: band(rng.standard_normal(int(0.4 * SR)), 300, 2500) * ad(0.4, 0.01, 0.15, 0.2, 0.2) * 0.4, 5, 0.2)
+    return reverb(x + soft + b, 2.2, 0.3, 0.6)
+
+
+def sfx_thunder():
+    """Donner (Einzelklang, 6 s): Knall, dann Grollen, das über die Ebene rollt."""
+    n = int(6.0 * SR)
+    t = np.arange(n) / SR
+    crack = band(rng.standard_normal(n), 300, 5000) * np.exp(-t / 0.08) * 1.2
+    roll = band(rng.standard_normal(n), 25, 220) * (np.exp(-t / 1.6) * (1.0 + 0.5 * np.sin(2 * math.pi * 1.3 * t + 1.0)) + np.exp(-((t - 2.4) ** 2) / 0.5) * 0.5)
+    tail = band(rng.standard_normal(n), 40, 140) * np.exp(-t / 2.6) * 0.5
+    x = crack + roll * 2.2 + tail
+    x = x / (np.max(np.abs(x)) + 1e-9)
+    return x * np.minimum(1.0, t / 0.004) * np.clip(1.0 - (t - 5.0) / 1.0, 0.0, 1.0)
+
+
 def amb_court():
     """Thronsaal eines Menschenreiches: gedämpftes Gemurmel des Hofes, Schritte auf Stein, Rüstungsklirren, Hall."""
     m = band(murmur(14, 150, 800), 140, 1400) * 0.14
@@ -456,7 +496,65 @@ if __name__ == "__main__":
                      ("church", amb_church), ("forge", amb_forge), ("court", amb_court),
                      ("village_night", lambda: amb_night("village")), ("town_night", lambda: amb_night("town")),
                      ("forest_night", lambda: amb_night("forest")), ("meadow_night", lambda: amb_night("meadow")),
-                     ("mountain_night", lambda: amb_night("mountain"))]:
+                     ("mountain_night", lambda: amb_night("mountain")), ("rain", amb_rain), ("storm", amb_storm),
+                     ("snowwind", amb_snowwind)]:
         if only and name not in only:
             continue
         write_ogg(name, fn())
+    if not only or "thunder" in only:
+        # Donner als Einzelklang in den Effekt-Ordner (nicht geschleift)
+        out_saved = OUT
+        OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "audio", "sfx")
+        x = sfx_thunder()
+        pcm = (np.clip(x * 0.9, -1.0, 1.0) * 32767.0).astype(np.int16)
+        tmp = os.path.join(tempfile.gettempdir(), "overlord_thunder.wav")
+        with wave.open(tmp, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(SR)
+            w.writeframes(pcm.tobytes())
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-c:a", "libvorbis", "-q:a", "4", os.path.join(OUT, "thunder.ogg")], check=True)
+        os.remove(tmp)
+        print("  thunder      6 s (sfx)")
+        OUT = out_saved
+
+
+def sfx_step(kind, k):
+    """Schritt (Einzelklang): Stein hart und kurz, Gras weich, Holz hohl, Schnee knirschend, Sand körnig."""
+    n = int(0.28 * SR)
+    t = np.arange(n) / SR
+    r = np.random.default_rng(900 + hash(kind) % 1000 + k)
+    white = r.standard_normal(n)
+    if kind == "stone":
+        x = band(white, 900, 5000, 2) * np.exp(-t / 0.018) * 1.2 + band(white, 150, 500, 2) * np.exp(-t / 0.03) * 0.6
+    elif kind == "wood":
+        x = band(white, 250, 900, 2) * np.exp(-t / 0.035) * 1.0 + np.sin(2 * math.pi * 180 * t) * np.exp(-t / 0.05) * 0.5
+    elif kind == "snow":
+        x = band(white, 1500, 7000, 2) * np.exp(-t / 0.06) * (0.6 + 0.4 * np.sin(2 * math.pi * 30 * t)) * 0.9
+    elif kind == "sand":
+        x = band(white, 600, 4000, 2) * np.exp(-t / 0.07) * 0.8
+    else:  # grass
+        x = band(white, 300, 2500, 2) * np.exp(-t / 0.045) * 0.9 + band(white, 2000, 6000, 2) * np.exp(-t / 0.02) * 0.3
+    x = x * np.minimum(1.0, t / 0.002)
+    return x / (np.max(np.abs(x)) + 1e-9) * 0.7
+
+
+def write_steps():
+    out = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "assets", "audio", "sfx")
+    for kind in ["stone", "grass", "wood", "snow", "sand"]:
+        for k in (1, 2, 3):
+            x = sfx_step(kind, k)
+            pcm = (np.clip(x, -1.0, 1.0) * 32767.0).astype(np.int16)
+            tmp = os.path.join(tempfile.gettempdir(), "overlord_step.wav")
+            with wave.open(tmp, "wb") as w:
+                w.setnchannels(1)
+                w.setsampwidth(2)
+                w.setframerate(SR)
+                w.writeframes(pcm.tobytes())
+            subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", tmp, "-c:a", "libvorbis", "-q:a", "3", os.path.join(out, "step_%s_%d.ogg" % (kind, k))], check=True)
+            os.remove(tmp)
+    print("  Schritte: 5 Untergruende x 3 (sfx)")
+
+
+if __name__ == "__main__" and "steps" in sys.argv:
+    write_steps()

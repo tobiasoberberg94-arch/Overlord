@@ -431,7 +431,7 @@ func _help_bbcode() -> String:
 		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
 		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche · [color=#c9a8ff]B[/color] Zauberbuch\n" + \
 		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
-		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]Esc[/color] Menü"
+		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]F9[/color] Fotomodus · [color=#f5d77a]Esc[/color] Menü"
 
 
 ## Gerät gewechselt (Controller ↔ Maus/Tastatur): Tastensymbole der Hilfe, der Aufforderung und der Zauberleiste anpassen.

@@ -38,6 +38,14 @@ static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: 
 var _style := ""
 var _tabard := "#1d2f6b"      ## Wappenrock der Wachen (Fraktionsfarbe), siehe spawn()
 const ARMOR := ["#8a8f98", "#6a6e78", "#a8aeb8", "#5a4a3a"]
+## Bemerkungen (data/barks.json): Bewohner sprechen, wenn der Spieler nahe vorbeigeht; als Untoter in Menschenstädten
+## erschrecken sie und weichen zurück, Wachen stellen sich, Dienstmädchen Nazaricks verneigen sich.
+const BARKS := preload("res://scripts/world3d/barks.gd")
+static var bark_count := 0
+static var flee_count := 0
+var _world: Node = null
+var _bark_timer := 0.0
+var _global_cool := 0.0
 const CAPE := ["#5a1414", "#1a3a5a", "#2a4a2a", "#3a2a4a", "#6a5a2a"]
 
 
@@ -135,19 +143,53 @@ func _add(pos: Vector3, standing: bool) -> void:
 		"wait": _rng.randf_range(0.0, 6.0) if not standing else 1e9, "talk": standing, "night_hide": hides})
 
 
-## Nacht: ein Teil der Bewohner verschwindet (siehe _add), am Morgen sind alle wieder da.
+## Nacht: ein Teil der Bewohner verschwindet (siehe _add), am Morgen sind alle wieder da; Wachen zünden Fackeln an.
 func set_night(on: bool) -> void:
 	for p in _people:
 		if p.night_hide and is_instance_valid(p.rig):
 			(p.rig as Node3D).visible = not on
 			(p.rig as Node3D).process_mode = Node.PROCESS_MODE_DISABLED if on else Node.PROCESS_MODE_INHERIT
+	set_torches(on)
+
+
+## Fackeln der Wachen (nur Stil "guard"): Schaft, Flamme und flackerndes Licht in der Hand.
+func set_torches(on: bool) -> void:
+	if _style != "guard":
+		return
+	for p in _people:
+		var rig: Node3D = p.rig
+		if not is_instance_valid(rig):
+			continue
+		var torch: Node3D = p.get("torch")
+		if torch == null or not is_instance_valid(torch):
+			torch = Node3D.new()
+			torch.position = Vector3(0.34, 1.0, 0.28)
+			torch.rotation_degrees = Vector3(-15, 0, 10)
+			rig.add_child(torch)
+			B3.cyl(torch, 0.025, 0.03, 0.55, Vector3(0, 0.27, 0), B3.mat(Color(0.3, 0.2, 0.12), 0.8), false, 6)
+			B3.fire(torch, Vector3(0, 0.58, 0), Color(1.0, 0.6, 0.25), 8)
+			B3.light(torch, Vector3(0, 0.75, 0), Color(1.0, 0.62, 0.3), 1.4, 6.0).set_meta("flicker", true)
+			p["torch"] = torch
+		torch.visible = on
 
 
 func _process(delta: float) -> void:
+	_bark_timer += delta
+	_global_cool = maxf(0.0, _global_cool - delta)
+	if _bark_timer >= 0.4:
+		_bark_timer = 0.0
+		_check_barks()
+	var now := Time.get_ticks_msec() / 1000.0
 	for p in _people:
 		var rig: CharacterRig = p.rig
 		if not rig.visible:
 			continue
+		if p.has("flee_until") and float(p.flee_until) < now:
+			# Schreck vorbei: zurück zum gewohnten Gang (oder zur Gesprächsgruppe)
+			p.erase("flee_until")
+			p.speed = _rng.randf_range(1.0, 1.6)
+			if p.get("was_talk", false):
+				p.talk = true
 		if p.talk:
 			# Gesprächsgruppe: leicht wippen und sich gelegentlich umdrehen
 			rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
@@ -187,3 +229,85 @@ func _ground_y(target: Vector3, at: Vector3) -> float:
 	var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 3, 0), at + Vector3(0, -6, 0))
 	var hit := space.intersect_ray(q)
 	return (hit.position as Vector3).y if hit else target.y
+
+
+## Wer nahe am Spieler steht, sagt etwas – passend zu Stil, Ort, Gestalt des Spielers und Tageszeit.
+func _check_barks() -> void:
+	var pl := CombatFX.player as Node3D
+	if pl == null or not is_instance_valid(pl) or not pl.is_inside_tree():
+		return
+	if _world == null or not is_instance_valid(_world):
+		_world = get_tree().get_first_node_in_group("world3d")
+	if _world == null:
+		return
+	var loc: Dictionary = _world.loc
+	var night: bool = _world.day_cycle.night
+	var pstyle := "momon" if String(pl.get("style")) == "momon" else "ainz"
+	var now := Time.get_ticks_msec() / 1000.0
+	var ppos := pl.global_position
+	for p in _people:
+		var rig: Node3D = p.rig
+		if not is_instance_valid(rig) or not rig.visible:
+			continue
+		if rig.global_position.distance_to(ppos) > 6.0:
+			continue
+		if float(p.get("cool", 0.0)) > now or _global_cool > 0.0:
+			continue
+		var group: String = BARKS.group_for(_style, loc, pstyle, night)
+		if group == "":
+			p["cool"] = now + 30.0
+			continue
+		var text: String = BARKS.pick(group)
+		if text == "":
+			continue
+		_say(p, text)
+		p["cool"] = now + _rng.randf_range(18.0, 30.0)
+		_global_cool = 1.6
+		var to_player := ppos - rig.global_position
+		to_player.y = 0.0
+		if BARKS.flees(group):
+			flee_count += 1
+			p["was_talk"] = p.talk
+			p.talk = false
+			p.target = rig.position - to_player.normalized() * 7.0
+			p.speed = 2.6
+			p.wait = 0.0
+			p["flee_until"] = now + 5.0
+		elif to_player.length() > 0.1:
+			rig.rotation.y = atan2(to_player.x, to_player.z)
+			if _style == "maid":
+				var tw := rig.create_tween()
+				tw.tween_property(rig, "rotation:x", 0.35, 0.45).set_trans(Tween.TRANS_SINE)
+				tw.tween_interval(0.5)
+				tw.tween_property(rig, "rotation:x", 0.0, 0.6).set_trans(Tween.TRANS_SINE)
+
+
+## Sprechblase über dem Kopf (Label3D), blendet nach ein paar Sekunden aus.
+func _say(p: Dictionary, text: String) -> void:
+	var rig: Node3D = p.rig
+	var lb: Label3D = p.get("label") as Label3D
+	if lb == null or not is_instance_valid(lb):
+		lb = Label3D.new()
+		lb.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		lb.font = NazarickTheme.italic_font(600)
+		lb.font_size = 36
+		lb.outline_size = 9
+		lb.modulate = Color(0.97, 0.94, 0.86)
+		lb.outline_modulate = Color(0, 0, 0, 0.88)
+		lb.pixel_size = 0.0055
+		lb.position = Vector3(0, 2.15, 0)
+		lb.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		lb.width = 440
+		rig.add_child(lb)
+		p["label"] = lb
+	if p.has("label_tw") and p.label_tw != null and (p.label_tw as Tween).is_valid():
+		(p.label_tw as Tween).kill()
+	lb.text = text
+	lb.modulate.a = 1.0
+	lb.visible = true
+	var tw := rig.create_tween()
+	tw.tween_interval(2.8 + text.length() * 0.03)
+	tw.tween_property(lb, "modulate:a", 0.0, 0.6)
+	tw.tween_callback(func(): if is_instance_valid(lb): lb.visible = false)
+	p["label_tw"] = tw
+	bark_count += 1

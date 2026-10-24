@@ -27,7 +27,7 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return shop(root, loc)
 		"cottage":
 			return cottage(root, loc)
-		"smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court", "cellar":
+		"smithy", "temple", "basilica", "academy", "forge_hall", "inn", "court", "cellar", "sewer", "crypt":
 			return MORE.build(kind, root, loc)
 	return {}
 
@@ -308,7 +308,7 @@ static func guild(root: Node3D, _loc: Dictionary) -> Dictionary:
 	for p in [Vector3(-4.5, 3.75, -1.45), Vector3(4.5, 3.75, -1.45), Vector3(0, 3.75, 1.45), Vector3(0, 3.75, -4.3)]:
 		lantern(root, p, H - 0.34)
 	B3.motes(root, Vector3(0, 2.4, 0), Vector3(8.5, 2.0, 5.8), Color(1.0, 0.92, 0.72, 0.5), 110)
-	B3.bounds(root, hx + 0.3, H + 1.0)
+	B3.bounds(root, maxf(hx, hz) + 0.3, H + 1.0)
 
 	# --- Abenteurer als Gäste ----------------------------------------------------------------------
 	var idle := [Vector3(-5.3, 0, -2.9), Vector3(-6.7, 0, -2.6), Vector3(-3.4, 0, 0.3), Vector3(4.0, 0, 3.4),
