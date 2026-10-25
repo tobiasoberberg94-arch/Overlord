@@ -60,6 +60,9 @@ var _cine_ui: CinematicUI
 
 func _ready() -> void:
 	add_to_group("world3d")
+	# Punkt- und Spotlichter streuen nicht in den Volumennebel: dessen grobes Raster (Froxel, 48³) zeichnete um jede
+	# Kerze, Feuerschale und Laterne weiche Quadrate und „Lichtsäulen“. Ausnahmen markieren sich mit meta "fog".
+	get_tree().node_added.connect(_no_fog_light)
 	if Game.state.is_empty():
 		Game.new_game()
 	add_child(player)
@@ -81,6 +84,7 @@ func _ready() -> void:
 	_rebuild_spell_bar()
 	Game.state_changed.connect(_refresh_hud)
 	Game.dispatches_arrived.connect(func(_n): Audio.sfx("dispatch", 0.8))
+	Quests.accepted.connect(_on_quest_accepted)
 	var w3: Dictionary = Game.state.get("world3d", {})
 	var start: String = w3.get("loc", "throne")
 	load_location(start if Content.location_by_id.has(start) else "throne")
@@ -132,7 +136,8 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	quest_world.apply_story()
 	quest_world.spawn_pickups()
 	quest_world.spawn_discoveries()
-	player.global_position = anchors.spawn
+	# auf die Fläche, die der Datenhöhe am nächsten liegt (stand der Punkt in Stufen oder einem Sockel, steckte man fest)
+	player.global_position = _on_ground(anchors.spawn) + Vector3.UP * 0.05
 	player.velocity = Vector3.ZERO
 	player.face(anchors.get("yaw", 0.0))
 	if not arrive.is_empty():
@@ -204,65 +209,8 @@ func _ambient_particles() -> void:
 	var kind := String(loc.get("kind", ""))
 	if not Settings.particles or (loc.group != "world" and kind != "jungle"):
 		return
-	if kind in ["forest", "jungle", "village", "grassland"]:
-		var leaves := CPUParticles3D.new()
-		var qm := QuadMesh.new()
-		qm.size = Vector2(0.14, 0.09)
-		var mat := StandardMaterial3D.new()
-		mat.shading_mode = BaseMaterial3D.SHADING_MODE_PER_PIXEL
-		mat.cull_mode = BaseMaterial3D.CULL_DISABLED
-		mat.albedo_color = Color(0.72, 0.5, 0.2)
-		mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-		qm.material = mat
-		leaves.mesh = qm
-		leaves.amount = 70 if kind != "jungle" else 110
-		leaves.lifetime = 9.0
-		leaves.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-		leaves.emission_box_extents = Vector3(22, 2, 22)
-		leaves.direction = Vector3(0.3, -1, 0.2)
-		leaves.spread = 40.0
-		leaves.initial_velocity_min = 0.4
-		leaves.initial_velocity_max = 1.2
-		leaves.gravity = Vector3(0, -0.7, 0)
-		leaves.angular_velocity_min = -120.0
-		leaves.angular_velocity_max = 120.0
-		var ramp := Gradient.new()
-		ramp.set_color(0, Color(0.85, 0.6, 0.2))
-		ramp.set_color(1, Color(0.45, 0.55, 0.15) if kind == "jungle" else Color(0.6, 0.25, 0.1))
-		leaves.color_initial_ramp = ramp
-		leaves.set_meta("offset", Vector3(0, 10.0, 0))
-		level.add_child(leaves)
-		_ambient.append(leaves)
-	if kind in ["village", "grassland", "forest", "swamp"]:
-		var flies := CPUParticles3D.new()
-		var qm2 := QuadMesh.new()
-		qm2.size = Vector2(0.11, 0.09)
-		var mat2 := StandardMaterial3D.new()
-		mat2.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		mat2.albedo_color = Color(1.0, 0.95, 0.75)
-		mat2.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-		qm2.material = mat2
-		flies.mesh = qm2
-		flies.amount = 14
-		flies.lifetime = 12.0
-		flies.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
-		flies.emission_box_extents = Vector3(14, 0.8, 14)
-		flies.direction = Vector3(1, 0.2, 0)
-		flies.spread = 180.0
-		flies.initial_velocity_min = 0.6
-		flies.initial_velocity_max = 1.4
-		flies.gravity = Vector3.ZERO
-		flies.damping_min = 0.2
-		flies.damping_max = 0.6
-		flies.scale_amount_min = 0.7
-		flies.scale_amount_max = 1.2
-		var ramp2 := Gradient.new()
-		ramp2.set_color(0, Color(1.0, 0.95, 0.7))
-		ramp2.set_color(1, Color(0.95, 0.6, 0.3))
-		flies.color_initial_ramp = ramp2
-		flies.set_meta("offset", Vector3(0, 1.3, 0))
-		level.add_child(flies)
-		_ambient.append(flies)
+	# (Fallendes Laub, Schmetterlinge und Glühwürmchen kommen texturiert aus AmbientLife – die alten einfarbigen
+	# Rechtecke für Laub und Insekten sind entfallen.)
 
 
 ## Dynamische Musik: ruhig (Ortsmusik) → Spannung, wenn Gegner nahe sind → Schlacht, wenn gekämpft wird; zurück mit Nachhall.
@@ -333,6 +281,8 @@ func _place_actors() -> void:
 		var a := Actor3D.character(cid, variant)
 		a.prompt = "Audienz"
 		_add_actor(a, pos)
+		if loc.get("keeper", "") == cid:
+			a.wander_radius = 0.0     # Wächter der Ebene steht auf seinem Posten und blickt zum Eingang
 		placed.append(cid)
 	# Story-Figuren und Diener
 	for n in loc.get("npcs", []):
@@ -367,9 +317,14 @@ func _place_actors() -> void:
 		var door := Actor3D.object("door:" + String(d.id), String(d.name), prompt, Palette.GOLD if not locked else Color(0.78, 0.72, 0.6), 2.4)
 		door.set_meta("door", d)
 		_add_actor(door, _on_ground(Vector3(float(at[0]), float(at[1]), float(at[2]))))
-		match String(d.get("style", "sign")):
+		# In Nazarick führen Türen zwischen den Ebenen über Treppenportale, sonst Wirtshausschild/Verlieseingang
+		var dstyle := String(d.get("style", "stairs" if String(loc.get("group", "")) == "nazarick" else "sign"))
+		match dstyle:
 			"grate": _dungeon_entrance(door, d, true)
 			"crypt": _dungeon_entrance(door, d, false)
+			"stairs": _nazarick_stairs(door, d)
+			"nameplate": _door_nameplate(door, d)
+			"hatch": _cellar_hatch(door, d)
 			_: _door_sign(door, d)
 	if String(loc.get("kind", "")) == "forge_hall":
 		# Runenrätsel: vier Pfeiler mit Runen (Reihenfolge im Buch der Runen), siehe QuestWorld.rune_touch
@@ -747,6 +702,186 @@ func _dungeon_entrance(door: Actor3D, d: Dictionary, grate: bool) -> void:
 	holder.add_child(lb)
 
 
+## Treppenabgang zwischen den Ebenen Nazaricks: Portal aus schwarzem Marmor mit Goldkanten auf einem Sockel mit zwei
+## Stufen, im Durchgang führen Stufen hinab in die Finsternis (violetter Schein von unten), der Name der Ebene steht in
+## Gold auf dem Sturz, Feuerschalen mit violetter Flamme daneben. Lokal zeigt -z aus dem Eingang heraus.
+## Stil je Ort: in den Hallen schwarzer Marmor mit Gold, auf den Außen-Ebenen Stein des Ortes – Gletscher: bereifter
+## Fels mit Silberkanten und Schneekappen, blaues Licht; Dschungel: Moosstein mit Bronze, warmes Licht; Lava: Basalt
+## mit Kupfer, Glut von unten. "look" in der Tür überschreibt.
+const STAIR_LOOKS := {
+	"marble": {"stone": ["limestone", Color(0.22, 0.2, 0.26)], "step": ["basalt", Color(0.42, 0.4, 0.46)], "trim": Color(0.86, 0.67, 0.27), "glow": Color(0.64, 0.34, 1.0), "snow": false},
+	"frost": {"stone": ["cliff", Color(0.66, 0.72, 0.8)], "step": ["cliff", Color(0.5, 0.56, 0.64)], "trim": Color(0.74, 0.84, 0.95), "glow": Color(0.45, 0.72, 1.0), "snow": true, "text": Color(0.86, 0.93, 1.0)},
+	"moss": {"stone": ["mossrock", Color(0.72, 0.74, 0.66)], "step": ["cliff", Color(0.46, 0.44, 0.38)], "trim": Color(0.6, 0.45, 0.24), "glow": Color(1.0, 0.72, 0.36), "snow": false},
+	"basalt": {"stone": ["basalt", Color(0.36, 0.3, 0.28)], "step": ["basalt", Color(0.3, 0.26, 0.24)], "trim": Color(0.72, 0.38, 0.2), "glow": Color(1.0, 0.45, 0.16), "snow": false},
+}
+const STAIR_LOOK_OF := {"glacier": "frost", "jungle": "moss", "lava": "basalt"}
+
+
+func _nazarick_stairs(door: Actor3D, d: Dictionary) -> void:
+	var holder := Node3D.new()
+	holder.rotation.y = deg_to_rad(float(d.get("yaw", 180.0)))
+	door.add_child(holder)
+	var look: Dictionary = STAIR_LOOKS[String(d.get("look", STAIR_LOOK_OF.get(String(loc.get("kind", "")), "marble")))]
+	var sp: Array = look.stone
+	var tp: Array = look.step
+	var marble := BuildingLook.photo_material(String(sp[0]), "stone", sp[1], 0.05)
+	var step_m := BuildingLook.photo_material(String(tp[0]), "stone", tp[1], 0.05)
+	var gold := B3.mat(look.trim, 0.28, 0.92)
+	var void_m := B3.mat(Color(0.004, 0.003, 0.008), 1.0)
+	var violet: Color = look.glow
+	# Sockel mit zwei Stufen, Pfeiler mit goldenen Füßen und Kapitellen, Sturz mit Goldband, Rückwand als Block
+	B3.box(holder, Vector3(3.3, 0.18, 0.42), Vector3(0, 0.09, -0.69), step_m)
+	B3.box(holder, Vector3(3.3, 0.36, 0.58), Vector3(0, 0.18, -0.19), step_m)
+	for sx in [-1.0, 1.0]:
+		B3.box(holder, Vector3(0.7, 0.36, 1.82), Vector3(sx * 1.3, 0.18, 1.01), step_m)
+	B3.box(holder, Vector3(3.36, 0.03, 0.05), Vector3(0, 0.375, -0.47), gold, false)
+	for sx in [-1.0, 1.0]:
+		B3.box(holder, Vector3(0.5, 3.3, 0.6), Vector3(sx * 1.2, 0.36 + 1.65, 0.1), marble)
+		B3.box(holder, Vector3(0.64, 0.2, 0.74), Vector3(sx * 1.2, 0.46, 0.1), gold, false)
+		B3.box(holder, Vector3(0.64, 0.2, 0.74), Vector3(sx * 1.2, 3.56, 0.1), gold, false)
+	B3.box(holder, Vector3(3.2, 0.55, 0.8), Vector3(0, 3.93, 0.1), marble, false)
+	B3.box(holder, Vector3(3.24, 0.05, 0.05), Vector3(0, 3.7, -0.31), gold, false)
+	B3.box(holder, Vector3(3.24, 0.05, 0.05), Vector3(0, 4.16, -0.31), gold, false)
+	B3.box(holder, Vector3(3.3, 4.2, 0.6), Vector3(0, 2.1, 1.75), marble)
+	if look.snow:
+		# Schneekappen auf Sturz, Rückwand und Pfeilerköpfen, Schneewehe am Fuß der Pfeiler
+		var snow_m := BuildingLook.photo_material("snow", "plaster", Color(1.0, 1.0, 1.02), 0.0)
+		B3.box(holder, Vector3(3.34, 0.12, 0.86), Vector3(0, 4.25, 0.1), snow_m, false)
+		B3.box(holder, Vector3(3.34, 0.1, 0.64), Vector3(0, 4.25, 1.75), snow_m, false)
+		for sx in [-1.0, 1.0]:
+			B3.box(holder, Vector3(0.68, 0.08, 0.78), Vector3(sx * 1.2, 3.7, 0.1), snow_m, false)
+			var drift := B3.sphere(holder, 0.55, Vector3(sx * 1.75, 0.05, -0.2), snow_m, Vector3(1.0, 0.32, 1.4))
+			drift.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# Schacht: Seitenwände und Decke hinter dem Durchgang, ganz hinten Finsternis
+	for sx in [-1.0, 1.0]:
+		B3.box(holder, Vector3(0.12, 3.3, 1.05), Vector3(sx * 1.01, 0.36 + 1.65, 0.92), marble, false)
+	B3.box(holder, Vector3(2.1, 0.12, 1.05), Vector3(0, 3.6, 0.92), marble, false)
+	B3.box(holder, Vector3(1.95, 3.6, 0.05), Vector3(0, 1.6, 1.43), void_m, false)
+	# vier Stufen hinab (vom Sockel bis unter den Boden), vorn Goldkanten, zur Tiefe hin dunkler
+	for k in 4:
+		var top := 0.27 - k * 0.12
+		var zc := 0.28 + k * 0.29
+		var sm := B3.mat(Color(0.32, 0.3, 0.36).darkened(0.22 * k), 0.8)
+		B3.box(holder, Vector3(1.9, 0.12, 0.3), Vector3(0, top - 0.06, zc), sm, false)
+		B3.box(holder, Vector3(1.9, 0.015, 0.025), Vector3(0, top, zc - 0.14), gold, false)
+	var gl := B3.light(holder, Vector3(0, 0.15, 1.15), violet, 1.3, 3.2)
+	gl.shadow_enabled = false
+	gl.set_meta("flicker", true)
+	# Name der Ebene in Gold auf dem Sturz (liegt auf dem Stein, schwebt nicht)
+	var lb := Label3D.new()
+	lb.text = String(d.name)
+	lb.font = NazarickTheme.display_font(700)
+	lb.font_size = 40
+	lb.pixel_size = 0.0042
+	lb.modulate = look.get("text", Color(0.95, 0.78, 0.38))
+	lb.outline_size = 4
+	lb.outline_modulate = Color(0.12, 0.08, 0.02)
+	lb.position = Vector3(0, 3.93, -0.31)
+	lb.rotation.y = PI
+	lb.width = 700.0
+	lb.autowrap_mode = TextServer.AUTOWRAP_WORD
+	lb.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	holder.add_child(lb)
+	# Feuerschalen mit violetter Flamme links und rechts vor dem Portal (aus, wo der Ort eigene hat: "braziers": false)
+	if d.get("braziers", true):
+		for sx in [-1.0, 1.0]:
+			B3.brazier(holder, Vector3(sx * 2.15, 0, -0.75), violet)
+
+
+## Kellerabgang an einer Hauswand: lokal +z = Hauswand (hohes Ende der schrägen Tür), -z = Seite des Spielers.
+func _cellar_hatch(door: Actor3D, d: Dictionary) -> void:
+	var holder := Node3D.new()
+	holder.rotation.y = deg_to_rad(float(d.get("yaw", 180.0)))
+	door.add_child(holder)
+	var stone := BuildingLook.photo_material("rubble", "stone", Color(0.55, 0.53, 0.5), 0.6)
+	var wood := B3.mat(Color(0.33, 0.24, 0.16), 0.85)
+	var iron := B3.mat(Color(0.16, 0.15, 0.14), 0.5, 0.8)
+	var dark := B3.mat(Color(0.008, 0.007, 0.006), 1.0)
+	# Sockel: Seitenwangen und Rückwand aus Bruchstein, schräg wie die Tür
+	for sx in [-1.0, 1.0]:
+		var cheek := B3.box(holder, Vector3(0.28, 0.75, 2.1), Vector3(sx * 1.0, 0.3, 0.2), stone)
+		cheek.rotation_degrees.x = -12
+	B3.box(holder, Vector3(2.28, 0.95, 0.3), Vector3(0, 0.47, 1.25), stone)
+	B3.box(holder, Vector3(2.0, 0.1, 0.25), Vector3(0, 0.05, -0.85), stone, false)            # Schwelle
+	# Finsternis und zwei Stufen unter der Tür (durch den Spalt zu sehen)
+	B3.box(holder, Vector3(1.72, 0.5, 1.9), Vector3(0, 0.27, 0.2), dark, false)
+	for k in 2:
+		B3.box(holder, Vector3(1.6, 0.08, 0.35), Vector3(0, 0.47 - k * 0.16, -0.5 + k * 0.38), stone, false)
+	# zwei Flügel aus Bohlen mit Eisenbändern; der linke einen Spalt offen
+	for sx in [-1.0, 1.0]:
+		var hinge := Node3D.new()
+		hinge.position = Vector3(sx * 0.86, 0.36, 0.2)
+		hinge.rotation_degrees = Vector3(-12, 0, -sx * (24.0 if sx < 0 else 0.0))
+		holder.add_child(hinge)
+		var leaf := Node3D.new()
+		leaf.position = Vector3(-sx * 0.43, 0.05, 0)
+		hinge.add_child(leaf)
+		for k in 4:
+			B3.box(leaf, Vector3(0.2, 0.07, 2.0), Vector3(-0.32 + k * 0.215, 0, 0), wood, false)
+		for bz in [-0.65, 0.0, 0.65]:
+			B3.box(leaf, Vector3(0.86, 0.02, 0.07), Vector3(0, 0.045, bz), iron, false)
+		B3.cyl(leaf, 0.07, 0.07, 0.025, Vector3(sx * 0.3, 0.06, -0.55), iron, false, 12)
+	# Laterne an einem Pfosten, zwei Fässer an der Wand
+	var post := Node3D.new()
+	post.position = Vector3(1.55, 0, -0.6)
+	holder.add_child(post)
+	B3.box(post, Vector3(0.12, 2.1, 0.12), Vector3(0, 1.05, 0), wood)
+	B3.box(post, Vector3(0.5, 0.08, 0.08), Vector3(-0.2, 2.05, 0), wood, false)
+	if PhProps.attach(post, "wooden_lantern_01", Transform3D(Basis(), Vector3(-0.38, 1.5, 0))) == Vector3.ZERO:
+		B3.box(post, Vector3(0.18, 0.26, 0.18), Vector3(-0.38, 1.75, 0), iron, false)
+	var l := B3.light(post, Vector3(-0.38, 1.75, -0.2), Color(1.0, 0.72, 0.42), 1.3, 7.0)
+	l.shadow_enabled = false
+	l.set_meta("flicker", true)
+	PhProps.attach(holder, "wine_barrel_01", Transform3D(Basis(Vector3.UP, 0.5), Vector3(-1.65, 0, 0.9)))
+	PhProps.attach(holder, "wooden_crate_01", Transform3D(Basis(Vector3.UP, -0.3), Vector3(-1.7, 0, 0.0)))
+	# Kreidezeichen der Acht Finger auf der Rückwand (wer es kennt, weiß, wohin die Luke führt)
+	var lb := Label3D.new()
+	lb.text = "VIII"
+	lb.font = NazarickTheme.display_font(700)
+	lb.font_size = 48
+	lb.pixel_size = 0.004
+	lb.modulate = Color(0.85, 0.82, 0.74, 0.8)
+	lb.outline_size = 0
+	lb.position = Vector3(0.55, 0.72, 1.09)
+	lb.rotation.y = PI
+	holder.add_child(lb)
+
+
+## Tür des Ortsmodells selbst (Doppeltüren der Königlichen Gemächer): davor zwei Feuerschalen mit violetter Flamme,
+## darüber ein Schild aus dunklem Marmor mit goldenem Namen. "plate_z": Abstand der Wand vor dem Türpunkt (lokal -z).
+func _door_nameplate(door: Actor3D, d: Dictionary) -> void:
+	var holder := Node3D.new()
+	holder.rotation.y = deg_to_rad(float(d.get("yaw", 180.0)))
+	door.add_child(holder)
+	var wz := -float(d.get("plate_z", 0.85))
+	var marble := BuildingLook.photo_material("limestone", "stone", Color(0.22, 0.2, 0.26), 0.05)
+	var gold := B3.mat(Color(0.86, 0.67, 0.27), 0.28, 0.92)
+	var py := float(d.get("plate_y", 3.3))
+	B3.box(holder, Vector3(1.9, 0.42, 0.06), Vector3(0, py, wz - 0.03), marble, false)
+	for sy in [-1.0, 1.0]:
+		B3.box(holder, Vector3(1.96, 0.03, 0.03), Vector3(0, py + sy * 0.22, wz - 0.06), gold, false)
+	var lb := Label3D.new()
+	lb.text = String(d.name)
+	lb.font = NazarickTheme.display_font(700)
+	lb.font_size = 40
+	lb.pixel_size = 0.0036
+	lb.modulate = Color(0.95, 0.78, 0.38)
+	lb.outline_size = 4
+	lb.outline_modulate = Color(0.12, 0.08, 0.02)
+	lb.position = Vector3(0, py, wz - 0.07)
+	lb.rotation.y = PI
+	holder.add_child(lb)
+	# "brazier_sides": [-1] / [1] – nur auf einer Seite (zwei Türen dicht nebeneinander teilen sich die Mitte nicht)
+	if d.get("braziers", true):
+		for sx in d.get("brazier_sides", [-1.0, 1.0]):
+			B3.brazier(holder, Vector3(float(sx) * 1.75, 0, wz - 0.5), Color(0.64, 0.34, 1.0))
+
+
+func _no_fog_light(n: Node) -> void:
+	if n is Light3D and not n is DirectionalLight3D and not n.has_meta("fog"):
+		(n as Light3D).light_volumetric_fog_energy = 0.0
+
+
 ## Ort, dessen Aushänge an der Tafel hängen: in Innenräumen die des umgebenden Ortes.
 func board_loc() -> String:
 	return String(loc.get("parent", loc.id))
@@ -774,6 +909,12 @@ func _on_ground(p: Vector3) -> Vector3:
 	return best
 
 
+## Wie weit vor einer Tür man ankommt bzw. zurückkehrt: vor Treppenportalen Nazaricks 3,4 m (die Stufen ragen fast
+## einen Meter heraus; bei 1,4 m stand die Kamera im Schacht des Portals), sonst 1,4 m.
+func _door_out(d: Dictionary, group: String) -> float:
+	return 3.4 if String(d.get("style", "stairs" if group == "nazarick" else "sign")) == "stairs" else 1.4
+
+
 func _enter_door(d: Dictionary) -> void:
 	if _busy or not Content.location_by_id.has(String(d.to)):
 		return
@@ -790,7 +931,7 @@ func _enter_door(d: Dictionary) -> void:
 		Audio.sfx("loot", 0.5)
 	var at: Array = d.at
 	var yaw := deg_to_rad(float(d.get("yaw", 180.0)))
-	var out := Vector3(float(at[0]), float(at[1]), float(at[2])) + Basis(Vector3.UP, yaw) * Vector3(0, 0, -1.4)
+	var out := Vector3(float(at[0]), float(at[1]), float(at[2])) + Basis(Vector3.UP, yaw) * Vector3(0, 0, -_door_out(d, String(loc.get("group", ""))))
 	if not Game.state.has("world3d"):
 		Game.state["world3d"] = {}
 	Game.state.world3d["return"] = {"loc": loc.id, "pos": [out.x, out.y, out.z], "yaw": yaw}
@@ -801,7 +942,8 @@ func _enter_door(d: Dictionary) -> void:
 		if String(back.get("to", "")) == String(loc.id):
 			var bat: Array = back.at
 			var byaw := deg_to_rad(float(back.get("yaw", 180.0)))
-			arrive = {"pos": Vector3(float(bat[0]), float(bat[1]), float(bat[2])) + Basis(Vector3.UP, byaw) * Vector3(0, 0, -1.4), "yaw": byaw}
+			var bout := _door_out(back, String(target.get("group", "")))
+			arrive = {"pos": Vector3(float(bat[0]), float(bat[1]), float(bat[2])) + Basis(Vector3.UP, byaw) * Vector3(0, 0, -bout), "yaw": byaw}
 			break
 	Audio.sfx("page", 0.5)
 	await load_location(String(d.to), true, arrive)
@@ -1293,6 +1435,12 @@ func _fade(to: float, t: float) -> void:
 # =====================================================================
 
 ## Nachts wird die Welt gefährlicher: Begegnungen mit "night": true erscheinen erst, wenn es dunkel wird.
+## Auftrag vor Ort angenommen (Friedhofswärter): die Begegnungen dieses Auftrags erscheinen sofort.
+func _on_quest_accepted(qid: String) -> void:
+	if is_instance_valid(level) and not _busy:
+		_spawn_encounters(false, qid)
+
+
 func _night_changed(night: bool) -> void:
 	if night:
 		_spawn_encounters(true)
@@ -1300,14 +1448,22 @@ func _night_changed(night: bool) -> void:
 		(t as Townsfolk).set_torches(night)
 
 
-func _spawn_encounters(night_only: bool = false) -> void:
+## Begegnungen des Ortes. "night": nur nachts; "quest": auch am Tag, solange dieser Auftrag läuft (der Friedhof ist
+## tagsüber ruhig, bis man dem Wärter hilft). quest_id: nur die Begegnungen dieses Auftrags (beim Annehmen vor Ort).
+func _spawn_encounters(night_only: bool = false, quest_id: String = "") -> void:
 	if suppress_encounters:
 		return
 	for enc in loc.get("encounters", []):
 		var at_night: bool = enc.get("night", false)
-		if night_only and not at_night:
-			continue
-		if at_night and not night_only and not day_cycle.night:
+		var q := String(enc.get("quest", ""))
+		var quest_on := q != "" and Quests.active().any(func(aq): return String(aq.id) == q)
+		if quest_id != "":
+			if q != quest_id or day_cycle.night:
+				continue      # nachts sind sie ohnehin schon da
+		elif night_only:
+			if not at_night or quest_on:
+				continue      # mit laufendem Auftrag schon bei der Ankunft erschienen
+		elif at_night and not day_cycle.night and not quest_on:
 			continue
 		if not Game.check(enc.get("requires", {})):
 			continue
@@ -1444,6 +1600,10 @@ func _on_feedback(text: String, color: Color) -> void:
 
 
 func _exit_tree() -> void:
+	if get_tree().node_added.is_connected(_no_fog_light):
+		get_tree().node_added.disconnect(_no_fog_light)
+	if Quests.accepted.is_connected(_on_quest_accepted):
+		Quests.accepted.disconnect(_on_quest_accepted)
 	Enemy3D.hold = false
 	Actor3D.hide_labels = false
 	CombatFX.reset_time()

@@ -384,16 +384,20 @@ class Town:
         for (ax, ay), (bx, by) in zip(P[:-1], P[1:]):
             L = math.hypot(bx - ax, by - ay)
             rot = math.degrees(math.atan2(by - ay, bx - ax))
-            n = max(1, round(L / seg))
+            # Abschnitt ganz füllen: Stücke auf die Abschnittslänge strecken, 6 % Überlappung (Knicke ohne Spalt)
+            n = max(1, math.ceil(L / seg - 0.2))
+            stretch = (L / n) / seg * 1.06
             for j in range(n):
                 t = (j + 0.5) / n
                 x, y = ax + (bx - ax) * t, ay + (by - ay) * t
                 if any(math.hypot(x - gx, y - gy) < gate_gap for gx, gy in gates):
                     continue
-                g = kit.ground_fn(x, y)
+                # tiefster Geländepunkt unter dem Stück: am Hang hängt die Mauer nicht in der Luft
+                hx, hy = math.cos(math.radians(rot)) * L / n * 0.5, math.sin(math.radians(rot)) * L / n * 0.5
+                g = min(kit.ground_fn(x, y), kit.ground_fn(x - hx, y - hy), kit.ground_fn(x + hx, y + hy))
                 for row in range(height_rows):
-                    put("SM_brick", x, y, z=g - 0.5 + row * 5.0, rot=rot)
-                put("SM_updan", x, y, z=g - 0.6 + height_rows * 5.0, rot=rot)
+                    put("SM_brick", x, y, z=g - 0.5 + row * 5.0, rot=rot, sx=stretch)
+                put("SM_updan", x, y, z=g - 0.6 + height_rows * 5.0, rot=rot, sx=stretch)
                 self.mark_rect(x, y, L / n + 0.6, 4.0, rot, WALL)
             run += L
             if run >= tower_every:

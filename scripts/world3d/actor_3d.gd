@@ -74,6 +74,10 @@ func _ready() -> void:
 				_look = HeadLook.new()
 				_look.rig = rig
 				sk.add_child(_look)
+	# Objekte (Türen, Treppen, Gate, Thron, Tische) tragen keinen schwebenden Namen: der Hinweis unten im Bild nennt sie,
+	# Schilder und Tafeln stehen am Objekt selbst
+	if kind == "object":
+		return
 	_name = Label3D.new()
 	_name.text = label
 	_name.billboard = BaseMaterial3D.BILLBOARD_ENABLED

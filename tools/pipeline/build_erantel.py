@@ -95,11 +95,32 @@ def in_citadel(x, y):
 
 
 # --- Gelände (flach in der Stadt, Hügel draußen) ---------------------------------------------------
+FARMS = [(-70, -100, 20), (74, -96, -15), (-112, 40, 80), (110, -40, -100), (-60, 112, 160), (70, 110, 200)]
+FLAT_R, HILL_H, EDGE_RISE = 112.0, 4.0, 7.0
+
+
+def raw_h(x, y):
+    """Geländehöhe wie loc_kit.height_field, ohne Formung (für die Höhe der Gehöftplätze)."""
+    r = math.hypot(x, y)
+    t = min(1.0, max(0.0, (r - FLAT_R) / (HALF - FLAT_R)))
+    t = t * t * (3 - 2 * t)
+    n = noise.noise(Vector((x * 0.035, y * 0.035, 0.3))) * 0.5 + 0.5
+    return t * (HILL_H * n + EDGE_RISE * t)
+
+
 def shape(x, y, h):
-    return h + (0.8 if in_citadel(x, y) else 0.0)
+    h = h + (0.8 if in_citadel(x, y) else 0.0)
+    for fx, fy, _ in FARMS:                      # Gehöfte auf ebenen Plätzen (sonst steckten sie im Hang)
+        d = math.hypot(x - fx, y - fy)
+        if d < 26.0:
+            k = max(0.0, min(1.0, (d - 16.0) / 10.0))
+            k = k * k * (3 - 2 * k)
+            h = raw_h(fx, fy) * (1 - k) + h * k
+    return h
 
 
-TERRAIN = dict(half=HALF, flat_r=96.0, hill_h=10.0, edge_rise=16.0, inner_h=0.35, height_fn=shape)
+# vor der Stadt sanftes Hügelland (vorher stiegen direkt hinter der Mauer bis zu 26 m hohe Hänge an)
+TERRAIN = dict(half=HALF, flat_r=FLAT_R, hill_h=HILL_H, edge_rise=EDGE_RISE, inner_h=0.35, height_fn=shape)
 kit.height_field(**TERRAIN)
 
 # Reservierungen vor dem Häuserbau: Zitadelle, Tempel, Gilde, Kaserne am Südtor
@@ -125,11 +146,11 @@ for sgn in (-1, 1):
     put("SM_TowerrType2", IG[0] + sgn * 6.5, IG[1], s=0.26)
 
 # --- Wahrzeichen -------------------------------------------------------------------------------------
-put("SM_Build1", CIT[0], CIT[1] + 6, rot=0, s=0.62)                      # Rathaus / Zitadelle
+put("SM_Build1", CIT[0], CIT[1] + 6, rot=0, s=0.8)                       # Rathaus / Zitadelle
 for sgn in (-1, 1):
     put("SM_TowerrType2", CIT[0] + sgn * 13.5, CIT[1] + 8, s=0.3)
-put("SM_ChurchSet", T[0] - 2, T[1] + 18, rot=0, s=1.35)                  # Tempel der Vier
-put("SM_Build1", G[0] + 2, G[1] + 14, rot=0, s=0.5)                      # Abenteurergilde
+put("SM_ChurchSet", T[0] - 2, T[1] + 18, rot=0, s=1.35)                  # Tempel der Vier (32 m hoch)
+put("SM_Build1", G[0] + 2, G[1] + 14, rot=0, s=0.66)                     # Abenteurergilde
 for k in range(4):                                                       # Kaserne: Zelte, Waffenständer
     put("SM_Tent_low", SG[0] + 16 + k * 4.5, SG[1] + 12, rot=90, s=2.0)
 put("SM_StorageSet", SG[0] + 26, SG[1] + 22, rot=180)
@@ -141,6 +162,13 @@ MID = [("FV_house_02", 0.78, 3), ("FV_house_03", 0.78, 2), ("FV_house_05", 0.78,
        ("SM_House6", 0.62, 2), ("SM_House3", 0.62, 1), ("SM_HouseSet02", 1.0, 1)]
 POOR = [("SM_HouseSet01", 1.0, 3), ("FV_house_05", 0.74, 2), ("SM_StorageSet", 1.0, 2), ("SM_HouseSet02", 1.0, 1),
         ("FV_house_02", 0.74, 1)]
+
+
+# Häuser in richtiger Größe: Türen größer als die Figuren (vorher Puppenhäuser, Schilder fast so groß wie Häuser)
+HS = 1.35
+RICH = [(n, s * HS, w) for n, s, w in RICH]
+MID = [(n, s * HS, w) for n, s, w in MID]
+POOR = [(n, s * HS, w) for n, s, w in POOR]
 
 
 def district(x, y):
@@ -157,7 +185,8 @@ def district(x, y):
 
 
 def dress(p):
-    town.dress_front(p)
+    # weniger Kleinkram vor den Häusern (Spieltest: „wahllos platzierte Gegenstände“)
+    town.dress_front(p, chance=0.28)
 
 
 for line, w in [(main, 7.0), (west, 6.0), (east, 6.0)]:
@@ -208,10 +237,9 @@ for k in range(4):
     a = k * math.tau / 4 + 0.6
     put("SM_StandLight", T[0] + math.cos(a) * 7, T[1] + math.sin(a) * 7)
 put("SM_Statue01", G[0], G[1], s=1.3)
-for k in range(5):
-    a = k * math.tau / 5
-    x, y = G[0] + math.cos(a) * 6.5, G[1] + math.sin(a) * 6.5
-    kit.clutter(x, y, STALL, n=(1, 3), r=(0.6, 1.4))
+# Gildenplatz: Kisten und Fässer nur am Gildenhaus (Ware der Abenteurer), nicht verstreut über den Platz
+for k, (dx, dy) in enumerate([(-7.5, 7.0), (8.0, 7.5)]):
+    kit.clutter(G[0] + dx, G[1] + dy, ["FV_crate_01", "FV_barrel_01", "FV_crate_group_01"], n=(2, 3), r=(0.5, 1.1))
 
 # Laternen an den Hauptstraßen
 for line, w in [(main, 7.0), (west, 6.0), (east, 6.0)]:
@@ -231,7 +259,6 @@ for i in range(9):                                        # Händlerlager vor de
         kit.occupy(x, y, 4.0)
 put("SM_firestone", SG[0] - 14, SG[1] - 22)
 # Gehöfte und Felder vor der Stadt
-FARMS = [(-70, -100, 20), (74, -96, -15), (-112, 40, 80), (110, -40, -100), (-60, 112, 160), (70, 110, 200)]
 for fx, fy, fr in FARMS:
     if town.rect_free(fx, fy, 30, 26, fr, (FREE,)):
         town.place(rng.choice(["FV_house_01", "FV_house_04"]), 0.78, fx, fy, fr)

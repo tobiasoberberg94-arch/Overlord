@@ -3260,24 +3260,6 @@
   {
    "kind": "brazier",
    "at": [
-    -3.2,
-    0.0,
-    21.0
-   ],
-   "color": "#b070ff"
-  },
-  {
-   "kind": "brazier",
-   "at": [
-    3.2,
-    0.0,
-    21.0
-   ],
-   "color": "#b070ff"
-  },
-  {
-   "kind": "brazier",
-   "at": [
     -4.6,
     0.0,
     -16.0
@@ -3364,63 +3346,6 @@
    "requires": {
     "flags_all": [
      "crowned"
-    ]
-   }
-  },
-  {
-   "kind": "chest",
-   "at": [
-    -7.0,
-    0.0,
-    22.5
-   ],
-   "yaw": 20,
-   "requires": {
-    "flags_all": [
-     "world_decided"
-    ]
-   }
-  },
-  {
-   "kind": "chest",
-   "at": [
-    7.0,
-    0.0,
-    22.5
-   ],
-   "yaw": -30,
-   "requires": {
-    "flags_all": [
-     "world_decided"
-    ]
-   }
-  },
-  {
-   "kind": "crates",
-   "at": [
-    -9.0,
-    0.0,
-    19.0
-   ],
-   "yaw": 10,
-   "count": 3,
-   "requires": {
-    "flags_all": [
-     "world_decided"
-    ]
-   }
-  },
-  {
-   "kind": "barrels",
-   "at": [
-    9.0,
-    0.0,
-    19.0
-   ],
-   "yaw": 70,
-   "requires": {
-    "flags_all": [
-     "world_decided"
     ]
    }
   }
@@ -3526,6 +3451,19 @@
   }
  ],
  "library": [
+  {
+   "kind": "rug",
+   "at": [
+    0.0,
+    0.0,
+    2.0
+   ],
+   "size": [
+    2.6,
+    58.0
+   ],
+   "yaw": 0
+  },
   {
    "kind": "folk",
    "at": [
@@ -3799,26 +3737,6 @@
    "range": 10.0
   },
   {
-   "kind": "smoke",
-   "at": [
-    0.0,
-    0.2,
-    15.0
-   ],
-   "h": 0.2,
-   "amount": 20
-  },
-  {
-   "kind": "smoke",
-   "at": [
-    0.0,
-    0.2,
-    -15.0
-   ],
-   "h": 0.2,
-   "amount": 20
-  },
-  {
    "kind": "motes",
    "at": [
     0.0,
@@ -3831,66 +3749,6 @@
   }
  ],
  "glacier": [
-  {
-   "kind": "crystal",
-   "at": [
-    -8.0,
-    0.0,
-    20.0
-   ],
-   "color": "#8ad0ff",
-   "h": 1.6
-  },
-  {
-   "kind": "crystal",
-   "at": [
-    8.0,
-    -0.38,
-    20.0
-   ],
-   "color": "#8ad0ff",
-   "h": 1.6
-  },
-  {
-   "kind": "crystal",
-   "at": [
-    -8.0,
-    0.3,
-    -10.0
-   ],
-   "color": "#8ad0ff",
-   "h": 1.8
-  },
-  {
-   "kind": "crystal",
-   "at": [
-    8.0,
-    0.3,
-    -10.0
-   ],
-   "color": "#8ad0ff",
-   "h": 1.8
-  },
-  {
-   "kind": "crystal",
-   "at": [
-    -6.0,
-    0.5,
-    -40.0
-   ],
-   "color": "#b0e0ff",
-   "h": 1.4
-  },
-  {
-   "kind": "crystal",
-   "at": [
-    6.0,
-    0.5,
-    -40.0
-   ],
-   "color": "#b0e0ff",
-   "h": 1.4
-  },
   {
    "kind": "light",
    "at": [

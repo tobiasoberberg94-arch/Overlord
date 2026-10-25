@@ -7,7 +7,7 @@ class_name Dressing
 
 static var _data: Dictionary = {}
 ## Arten ohne Körper – schweben, brauchen weder Boden noch freien Platz.
-const SOFT := ["light", "motes", "smoke"]
+const SOFT := ["light", "motes", "smoke", "rug"]   # liegen flach bzw. schweben: keine Ausweichsuche
 ## Arten, die sich dem Boden anschmiegen dürfen (Reisig, Heu, Trümmer, Felsen): bis 45° Hang erlaubt, Knoten wird geneigt.
 const TILT := ["ph", "hay", "debris", "memorial"]
 
@@ -251,6 +251,16 @@ static func _build(kind: String, n: Node3D, e: Dictionary, rng: RandomNumberGene
 			if e.get("solid", false) and size != Vector3.ZERO:
 				var ext := Vector3(maxf(size.x, size.z), size.y, maxf(size.x, size.z)) * sc
 				B3.wall_invisible(n, ext, Vector3(0, ext.y * 0.5, 0))
+		"rug":
+			# Teppich/Läufer flach auf dem Boden (Muster wie der Läufer im Thronsaal): {"size": [breite, länge]}
+			var rs: Array = e.get("size", [2.4, 6.0])
+			var cm := StandardMaterial3D.new()
+			cm.albedo_texture = LocationBuilder._carpet_texture()
+			cm.uv1_scale = Vector3(1.0, float(rs[1]) / (float(rs[0]) * 1.4), 1.0)
+			cm.roughness = 0.97
+			cm.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC
+			var rug := B3.mesh(n, LocationBuilder._carpet_mesh(float(rs[0]), float(rs[1])), Vector3(0, float(e.get("h", 0.02)), 0), cm)
+			rug.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		"smoke":
 			B3.smoke(n, Vector3(0, float(e.get("h", 0.5)), 0), int(e.get("amount", 14)))
 		"motes":

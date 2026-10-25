@@ -1104,7 +1104,33 @@ func _spell_target(rng: float) -> Fighter:
 #  Ablauf
 # =====================================================================
 
+## Letzte sichere Stelle (auf festem Boden) – fällt der Spieler mehr als 40 m darunter (aus der Welt), kehrt er hierher
+## zurück. Ein Sprung von über 30 m in einem Schritt (Ortswechsel, Teleport) löscht die Stelle.
+var _safe_pos := Vector3.INF
+var _last_pos := Vector3.INF
+var _safe_t := 0.0
+
+
+func _fall_guard(delta: float) -> void:
+	_safe_t += delta
+	if _last_pos != Vector3.INF and global_position.distance_to(_last_pos) > 30.0:
+		_safe_pos = Vector3.INF
+	_last_pos = global_position
+	if is_on_floor() and _safe_t > 0.5:
+		_safe_t = 0.0
+		_safe_pos = global_position
+	if _safe_pos == Vector3.INF or global_position.y > _safe_pos.y - 40.0:
+		return
+	global_position = _safe_pos + Vector3(0, 0.4, 0)
+	_last_pos = global_position
+	velocity = Vector3.ZERO
+	var w3 := get_tree().get_first_node_in_group("world3d")
+	if w3 and w3.has_method("toast"):
+		w3.call("toast", "Zurück auf festen Boden", Palette.GOLD)
+
+
 func _physics_process(delta: float) -> void:
+	_fall_guard(delta)
 	tick_combat(delta)
 	for k in cooldowns.keys():
 		cooldowns[k] = maxf(0.0, float(cooldowns[k]) - delta)

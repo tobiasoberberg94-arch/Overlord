@@ -22,15 +22,24 @@ uniform float height_hint = 8.0;     // grobe Pflanzenhöhe (für Kronen-Verdunk
 uniform float leaf_gain = 1.0;       // Helligkeitsausgleich der Laubtextur
 uniform float leaf_sat = 1.0;        // Sättigungsausgleich
 uniform float grassy = 0.0;          // 1 = stilisiertes Gras → natürliche Graspalette (mit trockenen Halmen)
+uniform float snow = 0.0;            // 0…1: Schnee auf den Oberseiten der Zweige (Gletscher) – folgt der Blattmaske
 
 varying float v_rnd;
 varying float v_rnd2;
 varying float v_h;
+varying vec3 v_wp;
 
 float hash1(vec3 p) {
 	p = fract(p * vec3(0.1031, 0.1030, 0.0973));
 	p += dot(p, p.yxz + 33.33);
 	return fract((p.x + p.y) * p.z);
+}
+
+float vnoise(vec3 p) {
+	vec3 i = floor(p), f = fract(p);
+	vec3 u = f * f * (3.0 - 2.0 * f);
+	return mix(mix(mix(hash1(i), hash1(i + vec3(1, 0, 0)), u.x), mix(hash1(i + vec3(0, 1, 0)), hash1(i + vec3(1, 1, 0)), u.x), u.y),
+	           mix(mix(hash1(i + vec3(0, 0, 1)), hash1(i + vec3(1, 0, 1)), u.x), mix(hash1(i + vec3(0, 1, 1)), hash1(i + vec3(1, 1, 1)), u.x), u.y), u.z);
 }
 
 void vertex() {
@@ -45,6 +54,7 @@ void vertex() {
 	float gust = 0.7 + 0.3 * sin(TIME * 0.4 + wp.x * 0.02);
 	VERTEX.x += (sin(t) + 0.4 * sin(t * 2.3)) * wind * h * gust;
 	VERTEX.z += cos(t * 0.8) * wind * 0.6 * h * gust;
+	v_wp = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
 }
 
 vec3 sat(vec3 c, float s) {
@@ -83,6 +93,16 @@ void fragment() {
 		}
 		col *= mix(0.85, 1.1, v_rnd) ;
 	}
+	// Schnee: auf nach oben weisenden Zweigseiten (Normale nach Vorder-/Rückseite gedreht), fleckig, oben mehr
+	float cover = 0.0;
+	if (snow > 0.0) {
+		vec3 wn = normalize((INV_VIEW_MATRIX * vec4(NORMAL, 0.0)).xyz);
+		float n = vnoise(v_wp * 1.7) * 0.6 + vnoise(v_wp * 6.0) * 0.4;
+		float crown2 = clamp(v_h / max(height_hint, 0.5), 0.0, 1.0);
+		cover = smoothstep(-0.05, 0.45, wn.y + (n - 0.5) * 0.7) * snow * mix(0.8, 1.2, crown2);
+		cover = clamp(cover, 0.0, 1.0);
+		col = mix(col, vec3(0.8, 0.84, 0.9) * mix(0.92, 1.05, n), cover);
+	}
 	ALBEDO = col;
 	// Mipmaps mitteln die Blattmaske weich → ferne Blätter fallen unter die Schwelle und Kronen wirken kahl.
 	// Ausgleich je Mipstufe (vgl. Golus, „Anti-aliased Alpha Test“): Deckung bleibt in jeder Entfernung erhalten.
@@ -94,11 +114,11 @@ void fragment() {
 	ALPHA = a;
 	ALPHA_SCISSOR_THRESHOLD = alpha_cut;
 	ALPHA_ANTIALIASING_EDGE = 0.3;
-	ROUGHNESS = roughness;
+	ROUGHNESS = mix(roughness, 0.92, cover);
 	SPECULAR = leaf > 0.5 ? 0.35 : 0.25;
 	if (use_normal) {
 		NORMAL_MAP = texture(normal_tex, UV).rgb;
 	}
 	// Licht scheint durch die Blätter (gelbgrünes Gegenlicht)
-	BACKLIGHT = leaf > 0.5 ? col * vec3(0.75, 0.85, 0.45) : vec3(0.0);
+	BACKLIGHT = leaf > 0.5 ? col * mix(vec3(0.75, 0.85, 0.45), vec3(0.25), cover) : vec3(0.0);
 }

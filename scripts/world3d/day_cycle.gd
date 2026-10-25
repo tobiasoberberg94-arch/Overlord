@@ -130,12 +130,14 @@ func _apply() -> void:
 	else:
 		# Nacht: die Sonne wird zum Mond (blau, schwach, von der Gegenseite)
 		sun.rotation = Vector3(-lerpf(deg_to_rad(3.0), deg_to_rad(38.0), n), rot.y + PI, rot.z)
-		sun.light_energy = lerpf(0.12, 0.3, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy)) * wk_sun
+		sun.light_energy = lerpf(0.14, 0.42, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy)) * wk_sun
 		sun.light_color = Color(0.62, 0.7, 1.0)
 		sun.shadow_enabled = bool(base.shadow)
 	sky_mat.set_shader_parameter("energy", float(base.sky_energy) * lerpf(0.06, 1.0, d) * wk_sky)
 	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost) * d * wk_sun)
-	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 3.5, n) * wk_amb
+	# Nacht: Umgebungslicht kräftig anheben (Mond, Sterne); in Städten und Dörfern noch etwas mehr (Lichtschein)
+	var town := String(_loc.get("kind", "")) in ["city", "village", "palace", "wall"]
+	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 5.2 if town else 4.4, n) * wk_amb
 	var fog_c := (base.fog_light as Color).lerp(Color(0.06, 0.08, 0.14), n * 0.85).lerp(Color(0.6, 0.35, 0.2), w * 0.35)
 	if weather.has("fog_color"):
 		fog_c = fog_c.lerp(weather.fog_color, 0.6)

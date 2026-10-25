@@ -527,38 +527,6 @@
    [
     "glowbeetle",
     4
-   ],
-   [
-    "chest",
-    1
-   ]
-  ],
-  "tombs": [
-   [
-    "bone_dust",
-    5
-   ],
-   [
-    "relic_shard",
-    2
-   ],
-   [
-    "chest",
-    2
-   ]
-  ],
-  "glacier": [
-   [
-    "iron_ore",
-    6
-   ],
-   [
-    "relic_shard",
-    1
-   ],
-   [
-    "chest",
-    1
    ]
   ],
   "azerlisia": [
@@ -593,22 +561,10 @@
    [
     "chest",
     1
-   ]
-  ],
-  "library": [
+   ],
    [
     "relic_shard",
     2
-   ]
-  ],
-  "lava": [
-   [
-    "dark_essence",
-    2
-   ],
-   [
-    "chest",
-    1
    ]
   ],
   "e_rantel": [
@@ -621,6 +577,38 @@
    [
     "chest",
     1
+   ]
+  ],
+  "drachen": [
+   [
+    "relic_shard",
+    2
+   ]
+  ],
+  "erantel_kanal": [
+   [
+    "relic_shard",
+    1
+   ]
+  ],
+  "katze_gruft": [
+   [
+    "relic_shard",
+    1
+   ],
+   [
+    "dark_essence",
+    2
+   ]
+  ],
+  "erantel_mausoleum": [
+   [
+    "relic_shard",
+    1
+   ],
+   [
+    "dark_essence",
+    2
    ]
   ]
  },

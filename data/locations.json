@@ -14,33 +14,36 @@
      "to": "royal",
      "name": "Treppe: 9. Ebene",
      "at": [
-      -4.0,
+      -4.6,
       0.0,
-      25.0
+      28.6
      ],
-     "yaw": 0
+     "yaw": 0,
+     "braziers": false
     },
     {
      "id": "bibliothek",
      "to": "library",
      "name": "Zur Bibliothek",
      "at": [
-      4.0,
+      4.6,
       0.0,
-      25.0
+      28.6
      ],
-     "yaw": 0
+     "yaw": 0,
+     "braziers": false
     },
     {
      "id": "schatzkammer",
      "to": "treasury",
      "name": "Tor: Schatzkammer",
      "at": [
-      -8.0,
+      -7.9,
       0.0,
-      25.0
+      19.4
      ],
-     "yaw": 0
+     "yaw": 270,
+     "braziers": false
     }
    ]
   },
@@ -54,33 +57,16 @@
    "floor": "tombs",
    "music": "tension",
    "desc": "Endlose Gruften, Särge und die Vampirbräute Shalltears.",
-   "encounters": [
-    {
-     "enemy": "skeleton",
-     "count": 2,
-     "at": [
-      4.4,
-      0.8
-     ]
-    },
-    {
-     "enemy": "skeleton_archer",
-     "count": 1,
-     "at": [
-      6.5,
-      -3.0
-     ]
-    }
-   ],
+   "encounters": [],
    "doors": [
     {
      "id": "ausgang",
      "to": "nazarick_land",
      "name": "Aufstieg: Mausoleum",
      "at": [
-      -4.0,
+      -4.4,
       0.0,
-      49.5
+      53.3
      ],
      "yaw": 0
     },
@@ -89,12 +75,47 @@
      "to": "glacier",
      "name": "Treppe: 5. Ebene",
      "at": [
-      4.0,
+      4.4,
       0.0,
-      49.5
+      53.3
      ],
      "yaw": 0
     }
+   ],
+   "npcs": [
+    {
+     "id": "vampire_bride_1",
+     "line": "Shalltear-sama erwartet Euch, Ainz-sama."
+    },
+    {
+     "id": "vampire_bride_2",
+     "line": "Die Ebenen eins bis drei sind ruhig. Kein Eindringling kam an uns vorbei."
+    },
+    {
+     "id": "vampire_bride_3",
+     "line": "Wir dienen Shalltear-sama – und durch sie Euch, Herr der Toten."
+    }
+   ],
+   "hide_meshes": [
+    "SM_understair02"
+   ],
+   "anchors": {
+    "gate": [
+     0.0,
+     0.0,
+     52.6
+    ]
+   },
+   "plugs": [
+    [
+     0.0,
+     -0.2,
+     55.9,
+     6.6,
+     10.5,
+     0.8,
+     "ashlar"
+    ]
    ]
   },
   {
@@ -181,7 +202,59 @@
      ],
      "yaw": 0
     }
-   ]
+   ],
+   "spots": {
+    "seeds": [
+     [
+      30,
+      45
+     ],
+     [
+      -30,
+      45
+     ],
+     [
+      46,
+      18
+     ],
+     [
+      -46,
+      18
+     ],
+     [
+      50,
+      -16
+     ],
+     [
+      -50,
+      -16
+     ],
+     [
+      30,
+      -46
+     ],
+     [
+      -30,
+      -46
+     ],
+     [
+      0,
+      -56
+     ]
+    ],
+    "avoid": [
+     [
+      0,
+      0,
+      39
+     ],
+     [
+      0,
+      50,
+      11
+     ]
+    ]
+   }
   },
   {
    "id": "lava",
@@ -193,16 +266,7 @@
    "floor": "lava",
    "music": "tension",
    "desc": "Ströme aus Magma, Teufelspaläste und Demiurges Arbeitszimmer.",
-   "encounters": [
-    {
-     "enemy": "death_knight",
-     "count": 1,
-     "at": [
-      0,
-      -24
-     ]
-    }
-   ],
+   "encounters": [],
    "doors": [
     {
      "id": "ebene6",
@@ -226,6 +290,16 @@
      ],
      "yaw": 0
     }
+   ],
+   "npcs": [
+    {
+     "id": "death_knight",
+     "line": "Der Todesritter steht reglos Wache. Er wartet auf einen Befehl."
+    }
+   ],
+   "hide_meshes": [
+    "Plane_001",
+    "Plane_002"
    ]
   },
   {
@@ -258,7 +332,12 @@
       0.0,
       2.2
      ],
-     "yaw": 270
+     "yaw": 270,
+     "style": "nameplate",
+     "plate_z": 1.0,
+     "brazier_sides": [
+      1
+     ]
     },
     {
      "id": "ebene10",
@@ -269,9 +348,21 @@
       0.0,
       -2.2
      ],
-     "yaw": 270
+     "yaw": 270,
+     "style": "nameplate",
+     "plate_z": 1.0,
+     "brazier_sides": [
+      -1
+     ]
     }
-   ]
+   ],
+   "anchors": {
+    "gate": [
+     -10.6,
+     0.0,
+     -4.6
+    ]
+   }
   },
   {
    "id": "library",
@@ -289,13 +380,20 @@
      "to": "throne",
      "name": "Zum Thronsaal",
      "at": [
-      -4.0,
+      -4.5,
       0.0,
-      31.5
+      32.5
      ],
      "yaw": 0
     }
-   ]
+   ],
+   "anchors": {
+    "spawn": [
+     0.0,
+     0.0,
+     29.0
+    ]
+   }
   },
   {
    "id": "treasury",
@@ -319,7 +417,19 @@
      ],
      "yaw": 0
     }
-   ]
+   ],
+   "anchors": {
+    "spawn": [
+     1.5,
+     1.05,
+     111.5
+    ],
+    "gate": [
+     6.5,
+     1.0,
+     114.0
+    ]
+   }
   },
   {
    "id": "nazarick_land",
@@ -642,7 +752,9 @@
      "at": [
       0.0,
       0.0
-     ]
+     ],
+     "night": true,
+     "quest": "q_friedhof_ruhe"
     },
     {
      "enemy": "skeleton_archer",
@@ -650,7 +762,9 @@
      "at": [
       6.0,
       -10.0
-     ]
+     ],
+     "night": true,
+     "quest": "q_friedhof_ruhe"
     },
     {
      "enemy": "elder_lich",
@@ -658,7 +772,8 @@
      "at": [
       0.0,
       -16.0
-     ]
+     ],
+     "night": true
     },
     {
      "enemy": "skeletal_dragon",
@@ -730,7 +845,8 @@
       -0.3,
       77.5
      ],
-     "yaw": 90
+     "yaw": 90,
+     "style": "hatch"
     }
    ],
    "encounters": [

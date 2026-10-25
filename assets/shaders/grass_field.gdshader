@@ -13,6 +13,11 @@ uniform float dry_amount = 0.4;
 uniform float wind = 0.22;
 uniform float fade_start = 40.0;
 uniform float fade_end = 54.0;
+// stufenloses Ausdünnen nach Entfernung: von thin_start bis thin_end bleibt der Anteil thin_keep der Büschel
+uniform float thin_start = 16.0;
+uniform float thin_end = 50.0;
+uniform float thin_keep = 0.3;
+instance uniform float inst_count = 1.0;
 
 varying vec3 v_col;
 varying float v_h;
@@ -40,7 +45,14 @@ void vertex() {
 	// zur Sichtgrenze hin einsinken
 	float d = distance(CAMERA_POSITION_WORLD, origin);
 	float shrink = 1.0 - smoothstep(fade_start, fade_end, d);
-	VERTEX.y *= shrink;
+	// Ausdünnen: Büschel mit hohem Rang werden mit der Entfernung erst niedriger, dann ganz weggelassen
+	float rank = float(INSTANCE_ID) / max(inst_count, 1.0);
+	float keep = mix(1.0, thin_keep, smoothstep(thin_start, thin_end, d));
+	float vanish = smoothstep(keep, keep - 0.12, rank);
+	VERTEX.y *= shrink * vanish;
+	if (vanish <= 0.001) {
+		VERTEX = vec3(0.0);
+	}
 	// Farbe
 	float patch = sin(origin.x * 0.045 + 1.3) * cos(origin.z * 0.052 + 0.4) * 0.5 + 0.5;
 	float patch2 = sin(origin.x * 0.21 - origin.z * 0.17) * 0.5 + 0.5;

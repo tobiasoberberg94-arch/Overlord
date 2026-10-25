@@ -874,6 +874,148 @@ func _ready() -> void:
 		print("SEATSDONE")
 		get_tree().quit()
 		return
+	if only == "parts":
+		# Alle Partikel eines Ortes: PARTLOC=ort – Lage, Anzahl, Lebensdauer, Tempo, Schwerkraft, Pfad
+		w._time_running = false
+		await w.load_location(OS.get_environment("PARTLOC"))
+		await _wait(1.5)
+		for n in w.find_children("*", "GeometryInstance3D", true, false):
+			if n is CPUParticles3D:
+				var c := n as CPUParticles3D
+				print("TEILCHEN CPU %s n=%d leben=%.1f v=%.2f-%.2f g=%s lokal=%s | %s" % [str(c.global_position.snapped(Vector3(0.1, 0.1, 0.1))), c.amount, c.lifetime, c.initial_velocity_min, c.initial_velocity_max, str(c.gravity), c.local_coords, String(w.get_path_to(c)).right(60)])
+			elif n is GPUParticles3D:
+				var gp := n as GPUParticles3D
+				var pm := gp.process_material as ParticleProcessMaterial
+				var info := ""
+				if pm:
+					info = "v=%.2f-%.2f g=%s" % [pm.initial_velocity_min, pm.initial_velocity_max, str(pm.gravity)]
+				print("TEILCHEN GPU %s n=%d leben=%.1f %s lokal=%s sichtbar=%s | %s" % [str(gp.global_position.snapped(Vector3(0.1, 0.1, 0.1))), gp.amount, gp.lifetime, info, gp.local_coords, gp.is_visible_in_tree(), String(w.get_path_to(gp)).right(60)])
+		print("TEILCHENDONE")
+		get_tree().quit()
+		return
+	if only == "walk":
+		# Lauftest: WALK="ort:x,z,winkel,sekunden;…" (Winkel wie RAYS: 0° = -z, 90° = +x) – der Spieler läuft geradeaus;
+		# gemeldet werden Endpunkt, tiefster Punkt und Rücksetzer des Sicherheitsnetzes (aus der Welt gefallen)
+		for spec in OS.get_environment("WALK").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var v := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				w._time_running = false
+				await w.load_location(lid)
+				await _wait(1.0)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			var start: Vector3 = w._on_ground(Vector3(float(v[0]), 2.0, float(v[1])))
+			w.player.global_position = start + Vector3(0, 0.3, 0)
+			w.player.velocity = Vector3.ZERO
+			w.player.cam_yaw = -deg_to_rad(float(v[2]))
+			await _wait(0.4)
+			var miny: float = w.player.global_position.y
+			var secs := float(v[3]) if v.size() > 3 else 6.0
+			var resets := 0
+			var last: Vector3 = w.player.global_position
+			var t := 0.0
+			Input.action_press("move_forward")
+			while t < secs:
+				await get_tree().physics_frame
+				t += get_physics_process_delta_time()
+				w.player.cam_yaw = -deg_to_rad(float(v[2]))
+				var gp: Vector3 = w.player.global_position
+				miny = minf(miny, gp.y)
+				if gp.distance_to(last) > 5.0:
+					resets += 1
+				last = gp
+			Input.action_release("move_forward")
+			var e2: Vector3 = w.player.global_position
+			print("WALK %s von (%.1f, %.1f, %.1f) Richtung %s° %.0f s -> (%.1f, %.1f, %.1f) tiefster Punkt %.1f Rücksetzer %d" % [lid, start.x, start.y, start.z, v[2], secs, e2.x, e2.y, e2.z, miny, resets])
+		print("WALKDONE")
+		get_tree().quit()
+		return
+	if only == "actors":
+		# Figuren eines Ortes: ACTLOC=ort – Kennung, Art, Lage, Blickrichtung und Größe des Modells
+		w._time_running = false
+		await w.load_location(OS.get_environment("ACTLOC"))
+		await _wait(2.0)
+		for ac in w.actors:
+			var an := ac as Node3D
+			var box := AABB()
+			var first := true
+			var mname := ""
+			for mi in an.find_children("*", "MeshInstance3D", true, false):
+				var m := mi as MeshInstance3D
+				if m.mesh == null or not m.is_visible_in_tree():
+					continue
+				var gb: AABB = m.global_transform * m.get_aabb()
+				box = gb if first else box.merge(gb)
+				if first:
+					mname = String(m.name)
+				first = false
+			var fwd := -an.global_transform.basis.z
+			var rig_info := ""
+			if ac.get("rig") != null:
+				var rg := ac.get("rig") as Node3D
+				rig_info = " Rig-Blick (%.2f, %.2f) Rig-Drehung %.0f°" % [-rg.global_transform.basis.z.x, -rg.global_transform.basis.z.z, rg.rotation_degrees.y]
+			print("FIGUR %-18s %-6s @ (%.1f, %.1f, %.1f) Drehung %.0f° Blick (%.2f, %.2f)%s | Modell %s %.1fx%.1fx%.1f ab y=%.1f" % [String(ac.get("id")), String(ac.get("kind")), an.global_position.x, an.global_position.y, an.global_position.z, an.rotation_degrees.y, fwd.x, fwd.z, rig_info, mname.left(24), box.size.x, box.size.y, box.size.z, box.position.y])
+		print("FIGURENDONE")
+		get_tree().quit()
+		return
+	if only == "mats":
+		# Materialien eines Ortes: MATLOC=ort [MATFILTER=teilname] – je Material Anzahl Flächen, Gesamtgröße, Textur ja/nein,
+		# Shader und ein Beispiel-Mesh mit Lage; zum Aufspüren schlechter Oberflächen (Eis ohne Textur …)
+		await w.load_location(OS.get_environment("MATLOC"))
+		await _wait(1.0)
+		var filt := OS.get_environment("MATFILTER").to_lower()
+		var mats := {}
+		for mi in w.level.find_children("*", "GeometryInstance3D", true, false):
+			var m := mi as GeometryInstance3D
+			var msh: Mesh = null
+			var cnt := 1
+			if m is MeshInstance3D:
+				msh = (m as MeshInstance3D).mesh
+			elif m is MultiMeshInstance3D and (m as MultiMeshInstance3D).multimesh:
+				msh = (m as MultiMeshInstance3D).multimesh.mesh
+				cnt = (m as MultiMeshInstance3D).multimesh.instance_count
+			if msh == null or not m.is_visible_in_tree():
+				continue
+			var gb: AABB = m.global_transform * m.get_aabb()
+			for si in msh.get_surface_count():
+				var mat: Material = m.material_override
+				if mat == null and m is MeshInstance3D:
+					mat = (m as MeshInstance3D).get_active_material(si)
+				if mat == null:
+					mat = msh.surface_get_material(si)
+				var nm := String(mat.resource_name) if mat else "-"
+				if nm == "" and mat:
+					nm = mat.get_class()
+					if mat is ShaderMaterial and (mat as ShaderMaterial).shader:
+						nm += ":" + (mat as ShaderMaterial).shader.resource_path.get_file()
+					if m.material_overlay:
+						nm += "+Überzug"
+					nm += ":" + String(m.name).rstrip("0123456789_").left(16)
+				if filt != "" and not (nm.to_lower().contains(filt) or String(m.name).to_lower().contains(filt)):
+					continue
+				if not mats.has(nm):
+					var info := "-"
+					if mat is StandardMaterial3D:
+						var sm := mat as StandardMaterial3D
+						info = "Std tex=%s farbe=%s transp=%d emis=%s" % [sm.albedo_texture != null, sm.albedo_color.to_html(), sm.transparency, sm.emission_enabled]
+					elif mat is ShaderMaterial:
+						var shm := mat as ShaderMaterial
+						var tx: Variant = shm.get_shader_parameter("albedo_tex")
+						var ph: Variant = shm.get_shader_parameter("photo_tex")
+						info = "Shader %s tex=%s photo=%s farbe=%s" % [shm.shader.resource_path.get_file() if shm.shader else "-", tx != null, ph != null, str(shm.get_shader_parameter("albedo_col"))]
+					mats[nm] = {"n": 0, "area": 0.0, "info": info, "ex": "%s @ (%.0f, %.0f, %.0f) %.1fx%.1fx%.1f" % [String(m.name).left(40), gb.get_center().x, gb.position.y, gb.get_center().z, gb.size.x, gb.size.y, gb.size.z]}
+				var e: Dictionary = mats[nm]
+				e.n = int(e.n) + cnt
+				e.area = float(e.area) + gb.size.x * gb.size.z
+		var keys := mats.keys()
+		keys.sort_custom(func(a, b): return float(mats[a].area) > float(mats[b].area))
+		for k in keys.slice(0, 80):
+			var e2: Dictionary = mats[k]
+			print("MAT %-40s n=%4d Fläche %8.0f | %s | %s" % [String(k).left(40), int(e2.n), float(e2.area), e2.info, e2.ex])
+		print("MATSDONE %d" % mats.size())
+		get_tree().quit()
+		return
 	if only == "meshes":
 		# Große Meshes eines Ortes (Gebäude, Grüfte) mit Mittelpunkt und Größe – zum Setzen von Türen und Bühnen:
 		# MESHLOC=ort MESHAT=x,z MESHR=Radius MESHMIN=Mindestgröße
@@ -884,11 +1026,20 @@ func _ready() -> void:
 		var c0 := Vector3(float(at[0]), 0, float(at[1])) if at.size() == 2 else Vector3.ZERO
 		var rad := float(OS.get_environment("MESHR")) if OS.get_environment("MESHR") != "" else 60.0
 		var mn := float(OS.get_environment("MESHMIN")) if OS.get_environment("MESHMIN") != "" else 3.0
+		# MESHNAME="sarg,coffin" – nur Meshes, deren Name eines der Muster enthält
+		var pats := OS.get_environment("MESHNAME").to_lower().split(",", false)
 		var rows: Array = []
 		for mi in w.level.find_children("*", "MeshInstance3D", true, false):
 			var m := mi as MeshInstance3D
 			if m.mesh == null:
 				continue
+			if not pats.is_empty():
+				var hit := false
+				for pt in pats:
+					if String(m.name).to_lower().contains(pt):
+						hit = true
+				if not hit:
+					continue
 			var gb: AABB = m.global_transform * m.get_aabb()
 			var cen := gb.get_center()
 			var dist := Vector2(cen.x - c0.x, cen.z - c0.z).length()
@@ -979,6 +1130,288 @@ func _ready() -> void:
 				chests += 1
 		print("MAUSOLEUM Khajit besiegt: Flagge %s · Truhen %d · Gegner %d" % [Game.has_flag("mausoleum_khajit"), chests, w.enemies.size()])
 		print("MAUSOLEUMDONE")
+		get_tree().quit()
+		return
+	if only == "tour":
+		# TOURRS=Index: Renderauflösung/Hochskalierung (Settings.RENDER_SCALES; 5 = nativ ohne FSR 2) für Vergleiche
+		if OS.get_environment("TOURRS") != "":
+			Settings.render_scale = int(OS.get_environment("TOURRS"))
+			Settings.apply_viewport(get_tree().root)
+		# Rundgang je Ort (TOURLOCS=ort,ort): Ankunft, jede Tür, das Gate, die Funde – Bilder tour_<ort>_*.png und
+		# eine Liste der Gegner, Funde und Figuren. Zeit angehalten, Gegner ruhen.
+		w._time_running = false
+		for lid in OS.get_environment("TOURLOCS").split(",", false):
+			var t0 := Time.get_ticks_msec()
+			await w.load_location(lid)
+			var load_ms := Time.get_ticks_msec() - t0
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(1.2)
+			w.cinematic = true
+			var kinds := {}
+			for pk in w.quest_world.pickups:
+				kinds[pk.kind] = int(kinds.get(pk.kind, 0)) + 1
+			var ens := PackedStringArray()
+			for e in w.enemies:
+				ens.append(e.type_id)
+			var acts := PackedStringArray()
+			for a in w.actors:
+				acts.append(a.id)
+			print("TOUR %s: Ladezeit %d ms · Gegner %d %s · Funde %s · Figuren/Objekte %s" % [lid, load_ms, w.enemies.size(), str(ens), str(kinds), ", ".join(acts)])
+			# TOURENV="ssil,ssr,glow,volfog,sdfgi,ssao": diese Effekte für den Rundgang abschalten (Ursachen eingrenzen)
+			var off := OS.get_environment("TOURENV").split(",", false)
+			if not off.is_empty():
+				for c in w.level.get_children():
+					if c is WorldEnvironment:
+						var ev := (c as WorldEnvironment).environment
+						if "ssil" in off: ev.ssil_enabled = false
+						if "ssr" in off: ev.ssr_enabled = false
+						if "glow" in off: ev.glow_enabled = false
+						if "volfog" in off: ev.volumetric_fog_enabled = false
+						if "sdfgi" in off: ev.sdfgi_enabled = false
+						if "ssao" in off: ev.ssao_enabled = false
+				print("TOUR %s: abgeschaltet %s" % [lid, str(off)])
+			var sp: Vector3 = w.player.global_position
+			var y0: float = w.player.cam_yaw
+			w.player.cam_pitch = -0.15
+			await _wait(0.4)
+			_shot("tour_%s_0_ankunft" % lid)
+			w.player.cam_yaw = y0 + PI
+			await _wait(0.4)
+			_shot("tour_%s_0_ankunft_zurueck" % lid)
+			var k := 0
+			for a in w.actors:
+				var look: Vector3 = a.global_position
+				var from := look + Vector3(0, 0.5, 6.0)
+				if a.has_meta("door"):
+					var dd: Dictionary = a.get_meta("door")
+					var out := Basis(Vector3.UP, deg_to_rad(float(dd.get("yaw", 180.0)))) * Vector3(0, 0, -1)
+					from = look + out * 6.5 + Vector3(0, 0.5, 0)
+				elif a.kind != "object":
+					continue
+				w.player.global_position = from
+				w.player.cam_yaw = atan2(-(look.x - from.x), -(look.z - from.z))
+				w.player.cam_pitch = -0.12
+				await _wait(0.5)
+				_shot("tour_%s_%d_%s" % [lid, k + 1, String(a.id).replace(":", "_")])
+				k += 1
+			var f := 0
+			for pk in w.quest_world.pickups:
+				if f >= 4:
+					break
+				var look2: Vector3 = pk.global_position
+				var from2 := look2 + Vector3(2.6, 1.0, 2.6)
+				w.player.global_position = from2
+				w.player.cam_yaw = atan2(-(look2.x - from2.x), -(look2.z - from2.z))
+				w.player.cam_pitch = -0.3
+				await _wait(0.4)
+				_shot("tour_%s_f%d_%s" % [lid, f, pk.kind])
+				f += 1
+			w.player.global_position = sp
+			w.cinematic = false
+		print("TOURDONE")
+		get_tree().quit()
+		return
+	if only == "rays":
+		# Wandabstände: RAYS="ort:x,z;ort:x,z" – 16 waagerechte Strahlen auf Brusthöhe, Abstand und Körper je Richtung
+		for spec in OS.get_environment("RAYS").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var xz := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				w._time_running = false
+				await w.load_location(lid)
+				await _wait(0.8)
+			var space: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+			var g: Vector3 = w._on_ground(Vector3(float(xz[0]), float(xz[2]) if xz.size() > 2 else 0.0, float(xz[1])))   # optional dritter Wert: Höhe
+			var parts := PackedStringArray()
+			for k in 16:
+				var a := TAU * k / 16.0
+				var dir := Vector3(sin(a), 0.0, -cos(a))
+				var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(g + Vector3.UP * 1.1, g + Vector3.UP * 1.1 + dir * 30.0, 1))
+				var dd := g.distance_to(hit.position) if not hit.is_empty() else 30.0
+				var nm := String((hit.collider as Node).get_parent().name) if not hit.is_empty() and hit.collider is Node and (hit.collider as Node).get_parent() else "-"
+				parts.append("%d°:%.1f(%s)" % [int(rad_to_deg(a)), dd, nm.left(16)])
+			print("RAYS %s (%s, %s) Boden %.2f | %s" % [lid, xz[0], xz[1], g.y, " ".join(parts)])
+		print("RAYSDONE")
+		get_tree().quit()
+		return
+	if only == "plan":
+		# Grundriss unter der Decke: PLAN="ort:x,z,breite,höhe" – senkrechte Draufsicht (orthografisch) aus der angegebenen
+		# Höhe, Norden (-z) oben; Raster alle 5 m (dünn) und 10 m (dick, beschriftet), Türen gelb, Gate violett, Ankunft grün.
+		for spec in OS.get_environment("PLAN").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var v := spec.get_slice(":", 1).split(",")
+			var cx := float(v[0])
+			var cz := float(v[1])
+			var size := float(v[2]) if v.size() > 2 else 60.0
+			var ph := float(v[3]) if v.size() > 3 else 9.0
+			w._time_running = false
+			await w.load_location(lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(1.0)
+			w.cinematic = true
+			var root := Node3D.new()
+			w.level.add_child(root)
+			var gm := B3.mat(Color(1, 1, 1, 0.55), 1.0, 0.0, Color(1, 1, 1), 1.2)
+			var gm2 := B3.mat(Color(1, 0.3, 0.3, 0.7), 1.0, 0.0, Color(1, 0.3, 0.3), 1.6)
+			var x0 := floorf((cx - size * 0.5) / 5.0) * 5.0
+			var z0 := floorf((cz - size * 0.5) / 5.0) * 5.0
+			var steps := int(size / 5.0) + 2
+			for i in steps:
+				var gx := x0 + i * 5.0
+				var gz := z0 + i * 5.0
+				var thick := int(roundf(gx)) % 10 == 0
+				B3.box(root, Vector3(0.12 if thick else 0.05, 0.02, size + 10.0), Vector3(gx, ph - 3.0, cz), gm2 if thick else gm, false)
+				thick = int(roundf(gz)) % 10 == 0
+				B3.box(root, Vector3(size + 10.0, 0.02, 0.12 if thick else 0.05), Vector3(cx, ph - 3.0, gz), gm2 if thick else gm, false)
+				if int(roundf(gx)) % 10 == 0:
+					var lb := Label3D.new()
+					lb.text = "x%d" % int(gx)
+					lb.pixel_size = 0.02
+					lb.font_size = 48
+					lb.modulate = Color(1, 0.4, 0.4)
+					lb.rotation_degrees = Vector3(-90, 0, 0)
+					lb.position = Vector3(gx + 0.8, ph - 2.9, cz - size * 0.45)
+					root.add_child(lb)
+				if int(roundf(gz)) % 10 == 0:
+					var lb2 := Label3D.new()
+					lb2.text = "z%d" % int(gz)
+					lb2.pixel_size = 0.02
+					lb2.font_size = 48
+					lb2.modulate = Color(1, 0.4, 0.4)
+					lb2.rotation_degrees = Vector3(-90, 0, 0)
+					lb2.position = Vector3(cx - size * 0.45, ph - 2.9, gz - 0.8)
+					root.add_child(lb2)
+			var mark := func(pos: Vector3, col: Color) -> void:
+				B3.cyl(root, 0.6, 0.6, 0.1, Vector3(pos.x, ph - 2.8, pos.z), B3.mat(col, 1.0, 0.0, col, 3.0), false, 12)
+			mark.call(w.anchors.spawn, Color(0.2, 1.0, 0.3))
+			if w.anchors.has("gate"):
+				mark.call(w.anchors.gate, Color(0.7, 0.3, 1.0))
+			for a in w.actors:
+				if a.has_meta("door"):
+					mark.call(a.global_position, Color(1.0, 0.85, 0.2))
+			for pk in w.quest_world.pickups:
+				mark.call(pk.global_position, Color(0.3, 0.8, 1.0))
+			var cam := Camera3D.new()
+			cam.projection = Camera3D.PROJECTION_ORTHOGONAL
+			cam.size = size
+			cam.near = 0.05
+			cam.far = ph + 20.0
+			w.add_child(cam)
+			cam.look_at_from_position(Vector3(cx, ph, cz), Vector3(cx, 0, cz), Vector3(0, 0, -1))
+			cam.current = true
+			var menv: Environment = null
+			for c in w.level.get_children():
+				if c is WorldEnvironment:
+					menv = (c as WorldEnvironment).environment
+			if menv:
+				menv.fog_enabled = false
+				menv.volumetric_fog_enabled = false
+				menv.tonemap_exposure = maxf(menv.tonemap_exposure, 1.0) * 1.3
+				menv.ambient_light_energy = maxf(menv.ambient_light_energy, 1.0) * 2.0
+			await _wait(0.8)
+			_shot("plan_" + lid)
+			cam.queue_free()
+			root.queue_free()
+			w.cinematic = false
+		print("PLANDONE")
+		get_tree().quit()
+		return
+	if only == "lookhide":
+		# Ursache eines Effekts eingrenzen: LOOK="ort:x,y,z" – Blick aus 2,6 m auf den Punkt, dann der Reihe nach Klassen in
+		# 1,5 m Umkreis ausblenden (CPU-Partikel, Flammen-Quads, Lichter) und je ein Bild aufnehmen
+		var spec := OS.get_environment("LOOK")
+		var lid := spec.get_slice(":", 0)
+		var v := spec.get_slice(":", 1).split(",")
+		var c0 := Vector3(float(v[0]), float(v[1]), float(v[2]))
+		w._time_running = false
+		await w.load_location(lid)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		w.cinematic = true
+		var fr := OS.get_environment("LOOKFROM").split(",")
+		var from := Vector3(float(fr[0]), float(fr[1]), float(fr[2])) if fr.size() == 3 else c0 + Vector3(-2.2, 0.2, -1.4)
+		w.player.global_position = from + Vector3(0, -1.6, 0)
+		var cam := Camera3D.new()
+		cam.fov = 50.0
+		w.add_child(cam)
+		cam.look_at_from_position(from, c0 + Vector3(0, 0.5, 0))
+		cam.current = true
+		await _wait(0.8)
+		_shot("look_0_alles")
+		var groups := [["CPUParticles3D", "look_1_ohne_partikel"], ["MeshInstance3D", "look_2_ohne_flammen"], ["OmniLight3D", "look_3_ohne_licht"]]
+		for gpair in groups:
+			for n in w.find_children("*", String(gpair[0]), true, false):
+				var n3 := n as Node3D
+				if n3.global_position.distance_to(c0) > 1.5:
+					continue
+				if n3 is MeshInstance3D and not ((n3 as MeshInstance3D).mesh is QuadMesh):
+					continue
+				n3.visible = false
+			await _wait(0.6)
+			_shot(String(gpair[1]))
+		print("LOOKDONE")
+		get_tree().quit()
+		return
+	if only == "near":
+		# Was steckt an einer Stelle? NEAR="ort:x,y,z,r" – alle sichtbaren Geometrien und Partikel im Umkreis mit Klasse,
+		# Pfad, Größe und Material (Textur ja/nein) – zum Aufspüren von Effekten ohne Textur.
+		for spec in OS.get_environment("NEAR").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var v := spec.get_slice(":", 1).split(",")
+			var c0 := Vector3(float(v[0]), float(v[1]), float(v[2]))
+			var rad := float(v[3]) if v.size() > 3 else 2.0
+			if w.loc.get("id", "") != lid:
+				w._time_running = false
+				await w.load_location(lid)
+				await _wait(1.0)
+			for vi in w.find_children("*", "VisualInstance3D", true, false):
+				var vv := vi as VisualInstance3D
+				if not vv.is_visible_in_tree() or vv is GeometryInstance3D:
+					continue
+				var dv := vv.global_position.distance_to(c0)
+				if dv <= rad:
+					var extra := ""
+					if vv is Light3D:
+						extra = " Energie %.2f Nebel %.2f Schatten %s" % [(vv as Light3D).light_energy, (vv as Light3D).light_volumetric_fog_energy, (vv as Light3D).shadow_enabled]
+					print("NEAR %.1f m %s | %s%s" % [dv, String(w.get_path_to(vv)).right(70), vv.get_class(), extra])
+			for gi in w.find_children("*", "GeometryInstance3D", true, false):
+				var g := gi as GeometryInstance3D
+				if not g.is_visible_in_tree():
+					continue
+				var d := g.global_position.distance_to(c0)
+				if d > rad:
+					continue
+				var info := g.get_class() + " "
+				var mat: Material = g.material_override
+				if g is CPUParticles3D:
+					var cp := g as CPUParticles3D
+					info = "CPU-Partikel %d" % cp.amount
+					if cp.mesh:
+						mat = cp.mesh.surface_get_material(0) if cp.mesh.get_surface_count() > 0 else null
+						if mat == null and cp.mesh is PrimitiveMesh:
+							mat = (cp.mesh as PrimitiveMesh).material
+				elif g is GPUParticles3D:
+					var gp := g as GPUParticles3D
+					info = "GPU-Partikel %d" % gp.amount
+					if mat == null and gp.draw_pass_1 is PrimitiveMesh:
+						mat = (gp.draw_pass_1 as PrimitiveMesh).material
+				elif g is MeshInstance3D:
+					var mi := g as MeshInstance3D
+					var ab := mi.get_aabb()
+					info = "Mesh %s %.2fx%.2fx%.2f" % [mi.mesh.get_class() if mi.mesh else "-", ab.size.x, ab.size.y, ab.size.z]
+					if mat == null and mi.mesh and mi.mesh.get_surface_count() > 0:
+						mat = mi.get_active_material(0)
+				var mi2 := "-"
+				if mat is StandardMaterial3D:
+					var sm := mat as StandardMaterial3D
+					mi2 = "Std tex=%s billboard=%d blend=%d" % [sm.albedo_texture != null, sm.billboard_mode, sm.blend_mode]
+				elif mat is ShaderMaterial:
+					mi2 = "Shader %s" % String((mat as ShaderMaterial).shader.resource_path.get_file() if (mat as ShaderMaterial).shader else "-")
+				print("NEAR %.1f m %s | %s | %s" % [d, String(w.get_path_to(g)).right(70), info, mi2])
+		print("NEARDONE")
 		get_tree().quit()
 		return
 	if only == "probe":
@@ -1289,6 +1722,20 @@ func _ready() -> void:
 		await _wait(0.6)
 		for c in w.overlay_layer.get_children():
 			c.queue_free()
+		# HIDE="muster,muster" – Teile des Ortes für die Aufnahmen ausblenden (Zuordnung einzelner Modellteile)
+		# PROBEMATS="x,y,z" – Musterklötze der Fotomaterialien nebeneinander (Klasse/Foto), um schwarze Materialien zu finden
+		var pmv := OS.get_environment("PROBEMATS").split(",", false)
+		if pmv.size() == 3:
+			var base := Vector3(float(pmv[0]), float(pmv[1]), float(pmv[2]))
+			var specs := [["bark", "wood"], ["planks", "wood"], ["logs", "wood"], ["wood", "wood"], ["limestone", "stone"], ["cliff", "stone"], ["planks", "plaster"], ["bark", "stone"]]
+			for k in specs.size():
+				var sp: Array = specs[k]
+				var pm := BuildingLook.photo_material(String(sp[0]), String(sp[1]), Color(1, 1, 1), 0.1)
+				B3.box(w.level, Vector3(0.5, 0.5, 0.5), base + Vector3((k - 3.5) * 0.7, 0.25, 0), pm, false)
+				B3.box(w.level, Vector3(0.5, 0.5, 0.5), base + Vector3((k - 3.5) * 0.7, 1.6, 0), pm, false)
+		for pat in OS.get_environment("HIDE").split(",", false):
+			for hn in w.level.find_children(pat, "Node3D", true, false):
+				(hn as Node3D).visible = false
 		# ein paar Schritte vorwärts
 		w.player.velocity = Vector3.ZERO
 		Input.action_press("move_forward")
@@ -2580,7 +3027,9 @@ func _bench_ab(w: Node, vrid: RID) -> void:
 		["Streu-Laub", func(on): hide.call(w.level.find_children("*", "MultiMeshInstance3D", true, false).filter(func(m): return not m is GrassField and m.get_parent() and not m.get_parent() is GrassField), on)],
 		["Punktlichter", func(on): hide.call(w.level.find_children("*", "OmniLight3D", true, false) + w.level.find_children("*", "SpotLight3D", true, false), on)],
 		["Partikel", func(on): hide.call(w.level.find_children("*", "GPUParticles3D", true, false), on)],
-		["Bewohner", func(on): hide.call(w.level.find_children("Townsfolk", "", true, false), on)],
+		["Bewohner", func(on): hide.call(w.level.find_children("*", "Townsfolk", true, false), on)],
+		["Figuren", func(on): hide.call(w.actors, on)],
+		["Gegner", func(on): hide.call(w.enemies, on)],
 	]
 	if OS.get_environment("BENCHSET") == "forest":
 		# Wald im Detail: welche Pflanzengruppe kostet im Bild bzw. im Schattendurchgang?

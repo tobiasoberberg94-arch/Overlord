@@ -1051,6 +1051,54 @@
    "cape": "#5a1a2a",
    "crown": true,
    "eyes": "#4a4a4a"
+  },
+  "vampire_bride_1": {
+   "scale": 0.95,
+   "skin": "#f4e8ea",
+   "hair": [
+    "#121016",
+    "long"
+   ],
+   "top": "#2a0a14",
+   "bottom": [
+    "gown",
+    "#4a0b18"
+   ],
+   "trim": "#8a1020",
+   "eyes": "#ff2030",
+   "female": true
+  },
+  "vampire_bride_2": {
+   "scale": 0.95,
+   "skin": "#f4e8ea",
+   "hair": [
+    "#e8e6ee",
+    "long"
+   ],
+   "top": "#1a0a12",
+   "bottom": [
+    "gown",
+    "#5a0b18"
+   ],
+   "trim": "#8a1020",
+   "eyes": "#ff2030",
+   "female": true
+  },
+  "vampire_bride_3": {
+   "scale": 0.95,
+   "skin": "#f4e8ea",
+   "hair": [
+    "#5a0b18",
+    "ponytail"
+   ],
+   "top": "#22080e",
+   "bottom": [
+    "gown",
+    "#3a0612"
+   ],
+   "trim": "#8a1020",
+   "eyes": "#ff2030",
+   "female": true
   }
  }
 }

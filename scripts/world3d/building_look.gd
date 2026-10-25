@@ -30,6 +30,8 @@ const PHOTOS := {
 	"basalt": ["terrain", "dark_rock_02", 3.4],
 	"cliff": ["terrain", "rock_face_03", 3.0],
 	"logs": ["build", "medieval_wood", 1.8],
+	"mossrock": ["terrain", "mossy_rock", 2.6],
+	"snow": ["terrain", "snow_02", 3.0],
 }
 
 ## Je Ortsart: Verwitterung w = [Moos, Staub, Regenspuren, Sockelschmutz], Dachfarben roofs = [dunkler Schiefer,

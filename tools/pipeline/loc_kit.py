@@ -91,13 +91,13 @@ class Kit:
         return Vector(self.tpl(name).dimensions)
 
     def put(self, name, x, y, z=None, rot=0.0, s=1.0, sz=None, rx=0.0, anchor="bottom", nocol=False, sink=0.0,
-            origin=False):
+            origin=False, sx=None):
         """Instanz platzieren; Unterkante auf den Boden (z=None) bzw. auf z.
         nocol-Instanzen (Gras, Blumen, Kleinkram) werden nur vorgemerkt und beim Export je Kachel
         direkt zu einem Mesh zusammengesetzt – tausende Objekte wären in Blender quadratisch langsam."""
         t = self.tpl(name)
         m = (Matrix.Rotation(math.radians(rot), 4, "Z") @ Matrix.Rotation(math.radians(rx), 4, "X")
-             @ Matrix.Diagonal((s, s, s if sz is None else sz, 1.0)))
+             @ Matrix.Diagonal((s if sx is None else sx, s, s if sz is None else sz, 1.0)))
         bb = [m @ Vector(c) for c in t.bound_box]
         lo = Vector((min(v.x for v in bb), min(v.y for v in bb), min(v.z for v in bb)))
         hi = Vector((max(v.x for v in bb), max(v.y for v in bb), max(v.z for v in bb)))

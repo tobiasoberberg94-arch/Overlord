@@ -62,7 +62,7 @@ func spawn_pickups() -> void:
 		total += int(e[1])
 	var picked: Dictionary = _picked()
 	var day := int(Game.state.day)
-	var spots := _spots(total + 6, hash(lid))
+	var spots := _spots(total + 6, hash(lid), "edge")
 	var idx := 0
 	for e in list:
 		for i in int(e[1]):
@@ -77,6 +77,8 @@ func spawn_pickups() -> void:
 			var p := Pickup.chest() if e[0] == "chest" else Pickup.material_pickup(e[0], 1)
 			p.key = key
 			_place(p, pos)
+			if e[0] == "chest":
+				_face_open(p)
 	# Einzigartiges für laufende Quests
 	for item in Quests.data.get("uniques", {}):
 		var u: Dictionary = Quests.data.uniques[item]
@@ -143,23 +145,38 @@ func spawn_discoveries() -> void:
 		return
 	# Inschriften und Schreine stehen frei und sichtbar (Wegrand, Lichtung); Verstecke liegen hinter Deckung
 	# (Fels, Mauer, Stamm) und weiter draußen – wer sucht, findet sie, wer nur durchläuft, nicht.
-	var open_spots := _spots(lore.size() + int(d.get("shrines", 1)) + 2, hash(lid + "entdeckung"), "open")
+	# In den gebauten Hallen Nazaricks hängen Inschriften als Steintafeln an der Wand, sonst stehen sie am Wegrand
+	var halls: bool = w.loc.group == "nazarick" and String(w.loc.get("kind", "")) in ["throne", "tombs", "royal", "library", "treasury"]
+	var open_spots := _wall_spots(lore.size() + int(d.get("shrines", 1)) + 2, hash(lid + "entdeckung")) if halls else _spots(lore.size() + int(d.get("shrines", 1)) + 2, hash(lid + "entdeckung"), "edge")
 	var hidden := _spots(int(d.get("caches", 2)) + 2, hash(lid + "versteck"), "hidden")
 	if hidden.size() < int(d.get("caches", 2)):
-		hidden += _spots(int(d.get("caches", 2)) - hidden.size() + 1, hash(lid + "versteck2"), "open")
+		hidden += _spots(int(d.get("caches", 2)) - hidden.size() + 1, hash(lid + "versteck2"), "edge")
 	var i := 0
 	var oi := 0
 	var shrine_names := ["Schrein der Sechs Götter", "Altar des Kriegers", "Quelle des Lebens"]
 	for e in lore:
-		if oi >= open_spots.size():
-			break
+		# dritter Eintrag: {"vis": Gestalt, "at": [x, y, z], "yaw": Grad} – feste Plätze und passende Gestalt
+		var opt: Dictionary = e[2] if (e as Array).size() > 2 else {}
+		if not opt.has("at") and oi >= open_spots.size():
+			i += 1
+			continue
 		var p := Pickup.discovery("lore", e[0], e[1])
+		if opt.has("vis"):
+			p.set_meta("style", String(opt.vis))
+		elif halls:
+			p.set_meta("style", "tablet")
 		p.key = "d:%s:%d" % [lid, i]
 		p.set_meta("done", picked.has(p.key))
-		_place(p, open_spots[oi])
-		_face_open(p)
+		if opt.has("at"):
+			var at: Array = opt.at
+			# auf die Fläche, die der angegebenen Höhe am nächsten liegt (in Hallen nicht aufs Dach, Tischplatten möglich)
+			_place(p, w._on_ground(Vector3(float(at[0]), float(at[1]), float(at[2]))))
+			p.rotation.y = deg_to_rad(float(opt.get("yaw", 0.0)))
+		else:
+			_place(p, open_spots[oi])
+			_face_open(p)
+			oi += 1
 		i += 1
-		oi += 1
 	for k in int(d.get("shrines", 1)):
 		if oi >= open_spots.size():
 			break
@@ -179,6 +196,75 @@ func spawn_discoveries() -> void:
 			p.key = key
 			_place(p, hidden[k])
 		i += 1
+
+
+## Plätze direkt vor einer Wand (Hallen Nazaricks): von zufälligen Punkten nahe der Ankerpunkte waagerecht zur Wand
+## peilen und 0,55 m davor auf den Boden setzen. Davor 2,5 m frei, seitlich nicht eingeklemmt, Abstand zu Türen, Gate,
+## Ankunft und untereinander.
+func _wall_spots(n: int, seed_v: int) -> Array:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_v
+	var space: PhysicsDirectSpaceState3D = w.player.get_world_3d().direct_space_state
+	var seeds: Array = [w.anchors.spawn]
+	seeds += w.anchors.get("slots", [])
+	var avoid: Array = [w.anchors.spawn]
+	if w.anchors.has("gate"):
+		avoid.append(w.anchors.gate)
+	for a in w.actors:
+		if a.kind == "object":
+			avoid.append(a.global_position)
+	var out: Array = []
+	var tries := 0
+	while out.size() < n and tries < n * 90:
+		tries += 1
+		var s: Vector3 = seeds[rng.randi() % seeds.size()]
+		var a := rng.randf() * TAU
+		var dir := Vector3(cos(a), 0.0, sin(a))
+		var o := s + Vector3(rng.randf_range(-3.0, 3.0), 1.2, rng.randf_range(-3.0, 3.0))
+		var hit := space.intersect_ray(PhysicsRayQueryParameters3D.create(o, o + dir * 16.0, 1))
+		if hit.is_empty():
+			continue
+		var nrm: Vector3 = hit.normal
+		nrm.y = 0.0
+		if nrm.length() < 0.7:
+			continue
+		nrm = nrm.normalized()
+		var q: Vector3 = (hit.position as Vector3) + nrm * 0.55
+		var g := space.intersect_ray(PhysicsRayQueryParameters3D.create(q + Vector3.UP * 0.6, q - Vector3.UP * 3.0))
+		if g.is_empty() or (g.normal as Vector3).y < 0.9:
+			continue
+		var p: Vector3 = g.position
+		if absf(p.y - s.y) > 1.0:
+			continue
+		# eine echte Wand reicht über Kopfhöhe: Stufenkanten, Sockel und Tischkanten sind keine (sonst stand die Tafel
+		# mitten auf einer Treppe)
+		var tall := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 2.3, p + Vector3.UP * 2.3 - nrm * 1.2, 1))
+		if tall.is_empty() or absf((tall.normal as Vector3).y) > 0.3:
+			continue
+		# in der Halle: Decke darüber und vom Ankerpunkt aus zu sehen (nicht an der Außenseite der Mauern)
+		if space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.5, p + Vector3.UP * 30.0, 1)).is_empty():
+			continue
+		if not space.intersect_ray(PhysicsRayQueryParameters3D.create(s + Vector3.UP * 1.2, p + Vector3.UP * 1.2 + nrm * 0.3, 1)).is_empty():
+			continue
+		if not space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.0, p + Vector3.UP * 1.0 + nrm * 2.5, 1)).is_empty():
+			continue
+		var side := Vector3(-nrm.z, 0.0, nrm.x)
+		var cramped := false
+		for sg in [-1.0, 1.0]:
+			if not space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.0, p + Vector3.UP * 1.0 + side * sg * 0.7, 1)).is_empty():
+				cramped = true
+		if cramped:
+			continue
+		var ok := true
+		for av in avoid:
+			if (av as Vector3).distance_to(p) < 4.5:
+				ok = false
+		for o2 in out:
+			if (o2 as Vector3).distance_to(p) < 6.0:
+				ok = false
+		if ok:
+			out.append(p)
+	return out
 
 
 ## Inschrift/Schrein zur freien Seite drehen (von der nächsten Deckung weg, sonst zum Startpunkt).
@@ -417,6 +503,14 @@ func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 	seeds += w.anchors.get("slots", [])
 	if w.anchors.has("keeper"):
 		seeds.append(w.anchors.keeper)
+	# Suchmitten und Sperrkreise aus den Ortsdaten ("spots")
+	var cfg: Dictionary = w.loc.get("spots", {})
+	if cfg.has("seeds"):
+		seeds = []
+		for sd in cfg.seeds:
+			var sa: Array = sd
+			seeds.append(_ground_at(Vector3(float(sa[0]), 0.0, float(sa[1]))))
+	var avoid_c: Array = cfg.get("avoid", [])
 	# indoor: Hallen Nazaricks (Decke über allem, kurze Strahlen); dense: Städte – unter freiem Himmel, aber eng,
 	# darum kurze Reichweiten wie drinnen. Der Strahl kommt in Städten von oben, damit Dächer erkannt werden.
 	var indoor: bool = w.loc.group in ["nazarick", "interior"]
@@ -453,19 +547,40 @@ func _spots(n: int, seed_v: int, mode: String = "any") -> Array:
 			continue
 		if p.distance_to(w.anchors.spawn) < (5.0 if mode != "hidden" else 14.0):
 			continue
+		var barred := false
+		for av in avoid_c:
+			var aa: Array = av
+			if Vector2(p.x - float(aa[0]), p.z - float(aa[1])).length() < float(aa[2]):
+				barred = true
+		if barred:
+			continue
 		if mode != "any":
 			# Deckung ringsum messen: nächste Kollision in 8 Richtungen auf Brusthöhe
 			var near := INF
+			var ndir := Vector3.ZERO
 			for k in 8:
 				var da := TAU * k / 8.0
 				var dir := Vector3(cos(da), 0.0, sin(da))
 				var h2 := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.0, p + Vector3.UP * 1.0 + dir * 3.0, 1))
 				if not h2.is_empty():
-					near = minf(near, p.distance_to(h2.position))
+					var dd2 := p.distance_to(h2.position)
+					if dd2 < near:
+						near = dd2
+						ndir = dir
 			if mode == "open" and near < 2.5:
 				continue
 			if mode == "hidden" and (near < 0.9 or near > 2.5):
 				continue
+			if mode == "edge" or mode == "wall":
+				# Wegrand: dicht an Fels, Mauer, Stamm oder Wand (wall: direkt davor), die freie Seite muss weit sein –
+				# so steht nichts mitten im Weg oder in einer Engstelle
+				var lo := 0.35 if mode == "wall" else 0.7
+				var hi := 0.9 if mode == "wall" else 2.0
+				if near < lo or near > hi:
+					continue
+				var back := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3.UP * 1.0, p + Vector3.UP * 1.0 - ndir * 3.5, 1))
+				if not back.is_empty():
+					continue
 		var ok := true
 		for o in out:
 			if (o as Vector3).distance_to(p) < 4.0:

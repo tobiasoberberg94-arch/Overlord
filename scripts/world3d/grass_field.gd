@@ -6,7 +6,10 @@ extends Node3D
 ## Gelände-Mesh (Ground, tools/pipeline/loc_kit.py), auf Bauwerken/Felsen wächst nichts (Strahltest).
 
 const CHUNK := 16.0
-const NEAR := 20.0              ## volle Dichte
+const NEAR := 30.0              ## volle Büschel bis hier (nächster Punkt der Kachel), dahinter das dünnere Büschel
+const THIN_START := 16.0        ## ab hier dünnt das Gras stufenlos aus (Shader) …
+const THIN_END := 50.0          ## … bis auf THIN_KEEP der Büschel
+const THIN_KEEP := 0.3
 const FAR := 54.0               ## ausgedünnt bis hier
 const DENSITY := 10.0           ## Büschel je m² (nah)
 const FLOWERS := 0.35           ## Blumen je m²
@@ -49,6 +52,12 @@ static func create(ground: MeshInstance3D, tint: Dictionary = {}) -> GrassField:
 	g._mesh_near = GrassBlades.tuft(44, 3, 0.3, tint)
 	g._mesh_mid = GrassBlades.tuft(16, 2, 0.34, tint)
 	g._mesh_flower = GrassBlades.flowers(tint)
+	for m in [g._mesh_near, g._mesh_mid]:
+		var sm := (m as ArrayMesh).surface_get_material(0) as ShaderMaterial
+		if sm:
+			sm.set_shader_parameter("thin_start", THIN_START * range_scale)
+			sm.set_shader_parameter("thin_end", THIN_END * range_scale)
+			sm.set_shader_parameter("thin_keep", THIN_KEEP)
 	return g
 
 
@@ -172,16 +181,25 @@ func _process(_delta: float) -> void:
 		_built += 1
 		if _built % 40 == 0 and OS.get_environment("GRASS_DEBUG") != "":
 			print("GRAS: %d Kacheln, Ø %.1f ms je Kachel" % [_built, _build_us / 1000.0 / _built])
-	# Detailstufe je Kachel
+	# Detailstufe je Kachel nach ihrem nächsten Punkt (nicht der Mitte): Büschelform und Anzahl der gezeichneten
+	# Büschel; das sichtbare Ausdünnen macht der Shader je Büschel, darum springt beim Gehen nichts
+	var rs := range_scale
 	for k in _chunks:
 		var c: Dictionary = _chunks[k]
-		var d := Vector2((k.x + 0.5) * CHUNK, (k.y + 0.5) * CHUNK).distance_to(Vector2(p.x, p.z))
+		var qx := clampf(p.x, k.x * CHUNK, (k.x + 1) * CHUNK)
+		var qz := clampf(p.z, k.y * CHUNK, (k.y + 1) * CHUNK)
+		var dn := Vector2(qx - p.x, qz - p.z).length()
 		var mmi: MultiMeshInstance3D = c.grass
-		var near := d < NEAR * range_scale
+		var near := dn < NEAR * rs
 		if near != bool(c.get("near", false)) or not c.has("near"):
 			c["near"] = near
 			mmi.multimesh.mesh = _mesh_near if near else _mesh_mid
-			mmi.multimesh.visible_instance_count = -1 if near else int(mmi.multimesh.instance_count * 0.28)
+		var n_all := mmi.multimesh.instance_count
+		var keep := lerpf(1.0, THIN_KEEP, smoothstep(THIN_START * rs, THIN_END * rs, dn))
+		var vis := mini(n_all, int(ceil(n_all * keep)) + 2)
+		if absi(vis - int(c.get("vis", -1))) > maxi(8, n_all / 50):
+			c["vis"] = vis
+			mmi.multimesh.visible_instance_count = vis
 
 
 func _build(k: Vector2i) -> void:
@@ -239,9 +257,15 @@ func _build(k: Vector2i) -> void:
 			print("GRAS   Büschel bei %s, Boden (Strahl) %s, Maßstab %s" % [tp, rr.get("position", "kein Treffer"), xforms[j].basis.get_scale()])
 		print("GRAS Kachel %s: offen %d/%d Zellen, Büschel %d (Soll %d), Blumen %d" % [k, opened, cells * cells, xforms.size(), count, fl.size()])
 	var c := {}
-	c["grass"] = _mmi(_mesh_near, xforms, FAR * range_scale)
+	# Sichtgrenze der Kachel hinter dem Einsinken des Grases (Mitte + halbe Diagonale), sonst verschwindet sie,
+	# während ihr vorderer Teil noch steht
+	var gmi := _mmi(_mesh_near, xforms, FAR * range_scale + CHUNK * 0.75)
+	gmi.set_instance_shader_parameter("inst_count", float(maxi(xforms.size(), 1)))
+	c["grass"] = gmi
 	if not fl.is_empty():
-		c["flowers"] = _mmi(_mesh_flower, fl, 30.0)
+		var fmi := _mmi(_mesh_flower, fl, 30.0)
+		fmi.set_instance_shader_parameter("inst_count", float(fl.size()))
+		c["flowers"] = fmi
 	_chunks[k] = c
 
 

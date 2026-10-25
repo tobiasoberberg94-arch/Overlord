@@ -856,13 +856,17 @@ static func prewarm(parent: Node3D, cam: Camera3D) -> void:
 	if parent == null or cam == null or not parent.is_inside_tree() or OS.get_environment("NO_PREWARM") != "":
 		return
 	var at := cam.global_position - cam.global_basis.z * 3.0
+	# durchsichtig getönt und nach wenigen Bildern wieder weg: vorher flogen nach jeder Ankunft weiße Funken (bis 16 m/s)
+	# noch zwei Sekunden lang durchs Bild, während der Ladeschleier schon aufging
 	for k in PREWARM:
-		burst(parent, k, at, Color(1, 1, 1), Vector3.UP, 0.2)
+		var b := burst(parent, k, at, Color(0, 0, 0, 0), Vector3.UP, 0.2)
+		if b:
+			b.get_tree().create_timer(0.12, false).timeout.connect(b.queue_free)
 	for k in ["trail_fire", "trail_smoke", "trail_motes", "trail_wisps", "aura", "burning"]:
-		var e := emitter(parent, k, Color(1, 1, 1))
+		var e := emitter(parent, k, Color(0, 0, 0, 0))
 		if e:
 			e.global_position = at
-			e.get_tree().create_timer(0.3, false).timeout.connect(e.queue_free)
+			e.get_tree().create_timer(0.12, false).timeout.connect(e.queue_free)
 	GroundMark.prewarm(parent, at)
 	SlashFX.prewarm(parent, at)
 	SpellFX.prewarm(parent, at)

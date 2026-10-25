@@ -3,6 +3,15 @@ class_name B3
 ## Lichter, Feuer, Bäume, Häuser, Mauern … alles prozedural, ohne externe Modelle.
 
 static var _mats: Dictionary = {}
+static var _fx_tex: Dictionary = {}
+
+
+## Weiche Partikel-Textur aus assets/textures/fx: fx_dot = runder Lichtpunkt, fx_smoke = 2×2-Atlas weicher Schwaden,
+## fx_streak = Schliere. Ohne Textur zeichnen Partikel harte Quadrate.
+static func fx_tex(name: String) -> Texture2D:
+	if not _fx_tex.has(name):
+		_fx_tex[name] = load("res://assets/textures/fx/%s.png" % name)
+	return _fx_tex[name]
 
 
 # =====================================================================
@@ -209,46 +218,114 @@ static func brazier(parent: Node, pos: Vector3, color: Color = Color(1.0, 0.55, 
 		return
 	cyl(parent, 0.35, 0.15, 1.1, pos + Vector3(0, 0.55, 0), mat(Color(0.12, 0.1, 0.1), 0.6, 0.6), solid, 10)
 	cyl(parent, 0.5, 0.3, 0.25, pos + Vector3(0, 1.2, 0), mat(Color(0.75, 0.58, 0.2), 0.35, 0.9), false, 12)
-	sphere(parent, 0.28, pos + Vector3(0, 1.45, 0), mat(color, 1.0, 0.0, color, 4.0), Vector3(1, 1.4, 1))
+	sphere(parent, 0.3, pos + Vector3(0, 1.33, 0), coal_mat(color), Vector3(1, 0.22, 1))
 	var l := light(parent, pos + Vector3(0, 1.8, 0), color, 2.2, 9.0)
 	l.set_meta("flicker", true)
 	fire(parent, pos + Vector3(0, 1.45, 0), color)
 
 
+static var _coal_mats: Dictionary = {}
+
+
+## Glimmende Kohlen in der Farbe des Feuers: kleine dunkle Brocken mit glühenden Fugen, pulsierend (Lava-Shader).
+static func coal_mat(color: Color) -> ShaderMaterial:
+	var key := color.to_html()
+	if _coal_mats.has(key):
+		return _coal_mats[key]
+	var m := ShaderMaterial.new()
+	m.shader = load("res://assets/shaders/lava.gdshader")
+	m.set_shader_parameter("scale", 3.2)
+	m.set_shader_parameter("wobble", 0.0)
+	m.set_shader_parameter("speed", 0.012)
+	m.set_shader_parameter("glow", 1.8)
+	m.set_shader_parameter("hot", color)
+	m.set_shader_parameter("core", color.lightened(0.55))
+	_coal_mats[key] = m
+	return m
+
+
+static var _flame_mats: Dictionary = {}
+
+
+## Flammenmaterial je Farbe (assets/shaders/fx/flame.gdshader): Kern hell, Rand gesättigt; gecacht.
+static func _flame_mat(color: Color) -> ShaderMaterial:
+	var key := color.to_html()
+	if _flame_mats.has(key):
+		return _flame_mats[key]
+	var m := ShaderMaterial.new()
+	m.shader = load("res://assets/shaders/fx/flame.gdshader")
+	m.set_shader_parameter("noise_tex", fx_tex("fx_noise"))
+	m.set_shader_parameter("col_core", color.lightened(0.55))
+	m.set_shader_parameter("col_outer", color)
+	_flame_mats[key] = m
+	return m
+
+
+## Feuer: ein bis drei flackernde Flammenzungen (Shader auf Quads, drehen sich zur Kamera), Größe nach amount
+## (10 ≈ Fackel, 24 ≈ Feuerschale, 40 ≈ Kamin), dazu aufsteigende Funken. Rückgabe: die Funken.
 static func fire(parent: Node, pos: Vector3, color: Color, amount: int = 24) -> CPUParticles3D:
+	var h := clampf(0.35 + amount * 0.02, 0.4, 1.3)
+	var n := 1 if amount < 12 else (2 if amount < 26 else 3)
+	for i in n:
+		var hh := h * (1.0 if i == 0 else randf_range(0.68, 0.85))
+		var q := QuadMesh.new()
+		q.size = Vector2(hh * 0.72, hh)
+		var mi := MeshInstance3D.new()
+		mi.name = "Flame"
+		mi.mesh = q
+		mi.material_override = _flame_mat(color)
+		mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mi.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+		var off := Vector3.ZERO if i == 0 else Vector3(randf_range(-0.2, 0.2), 0.0, randf_range(-0.2, 0.2)) * h
+		mi.position = pos + off + Vector3(0, hh * 0.46, 0)
+		parent.add_child(mi)
+		mi.set_instance_shader_parameter("seed", randf() * 10.0)
+	return _sparks(parent, pos + Vector3(0, h * 0.35, 0), color, maxi(3, amount / 5))
+
+
+## Funken: wenige kleine, weiche Lichtpunkte, die aufsteigen und verglimmen.
+static func _sparks(parent: Node, pos: Vector3, color: Color, amount: int) -> CPUParticles3D:
 	var p := CPUParticles3D.new()
 	p.position = pos
 	p.amount = amount
-	p.lifetime = 0.9
+	p.lifetime = 1.0
 	p.direction = Vector3.UP
-	p.spread = 18.0
-	p.initial_velocity_min = 0.6
-	p.initial_velocity_max = 1.4
-	p.gravity = Vector3(0, 0.6, 0)
-	p.scale_amount_min = 0.08
-	p.scale_amount_max = 0.18
+	p.spread = 24.0
+	p.initial_velocity_min = 0.5
+	p.initial_velocity_max = 1.3
+	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	p.emission_sphere_radius = 0.1
+	p.gravity = Vector3(0, 0.3, 0)
+	p.scale_amount_min = 0.018
+	p.scale_amount_max = 0.035
 	var qm := QuadMesh.new()
 	qm.size = Vector2(1, 1)
 	var m := StandardMaterial3D.new()
 	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_ENABLED
-	m.billboard_keep_scale = true
+	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
 	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
 	m.vertex_color_use_as_albedo = true
+	m.albedo_texture = fx_tex("fx_dot")
+	m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+	# Partikel-Billboards verwerfen ohne keep_scale die Partikelgröße (sonst wird jeder Funke 1 m groß)
+	m.billboard_keep_scale = true
+	m.disable_receive_shadows = true
 	qm.material = m
 	p.mesh = qm
 	var g := Gradient.new()
-	g.set_color(0, color.lightened(0.3))
-	g.set_color(1, Color(color, 0.0))
+	g.set_color(0, Color(color.lightened(0.4), 0.0))
+	g.add_point(0.1, Color(color.lightened(0.35), 0.9))
+	g.set_color(g.get_point_count() - 1, Color(color, 0.0))
 	p.color_ramp = g
 	parent.add_child(p)
 	return p
 
 
-## Schwebende Lichtpartikel (Staub, Glühwürmchen, Schnee, Asche).
+## Schwebende Lichtpartikel (Staub, Glühwürmchen, Schnee, Asche); nahe der Kamera blenden sie aus (sonst blühen
+## sie zu großen, verschwommenen Kugeln auf).
 static func motes(parent: Node, center: Vector3, extent: Vector3, color: Color, amount: int = 60, fall: float = 0.0) -> void:
-	var p := fire(parent, center, color, amount)
+	var p := _sparks(parent, center, color, amount)
 	p.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
 	p.emission_box_extents = extent
 	p.lifetime = 6.0
@@ -258,17 +335,71 @@ static func motes(parent: Node, center: Vector3, extent: Vector3, color: Color, 
 	p.initial_velocity_max = 0.25 + fall
 	p.gravity = Vector3(0, -fall * 0.5, 0)
 	p.scale_amount_min = 0.03
-	p.scale_amount_max = 0.07
+	p.scale_amount_max = 0.06
+	var dim := Color(color.r * 0.7, color.g * 0.7, color.b * 0.7, color.a * 0.8)
+	var g := Gradient.new()
+	g.set_color(0, Color(dim, 0.0))
+	g.add_point(0.2, dim)
+	g.add_point(0.8, dim)
+	g.set_color(g.get_point_count() - 1, Color(dim, 0.0))
+	p.color_ramp = g
+	var m := (p.mesh as QuadMesh).material as StandardMaterial3D
+	m.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+	m.distance_fade_min_distance = 0.8
+	m.distance_fade_max_distance = 3.2
+	if fall > 0.0:
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_MIX
 
 
+static var _crystal_mats: Dictionary = {}
+
+
+## Kristallgruppe: eine hohe Nadel und drei bis vier kleinere, sechskantig mit Spitze, leicht geneigt; Eis-Shader in
+## der Farbe des Kristalls (innen tief, Kanten hell, schwaches Glimmen) – vorher zwei grell leuchtende Prismen, die wie
+## Lichtsäulen wirkten.
 static func crystal(parent: Node, pos: Vector3, color: Color, h: float = 1.6) -> void:
 	if ModelLib.place_prop(parent, "crystal", pos, 0.0, h / 1.6, false):
 		light(parent, pos + Vector3(0, h * 0.6, 0), color, 0.9, 4.5)
 		return
-	var m := mat(Color(color, 0.85), 0.1, 0.2, color, 2.5)
-	prism(parent, Vector3(0.5, h, 0.5), pos + Vector3(0, h / 2.0, 0), m, Vector3(0, 45, 0))
-	prism(parent, Vector3(0.5, h, 0.5), pos + Vector3(0, h * 0.75 - 0.01, 0), m, Vector3(180, 45, 0)).scale = Vector3(1, 0.5, 1)
-	light(parent, pos + Vector3(0, h * 0.6, 0), color, 0.9, 4.5)
+	var key := color.to_html()
+	if not _crystal_mats.has(key):
+		var cm := ShaderMaterial.new()
+		cm.shader = load("res://assets/shaders/ice.gdshader")
+		cm.set_shader_parameter("deep", color.darkened(0.82))
+		cm.set_shader_parameter("surf", color.lightened(0.25))
+		cm.set_shader_parameter("snow_cover", 0.0)
+		cm.set_shader_parameter("crystal", 1.0)
+		cm.set_shader_parameter("glow", 0.22)
+		_crystal_mats[key] = cm
+	var m: ShaderMaterial = _crystal_mats[key]
+	var holder := Node3D.new()
+	holder.position = pos
+	holder.rotation.y = fposmod(pos.x * 2.7 + pos.z * 1.3, TAU)
+	parent.add_child(holder)
+	var shards := [[0.0, 0.0, 1.0, 0.0, 0.0], [0.34, 0.08, 0.58, 0.32, 0.1], [-0.28, 0.2, 0.5, -0.36, 0.05],
+		[0.06, -0.33, 0.42, 0.1, -0.38], [-0.12, -0.18, 0.3, -0.2, -0.3]]
+	for s in shards:
+		var sh: float = h * float(s[2])
+		var r: float = clampf(h * 0.13, 0.07, 0.4) * (0.6 + 0.4 * float(s[2]))
+		var piv := Node3D.new()
+		piv.position = Vector3(float(s[0]), -0.05, float(s[1])) * clampf(h * 0.45, 0.3, 1.2)
+		piv.rotation = Vector3(float(s[4]), 0.0, -float(s[3]))
+		holder.add_child(piv)
+		var body := CylinderMesh.new()
+		body.top_radius = r * 0.62
+		body.bottom_radius = r
+		body.height = sh * 0.78
+		body.radial_segments = 6
+		body.rings = 1
+		mesh(piv, body, Vector3(0, sh * 0.39, 0), m)
+		var tip := CylinderMesh.new()
+		tip.top_radius = 0.0
+		tip.bottom_radius = r * 0.62
+		tip.height = sh * 0.24
+		tip.radial_segments = 6
+		tip.rings = 1
+		mesh(piv, tip, Vector3(0, sh * 0.9, 0), m)
+	light(parent, pos + Vector3(0, h * 0.5, 0), color, 0.45, 3.5)
 
 
 # =====================================================================
@@ -359,7 +490,12 @@ static func stairs(parent: Node, pos: Vector3, width: float, steps: int, step_h:
 		box(parent, Vector3(width, step_h * (i + 1), step_d), pos + Vector3(0, step_h * (i + 1) / 2.0, dir * i * step_d), material)
 
 
-## Kaminrauch: langsam aufsteigende, sich ausbreitende graue Schwaden.
+static var _smoke_mat: StandardMaterial3D
+
+
+## Rauch: weiche Wolken aus dem Rauch-Atlas (2 × 2 Bilder, je Wolke zufällig, langsam drehend), wachsen beim Aufsteigen
+## und vergehen; vom Licht des Ortes getönt (in der Lavahöhle rötlich-dunkel, nicht grellweiß), weicher Übergang an
+## Wänden und Boden, blendet vor der Kamera aus.
 static func smoke(parent: Node, pos: Vector3, amount: int = 14) -> CPUParticles3D:
 	var p := CPUParticles3D.new()
 	p.position = pos
@@ -371,33 +507,50 @@ static func smoke(parent: Node, pos: Vector3, amount: int = 14) -> CPUParticles3
 	p.initial_velocity_min = 0.5
 	p.initial_velocity_max = 0.9
 	p.gravity = Vector3(0.12, 0.08, 0)
-	p.scale_amount_min = 0.8
-	p.scale_amount_max = 1.4
+	p.scale_amount_min = 0.7
+	p.scale_amount_max = 1.2
 	var curve := Curve.new()
-	curve.add_point(Vector2(0, 0.3))
-	curve.add_point(Vector2(1, 2.6))
+	curve.add_point(Vector2(0, 0.35))
+	curve.add_point(Vector2(1, 2.4))
 	p.scale_amount_curve = curve
+	p.angle_min = -180.0
+	p.angle_max = 180.0
+	p.angular_velocity_min = -9.0
+	p.angular_velocity_max = 9.0
+	p.anim_offset_min = 0.0
+	p.anim_offset_max = 1.0
+	if _smoke_mat == null:
+		var m := StandardMaterial3D.new()
+		m.shading_mode = BaseMaterial3D.SHADING_MODE_PER_VERTEX
+		m.diffuse_mode = BaseMaterial3D.DIFFUSE_LAMBERT_WRAP
+		m.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
+		m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		m.billboard_keep_scale = true
+		m.particles_anim_h_frames = 2
+		m.particles_anim_v_frames = 2
+		m.particles_anim_loop = false
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+		m.vertex_color_use_as_albedo = true
+		m.albedo_texture = fx_tex("fx_smoke")
+		m.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		m.cull_mode = BaseMaterial3D.CULL_DISABLED
+		m.disable_receive_shadows = true
+		m.proximity_fade_enabled = true
+		m.proximity_fade_distance = 0.7
+		m.distance_fade_mode = BaseMaterial3D.DISTANCE_FADE_PIXEL_ALPHA
+		m.distance_fade_min_distance = 0.8
+		m.distance_fade_max_distance = 3.2
+		_smoke_mat = m
 	var qm := QuadMesh.new()
-	var m := StandardMaterial3D.new()
-	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
-	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	m.vertex_color_use_as_albedo = true
-	var g2 := GradientTexture2D.new()
-	var gr := Gradient.new()
-	gr.set_color(0, Color(1, 1, 1, 1))
-	gr.set_color(1, Color(1, 1, 1, 0))
-	g2.gradient = gr
-	g2.fill = GradientTexture2D.FILL_RADIAL
-	g2.fill_from = Vector2(0.5, 0.5)
-	g2.fill_to = Vector2(0.5, 0.0)
-	m.albedo_texture = g2
-	qm.material = m
+	qm.size = Vector2(1.0, 1.0)
+	qm.material = _smoke_mat
 	p.mesh = qm
+	p.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var g := Gradient.new()
-	g.set_color(0, Color(0.55, 0.52, 0.5, 0.0))
-	g.add_point(0.15, Color(0.6, 0.58, 0.55, 0.35))
-	g.set_color(g.get_point_count() - 1, Color(0.75, 0.74, 0.72, 0.0))
+	g.set_color(0, Color(0.5, 0.48, 0.46, 0.0))
+	g.add_point(0.18, Color(0.55, 0.53, 0.5, 0.3))
+	g.add_point(0.6, Color(0.6, 0.58, 0.56, 0.16))
+	g.set_color(g.get_point_count() - 1, Color(0.65, 0.64, 0.62, 0.0))
 	p.color_ramp = g
 	parent.add_child(p)
 	return p

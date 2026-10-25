@@ -87,10 +87,11 @@ static func apply(r: CharacterRig, f: Dictionary) -> void:
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
 		var n := String(m.name)
-		if n in OPTIONAL:
-			m.visible = show.has(n)
-			if not m.visible:
-				continue
+		if n in OPTIONAL and not show.has(n):
+			# Nicht gebrauchte Teile ganz entfernen: versteckte Meshes würden weiter gehäutet (Skinning) und kosten Zeit
+			m.get_parent().remove_child(m)
+			m.queue_free()
+			continue
 		if m.mesh == null:
 			continue
 		for s in m.mesh.get_surface_count():

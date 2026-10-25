@@ -93,10 +93,16 @@ func _apply() -> void:
 		mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		mat.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		mat.disable_receive_shadows = true
+		mat.texture_filter = BaseMaterial3D.TEXTURE_FILTER_LINEAR
+		mat.billboard_keep_scale = true
 		match kind:
 			"rain":
-				qm.size = Vector2(0.025, 0.45)
-				mat.albedo_color = Color(0.75, 0.82, 0.95, 0.5)
+				# Regen: weiche Schliere, bleibt senkrecht (dreht sich nur um die Hochachse zur Kamera)
+				qm.size = Vector2(0.035, 0.6)
+				mat.albedo_texture = B3.fx_tex("fx_streak")
+				mat.billboard_mode = BaseMaterial3D.BILLBOARD_FIXED_Y
+				mat.albedo_color = Color(0.78, 0.84, 0.95, 0.38)
 				_particles.amount = 1400
 				_particles.lifetime = 1.1
 				_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
@@ -107,8 +113,12 @@ func _apply() -> void:
 				_particles.initial_velocity_max = 18.0
 				_particles.gravity = Vector3.ZERO
 			"snow":
-				qm.size = Vector2(0.12, 0.12)
-				mat.albedo_color = Color(1, 1, 1, 0.9)
+				# Schnee: weiche runde Flocken in verschiedenen Größen
+				qm.size = Vector2(0.09, 0.09)
+				mat.albedo_texture = B3.fx_tex("fx_dot")
+				mat.albedo_color = Color(1, 1, 1, 0.95)
+				_particles.scale_amount_min = 0.55
+				_particles.scale_amount_max = 1.5
 				_particles.amount = 1400
 				_particles.lifetime = 6.0
 				_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
@@ -119,8 +129,9 @@ func _apply() -> void:
 				_particles.initial_velocity_max = 2.2
 				_particles.gravity = Vector3.ZERO
 			"sand":
-				qm.size = Vector2(0.09, 0.05)
-				mat.albedo_color = Color(0.85, 0.7, 0.45, 0.55)
+				qm.size = Vector2(0.1, 0.07)
+				mat.albedo_texture = B3.fx_tex("fx_dot")
+				mat.albedo_color = Color(0.85, 0.7, 0.45, 0.5)
 				_particles.amount = 1100
 				_particles.lifetime = 2.2
 				_particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX

@@ -256,25 +256,52 @@
  },
  "glacier": {
   "shrines": 0,
-  "caches": 2,
+  "caches": 0,
   "lore": [
    [
     "Gefrorener Krieger",
-    "Ein Krieger im Eis, die Klinge noch erhoben. Cocytus nennt ihn »einen würdigen Lehrmeister«."
+    "Ein Krieger im Eis, die Klinge noch erhoben. Cocytus nennt ihn »einen würdigen Lehrmeister«.",
+    {
+     "vis": "frozen",
+     "at": [
+      19.5,
+      0.0,
+      -10.0
+     ],
+     "yaw": -96
+    }
    ],
    [
     "Snow Globe Cottage",
-    "Ein Häuschen im Schnee, das Cocytus »aus Gründen« pflegt. Darin: ein kleines Bett. Er wartet auf Ainz-samas Erben."
+    "Ein Häuschen im Schnee, das Cocytus »aus Gründen« pflegt. Darin: ein kleines Bett. Er wartet auf Ainz-samas Erben.",
+    {
+     "vis": "globe",
+     "at": [
+      -9.0,
+      0.0,
+      24.0
+     ],
+     "yaw": 29
+    }
    ]
   ]
  },
  "jungle": {
-  "shrines": 1,
-  "caches": 3,
+  "shrines": 0,
+  "caches": 0,
   "lore": [
    [
     "Bäumchen mit Namensschild",
-    "»Gepflanzt von Mare. Nicht gießen, sonst wächst es zu schnell.« – Aura hat das Schild geschrieben."
+    "»Gepflanzt von Mare. Nicht gießen, sonst wächst es zu schnell.« – Aura hat das Schild geschrieben.",
+    {
+     "vis": "sapling",
+     "at": [
+      -4.2,
+      0.0,
+      45.5
+     ],
+     "yaw": 90
+    }
    ]
   ]
  },
@@ -284,73 +311,163 @@
   "lore": [
    [
     "Banner der Gilde",
-    "Einundvierzig Banner hingen einst hier – eines für jedes Mitglied von Ainz Ooal Gown. Ainz-sama hat sie alle abnehmen lassen. Nur seines blieb."
+    "Einundvierzig Banner hingen einst hier – eines für jedes Mitglied von Ainz Ooal Gown. Ainz-sama hat sie alle abnehmen lassen. Nur seines blieb.",
+    {
+     "vis": "sign",
+     "at": [
+      -3.4,
+      0.0,
+      14.5
+     ],
+     "yaw": 25
+    }
    ],
    [
     "Die Kristallkugel",
-    "Der Kristall über dem Thron zeigt, wenn man genau hinsieht, einen Mann vor einem Bildschirm. Albedo behauptet, sie sehe nichts."
+    "Der Kristall über dem Thron zeigt, wenn man genau hinsieht, einen Mann vor einem Bildschirm. Albedo behauptet, sie sehe nichts.",
+    {
+     "vis": "sign",
+     "at": [
+      4.6,
+      0.0,
+      -16.8
+     ],
+     "yaw": -35
+    }
    ]
   ]
  },
  "tombs": {
   "shrines": 0,
-  "caches": 2,
+  "caches": 0,
   "lore": [
    [
     "Shalltears Sarg",
-    "Ein Sarg aus schwarzem Holz, mit roten Rosen ausgeschlagen. Daneben ein zweiter, kleinerer. Für wen der ist, verrät sie nicht."
+    "Ein Sarg aus schwarzem Holz, mit roten Rosen ausgeschlagen. Daneben ein zweiter, kleinerer. Für wen der ist, verrät sie nicht.",
+    {
+     "vis": "coffins",
+     "at": [
+      -12.5,
+      0.0,
+      -57.9
+     ],
+     "yaw": 0
+    }
    ],
    [
     "Inschrift der Wächterin",
-    "»Wer die ersten drei Ebenen betritt, kehrt nicht zurück. Ausnahmen: Ainz-sama. Sonst niemand. Auch nicht die gehörnte Kuh.«"
+    "»Wer die ersten drei Ebenen betritt, kehrt nicht zurück. Ausnahmen: Ainz-sama. Sonst niemand. Auch nicht die gehörnte Kuh.«",
+    {
+     "vis": "sign",
+     "at": [
+      -11.8,
+      0.0,
+      23.2
+     ],
+     "yaw": 90
+    }
    ]
   ]
  },
  "library": {
   "shrines": 0,
-  "caches": 1,
+  "caches": 0,
   "lore": [
    [
     "Verbotenes Regal",
-    "»Nur für Gildenmitglieder.« Darin: Bücher über Taktik, Mythologie – und ein Ratgeber namens »Wie man ein guter Chef ist«. Mit vielen Lesezeichen."
+    "»Nur für Gildenmitglieder.« Darin: Bücher über Taktik, Mythologie – und ein Ratgeber namens »Wie man ein guter Chef ist«. Mit vielen Lesezeichen.",
+    {
+     "vis": "lectern",
+     "at": [
+      -12.7,
+      0.0,
+      -4.0
+     ],
+     "yaw": 90
+    }
    ],
    [
     "Notiz von Titus",
-    "Der Oberste Bibliothekar Titus Annaeus Secundus vermerkt: Ainz-sama hat 34 Bücher über Führung ausgeliehen. Keines zurückgegeben."
+    "Der Oberste Bibliothekar Titus Annaeus Secundus vermerkt: Ainz-sama hat 34 Bücher über Führung ausgeliehen. Keines zurückgegeben.",
+    {
+     "vis": "paper",
+     "at": [
+      0.3,
+      2.0,
+      3.0
+     ],
+     "yaw": 20
+    }
    ]
   ]
  },
  "treasury": {
   "shrines": 0,
-  "caches": 2,
+  "caches": 0,
   "lore": [
    [
     "Halle der Gefallenen",
-    "Statuen der einundvierzig Gildenmitglieder, jede in ihrer Lieblingsrüstung. Pandora's Actor kann jede von ihnen nachahmen. Er tut es zu oft."
+    "Statuen der einundvierzig Gildenmitglieder, jede in ihrer Lieblingsrüstung. Pandora's Actor kann jede von ihnen nachahmen. Er tut es zu oft.",
+    {
+     "vis": "tablet",
+     "at": [
+      16.75,
+      2.5,
+      -50.0
+     ],
+     "yaw": -90
+    }
    ],
    [
     "Warnschild",
-    "»Für Unbefugte: Gift, Fallen, Golems. Für Befugte: bitte keine Weltklasse-Gegenstände anfassen.«"
+    "»Für Unbefugte: Gift, Fallen, Golems. Für Befugte: bitte keine Weltklasse-Gegenstände anfassen.«",
+    {
+     "vis": "sign",
+     "at": [
+      -7.5,
+      1.0,
+      108.5
+     ],
+     "yaw": 69
+    }
    ]
   ]
  },
  "royal": {
   "shrines": 0,
-  "caches": 1,
+  "caches": 0,
   "lore": [
    [
     "Die Bar",
-    "Der Barkeeper der 9. Ebene, ein Pilzwesen namens Fürst Shiitake, mixt Getränke, die niemand bestellt hat. Demiurge kommt jeden Abend."
+    "Der Barkeeper der 9. Ebene, ein Pilzwesen namens Fürst Shiitake, mixt Getränke, die niemand bestellt hat. Demiurge kommt jeden Abend.",
+    {
+     "vis": "bar",
+     "at": [
+      11.6,
+      0.0,
+      2.6
+     ],
+     "yaw": 0
+    }
    ],
    [
     "Dienstplan der Maids",
-    "Einundvierzig Homunkulus-Maids, jede einen Tag im Monat für Ainz-sama zuständig. Sie streiten sich darum."
+    "Einundvierzig Homunkulus-Maids, jede einen Tag im Monat für Ainz-sama zuständig. Sie streiten sich darum.",
+    {
+     "vis": "sign",
+     "at": [
+      -7.5,
+      0.0,
+      3.6
+     ],
+     "yaw": 180
+    }
    ]
   ]
  },
  "lava": {
   "shrines": 0,
-  "caches": 2,
+  "caches": 0,
   "lore": [
    [
     "Demiurges Schreibtisch",

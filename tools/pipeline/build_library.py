@@ -35,7 +35,7 @@ def wall(xa, ya, xb, yb, inward, gaps=()):
         put("SM_updan", cx + inward[0] * 0.35, cy + inward[1] * 0.35, z=H - 0.62, rot=rot)
 
 
-wall(X0, Y0, X1, Y0, (0, 1), gaps=[(-2.5, Y0), (2.5, Y0)])
+wall(X0, Y0, X1, Y0, (0, 1))          # Eingangswand geschlossen (Treppenportal und Gate stehen davor)
 wall(X0, Y1, X1, Y1, (0, -1))
 wall(X0, Y0, X0, Y1, (1, 0))
 wall(X1, Y0, X1, Y1, (-1, 0))
@@ -101,8 +101,8 @@ for y in (-16, -4, 8):
 for (x, y) in [(-4.5, 20), (4.5, 20), (-4.5, -26), (4.5, -26)]:
     put("SM_Chair01", x, y, rot=180 if y > 0 else 0, s=0.6)
     put("SM_Table02", x * 1.6, y, s=0.45)
-for y in range(-28, 32, 7):
-    put("SM_Carpet01", 0, y, rot=0, s=1.2, nocol=True)
+# Läufer im Mittelgang legt das Spiel (data/dressing.json → rug); die kurzen Teppiche mit eingerolltem Ende lagen
+# verstreut mitten im Saal
 for y in (-20, -2, 16):
     put("SM_Chandelier01", 0, y, z=H - 3.2, s=1.1)
 for y in range(-30, 32, 6):

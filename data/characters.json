@@ -1461,5 +1461,26 @@
   "color": "#2a3a7a",
   "accent": "#d8b860",
   "npc": true
+ },
+ "vampire_bride_1": {
+  "name": "Vampirbraut",
+  "title": "Dienerin Shalltears",
+  "color": "#c0283c",
+  "accent": "#2a0a14",
+  "npc": true
+ },
+ "vampire_bride_2": {
+  "name": "Vampirbraut",
+  "title": "Dienerin Shalltears",
+  "color": "#c0283c",
+  "accent": "#2a0a14",
+  "npc": true
+ },
+ "vampire_bride_3": {
+  "name": "Vampirbraut",
+  "title": "Dienerin Shalltears",
+  "color": "#c0283c",
+  "accent": "#2a0a14",
+  "npc": true
  }
 }

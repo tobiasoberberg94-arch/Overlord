@@ -1,7 +1,32 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.14.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.15.0).
+
+## Spieltest 2.13 – Nazarick (erledigt, Version 2.15)
+Mängelliste und Abhakstand je Ort: `docs/SPIELTEST_2_13.md`. In 2.15 erledigt:
+- **Partikel und Licht**: Flammen als Flammenzungen-Shader, Funken und Glut als weiche Punkte, Rauch aus weichen
+  Wolken (Rauch-Atlas, beleuchtet), keine Quadrate mehr (Partikel-Billboards behalten ihre Größe); das Vorwärmen
+  der Kampfeffekte nach jeder Ankunft ist unsichtbar (vorher flogen weiße Funken durchs Bild).
+- **Treppenportale und Gate**: Treppenabgänge statt schwebender Laternen, im Stil der Ebene (schwarzer Marmor mit
+  Gold; Gletscher bereifter Fels mit Schneekappen; Dschungel Moosstein; Lava Basalt); Ankunft 3,4 m vor dem Portal;
+  Königliche Gemächer nutzen die Doppeltüren des Modells mit Namensschild (Türstil `nameplate`); Gate als Portal
+  aus wirbelnder Finsternis. Ankunftspunkte werden auf den Boden gesetzt (Schatzkammer: steckte in der Treppe).
+- **Gletscher**: Modell neu gebaut (`build_glacier.py`): ebener Tempelplatz, Krone aus Eiskristallen statt
+  schwarzer Plattenwand, Löwe und Zierpodest entfernt, Statuen vereinfacht (Ladezeit 8,7 → 5,4 s); Fichten mit
+  Schnee im Laubmaterial (kein Flackern), Eis mit Felsstruktur, See mit Verwehungen, keine Lichtsäulen mehr;
+  Cocytus bleibt auf seinem Posten.
+- **Lava**: Platzhalterflächen über der Lava entfernt, Lava-Shader mit Krustenschollen und glühenden Rissen,
+  Feuerschalen mit glimmenden Kohlen.
+- **Bibliothek**: Eingangswand geschlossen, durchgehender Läufer statt verstreuter Teppiche (`build_library.py`,
+  Ausstattung `rug`).
+- **Entdeckungen**: feste Plätze und passende Gestalt (`discoveries.json` → dritter Eintrag `{"vis", "at", "yaw"}`):
+  Gefrorener Todesritter im Eisblock, Schneekugel, Bäumchen mit Schild, Hinweistafeln am Weg, Särge mit Kerzen,
+  Lesepult, Notiz auf dem Lesetisch, Bartisch, Warnschild; Wandtafeln nur noch an Wänden über Kopfhöhe.
+  Fundstellen je Ort lenkbar (`locations.json` → `spots`: Suchmitten und Sperrkreise, z. B. nicht in der Arena).
+- **Prüfwerkzeuge** (`tools/world3d_test.gd`): `LOC=mats` (Materialien je Fläche), `LOC=actors` (Figuren, Blick),
+  `LOC=walk` (Lauftest, Absturz), `LOC=parts` (alle Partikel), `MESHNAME=` (Meshes nach Namen), `HIDE=` und
+  `PROBEMATS=` für Aufnahmen, `RAYS` mit Höhe.
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr

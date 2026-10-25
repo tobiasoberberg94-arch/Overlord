@@ -23,7 +23,23 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	var scene := ModelLib.instance("locations", loc.id)
 	var a: Dictionary
 	if scene:
+		# Stücke des Ortsmodells, die nicht passen ("hide_meshes": Namensanfänge), samt Kollision entfernen
+		for nm in loc.get("hide_meshes", []):
+			for n in scene.find_children(String(nm) + "*", "", true, false):
+				if is_instance_valid(n) and n.get_parent():
+					n.get_parent().remove_child(n)
+					n.queue_free()
 		a = _from_model(loc, root, scene)
+		# Ankerpunkte aus den Daten überschreiben ("anchors": {"gate": [x, y, z], …})
+		var ov: Dictionary = loc.get("anchors", {})
+		for k in ov:
+			var v: Array = ov[k]
+			a[k] = Vector3(float(v[0]), float(v[1]), float(v[2]))
+		# Lücken im Ortsmodell schließen ("plugs": [[x, y, z, breite, höhe, tiefe, foto?], …] – Mauerblöcke mit Kollision)
+		for pl in loc.get("plugs", []):
+			var pa: Array = pl
+			var pm := BuildingLook.photo_material(String(pa[6]) if pa.size() > 6 else "ashlar", "stone", Color(0.42, 0.38, 0.36), 0.1)
+			B3.box(root, Vector3(float(pa[3]), float(pa[4]), float(pa[5])), Vector3(float(pa[0]), float(pa[1]) + float(pa[4]) * 0.5, float(pa[2])), pm)
 		_gate(root, a.gate)
 		Dressing.apply(loc, root)
 		return a
@@ -120,8 +136,37 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 	if loc.group == "nazarick" and not a.has("keeper"):
 		a["keeper"] = a.spawn + Vector3(0, 0, -10)
 	_model_dressing(loc, root, named, a)
-	B3.bounds(root, 120)
+	_fit_bounds(root, scene)
 	return a
+
+
+## Unsichtbare Grenzen an den Rand des Bodens (Meshes „Ground…“ bzw. die Kollision des Ortsmodells), 4 m nach innen
+## versetzt und 400 m hoch – vorher standen sie fest bei ±120 m und 12 m hoch: wo der Boden früher endete oder Hügel
+## höher waren, fiel man aus der Welt bzw. lief darüber hinweg. Nazaricks Hallen behalten ihre Wände.
+static func _fit_bounds(root: Node3D, scene: Node3D) -> void:
+	var box := AABB()
+	var first := true
+	for mi in scene.find_children("*", "MeshInstance3D", true, false):
+		var m := mi as MeshInstance3D
+		if m.mesh == null or not String(m.name).to_lower().begins_with("ground"):
+			continue
+		var gb: AABB = m.global_transform * m.get_aabb()
+		box = gb if first else box.merge(gb)
+		first = false
+	if first or box.size.x < 20.0 or box.size.z < 20.0:
+		B3.bounds(root, 120, 400.0)
+		return
+	var c := box.get_center()
+	var hx := box.size.x * 0.5 - 4.0
+	var hz := box.size.z * 0.5 - 4.0
+	var h := 400.0
+	var y := c.y + 100.0
+	B3.wall_invisible(root, Vector3(1, h, hz * 2.0 + 2.0), Vector3(c.x + hx + 0.5, y, c.z))
+	B3.wall_invisible(root, Vector3(1, h, hz * 2.0 + 2.0), Vector3(c.x - hx - 0.5, y, c.z))
+	B3.wall_invisible(root, Vector3(hx * 2.0 + 2.0, h, 1), Vector3(c.x, y, c.z + hz + 0.5))
+	B3.wall_invisible(root, Vector3(hx * 2.0 + 2.0, h, 1), Vector3(c.x, y, c.z - hz - 0.5))
+	root.set_meta("ground_bottom", box.position.y)
+	print("Grenzen: %.0f × %.0f m um (%.0f, %.0f)" % [hx * 2.0, hz * 2.0, c.x, c.z])
 
 
 
@@ -254,29 +299,67 @@ static func _wind_material(mat: BaseMaterial3D, amount: float, height: float = 6
 	return sm
 
 
-## Fest platzierte Bäume/Büsche des Ortsmodells (keine Streu-Instanzen) bekommen dasselbe Laubmaterial.
+## Fest platzierte Bäume/Büsche des Ortsmodells (keine Streu-Instanzen) bekommen dasselbe Laubmaterial – je
+## Ausgangsmaterial nur einmal erzeugt: sonst trägt jeder Baum ein eigenes Material, gleiche Bäume finden nicht zu
+## Instanzgruppen zusammen und jeder kostet eigene Draw Calls. Bereifte Bäume (frost_…) tragen den Schnee im
+## Laubmaterial (folgt der Blattmaske) statt eines Überzugs über die ganzen Blattkarten (weiße Rechtecke, Flackern)
+## und wiegen sich nicht; Stämme ohne Textur (Unreal-Platzhalter „WorldGridMaterial“) bekommen Rinde.
 static func _foliage_materials(scene: Node3D) -> void:
+	var cache := {}
 	for n in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		var nm := String(mi.name).to_lower()
-		if mi.mesh == null or nm.begins_with("nocol_mm_") or nm.begins_with("frost_") or nm.begins_with("ice_"):
+		if mi.mesh == null or nm.begins_with("nocol_mm_") or nm.begins_with("ice_"):
 			continue
 		if not (nm.contains("tree") or nm.contains("spruce") or nm.contains("pine") or nm.contains("bush") or nm.contains("foliage") or nm.contains("palm")):
 			continue
+		var frost := nm.begins_with("frost_")
 		var h := mi.mesh.get_aabb().end.y
+		var wind := 0.008 if Settings.particles and not frost else 0.0
 		for i in mi.mesh.get_surface_count():
 			var mat := mi.mesh.surface_get_material(i) as BaseMaterial3D
-			if mat:
-				mi.set_surface_override_material(i, _wind_material(mat, 0.008 if Settings.particles else 0.0, h))
+			if mat == null:
+				continue
+			var key := "%d|%.1f|%s|%.3f" % [mat.get_instance_id(), h, frost, wind]
+			if not cache.has(key):
+				var out: Material = mat
+				if mat.albedo_texture == null:
+					if frost:
+						out = BuildingLook.photo_material("bark", "wood", Color(0.92, 0.86, 0.8), 0.1)
+				else:
+					# bereifte Fichten: Farben der Textur behalten (sonst dunkelt der Laubausgleich sie fast schwarz)
+					out = _wind_material(mat, wind, h, frost)
+					if frost and out is ShaderMaterial:
+						(out as ShaderMaterial).set_shader_parameter("snow", 1.0)
+				cache[key] = out
+			mi.set_surface_override_material(i, cache[key])
 
 
 ## Benannte Sonderflächen aus den Ortsmodellen: „…Lava…“ → fließender Lava-Shader (leuchtet, schadet nicht).
 static func _special_surfaces(scene: Node3D) -> void:
+	var shared := {}
 	for n in scene.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
 		var nm := String(mi.name).to_lower()
 		if nm.contains("snowground") or nm.contains("icelake") or nm.begins_with("ice_") or nm.contains("_ice_") or nm.begins_with("frost_"):
 			var sh: String = "snow" if nm.contains("snowground") else ("frost_overlay" if nm.begins_with("frost_") else "ice")
+			if sh == "frost_overlay" and (nm.contains("spruce") or nm.contains("tree") or nm.contains("pine")):
+				continue      # Schnee steckt im Laubmaterial (_foliage_materials)
+			if sh == "ice":
+				_ice_surfaces(mi, nm, shared)
+				continue
+			if sh == "frost_overlay":
+				# Steinplatten: Schnee bricht fleckig auf, der Stein schaut hervor; sonst gleichmäßiger Reif
+				var fk := "frost_floor" if nm.contains("floor") else "frost"
+				if not shared.has(fk):
+					var fm := ShaderMaterial.new()
+					fm.shader = load("res://assets/shaders/frost_overlay.gdshader")
+					if fk == "frost_floor":
+						fm.set_shader_parameter("amount", 0.8)
+						fm.set_shader_parameter("breakup", 0.52)
+					shared[fk] = fm
+				mi.material_overlay = shared[fk]
+				continue
 			var sm2 := ShaderMaterial.new()
 			sm2.shader = load("res://assets/shaders/%s.gdshader" % sh)
 			if sh == "snow":
@@ -324,6 +407,39 @@ static func _special_surfaces(scene: Node3D) -> void:
 				mi.set_surface_override_material(i, sm)
 			mi.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 			mi.gi_mode = GeometryInstance3D.GI_MODE_DYNAMIC
+
+
+## Gletschereis je Fläche: vereiste Felsen behalten ihre Felstextur und Normalen unter dem Eis, Eisnadeln bekommen
+## Längsmaserung und hellere Spitzen, der zugefrorene See blankes, dunkles Eis mit Schneeverwehungen. Gleiche
+## Ausgangsmaterialien teilen sich ein Eismaterial (Instanzgruppen).
+static func _ice_surfaces(mi: MeshInstance3D, nm: String, shared: Dictionary) -> void:
+	var lake := nm.contains("icelake")
+	var crystal := nm.contains("crystal")
+	for i in mi.mesh.get_surface_count():
+		var src := mi.mesh.surface_get_material(i) as BaseMaterial3D
+		var tex: Texture2D = src.albedo_texture if src else null
+		var key := "ice|%s|%s|%d" % [lake, crystal, tex.get_instance_id() if tex else 0]
+		if not shared.has(key):
+			var im := ShaderMaterial.new()
+			im.shader = load("res://assets/shaders/ice.gdshader")
+			if lake:
+				im.set_shader_parameter("deep", Color(0.02, 0.08, 0.15))
+				im.set_shader_parameter("surf", Color(0.42, 0.6, 0.74))
+				im.set_shader_parameter("snow_cover", 0.85)
+				im.set_shader_parameter("patchy", 1.0)
+			elif crystal:
+				im.set_shader_parameter("crystal", 1.0)
+				im.set_shader_parameter("snow_cover", 0.35)
+			else:
+				im.set_shader_parameter("snow_cover", 0.6)
+			if tex:
+				im.set_shader_parameter("base_tex", tex)
+				im.set_shader_parameter("has_base", true)
+				if src.normal_enabled and src.normal_texture:
+					im.set_shader_parameter("base_nrm", src.normal_texture)
+					im.set_shader_parameter("has_nrm", true)
+			shared[key] = im
+		mi.set_surface_override_material(i, shared[key])
 
 
 ## Gleiche Meshes (Häuser, Zäune, Fässer, Fotoscans …) je Kachel zu MultiMeshes zusammenfassen: tausende
@@ -829,8 +945,9 @@ static func environment(root: Node3D, _loc: Dictionary, preset: Dictionary) -> v
 	env.fog_sky_affect = float(preset.get("fog_sky", 0.3))
 	env.glow_enabled = true
 	env.glow_intensity = 0.9
-	env.glow_bloom = 0.15
+	env.glow_bloom = 0.04
 	env.glow_hdr_threshold = 0.9
+	_fine_glow(env)
 	if preset.has("saturation"):
 		# Draußen: kräftigere Farben und etwas Kontrast (wie große RPGs, statt grauem Einheitslicht)
 		env.adjustment_enabled = true
@@ -902,6 +1019,13 @@ static func _forward_plus_env(env: Environment, preset: Dictionary) -> void:
 	env.ambient_light_energy *= 0.7
 
 
+## Glow nur in feinen Stufen (1/4 bis 1/16 der Auflösung): die gröbsten Stufen (1/32, 1/64) machten aus Kerzen, Funken,
+## Lampen und Feuerschalen weiche Quadrate („quadratische Effekte“).
+static func _fine_glow(env: Environment) -> void:
+	for i in 7:
+		env.set_glow_level(i, [0.0, 0.55, 1.0, 0.55, 0.0, 0.0, 0.0][i])
+
+
 ## Bildwirkung im Freien (wie große Open-World-RPGs): ACES-Tonemapping mit Tiefe und Kontrast, Glow nur um helle
 ## Lichtquellen statt Schleier, Luftperspektive aus der Himmelsfarbe statt weißem Nebel, kräftige Umgebungsverdeckung.
 static func _outdoor_look(env: Environment, preset: Dictionary) -> void:
@@ -915,6 +1039,7 @@ static func _outdoor_look(env: Environment, preset: Dictionary) -> void:
 	env.glow_hdr_threshold = 1.1
 	env.glow_hdr_scale = 2.0
 	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
+	_fine_glow(env)
 	env.fog_enabled = true
 	env.fog_density = float(preset.get("fog_density", 0.004)) * 0.28 * float(preset.get("haze", 1.0))
 	env.fog_aerial_perspective = 0.8
@@ -988,24 +1113,37 @@ static func _gate(root: Node3D, pos: Vector3) -> void:
 	g.name = "GatePortal"
 	g.position = pos
 	root.add_child(g)
-	var tm := TorusMesh.new()
-	tm.inner_radius = 1.5
-	tm.outer_radius = 1.75
-	tm.rings = 32
-	var ring := B3.mesh(g, tm, Vector3(0, 2.0, 0), B3.mat(Color(0.2, 0.05, 0.3), 0.3, 0.6, VIOLET, 2.5), Vector3(90, 0, 0))
-	ring.set_meta("spin", 0.4)
-	var disc := CylinderMesh.new()
-	disc.top_radius = 1.5
-	disc.bottom_radius = 1.5
-	disc.height = 0.02
-	B3.mesh(g, disc, Vector3(0, 2.0, 0), B3.mat(Color(0.05, 0.0, 0.1, 0.85), 0.0, 0.0, Color(0.25, 0.05, 0.45), 1.5), Vector3(90, 0, 0))
-	B3.cyl(g, 1.6, 1.8, 0.2, Vector3(0, 0.1, 0), B3.mat(Color(0.08, 0.06, 0.1), 0.6, 0.3), true, 20)
-	B3.light(g, Vector3(0, 2, 1), VIOLET, _gate_energy(), 5.0 if is_forward_plus() else 7.0)
-	B3.motes(g, Vector3(0, 2, 0), Vector3(1.2, 1.2, 0.2), Color(0.7, 0.4, 1.0), 30)
-	# Leuchtender Ring/Scheibe nicht in die globale Beleuchtung (SDFGI) einspeisen,
-	# sonst färbt das Portal ganze Räume violett.
-	for mi in g.find_children("*", "GeometryInstance3D", true, false):
-		(mi as GeometryInstance3D).gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	# Gate wie in der Serie: Ellipse aus wirbelnder Finsternis mit glühendem, ausgefranstem Rand, schwebt knapp über dem
+	# Boden (assets/shaders/fx/gate_portal.gdshader); dunkler Dunst am Fuß, violette Funken, die hineingezogen werden
+	var q := QuadMesh.new()
+	q.size = Vector2(2.3, 3.5)
+	var sm := ShaderMaterial.new()
+	sm.shader = load("res://assets/shaders/fx/gate_portal.gdshader")
+	sm.set_shader_parameter("noise_tex", load("res://assets/textures/fx/fx_noise.png"))
+	var pm := MeshInstance3D.new()
+	pm.name = "GateSurface"
+	pm.mesh = q
+	pm.material_override = sm
+	pm.position = Vector3(0, 1.95, 0)
+	pm.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	pm.gi_mode = GeometryInstance3D.GI_MODE_DISABLED
+	g.add_child(pm)
+	var mist := B3.smoke(g, Vector3(0, 0.1, 0), 8)
+	mist.lifetime = 4.0
+	mist.preprocess = 4.0
+	mist.initial_velocity_min = 0.05
+	mist.initial_velocity_max = 0.2
+	mist.emission_shape = CPUParticles3D.EMISSION_SHAPE_BOX
+	mist.emission_box_extents = Vector3(0.9, 0.05, 0.4)
+	var mg := Gradient.new()
+	mg.set_color(0, Color(0.1, 0.03, 0.16, 0.0))
+	mg.add_point(0.3, Color(0.12, 0.04, 0.2, 0.45))
+	mg.set_color(mg.get_point_count() - 1, Color(0.06, 0.02, 0.1, 0.0))
+	mist.color_ramp = mg
+	B3.motes(g, Vector3(0, 1.9, 0), Vector3(1.3, 1.7, 0.5), Color(0.75, 0.45, 1.0, 0.8), 26)
+	var gl := B3.light(g, Vector3(0, 1.9, 0), VIOLET, _gate_energy(), 6.0)
+	gl.shadow_enabled = false
+	gl.set_meta("flicker", true)
 
 
 ## Verteilt n Plätze im Halbkreis (für Figuren).
@@ -1364,8 +1502,9 @@ static func _model_dressing(loc: Dictionary, root: Node3D, named: Dictionary, a:
 		if key.begins_with("banner_"):
 			B3.banner(root, p, Color(0.2, 0.04, 0.3), crest, 5.5, -90.0 * signf(p.x))
 		elif key.begins_with("fire_"):
-			B3.light(root, p + Vector3(0, 0.4, 0), Color(1.0, 0.55, 0.22), 2.2, 9.0).set_meta("flicker", true)
-			B3.motes(root, p + Vector3(0, 0.8, 0), Vector3(0.4, 0.6, 0.4), Color(1.0, 0.6, 0.2), 16)
+			# Feuerschale des Ortsmodells: echte Flamme statt einer Wolke aus Lichtpunkten
+			B3.light(root, p + Vector3(0, 0.6, 0), Color(1.0, 0.55, 0.22), 2.2, 9.0).set_meta("flicker", true)
+			B3.fire(root, p + Vector3(0, 0.15, 0), Color(1.0, 0.56, 0.22), 18)
 		elif key.begins_with("lamp_"):
 			B3.light(root, p, Color(1.0, 0.78, 0.5), 2.6, 14.0)
 		elif key.begins_with("violet_"):

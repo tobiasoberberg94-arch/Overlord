@@ -86,7 +86,8 @@ def shape(x, y, h):
     return h * (1.0 - w) + min(h - 3.6, -3.6) * w
 
 
-TERRAIN = dict(half=HALF, flat_r=128.0, hill_h=10.0, edge_rise=18.0, inner_h=0.3, height_fn=shape)
+# vor der Stadt sanftes Hügelland (vorher stiegen direkt vor der Mauer hohe Hänge an)
+TERRAIN = dict(half=HALF, flat_r=138.0, hill_h=4.5, edge_rise=8.0, inner_h=0.3, height_fn=shape)
 kit.height_field(**TERRAIN)
 
 # Fluss im Raster sperren (keine Häuser), Ufer als Erde
@@ -205,12 +206,12 @@ put("SM_CastleSep3", DOM[0], DOM[1] + 22, rot=0, s=1.6)                   # Kath
 for sgn in (-1, 1):
     put("SM_TowerT3Uvd", DOM[0] + sgn * 15, DOM[1] + 16, s=0.42)          # Glockentürme
 town.reserve(DOM[0], DOM[1] + 22, 40, 26)
-put("SM_Build1", GILDE[0], GILDE[1] + 15, rot=0, s=0.55)                  # Gildenhaus
-town.reserve(GILDE[0], GILDE[1] + 15, 20, 10)
+put("SM_Build1", GILDE[0], GILDE[1] + 15, rot=0, s=0.7)                   # Gildenhaus
+town.reserve(GILDE[0], GILDE[1] + 15, 24, 12)
 put("SM_TowerrType2", GILDE[0] + 14, GILDE[1] + 18, s=0.3)
 for sgn in (-1, 1):                                                        # Palais des Hochadels am Burgweg
-    put("SM_Build1", sgn * 30, 62, rot=-90 * sgn, s=0.5)
-    town.reserve(sgn * 30, 62, 8, 18)
+    put("SM_Build1", sgn * 30, 62, rot=-90 * sgn, s=0.62)
+    town.reserve(sgn * 30, 62, 10, 21)
 
 # --- Häuser -----------------------------------------------------------------------------------------------
 RICH = [("SM_House", 0.64, 3), ("SM_House3", 0.64, 3), ("SM_House4", 0.64, 3), ("SM_House6", 0.64, 3),
@@ -219,6 +220,13 @@ MID = [("FV_house_02", 0.78, 3), ("FV_house_03", 0.78, 2), ("FV_house_05", 0.78,
        ("SM_House6", 0.62, 2), ("SM_House3", 0.62, 2), ("SM_HouseSet02", 1.0, 1)]
 POOR = [("SM_HouseSet01", 1.0, 3), ("FV_house_05", 0.72, 2), ("SM_StorageSet", 1.0, 3), ("FV_house_02", 0.72, 1),
         ("SM_HouseSet02", 1.0, 1)]
+
+
+# Häuser in richtiger Größe: Türen größer als die Figuren (vorher Puppenhäuser)
+HS = 1.35
+RICH = [(n, s * HS, w) for n, s, w in RICH]
+MID = [(n, s * HS, w) for n, s, w in MID]
+POOR = [(n, s * HS, w) for n, s, w in POOR]
 
 
 def district(x, y):

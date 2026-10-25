@@ -6,6 +6,7 @@ extends Node
 ## Fortschritt kommt über die Haken on_kill / on_pickup / on_talk aus der 3D-Welt.
 
 signal changed
+signal accepted(quest_id: String)
 signal step_done(quest_id: String, text: String)
 signal completed(quest_id: String)
 
@@ -161,6 +162,7 @@ func accept(id: String) -> void:
 	Audio.sfx("page", 0.7)
 	_check_collect()
 	changed.emit()
+	accepted.emit(id)
 
 
 func _step_ready(q: Dictionary) -> bool:

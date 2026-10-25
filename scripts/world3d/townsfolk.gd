@@ -314,21 +314,36 @@ func _seated_clip(p: Dictionary, rig: CharacterRig, delta: float) -> void:
 	p.clip_left = _rng.randf_range(5.0, 12.0) if pick != "drink" else 1e9
 
 
-## Nächster Wegpunkt: zufällig unter den nahen Punkten (läuft so die Straßen entlang).
+## Nächster Wegpunkt: zufällig unter den nahen Punkten, zu denen der Weg frei ist (läuft so die Straßen entlang und
+## nie quer durch Häuser oder über Dächer).
 func _next_point(from: Vector3) -> Vector3:
+	var space := get_world_3d().direct_space_state
 	var near: Array = []
 	for w in _walk:
 		var d := (w as Vector3).distance_to(from)
 		if d > 1.0 and d < 22.0:
 			near.append(w)
-	if near.is_empty():
-		return _walk[_rng.randi() % _walk.size()]
-	return near[_rng.randi() % near.size()]
+	near.shuffle()
+	for w in near:
+		var wp: Vector3 = w
+		var q := PhysicsRayQueryParameters3D.create(from + Vector3(0, 0.9, 0), wp + Vector3(0, 0.9, 0), 1)
+		if space.intersect_ray(q).is_empty():
+			return wp
+	# kein freier Weg: am nächsten Punkt bleiben (lieber stehen als durch Wände)
+	var best: Vector3 = from
+	var bd := INF
+	for w in _walk:
+		var d2 := (w as Vector3).distance_to(from)
+		if d2 < bd:
+			bd = d2
+			best = w
+	return best
 
 
 func _ground_y(target: Vector3, at: Vector3) -> float:
 	var space := get_world_3d().direct_space_state
-	var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 3, 0), at + Vector3(0, -6, 0))
+	# von knapp über den Füßen nach unten: Stufen und Bordsteine ja, Dächer und Vordächer nicht
+	var q := PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.6, 0), at + Vector3(0, -6, 0))
 	var hit := space.intersect_ray(q)
 	return (hit.position as Vector3).y if hit else target.y
 

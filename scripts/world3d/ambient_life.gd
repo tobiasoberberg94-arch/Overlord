@@ -120,6 +120,11 @@ static func _quad_mat(col: Color, emissive: float, tex_round: bool = false) -> S
 		m.emission_energy_multiplier = emissive
 		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		m.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+		m.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	if tex_round or emissive > 0.0:
+		# leuchtende Punkte (Glut, Glühwürmchen, Funken) weich und rund statt quadratisch
+		m.albedo_texture = _soft_dot()
+		m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 	return m
 
 
@@ -248,13 +253,20 @@ static func _motes(col: Color, amount: int, size: float, glow: float, y: float) 
 
 static func _embers() -> GPUParticles3D:
 	var p := GPUParticles3D.new()
-	p.amount = 140
-	p.lifetime = 4.0
-	p.preprocess = 4.0
-	p.visibility_aabb = AABB(Vector3(-30, -2, -30), Vector3(60, 20, 60))
-	var pm := _proc(140, 4.0, Vector3(22, 0.5, 22), Vector2(0.5, 1.5), Vector3(0, 0.9, 0))
+	p.amount = 110
+	p.lifetime = 3.0
+	p.preprocess = 3.0
+	p.visibility_aabb = AABB(Vector3(-30, -2, -30), Vector3(60, 12, 60))
+	# langsam aufsteigend und taumelnd, nach 1–4 m verglüht (schnelle, grelle Punkte zogen Spuren in den Himmel)
+	var pm := _proc(110, 3.0, Vector3(22, 0.4, 22), Vector2(0.2, 0.6), Vector3(0, 0.35, 0))
 	pm.direction = Vector3.UP
-	pm.spread = 25.0
+	pm.spread = 40.0
+	pm.turbulence_enabled = true
+	pm.turbulence_noise_strength = 1.2
+	pm.turbulence_noise_scale = 2.5
+	pm.turbulence_influence_min = 0.05
+	pm.turbulence_influence_max = 0.12
+	pm.lifetime_randomness = 0.5
 	var g := Gradient.new()
 	g.set_color(0, Color(1.0, 0.75, 0.3))
 	g.set_color(1, Color(0.8, 0.15, 0.02, 0.0))
@@ -264,7 +276,7 @@ static func _embers() -> GPUParticles3D:
 	p.process_material = pm
 	var qm := QuadMesh.new()
 	qm.size = Vector2(0.05, 0.05)
-	qm.material = _quad_mat(Color(1.0, 0.6, 0.2), 8.0)
+	qm.material = _quad_mat(Color(1.0, 0.6, 0.2), 3.0, true)
 	p.draw_pass_1 = qm
 	p.set_meta("y", 0.0)
 	return p
