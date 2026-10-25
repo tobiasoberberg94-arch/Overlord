@@ -359,6 +359,7 @@ M_TABARD = material("Tabard", (0.15, 0.20, 0.45), 0.85, tex=IMG_LINEN)
 M_SKIRT = material("Skirt", (0.35, 0.28, 0.22), 0.85, tex=IMG_LINEN)
 M_HAT = material("Hat", (0.35, 0.28, 0.18), 0.8, tex=IMG_LINEN)
 M_GOLD = material("Gold", (0.85, 0.68, 0.25), 0.3, 0.9)
+M_HOOD = material("Hood", (0.28, 0.18, 0.36), 0.85, tex=IMG_LINEN)
 
 # ---------------------------------------------------------------- Körper (Skin-Modifier + Subdivision)
 objs = []
@@ -588,6 +589,19 @@ def helmet_mat(c, n):
         return 2
     return 0
 opt_obj("Helmet", helmet, [M_METAL, M_PUPIL, M_CAPE], helmet_mat)
+def hood(bm):
+    # Kapuze: liegt eng am Kopf (Gesicht frei) und fällt als Kragen über die Schultern
+    add_sphere(bm, HC + Vector((0, 0.012, 0.02)), HR + 0.03, scale=(1.08, 1.1, 1.12))
+    geom = bm.verts[:] + bm.edges[:] + bm.faces[:]
+    bmesh.ops.bisect_plane(bm, geom=geom, plane_co=Vector((0, hy - 0.07, EZ + 0.01)), plane_no=Vector((0, 0.55, 1.0)).normalized(), clear_inner=True)
+    add_cone(bm, (0, neck.y + 0.01, neck.z + 0.0), 0.27, 0.085, 0.2, seg=22)
+bm = bmesh.new()
+hood(bm)
+hood_ob = new_obj("Hood", bm)
+set_material(hood_ob, [M_HOOD], lambda c, n: 0)
+box_uv(hood_ob, 5.0)
+weight_by(hood_ob, lambda co: {"Head": 1.0} if co.z > neck.z + 0.07 else {"Spine2": 1.0})
+objs.append(hood_ob)
 def crown(bm):
     add_torus(bm, (0, hy, HC.z + 0.11), 0.105, 0.018, scale=(1, 1, 1.6))
     for i in range(6):
@@ -746,7 +760,7 @@ if RENDER_DIR:
     cam_data.lens = 50
     scene.camera = cam
     hidden_default = ["Ears_elf", "Hair_slick", "Hair_long", "Hair_bob", "Hair_bun", "Hair_ponytail", "Hair_twin", "Beard",
-                      "Hat_cap", "Hat_straw", "Helmet", "Crown", "Glasses", "Armor_chest", "Pauldrons", "Apron", "Tabard", "Cape", "Skirt"]
+                      "Hat_cap", "Hat_straw", "Helmet", "Crown", "Glasses", "Armor_chest", "Pauldrons", "Apron", "Tabard", "Cape", "Skirt", "Hood"]
     def show(names):
         for ob in objs:
             ob.hide_render = ob.name in hidden_default and ob.name not in names
@@ -776,6 +790,8 @@ if RENDER_DIR:
     shot("misc", "idle", 10, yaw=-20)
     show(["Hair_ponytail", "Ears_elf", "Skirt"])
     shot("elf", "idle", 70, yaw=20)
+    show(["Hood", "Skirt"])
+    shot("cultist", "idle", 20, yaw=10)
     show(["Hair_short"] if not F else ["Hair_long", "Skirt"])
     for cname, fr in [("talk", 40), ("argue", 60), ("cheer", 30), ("pray", 60), ("sit", 30), ("drink", 50), ("wave", 30)]:
         if bpy.data.actions.get(cname):

@@ -50,6 +50,7 @@ static var spawner: Callable           ## world_3d.spawn_enemy (für Beschwörun
 static var ally_spawner: Callable      ## world_3d.spawn_ally (Ainz' Beschwörungen)
 static var hold := false               ## Filmszene: alle Kämpfer ruhen (keine KI, Angriffe brechen ab, Animation läuft)
 
+const VLook := preload("res://scripts/world3d/villager_look.gd")
 var type_id := ""
 var data: Dictionary = {}
 var ally := false                      ## kämpft für Nazarick (Todesritter, Wächter in Szenen-Einsätzen)
@@ -141,15 +142,25 @@ func _ready() -> void:
 	add_child(col)
 	var c := Color(data.get("color", "#cccccc"))
 	var weapon := String(data.get("weapon", ""))
+	# Menschliche Gegner ohne eigenes Modell tragen das Dorfbewohner-Modell mit Rüstung, Kapuze und Waffe (villager_look.gd)
+	var vspec: Dictionary = {}
 	if data.has("figure"):
 		var fig := String(data.figure)
 		rig = CharacterRig.create(String(data.get("model", ProcModel.model_of(fig))), func(r): ProcModel.figure(r, fig))
 	else:
-		rig = CharacterRig.create(model, func(r): ProcModel.enemy(r, model, c, weapon))
+		vspec = VLook.enemy_spec(type_id, model, c, weapon)
+		var vmodel: String = "" if vspec.is_empty() else VLook.model_for(vspec)
+		if vmodel != "" and ModelLib.has("characters", vmodel):
+			rig = CharacterRig.create(vmodel, func(r): ProcModel.enemy(r, model, c, weapon))
+		else:
+			vspec = {}
+			rig = CharacterRig.create(model, func(r): ProcModel.enemy(r, model, c, weapon))
 	add_child(rig)
 	if data.has("figure"):
 		ProcModel.accessories(rig, String(data.figure))
-	if rig.has_model and weapon != "":
+	elif not vspec.is_empty() and rig.has_model:
+		VLook.apply(rig, vspec)
+	if rig.has_model and weapon != "" and vspec.is_empty():
 		ProcModel.attach_weapon(rig, weapon, c)
 	if float(data.get("scale", 1.0)) != 1.0:
 		rig.scale = Vector3.ONE * float(data.scale)

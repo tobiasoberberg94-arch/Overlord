@@ -9,7 +9,9 @@ extends RefCounted
 ## als Kopien eingefärbt. Figuren mit Flügeln, Schwanz, Hörnern oder Schnauze bleiben prozedural.
 
 const OPTIONAL := ["Ears_elf", "Hair_short", "Hair_slick", "Hair_long", "Hair_bob", "Hair_bun", "Hair_ponytail", "Hair_twin",
-	"Beard", "Hat_cap", "Hat_straw", "Helmet", "Crown", "Glasses", "Armor_chest", "Pauldrons", "Apron", "Tabard", "Cape", "Skirt"]
+	"Beard", "Hat_cap", "Hat_straw", "Helmet", "Crown", "Glasses", "Armor_chest", "Pauldrons", "Apron", "Tabard", "Cape", "Skirt", "Hood"]
+const SKINS := ["#f0d5c0", "#e2bfa3", "#c99a78", "#a8775a", "#f5ddc8"]
+const HAIRS := ["#2a1d14", "#5a3a20", "#8a6a3a", "#3a3a3a", "#b9b0a5", "#7a2f1a"]
 const HAIR_NODES := {"short": "Hair_short", "slick": "Hair_slick", "long": "Hair_long", "bob": "Hair_bob", "bun": "Hair_bun",
 	"ponytail": "Hair_ponytail", "twin": "Hair_twin"}
 const DONOR_HEIGHT := 1.84      ## Höhe des Rigs (Demiurge); Bewohner mit scale 1 werden 1,72 m
@@ -54,6 +56,8 @@ static func apply(r: CharacterRig, f: Dictionary) -> void:
 			show[key.capitalize()] = true
 	if f.has("cap"):
 		show["Hat_cap"] = true
+	if f.has("hood"):
+		show["Hood"] = true
 	if f.get("straw", false):
 		show["Hat_straw"] = true
 	if f.get("ears", false):
@@ -75,6 +79,7 @@ static func apply(r: CharacterRig, f: Dictionary) -> void:
 		"Cape": _c(f.get("cape"), "#5a1414"),
 		"Tabard": _c(f.get("tabard"), "#1d2f6b"),
 		"Hat": _c(f.get("cap"), "#5a4a3a") if f.has("cap") else STRAW,
+		"Hood": _c(f.get("hood"), "#2a1a3a"),
 	}
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
 		var m := mi as MeshInstance3D
@@ -120,6 +125,77 @@ static func apply(r: CharacterRig, f: Dictionary) -> void:
 				(c as Node3D).position = Vector3(0, 0.0, 0.03)
 			holder.rotation_degrees = Vector3(90, 0, 0)
 			holder.position = Vector3(0, 0.05, 0)
+
+
+## Aussehen menschlicher Gegner ohne eigenes Modell (data/combat.json → "model": "soldier"): Art, Farbe und Waffe des
+## Eintrags bestimmen Rüstung, Helm, Wappenrock, Kapuze, Robe und Waffe; Haut und Haar werden gewürfelt. {} = kein Mensch.
+static func enemy_spec(id: String, model: String, color: Color, weapon: String) -> Dictionary:
+	if model != "soldier":
+		return {}
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var col := color.to_html(false)
+	var dark := color.darkened(0.35).to_html(false)
+	var f := {"skin": SKINS[rng.randi() % SKINS.size()], "hair": [HAIRS[rng.randi() % HAIRS.size()], "short" if rng.randf() < 0.75 else "bald"],
+		"top": col, "bottom": ["pants", dark], "trim": "#5a4a3a", "eyes": "#3a2a2a", "scale": rng.randf_range(0.98, 1.06), "female": false}
+	if rng.randf() < 0.35:
+		f["beard"] = f.hair[0]
+	match id:
+		"zurrernorn_cultist", "zurrernorn_priest", "succulent", "illusion":
+			# Kultisten und Magier: Robe mit Kapuze, Stab oder Dolch
+			f["bottom"] = ["robe", col]
+			f["hood"] = dark
+			f["weapon"] = ["staff", "#b070ff"] if id == "zurrernorn_priest" else (["sword", "#c8c8d0"] if id == "illusion" else ["dagger", "#c8c8d0"])
+		"sunlit_caster":
+			f["bottom"] = ["robe", col]
+			f["hood"] = "#f0e8d0"
+			f["trim"] = "#d4af37"
+			f["weapon"] = ["staff", "#ffe080"]
+		"gagaran":
+			f["female"] = true
+			f["hair"] = [f.hair[0], "short"]
+			f.erase("beard")
+			f["armor"] = true
+			f["scale"] = 1.1
+			f["weapon"] = ["hammer", "#9a9a9a"]
+		"eight_fingers":
+			f["cap"] = dark
+			f["weapon"] = ["dagger", "#c8c8d0"]
+		"bandit_archer":
+			f["cap"] = dark
+			f["weapon"] = ["bow", "#5a3a20"]
+		"scripture_archer":
+			f["armor"] = true
+			f["tabard"] = col
+			f["weapon"] = ["bow", "#5a3a20"]
+		"brain":
+			f["armor"] = true
+			f["cape"] = "#2a2a3a"
+			f["weapon"] = ["sword", "#c8c8d0"]
+		"decem":
+			f["armor"] = true
+			f["helmet"] = "#8a8f98"
+			f["cape"] = "#1a4a3a"
+			f["weapon"] = ["sword_shield", "#d0d0d8"]
+		"adventurer":
+			f["armor"] = rng.randf() < 0.6
+			f["female"] = rng.randf() < 0.35
+			if f.female:
+				f["hair"] = [f.hair[0], ["ponytail", "bun", "long"][rng.randi() % 3]]
+				f.erase("beard")
+			f["weapon"] = [["sword", "#c8c8d0"], ["sword_shield", "#d0d0d8"], ["axe", "#9a9a9a"]][rng.randi() % 3]
+		_:
+			# Soldaten und Söldner: Rüstung, Helm, Soldaten mit Wappenrock
+			f["armor"] = true
+			f["helmet"] = "#8a8f98" if id == "soldier" else "#5a4a3a"
+			if id == "soldier":
+				f["tabard"] = col
+			f["weapon"] = [["sword", "#c8c8d0"], ["spear", "#9a9a9a"], ["sword_shield", "#d0d0d8"]][rng.randi() % 3]
+	if weapon == "bow":
+		f["weapon"] = ["bow", "#5a3a20"]
+	elif weapon == "staff":
+		f["weapon"] = ["staff", "#9fe070"]
+	return f
 
 
 static func _c(v: Variant, fallback: String = "#888888") -> Color:

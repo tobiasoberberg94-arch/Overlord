@@ -2,27 +2,26 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bkdgh77deldee"
-path.s3tc="res://.godot/imported/brass_goblet_01_nor_gl_2k.jpg-2d19e0efa69e2bdd54a71aa3a2785000.s3tc.ctex"
+uid="uid://dlyx1x3wnhcla"
+path="res://.godot/imported/brass_goblet_01_nor_gl_2k.jpg-2d19e0efa69e2bdd54a71aa3a2785000.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/brass_goblets/textures/brass_goblet_01_nor_gl_2k.jpg"
-dest_files=["res://.godot/imported/brass_goblet_01_nor_gl_2k.jpg-2d19e0efa69e2bdd54a71aa3a2785000.s3tc.ctex"]
+dest_files=["res://.godot/imported/brass_goblet_01_nor_gl_2k.jpg-2d19e0efa69e2bdd54a71aa3a2785000.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=1
+compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""

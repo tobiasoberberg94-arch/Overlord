@@ -788,6 +788,64 @@ func _ready() -> void:
 		print("VILLAGERSDONE")
 		get_tree().quit()
 		return
+	if only == "enemies":
+		# Menschliche Gegner auf dem Bewohner-Modell: eine Reihe vor der Kamera, Nahaufnahme, dann ein Angriff
+		await w.load_location("carne")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(0.5)
+		w._time_running = false
+		var base: Vector3 = w.player.global_position
+		var d := Vector3(0, 0, -1)
+		var right := Vector3(1, 0, 0)
+		var ids := ["soldier", "mercenary", "bandit_archer", "zurrernorn_cultist", "zurrernorn_priest", "sunlit_caster", "adventurer", "gagaran", "brain", "decem", "eight_fingers", "scripture_archer"]
+		var spawned: Array = []
+		var models := 0
+		for i in ids.size():
+			var arr: Array = w.test_spawn(ids[i], 1)
+			for e in arr:
+				var en := e as Enemy3D
+				en.global_position = w._on_ground(base + d * 5.0 + right * ((i - (ids.size() - 1) / 2.0) * 0.95))
+				en.rotation.y = 0.0
+				en.set_physics_process(false)
+				en.set_process(false)
+				spawned.append(en)
+				if en.rig.has_model:
+					models += 1
+				print("ENEMIES %s: Modell %s (%s)" % [ids[i], en.rig.has_model, en.rig.model_id])
+		print("ENEMIES Gegner: %d von %d mit Modell" % [models, spawned.size()])
+		w.player.global_position = base
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.12
+		await _wait(1.5)
+		_shot("enemies_row")
+		w.player.global_position = base + d * 3.2
+		await _wait(0.6)
+		_shot("enemies_close")
+		# Angriff: Soldat wieder aktiv, Spieler in Reichweite
+		w.player.global_position = base
+		for en in spawned:
+			if en.type_id != "soldier":
+				en.queue_free()
+			else:
+				en.set_physics_process(true)
+				en.set_process(true)
+				en.global_position = w._on_ground(base + d * 2.2)
+				en.target = w.player
+				en.engaged = true
+		w._time_running = true
+		var seen: Array = []
+		for k in 12:
+			await _wait(0.5)
+			for en in spawned:
+				if is_instance_valid(en) and en.type_id == "soldier" and not seen.has(en.rig._current):
+					seen.append(en.rig._current)
+			if k == 5:
+				_shot("enemies_attack")
+		print("ENEMIES Soldat spielte: %s" % ", ".join(seen))
+		print("ENEMIESDONE")
+		get_tree().quit()
+		return
 	if only == "probe":
 		# Bodenprobe: PROBE="ort:x,z;ort:x,z" – was liegt unter dem Punkt (Kollisionskörper, Höhe, Neigung)?
 		for spec in OS.get_environment("PROBE").split(";", false):

@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.11.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.12.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -73,8 +73,11 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Rig ohne Skin geladen, `Models/Sebas/mixamo_civil`) sind auf das Bewohner-Rig übertragen: Gesprächsgruppen reden und streiten,
   Wartende winken, klatschen, jubeln, Priester beten, Magier und Adlige reden, beim Sprechen wird gestikuliert
   (`Townsfolk._idle_clip`, `CharacterRig.play_extra`). Solution und Sebas sind echte Mixamo-Modelle (`solution.glb`, `sebas.glb`).
-- Offen: Sitzen/Trinken an Bänken und in Schenken; menschliche Gegner (Banditen, Soldaten, Kultisten) auf das Bewohner-Modell
-  umstellen; Kinder mit eigenen Proportionen; die übrigen elf Mixamo-Figuren (ZIP-Uploads durch den Nutzer).
+- Version 2.12: menschliche Gegner (`"model": "soldier"`: Soldaten, Söldner, Banditen, Abenteurer, Gagaran, Brain, Decem, Acht Finger,
+  Schrift-Bogenschützen, Sonnenlicht-Zauberer, Zurrernorn-Kultisten und -Priester) tragen das Bewohner-Modell mit Rüstung, Helm,
+  Wappenrock, Umhang, Robe und neuer Kapuze; Kampfclips aus dem Rig (`VillagerLook.enemy_spec`, Prüfmodus `LOC=enemies`).
+- Offen: Sitzen/Trinken an Bänken und in Schenken; Kinder mit eigenen Proportionen; die übrigen elf Mixamo-Figuren (ZIP-Uploads
+  durch den Nutzer).
 
 ## Testmodus und Größen (erledigt, Version 2.9)
 - Titelbild „Testwelt (alles frei)“ (`Game.unlock_everything`: letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle

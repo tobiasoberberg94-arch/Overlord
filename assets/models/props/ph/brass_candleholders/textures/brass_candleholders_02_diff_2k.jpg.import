@@ -2,27 +2,26 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dce3s3jxrqmtv"
-path.s3tc="res://.godot/imported/brass_candleholders_02_diff_2k.jpg-6f042a27acf912ba7f3d14997950d1dd.s3tc.ctex"
+uid="uid://cc48ra1adiqqj"
+path="res://.godot/imported/brass_candleholders_02_diff_2k.jpg-6f042a27acf912ba7f3d14997950d1dd.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
-"vram_texture": true
+"vram_texture": false
 }
 
 [deps]
 
 source_file="res://assets/models/props/ph/brass_candleholders/textures/brass_candleholders_02_diff_2k.jpg"
-dest_files=["res://.godot/imported/brass_candleholders_02_diff_2k.jpg-6f042a27acf912ba7f3d14997950d1dd.s3tc.ctex"]
+dest_files=["res://.godot/imported/brass_candleholders_02_diff_2k.jpg-6f042a27acf912ba7f3d14997950d1dd.ctex"]
 
 [params]
 
-compress/mode=2
+compress/mode=0
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
 compress/channel_pack=0
-mipmaps/generate=true
+mipmaps/generate=false
 mipmaps/limit=-1
 roughness/mode=0
 roughness/src_normal=""
