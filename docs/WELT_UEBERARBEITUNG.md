@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.12.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.13.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -76,8 +76,9 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
 - Version 2.12: menschliche Gegner (`"model": "soldier"`: Soldaten, Söldner, Banditen, Abenteurer, Gagaran, Brain, Decem, Acht Finger,
   Schrift-Bogenschützen, Sonnenlicht-Zauberer, Zurrernorn-Kultisten und -Priester) tragen das Bewohner-Modell mit Rüstung, Helm,
   Wappenrock, Umhang, Robe und neuer Kapuze; Kampfclips aus dem Rig (`VillagerLook.enemy_spec`, Prüfmodus `LOC=enemies`).
-- Offen: Sitzen/Trinken an Bänken und in Schenken; Kinder mit eigenen Proportionen; die übrigen elf Mixamo-Figuren (ZIP-Uploads
-  durch den Nutzer).
+- Version 2.13: Kinder mit eigenen Proportionen (`villager_c.glb`, 18 % der Dorfbewohner, Figuren mit `scale` < 0,7 wie Nemu) und
+  sitzende Gäste an den Wirtshaustischen (Gilde, Gasthaus: Sitzen, Plaudern, Trinken; fliehen nicht, drehen sich nicht weg).
+- Offen: Gäste auch in der Dorfschenke und den Bänken; die übrigen elf Mixamo-Figuren (ZIP-Uploads durch den Nutzer).
 
 ## Testmodus und Größen (erledigt, Version 2.9)
 - Titelbild „Testwelt (alles frei)“ (`Game.unlock_everything`: letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle

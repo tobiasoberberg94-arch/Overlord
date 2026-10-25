@@ -14,7 +14,8 @@ const SKINS := ["#f0d5c0", "#e2bfa3", "#c99a78", "#a8775a", "#f5ddc8"]
 const HAIRS := ["#2a1d14", "#5a3a20", "#8a6a3a", "#3a3a3a", "#b9b0a5", "#7a2f1a"]
 const HAIR_NODES := {"short": "Hair_short", "slick": "Hair_slick", "long": "Hair_long", "bob": "Hair_bob", "bun": "Hair_bun",
 	"ponytail": "Hair_ponytail", "twin": "Hair_twin"}
-const DONOR_HEIGHT := 1.84      ## Höhe des Rigs (Demiurge); Bewohner mit scale 1 werden 1,72 m
+const DONOR_HEIGHT := 1.84      ## Höhe des Rigs (Demiurge); Bewohner mit scale 1 werden 1,72 m; Kinder (villager_c) nutzen
+                                ## dasselbe Rig mit großem Kopf und schmalen Gliedern und werden über scale (0,55–0,68) klein
 const TARGET_HEIGHT := 1.72
 const ARMOR_COLOR := Color(0.6, 0.6, 0.65)
 const STRAW := Color(0.76, 0.64, 0.36)
@@ -27,6 +28,8 @@ static func model_for(f: Dictionary) -> String:
 			return ""
 	var bottom: Array = f.get("bottom", [])
 	var kind := String(bottom[0]) if bottom.size() > 0 else "pants"
+	if f.get("child", false) or float(f.get("scale", 1.0)) < 0.7:
+		return "villager_c"
 	var female: bool = f.get("female", kind == "dress" or kind == "gown")
 	return "villager_f" if female else "villager_m"
 

@@ -846,6 +846,34 @@ func _ready() -> void:
 		print("ENEMIESDONE")
 		get_tree().quit()
 		return
+	if only == "seats":
+		# Sitzende Gäste in Gilde und Gasthaus: Anzahl, laufende Clips, Bilder von den Tischen
+		for lid in ["erantel_gilde", "erantel_gasthaus"]:
+			await w.load_location(lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(2.0)
+			var seated := 0
+			var clips: Array = []
+			var first: Node3D = null
+			for t in w.find_children("*Guest*", "Townsfolk", true, false):
+				for pp in (t as Townsfolk)._people:
+					if pp.get("seated", false):
+						seated += 1
+						clips.append(String((pp.rig as CharacterRig)._current))
+						if first == null:
+							first = pp.rig
+			print("SEATS %s: %d Gäste · Clips %s" % [lid, seated, ", ".join(clips)])
+			if first:
+				var look := first.global_position
+				w.player.global_position = look + Vector3(2.6, 0, 2.6)
+				w.player.cam_yaw = atan2(-(look.x - w.player.global_position.x), -(look.z - w.player.global_position.z))
+				w.player.cam_pitch = -0.2
+				await _wait(1.0)
+				_shot("seats_" + lid)
+		print("SEATSDONE")
+		get_tree().quit()
+		return
 	if only == "probe":
 		# Bodenprobe: PROBE="ort:x,z;ort:x,z" – was liegt unter dem Punkt (Kollisionskörper, Höhe, Neigung)?
 		for spec in OS.get_environment("PROBE").split(";", false):

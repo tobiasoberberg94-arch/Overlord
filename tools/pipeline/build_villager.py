@@ -18,6 +18,7 @@ DONOR = r"C:\Projekte\Overlord\repo\assets\models\characters\demiurge.glb"
 TEX_DIR = os.path.join(os.path.dirname(OUT), "villager_tex")
 os.makedirs(TEX_DIR, exist_ok=True)
 F = VARIANT == "f"
+C = VARIANT == "c"          # Kind: großer Kopf, schmale Schultern, dünne Glieder (im Spiel auf ~0,6 skaliert)
 
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=DONOR)
@@ -368,25 +369,33 @@ sv = {}
 def skv(name, co, rx, ry):
     sv[name] = (bm.verts.new(co), rx, ry)
 sy = spine.y
-shoulder_r = 0.062 if F else 0.075
-skv("pelvis", (0, hips.y, hips.z - 0.02), 0.19 if F else 0.175, 0.125 if F else 0.115)
-skv("waist", (0, sy, spine.z + 0.03), 0.135 if F else 0.16, 0.10 if F else 0.115)
-skv("chest", (0, spine1.y, spine1.z + 0.02), 0.165 if F else 0.185, 0.125 if F else 0.13)
-skv("upper", (0, spine2.y, spine2.z + 0.02), 0.155 if F else 0.19, 0.115 if F else 0.125)
-skv("neck", (0, neck.y, neck.z + 0.005), 0.055, 0.055)
-skv("necktop", (0, neck.y, neck.z + 0.07), 0.05, 0.05)
+shoulder_r = 0.055 if C else (0.062 if F else 0.075)
+if C:
+    skv("pelvis", (0, hips.y, hips.z - 0.02), 0.15, 0.105)
+    skv("waist", (0, sy, spine.z + 0.03), 0.135, 0.10)
+    skv("chest", (0, spine1.y, spine1.z + 0.02), 0.145, 0.11)
+    skv("upper", (0, spine2.y, spine2.z + 0.02), 0.14, 0.105)
+    skv("neck", (0, neck.y, neck.z + 0.005), 0.05, 0.05)
+    skv("necktop", (0, neck.y, neck.z + 0.07), 0.048, 0.048)
+else:
+    skv("pelvis", (0, hips.y, hips.z - 0.02), 0.19 if F else 0.175, 0.125 if F else 0.115)
+    skv("waist", (0, sy, spine.z + 0.03), 0.135 if F else 0.16, 0.10 if F else 0.115)
+    skv("chest", (0, spine1.y, spine1.z + 0.02), 0.165 if F else 0.185, 0.125 if F else 0.13)
+    skv("upper", (0, spine2.y, spine2.z + 0.02), 0.155 if F else 0.19, 0.115 if F else 0.125)
+    skv("neck", (0, neck.y, neck.z + 0.005), 0.055, 0.055)
+    skv("necktop", (0, neck.y, neck.z + 0.07), 0.05, 0.05)
 for side, (sa, sf, sh) in {"l": (larm, lfore, lhand), "r": (rarm, rfore, rhand)}.items():
     sx = 1 if side == "l" else -1
-    skv(side + "shin", (sx * 0.11, sa.y, sa.z + 0.02), 0.07 if F else 0.085, 0.07 if F else 0.085)
+    skv(side + "shin", (sx * 0.11, sa.y, sa.z + 0.02), 0.06 if C else (0.07 if F else 0.085), 0.06 if C else (0.07 if F else 0.085))
     skv(side + "arm", (sa.x, sa.y, sa.z), shoulder_r, shoulder_r)
-    skv(side + "elbow", (sf.x, sf.y, sf.z), 0.044 if F else 0.05, 0.044 if F else 0.05)
-    skv(side + "wrist", (sh.x, sh.y, sh.z), 0.038, 0.034)
-    skv(side + "hand", (sh.x + sx * 0.16, sh.y - 0.005, sh.z - 0.005), 0.045, 0.02)
+    skv(side + "elbow", (sf.x, sf.y, sf.z), 0.04 if C else (0.044 if F else 0.05), 0.04 if C else (0.044 if F else 0.05))
+    skv(side + "wrist", (sh.x, sh.y, sh.z), 0.033 if C else 0.038, 0.03 if C else 0.034)
+    skv(side + "hand", (sh.x + sx * 0.16, sh.y - 0.005, sh.z - 0.005), 0.04 if C else 0.045, 0.018 if C else 0.02)
 for side, (su, sl, sf, st) in {"l": (lup, lleg, lfoot, ltoe), "r": (rup, rleg, rfoot, rtoe)}.items():
     sx = 1 if side == "l" else -1
-    skv(side + "hip", (sx * 0.095, su.y, su.z), 0.098 if F else 0.095, 0.098 if F else 0.095)
-    skv(side + "knee", (sx * 0.095, sl.y, sl.z), 0.066, 0.066)
-    skv(side + "ankle", (sx * 0.095, sf.y, sf.z + 0.02), 0.05, 0.05)
+    skv(side + "hip", (sx * 0.095, su.y, su.z), 0.078 if C else (0.098 if F else 0.095), 0.078 if C else (0.098 if F else 0.095))
+    skv(side + "knee", (sx * 0.095, sl.y, sl.z), 0.056 if C else 0.066, 0.056 if C else 0.066)
+    skv(side + "ankle", (sx * 0.095, sf.y, sf.z + 0.02), 0.045 if C else 0.05, 0.045 if C else 0.05)
     skv(side + "toe", (sx * 0.11, st.y - 0.03, 0.03), 0.052, 0.03)
 edges = [("pelvis", "waist"), ("waist", "chest"), ("chest", "upper"), ("upper", "neck"), ("neck", "necktop"),
          ("upper", "lshin"), ("lshin", "larm"), ("larm", "lelbow"), ("lelbow", "lwrist"), ("lwrist", "lhand"),
@@ -459,18 +468,18 @@ objs.append(collar)
 
 # ---------------------------------------------------------------- Kopf mit Gesicht
 bm = bmesh.new()
-HR = 0.105
+HR = 0.128 if C else 0.105      # Kinder: größerer Kopf
 add_sphere(bm, HC, HR, scale=(0.95, 0.98, 1.15))
 # Hals-Übergang: kleiner Kegel unter dem Kinn
 add_cone(bm, (0, hy + 0.005, HC.z - 0.11), 0.058, 0.075, 0.06)
 chin_faces = len(bm.faces)
-ex = 0.036
-EZ = HC.z + 0.015
+ex = 0.04 if C else 0.036
+EZ = HC.z + (0.005 if C else 0.015)
 for sx in (-1, 1):
-    add_sphere(bm, (sx * ex, hy - 0.083, EZ), 0.021, seg=16, rings=10)
+    add_sphere(bm, (sx * ex, hy - (0.1 if C else 0.083), EZ), 0.026 if C else 0.021, seg=16, rings=10)
 eye_faces = len(bm.faces)
 for sx in (-1, 1):
-    add_sphere(bm, (sx * ex, hy - 0.1, EZ), 0.011, seg=12, rings=8)
+    add_sphere(bm, (sx * ex, hy - (0.12 if C else 0.1), EZ), 0.014 if C else 0.011, seg=12, rings=8)
 pupil_faces = len(bm.faces)
 # Nase, Ohren (Haut)
 add_sphere(bm, (0, hy - 0.105, EZ - 0.035), 0.016, scale=(0.9, 1.1, 1.4), seg=12, rings=8)

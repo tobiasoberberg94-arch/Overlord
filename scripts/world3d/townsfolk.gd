@@ -40,6 +40,23 @@ static func spawn(parent: Node3D, walk: Array, idle: Array, seed_v: int, count: 
 	return t
 
 
+## Sitzender Gast (Wirtshausstuhl): bleibt sitzen, wechselt zwischen Sitzen, Plaudern und Trinken, flieht nicht.
+static func spawn_seated(parent: Node3D, pos: Vector3, yaw: float, seed_v: int, style: String = "") -> Townsfolk:
+	var t := Townsfolk.new()
+	t.name = "Guest"
+	parent.add_child(t)
+	t._rng.seed = seed_v
+	t._style = style
+	t._add(pos, true)
+	var p: Dictionary = t._people[0]
+	p["seated"] = true
+	p.talk = false
+	p.wait = 1e9
+	p.night_hide = false
+	(p.rig as Node3D).rotation.y = yaw
+	return t
+
+
 var _style := ""
 var _tabard := "#1d2f6b"      ## Wappenrock der Wachen (Fraktionsfarbe), siehe spawn()
 const ARMOR := ["#8a8f98", "#6a6e78", "#a8aeb8", "#5a4a3a"]
@@ -73,6 +90,15 @@ func _add(pos: Vector3, standing: bool) -> void:
 		f["beard"] = HAIR[_rng.randi() % HAIR.size()]
 	if _style == "" and _rng.randf() < 0.22:
 		f["straw"] = true
+	if _style == "" and _rng.randf() < 0.18:
+		# Kinder: klein, großer Kopf (villager_c), ohne Bart und Hut, Mädchen im Kleid, Jungen in Hose
+		f["child"] = true
+		f["scale"] = _rng.randf_range(0.55, 0.68)
+		f["hair"] = [HAIR[_rng.randi() % HAIR.size()], (["twin", "bob", "ponytail"] if female else ["short", "short", "bob"])[_rng.randi() % 3]]
+		f["bottom"] = ["dress" if female else "pants", CLOTH[_rng.randi() % CLOTH.size()]]
+		f["apron"] = false
+		f.erase("beard")
+		f.erase("straw")
 	if _style == "adventurer":
 		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
 		f["apron"] = false
@@ -200,6 +226,9 @@ func _process(delta: float) -> void:
 		var rig: CharacterRig = p.rig
 		if not rig.visible:
 			continue
+		if p.get("seated", false):
+			_seated_clip(p, rig, delta)
+			continue
 		if p.has("flee_until") and float(p.flee_until) < now:
 			# Schreck vorbei: zurück zum gewohnten Gang (oder zur Gesprächsgruppe)
 			p.erase("flee_until")
@@ -266,6 +295,25 @@ func _idle_clip(p: Dictionary, rig: CharacterRig, delta: float, talking: bool) -
 		rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
 
 
+## Sitzende Gäste: Sitzen, Plaudern (Dauerschleifen) und ab und zu ein Schluck aus dem Krug.
+func _seated_clip(p: Dictionary, rig: CharacterRig, delta: float) -> void:
+	if not rig.has_model:
+		rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+		return
+	var clip := String(p.get("clip", ""))
+	var left := float(p.get("clip_left", 0.0)) - delta
+	if clip != "" and left > 0.0 and rig.extra_playing(clip):
+		p.clip_left = left
+		return
+	var r := _rng.randf()
+	var pick := "sit" if r < 0.5 else ("sit_talk" if r < 0.82 else "drink")
+	if not rig.play_extra(pick, pick != "drink"):
+		pick = "sit"
+		rig.play_extra(pick, true)
+	p.clip = pick
+	p.clip_left = _rng.randf_range(5.0, 12.0) if pick != "drink" else 1e9
+
+
 ## Nächster Wegpunkt: zufällig unter den nahen Punkten (läuft so die Straßen entlang).
 func _next_point(from: Vector3) -> Vector3:
 	var near: Array = []
@@ -319,7 +367,7 @@ func _check_barks() -> void:
 		_global_cool = 1.6
 		var to_player := ppos - rig.global_position
 		to_player.y = 0.0
-		if BARKS.flees(group):
+		if BARKS.flees(group) and not p.get("seated", false):
 			flee_count += 1
 			p["was_talk"] = p.talk
 			p.talk = false
@@ -327,7 +375,7 @@ func _check_barks() -> void:
 			p.speed = 2.6
 			p.wait = 0.0
 			p["flee_until"] = now + 5.0
-		elif to_player.length() > 0.1:
+		elif to_player.length() > 0.1 and not p.get("seated", false):
 			rig.rotation.y = atan2(to_player.x, to_player.z)
 			if _style == "maid":
 				var tw := rig.create_tween()
@@ -340,7 +388,7 @@ func _check_barks() -> void:
 func _say(p: Dictionary, text: String) -> void:
 	var rig: Node3D = p.rig
 	# Mit Modell: beim Sprechen gestikulieren
-	if rig is CharacterRig and (rig as CharacterRig).has_model and (rig as CharacterRig).play_extra("talk", false):
+	if rig is CharacterRig and (rig as CharacterRig).has_model and not p.get("seated", false) and (rig as CharacterRig).play_extra("talk", false):
 		p.clip = "talk"
 		p.clip_left = 4.0
 	var lb: Label3D = p.get("label") as Label3D

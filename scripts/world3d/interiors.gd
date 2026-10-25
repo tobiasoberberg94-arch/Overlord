@@ -117,6 +117,19 @@ static func chair_at(parent: Node3D, table: Vector3, angle_deg: float, dist: flo
 	prop_h(parent, name, p, 1.0, yaw + randf_range(-8.0, 8.0), true)
 
 
+## Stuhl am Tisch, mit Wahrscheinlichkeit `chance` besetzt: ein sitzender Gast (Townsfolk.spawn_seated) blickt zur Tischmitte.
+static func chair_guest_at(parent: Node3D, table: Vector3, angle_deg: float, dist: float, rng: RandomNumberGenerator, chance: float = 0.6, style: String = "") -> void:
+	chair_at(parent, table, angle_deg, dist)
+	if rng.randf() >= chance:
+		return
+	var a := deg_to_rad(angle_deg)
+	var p := table + Vector3(cos(a) * dist, 0.0, sin(a) * dist)
+	var to := table - p
+	to.y = 0.0
+	var seat := p + to.normalized() * 0.08
+	Townsfolk.spawn_seated(parent, seat, atan2(to.x, to.z), rng.randi(), style)
+
+
 static func railing(parent: Node3D, a: Vector3, b: Vector3, m: Material, h: float = 1.0) -> void:
 	var n := maxi(1, ceili(a.distance_to(b) / 1.6))
 	for i in n + 1:
@@ -266,7 +279,7 @@ static func guild(root: Node3D, _loc: Dictionary) -> Dictionary:
 		var ts := prop_h(root, "round_wooden_table_01", t, 0.76, rng.randf_range(0, 360), true)
 		var ty := ts.y if ts != Vector3.ZERO else 0.76
 		for k in 3:
-			chair_at(root, t, 25.0 + k * 120.0 + rng.randf_range(-12, 12), 0.95)
+			chair_guest_at(root, t, 25.0 + k * 120.0 + rng.randf_range(-12, 12), 0.95, rng, 0.6, "adventurer" if k == 0 else "")
 		candle(root, t + Vector3(0.05, ty, 0.1))
 		match i:
 			0:
@@ -443,7 +456,7 @@ static func tavern(root: Node3D, _loc: Dictionary) -> Dictionary:
 		var ts := prop_h(root, "round_wooden_table_01", t, 0.76, rng.randf_range(0, 360), true)
 		var ty := ts.y if ts != Vector3.ZERO else 0.76
 		for k in 3:
-			chair_at(root, t, 35.0 + k * 120.0 + rng.randf_range(-15, 15), 0.95)
+			chair_guest_at(root, t, 35.0 + k * 120.0 + rng.randf_range(-15, 15), 0.95, rng, 0.55)
 		candle(root, t + Vector3(0.1, ty, -0.05))
 		if i % 2 == 0:
 			prop(root, "brass_goblets", t + Vector3(-0.3, ty, 0.15), rng.randf_range(0, 360))
