@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.10.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.11.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -69,8 +69,12 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Neues Feld `female` in `figures.json`, wo Kleid oder Hose das Geschlecht nicht verraten (Neia, Clementine, Priester, Fluder …).
 - Gebäude werden um ihren Bodenursprung skaliert (vorher hob die Hüllen-Unterkante vergrabener Fundamente Häuser bis 0,55 m an);
   Prüfmodus `LOC=buildings`. Dunkles Junges brüllt genau einmal je Brüllen.
-- Offen: Mixamo-Clips für Reden, Sitzen, Jubeln, Beten (`Demiurge/mixamo_civil`) auf das Bewohner-Rig übertragen; menschliche Gegner
-  (Banditen, Soldaten, Kultisten) auf das Bewohner-Modell umstellen; Kinder mit eigenen Proportionen.
+- Version 2.11: neun Mixamo-Clips (Reden, Streiten, Klatschen, Jubeln, Winken, Beten, Sitzen, Sitzen-Reden, Trinken; über Sebas'
+  Rig ohne Skin geladen, `Models/Sebas/mixamo_civil`) sind auf das Bewohner-Rig übertragen: Gesprächsgruppen reden und streiten,
+  Wartende winken, klatschen, jubeln, Priester beten, Magier und Adlige reden, beim Sprechen wird gestikuliert
+  (`Townsfolk._idle_clip`, `CharacterRig.play_extra`). Solution und Sebas sind echte Mixamo-Modelle (`solution.glb`, `sebas.glb`).
+- Offen: Sitzen/Trinken an Bänken und in Schenken; menschliche Gegner (Banditen, Soldaten, Kultisten) auf das Bewohner-Modell
+  umstellen; Kinder mit eigenen Proportionen; die übrigen elf Mixamo-Figuren (ZIP-Uploads durch den Nutzer).
 
 ## Testmodus und Größen (erledigt, Version 2.9)
 - Titelbild „Testwelt (alles frei)“ (`Game.unlock_everything`: letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle

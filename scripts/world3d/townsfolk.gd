@@ -207,8 +207,8 @@ func _process(delta: float) -> void:
 			if p.get("was_talk", false):
 				p.talk = true
 		if p.talk:
-			# Gesprächsgruppe: leicht wippen und sich gelegentlich umdrehen
-			rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+			# Gesprächsgruppe: reden, streiten, zuhören (Clips des Bewohner-Modells), sich gelegentlich umdrehen
+			_idle_clip(p, rig, delta, true)
 			if _rng.randf() < delta * 0.08:
 				rig.rotation.y += _rng.randf_range(-0.8, 0.8)
 			continue
@@ -216,16 +216,54 @@ func _process(delta: float) -> void:
 		to.y = 0.0
 		if to.length() < 0.4:
 			p.wait -= delta
-			rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+			_idle_clip(p, rig, delta, false)
 			if p.wait <= 0.0 and not _walk.is_empty():
 				p.target = _next_point(rig.position)
 				p.wait = _rng.randf_range(2.0, 9.0)
+				p.erase("clip")
 			continue
+		p.erase("clip")
 		var dir := to.normalized()
 		rig.position += dir * p.speed * delta
 		rig.position.y = lerpf(rig.position.y, _ground_y(p.target, rig.position), 0.2)
 		rig.rotation.y = lerp_angle(rig.rotation.y, atan2(dir.x, dir.z), delta * 5.0)
 		rig.pose(Fighter.S.MOVE, "", 0.0, p.speed / 4.0)
+
+
+## Stehende Bewohner beleben: Gesprächsgruppen wechseln zwischen Reden, Streiten und Zuhören, Wartende winken, klatschen
+## oder jubeln hin und wieder, Priester beten, Magier und Adlige reden. Ohne Modell (Ersatzfigur) bleibt es beim Stehen.
+func _idle_clip(p: Dictionary, rig: CharacterRig, delta: float, talking: bool) -> void:
+	if not rig.has_model:
+		rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+		return
+	var clip := String(p.get("clip", ""))
+	var left := float(p.get("clip_left", 0.0)) - delta
+	if clip != "" and left > 0.0 and (rig.extra_playing(clip) or clip == "idle"):
+		p.clip_left = left
+		if clip == "idle":
+			rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
+		return
+	# Nächster Abschnitt wählen
+	var pick := "idle"
+	var dur := _rng.randf_range(3.0, 7.0)
+	if talking:
+		pick = ["talk", "talk", "argue", "idle", "talk"][_rng.randi() % 5]
+		dur = _rng.randf_range(4.0, 9.0)
+	elif _style == "priest":
+		pick = "pray" if _rng.randf() < 0.7 else "idle"
+		dur = _rng.randf_range(6.0, 12.0)
+	elif _style == "mage" or _style == "noble":
+		pick = "talk" if _rng.randf() < 0.35 else "idle"
+	elif _style != "guard":
+		var r := _rng.randf()
+		pick = "wave" if r < 0.1 else ("clap" if r < 0.17 else ("cheer" if r < 0.22 else "idle"))
+	if pick != "idle" and rig.play_extra(pick, pick == "talk" or pick == "argue" or pick == "pray"):
+		p.clip = pick
+		p.clip_left = dur if (pick == "talk" or pick == "argue" or pick == "pray") else 1e9
+	else:
+		p.clip = "idle"
+		p.clip_left = dur
+		rig.pose(Fighter.S.IDLE, "", 0.0, 0.0)
 
 
 ## Nächster Wegpunkt: zufällig unter den nahen Punkten (läuft so die Straßen entlang).
@@ -301,6 +339,10 @@ func _check_barks() -> void:
 ## Sprechblase über dem Kopf (Label3D), blendet nach ein paar Sekunden aus.
 func _say(p: Dictionary, text: String) -> void:
 	var rig: Node3D = p.rig
+	# Mit Modell: beim Sprechen gestikulieren
+	if rig is CharacterRig and (rig as CharacterRig).has_model and (rig as CharacterRig).play_extra("talk", false):
+		p.clip = "talk"
+		p.clip_left = 4.0
 	var lb: Label3D = p.get("label") as Label3D
 	if lb == null or not is_instance_valid(lb):
 		lb = Label3D.new()

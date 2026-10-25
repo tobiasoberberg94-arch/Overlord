@@ -3,7 +3,7 @@
 ; Inno Setup statt NSIS, weil die Spieldaten größer als 2 GB sind.
 
 #define AppName "Overlord - Herrscher von Nazarick"
-#define AppVersion "2.10.0"
+#define AppVersion "2.11.0"
 #define AppExe "OverlordNazarick.exe"
 
 [Setup]

@@ -137,6 +137,28 @@ func play(key: String, speed: float = 1.0, restart: bool = false) -> void:
 	anim.speed_scale = _speed * time_mult
 
 
+## Freier Clip nach Namen (Dorfbewohner: talk, argue, clap, cheer, wave, pray, sit, sit_talk, drink); false = nicht vorhanden.
+## loop = Dauerschleife, sonst läuft er einmal durch (extra_playing() meldet, ob er noch läuft).
+func play_extra(name: String, loop: bool = false) -> bool:
+	if anim == null or not anim.has_animation(name):
+		return false
+	var a := anim.get_animation(name)
+	if a:
+		a.loop_mode = Animation.LOOP_LINEAR if loop else Animation.LOOP_NONE
+	if name != _current:
+		anim.play(name, 0.25, 1.0)
+		_current = name
+	_speed = 1.0
+	anim.speed_scale = time_mult
+	return true
+
+
+func extra_playing(name: String = "") -> bool:
+	if anim == null:
+		return false
+	return anim.is_playing() and (name == "" or anim.current_animation == name) and not anim_map.values().has(anim.current_animation)
+
+
 ## Spielt den Abschnitt [a, b] eines Clips in `duration` Sekunden ab.
 func play_segment(key: String, duration: float) -> void:
 	if anim == null or not anim_map.has(key):

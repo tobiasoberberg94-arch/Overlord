@@ -13,6 +13,7 @@ args = sys.argv[sys.argv.index("--") + 1:]
 VARIANT = args[0]
 OUT = os.path.abspath(args[1])
 RENDER_DIR = args[2] if len(args) > 2 else ""
+CLIP_DIRS = [a.split("=", 1)[1] for a in args[3:] if a.startswith("clips=")] or [r"C:\Projekte\Overlord\Models\Sebas\mixamo_civil"]
 DONOR = r"C:\Projekte\Overlord\repo\assets\models\characters\demiurge.glb"
 TEX_DIR = os.path.join(os.path.dirname(OUT), "villager_tex")
 os.makedirs(TEX_DIR, exist_ok=True)
@@ -48,6 +49,96 @@ for a in list(bpy.data.actions):
     st = tr.strips.new(a.name, int(a.frame_range[0]), a)
     st.mute = False
 print("Aktionen:", [a.name for a in bpy.data.actions])
+
+# --- Zusätzliche Mixamo-Clips ohne Skin (z. B. Reden, Jubeln, Beten, Sitzen von einem anderen Mixamo-Rig) auf dieses Rig
+# übertragen – Weltraum-Rotationsdeltas je Knochen wie in build_character.py (_retarget), Hüfte an Ort und Stelle.
+def _retarget(src_arm, tgt_arm, name):
+    from mathutils import Quaternion
+    sb = {b.name.split(":")[-1]: b for b in src_arm.data.bones}
+    order = [b for b in tgt_arm.data.bones]                     # Eltern vor Kindern (Blender-Reihenfolge)
+    smw = src_arm.matrix_world.to_quaternion()
+    tmw = tgt_arm.matrix_world.to_quaternion()
+    rest_s = {k: smw @ b.matrix_local.to_quaternion() for k, b in sb.items()}
+    rest_t = {b.name: tmw @ b.matrix_local.to_quaternion() for b in order}
+    hips_s = next((b for k, b in sb.items() if k == "Hips"), None)
+    hips_t = next((b for b in order if b.name.split(":")[-1] == "Hips"), None)
+    h_s = (src_arm.matrix_world @ hips_s.head_local).z if hips_s else 1.0
+    h_t = (tgt_arm.matrix_world @ hips_t.head_local).z if hips_t else 1.0
+    ratio = h_t / h_s if abs(h_s) > 1e-6 else 1.0
+    act = bpy.data.actions.new(name)
+    if tgt_arm.animation_data is None:
+        tgt_arm.animation_data_create()
+    tgt_arm.animation_data.action = act
+    src_act = src_arm.animation_data.action
+    f0, f1 = int(src_act.frame_range[0]), int(src_act.frame_range[1])
+    for pb in tgt_arm.pose.bones:
+        pb.rotation_mode = "QUATERNION"
+    for f in range(f0, f1 + 1):
+        bpy.context.scene.frame_set(f)
+        arm_pose = {}
+        for b in order:
+            key = b.name.split(":")[-1]
+            pb = tgt_arm.pose.bones[b.name]
+            if key in sb:
+                sp = src_arm.pose.bones[sb[key].name]
+                delta = (smw @ sp.matrix.to_quaternion()) @ rest_s[key].inverted()
+                q_arm = tmw.inverted() @ (delta @ rest_t[b.name])
+            else:   # Knochen ohne Gegenstück: Ruhelage relativ zum Elternteil
+                q_arm = (arm_pose[b.parent.name] @ (b.parent.matrix_local.to_quaternion().inverted() @ b.matrix_local.to_quaternion())) if b.parent else b.matrix_local.to_quaternion()
+            arm_pose[b.name] = q_arm
+            if b.parent:
+                rel = b.parent.matrix_local.to_quaternion().inverted() @ b.matrix_local.to_quaternion()
+                loc_q = rel.inverted() @ arm_pose[b.parent.name].inverted() @ q_arm
+            else:
+                loc_q = b.matrix_local.to_quaternion().inverted() @ q_arm
+            pb.rotation_quaternion = loc_q
+            pb.keyframe_insert("rotation_quaternion", frame=f)
+            if key == "Hips" and hips_s is not None:
+                sp = src_arm.pose.bones[hips_s.name]
+                d_world = (src_arm.matrix_world @ sp.head) - (src_arm.matrix_world @ hips_s.head_local)
+                d_world.x = 0.0          # an Ort und Stelle: die Fortbewegung macht das Spiel
+                d_world.y = 0.0
+                d_arm = tgt_arm.matrix_world.inverted().to_3x3() @ (d_world * ratio)
+                pb.location = b.matrix_local.to_3x3().inverted() @ d_arm
+                pb.keyframe_insert("location", frame=f)
+    tgt_arm.animation_data.action = None
+    return act
+
+import glob
+def imported(fn):
+    before = set(bpy.data.objects)
+    fn()
+    return [o for o in bpy.data.objects if o not in before]
+
+for cdir in CLIP_DIRS:
+    for path in sorted(glob.glob(os.path.join(cdir, "*.fbx"))):
+        cname = os.path.splitext(os.path.basename(path))[0]
+        if cname.startswith("_") or bpy.data.actions.get(cname):
+            continue
+        new = imported(lambda: bpy.ops.import_scene.fbx(filepath=path, automatic_bone_orientation=False))
+        sa = next((o for o in new if o.type == "ARMATURE"), None)
+        if sa is None:
+            print("Clip ohne Armatur:", path)
+            continue
+        ad.action = None
+        act = _retarget(sa, arm, cname)
+        act.use_fake_user = True
+        tr = ad.nla_tracks.new()
+        tr.name = cname
+        st = tr.strips.new(cname, int(act.frame_range[0]), act)
+        st.mute = False
+        for o in new:
+            bpy.data.objects.remove(o)
+        for a in list(bpy.data.actions):
+            if a.users == 0:
+                bpy.data.actions.remove(a)
+        print("Clip übernommen:", cname, int(act.frame_range[1]), "Bilder")
+for pb in arm.pose.bones:
+    pb.location = (0, 0, 0)
+    pb.rotation_quaternion = (1, 0, 0, 0)
+    pb.rotation_euler = (0, 0, 0)
+    pb.scale = (1, 1, 1)
+scene.frame_set(0)
 
 # Finger- und Endknochen verformen nicht (Fäustlinge, saubere Gewichte)
 for b in arm.data.bones:
@@ -685,4 +776,8 @@ if RENDER_DIR:
     shot("misc", "idle", 10, yaw=-20)
     show(["Hair_ponytail", "Ears_elf", "Skirt"])
     shot("elf", "idle", 70, yaw=20)
+    show(["Hair_short"] if not F else ["Hair_long", "Skirt"])
+    for cname, fr in [("talk", 40), ("argue", 60), ("cheer", 30), ("pray", 60), ("sit", 30), ("drink", 50), ("wave", 30)]:
+        if bpy.data.actions.get(cname):
+            shot("clip_" + cname, cname, fr, yaw=15)
 print("DONE")

@@ -737,11 +737,21 @@ func _ready() -> void:
 				if rig.has_model:
 					models += 1
 		print("VILLAGERS Bewohner: %d von %d mit Modell" % [models, rigs.size()])
+		if not rigs.is_empty() and (rigs[0] as CharacterRig).anim:
+			var have: Array = []
+			for cn in ["talk", "argue", "clap", "cheer", "wave", "pray", "sit", "sit_talk", "drink"]:
+				if (rigs[0] as CharacterRig).anim.has_animation(cn):
+					have.append(cn)
+			print("VILLAGERS Clips: %s" % ", ".join(have))
 		w.player.global_position = base
 		w.player.cam_yaw = 0.0
 		w.player.cam_pitch = -0.12
-		await _wait(1.2)
+		await _wait(2.5)
 		_shot("villagers_styles")
+		var playing: Array = []
+		for rg in rigs:
+			playing.append((rg as CharacterRig)._current)
+		print("VILLAGERS läuft: %s" % ", ".join(playing))
 		w.player.global_position = base + d * 3.2
 		await _wait(0.6)
 		_shot("villagers_close")
