@@ -43,6 +43,8 @@ static func build(kind: String, root: Node3D, loc: Dictionary) -> Dictionary:
 			return sewer(root, loc)
 		"crypt":
 			return crypt(root, loc)
+		"mausoleum":
+			return mausoleum(root, loc)
 	return {}
 
 
@@ -738,10 +740,24 @@ static func _vault(root: Node3D, W: float, D: float, H: float, wall: Material, f
 	B3.bounds(root, maxf(hx, hz) + 0.3, H + 1.0)
 
 
+## Schädel: Hirnschale, dunkle Augenhöhlen, Nasenloch und Kiefer; Gesicht zeigt nach lokal +Z (yaw in Grad).
+static func _skull(root: Node3D, pos: Vector3, yaw_deg: float, bone: Material, s: float = 1.0) -> void:
+	var h := Node3D.new()
+	h.position = pos
+	h.rotation_degrees.y = yaw_deg
+	root.add_child(h)
+	var hole := B3.mat(Color(0.04, 0.03, 0.03), 0.95)
+	B3.sphere(h, 0.11 * s, Vector3(0, 0.12, -0.01) * s, bone, Vector3(1.0, 1.0, 1.12))
+	for sx in [-1.0, 1.0]:
+		B3.sphere(h, 0.032 * s, Vector3(0.042 * sx, 0.115, 0.088) * s, hole, Vector3(1.0, 0.85, 0.6))
+	B3.box(h, Vector3(0.022, 0.03, 0.02) * s, Vector3(0, 0.075, 0.1) * s, hole, false)
+	B3.box(h, Vector3(0.085, 0.045, 0.075) * s, Vector3(0, 0.03, 0.045) * s, bone, false)
+
+
 ## Gebeine: Schädel und ein paar Knochen in einem kleinen Haufen.
 static func _bones(root: Node3D, pos: Vector3, rng: RandomNumberGenerator) -> void:
 	var bone := B3.mat(Color(0.82, 0.78, 0.68), 0.8)
-	B3.sphere(root, 0.12, pos + Vector3(0.1, 0.11, 0.05), bone, Vector3(1, 1.1, 1.15))
+	_skull(root, pos + Vector3(0.1, 0.0, 0.05), rng.randf_range(0.0, 360.0), bone, 1.1)
 	for k in 6:
 		var b := B3.cyl(root, 0.025, 0.03, rng.randf_range(0.3, 0.55), pos + Vector3(rng.randf_range(-0.35, 0.35), 0.03, rng.randf_range(-0.35, 0.35)), bone, false, 6)
 		b.rotation = Vector3(PI * 0.5 + rng.randf_range(-0.2, 0.2), rng.randf() * TAU, 0.0)
@@ -815,6 +831,84 @@ static func sewer(root: Node3D, _loc: Dictionary) -> Dictionary:
 	for z in [-hz + 10.0, 0.0, hz - 10.0]:
 		B3.light(root, Vector3(0, H - 0.8, z), Color(0.6, 0.75, 0.65), 1.4, 16.0)
 	return {"spawn": Vector3(0, 0.2, hz - 2.0), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(2.8, 0, hz - 8.0)]}
+
+
+## Mausoleum der Zurrernon unter dem Friedhof von E-Rantel – Khajits Ritualstätte: Gewölbe mit Schädelnischen, die violette
+## Totenspirale im Boden mit Kerzenkreis, Käfige der Opfer, Banner der Sekte, kalte violette Feuerschalen und am Ende das
+## Podest mit dem Altar und der Todesperle (Boss-Plätze davor).
+static func mausoleum(root: Node3D, _loc: Dictionary) -> Dictionary:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1903
+	var W := 18.0
+	var D := 34.0
+	var H := 6.0
+	var hx := W * 0.5
+	var hz := D * 0.5
+	var wall := BuildingLook.photo_material("rubble", "stone", Color(0.34, 0.32, 0.36), 0.85)
+	var floor_m := BuildingLook.photo_material("rubble", "stone", Color(0.26, 0.25, 0.28), 0.9)
+	var dark := B3.mat(Color(0.16, 0.15, 0.18), 0.9)
+	var sarc := B3.mat(Color(0.4, 0.38, 0.42), 0.8)
+	var bone := B3.mat(Color(0.82, 0.78, 0.68), 0.8)
+	var iron := B3.mat(Color(0.2, 0.2, 0.22), 0.55, 0.8)
+	var violet := Color(0.6, 0.3, 1.0)
+	_vault(root, W, D, H, wall, floor_m, wall, 2.2)
+	# Pfeiler mit Schädelnischen
+	for z in [-10.0, -3.0, 4.0, 11.0]:
+		for sx in [-1.0, 1.0]:
+			var p := Vector3(sx * 5.0, 0, z)
+			B3.box(root, Vector3(0.8, H, 0.8), p + Vector3(0, H * 0.5, 0), wall)
+			B3.box(root, Vector3(1.2, 0.3, 1.2), p + Vector3(0, 0.15, 0), dark, false)
+			for s in 3:
+				_skull(root, p + Vector3(-sx * 0.5, 1.3 + s * 0.3, rng.randf_range(-0.22, 0.22)), -sx * 90.0 + rng.randf_range(-15, 15), bone, 0.95)
+	# Wandnischen: Sarkophage und Schädelwände im Wechsel
+	var k := 0
+	for z in [-9.0, -4.0, 1.0, 6.0, 11.0]:
+		for sx in [-1.0, 1.0]:
+			var p := Vector3(sx * (hx - 1.5), 0, z)
+			if k % 2 == 0:
+				B3.box(root, Vector3(1.0, 0.8, 2.2), p + Vector3(0, 0.4, 0), sarc)
+				B3.box(root, Vector3(1.1, 0.14, 2.3), p + Vector3(0, 0.87, 0), dark, false)
+			else:
+				B3.box(root, Vector3(0.5, 1.1, 1.8), p + Vector3(sx * 0.25, 0.55, 0), dark, false)
+				for r in 3:
+					for c in 3:
+						_skull(root, p + Vector3(-sx * 0.05, 0.08 + r * 0.32, (c - 1) * 0.5), -sx * 90.0 + rng.randf_range(-12, 12), bone, 1.05)
+			k += 1
+	# Die Totenspirale: violette Ringe, Kerzenkreis, Staub im Licht
+	var sc := Vector3(0, 0.03, -1.5)
+	for i in 5:
+		GroundMark.ring(root, sc, 1.1 + i * 0.85, Color(0.36, 0.1, 0.52), 3600.0, 0.45 + 0.08 * i)
+	for i in 16:
+		var a := TAU * i / 16.0
+		var cp := sc + Vector3(cos(a) * 4.6, 0, sin(a) * 4.6)
+		B3.cyl(root, 0.03, 0.03, 0.22, cp + Vector3(0, 0.11, 0), B3.mat(Color(0.9, 0.86, 0.8), 0.6), false, 6)
+		B3.sphere(root, 0.025, cp + Vector3(0, 0.26, 0), B3.mat(violet, 0.3, 0.0, violet, 4.0))
+	B3.light(root, sc + Vector3(0, 1.5, 0), violet, 1.6, 9.0).set_meta("flicker", true)
+	B3.motes(root, sc + Vector3(0, 1.0, 0), Vector3(4.5, 1.2, 4.5), Color(0.7, 0.4, 1.0, 0.35), 60)
+	# Käfige der Opfer, Gebeine, Banner der Sekte, kalte Feuerschalen
+	_cage(root, Vector3(-5.0, 0, -6.4), iron)
+	_cage(root, Vector3(5.0, 0, 0.6), iron)
+	for i in 6:
+		_bones(root, Vector3(rng.randf_range(-3.5, 3.5), 0, rng.randf_range(-7.0, hz - 4.0)), rng)
+	for z in [-5.0, 3.0, 11.0]:
+		B3.banner(root, Vector3(-(hx - 0.6), 0, z), Color(0.22, 0.06, 0.32), null, 3.0, PI * 0.5)
+		B3.banner(root, Vector3(hx - 0.6, 0, z), Color(0.22, 0.06, 0.32), null, 3.0, -PI * 0.5)
+	for z in [-8.0, 0.0, 8.0]:
+		for sx in [-1.0, 1.0]:
+			B3.brazier(root, Vector3(sx * 2.6, 0, z), violet)
+	# Podest mit Altar und der Todesperle, Wächterstatuen
+	var dz := -hz + 4.0
+	B3.box(root, Vector3(10.0, 0.4, 6.0), Vector3(0, 0.2, dz), dark)
+	B3.box(root, Vector3(8.0, 0.4, 4.5), Vector3(0, 0.6, dz - 0.5), dark)
+	B3.box(root, Vector3(1.6, 1.0, 0.9), Vector3(0, 1.3, dz - 1.0), sarc)
+	B3.cyl(root, 0.12, 0.16, 0.5, Vector3(0, 2.05, dz - 1.0), dark, false, 10)
+	B3.sphere(root, 0.28, Vector3(0, 2.6, dz - 1.0), B3.mat(Color(0.05, 0.02, 0.08), 0.15, 0.6, violet, 3.0))
+	B3.light(root, Vector3(0, 3.2, dz - 1.0), violet, 3.0, 14.0).set_meta("flicker", true)
+	Interiors.prop(root, "gothic_statue", Vector3(-4.2, 0.8, dz - 2.2), 25.0, 1.2)
+	Interiors.prop(root, "gothic_statue", Vector3(4.2, 0.8, dz - 2.2), -25.0, 1.2)
+	for z in [-7.0, 2.0, 11.0]:
+		B3.light(root, Vector3(0, H - 1.0, z), Color(0.5, 0.42, 0.7), 1.3, 15.0)
+	return {"spawn": Vector3(0, 0.2, hz - 2.0), "yaw": 0.0, "exit": Vector3(0, 0, hz - 0.5), "slots": [Vector3(0, 0.8, dz + 2.5)]}
 
 
 static func crypt(root: Node3D, _loc: Dictionary) -> Dictionary:

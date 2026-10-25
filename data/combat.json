@@ -5058,7 +5058,9 @@
      "cooldown": 14,
      "color": "#b070ff"
     }
-   ]
+   ],
+   "drops_key": "key_mausoleum",
+   "key_text": "Unter der Robe des Priesters: ein Schlüssel aus schwarzem Eisen mit dem Zeichen der Sekte.\n\nKhajit kam nie wieder aus dem Mausoleum auf dem Friedhof heraus, heißt es. Dieser Schlüssel passt auf sein Tor."
   },
   "fallen_general": {
    "name": "General der Gefallenen",

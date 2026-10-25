@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.13.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.14.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -78,6 +78,10 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   Wappenrock, Umhang, Robe und neuer Kapuze; Kampfclips aus dem Rig (`VillagerLook.enemy_spec`, Prüfmodus `LOC=enemies`).
 - Version 2.13: Kinder mit eigenen Proportionen (`villager_c.glb`, 18 % der Dorfbewohner, Figuren mit `scale` < 0,7 wie Nemu) und
   sitzende Gäste an den Wirtshaustischen (Gilde, Gasthaus: Sitzen, Plaudern, Trinken; fliehen nicht, drehen sich nicht weg).
+- Version 2.14: drittes Verlies **Mausoleum der Zurrernon** unter dem Friedhof von E-Rantel (`kind: mausoleum`, Baukasten in
+  `interiors_more.gd`): Schädelnischen, Totenspirale mit Kerzenkreis, Käfige, violette Feuerschalen, Altar mit der Todesperle.
+  Schlüssel als Gegnerbeute (`drops_key` beim Priester der Zurrernon in der Kanalisation), Bosse Khajit und Clementine, Truhe
+  „Khajits Vermächtnis“, Errungenschaft „Herr der Spirale“, drei Entdeckungen. Prüfmodus `LOC=mausoleum`.
 - Offen: Gäste auch in der Dorfschenke und den Bänken; die übrigen elf Mixamo-Figuren (ZIP-Uploads durch den Nutzer).
 
 ## Testmodus und Größen (erledigt, Version 2.9)

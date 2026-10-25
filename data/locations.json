@@ -672,6 +672,22 @@
       "chapter_min": 3
      }
     }
+   ],
+   "doors": [
+    {
+     "id": "mausoleum",
+     "to": "erantel_mausoleum",
+     "name": "Mausoleum der Zurrernon",
+     "at": [
+      -14.0,
+      0.0,
+      -40.0
+     ],
+     "yaw": 180,
+     "key": "key_mausoleum",
+     "style": "crypt",
+     "hint": "Das Tor trägt das Siegel der Zurrernon und rührt sich nicht. Ihre Priester tragen den Schlüssel bei sich – einer haust noch in der Kanalisation."
+    }
    ]
   },
   {
@@ -1409,6 +1425,69 @@
       0.0,
       -17.0
      ]
+    }
+   ]
+  },
+  {
+   "id": "erantel_mausoleum",
+   "name": "Mausoleum der Zurrernon",
+   "kind": "mausoleum",
+   "group": "interior",
+   "parent": "erantel_friedhof",
+   "region": "e_rantel",
+   "sky": "e_rantel",
+   "music": "battle",
+   "desc": "Khajits Zuflucht unter dem Friedhof: hier sollte die Todesperle E-Rantel in eine Stadt der Toten verwandeln. Die Spirale ist noch nicht erloschen.",
+   "encounters": [
+    {
+     "enemy": "skeleton",
+     "count": 4,
+     "at": [
+      0.0,
+      6.0
+     ]
+    },
+    {
+     "enemy": "zurrernorn_cultist",
+     "count": 3,
+     "at": [
+      -4.0,
+      -1.0
+     ]
+    },
+    {
+     "enemy": "skeleton_archer",
+     "count": 2,
+     "at": [
+      5.0,
+      -6.0
+     ]
+    },
+    {
+     "enemy": "clementine",
+     "count": 1,
+     "at": [
+      2.5,
+      -11.0
+     ],
+     "requires": {
+      "flags_none": [
+       "mausoleum_khajit"
+      ]
+     }
+    },
+    {
+     "enemy": "khajit",
+     "count": 1,
+     "at": [
+      -1.5,
+      -13.0
+     ],
+     "requires": {
+      "flags_none": [
+       "mausoleum_khajit"
+      ]
+     }
     }
    ]
   },

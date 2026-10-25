@@ -175,6 +175,14 @@
    "value": 0,
    "unique": true,
    "desc": "Steinernes Siegel vom Altar der Zurrernon. Es öffnet die Gruft der Gefallenen unter der Katze-Ebene."
+  },
+  "key_mausoleum": {
+   "name": "Schlüssel der Zurrernon",
+   "icon": "✧",
+   "color": "#b070ff",
+   "value": 0,
+   "unique": true,
+   "desc": "Ein Schlüssel aus schwarzem Eisen, den der Priester der Zurrernon bei sich trug. Er öffnet das Mausoleum auf dem Friedhof von E-Rantel – Khajits Zuflucht."
   }
  },
  "loot": {

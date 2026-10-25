@@ -23,7 +23,7 @@ const AMBIENCE_OF := {
 	"peaks": "mountain", "grassland": "meadow", "lava": "lava", "glacier": "glacier", "throne": "hall", "library": "hall",
 	"treasury": "hall", "royal": "hall", "tombs": "tombs", "guild": "interior", "tavern": "interior", "shop": "home",
 	"cottage": "home", "smithy": "forge", "forge_hall": "forge", "temple": "church", "basilica": "church",
-	"academy": "home", "inn": "interior", "court": "court", "cellar": "tombs", "sewer": "tombs", "crypt": "cemetery",
+	"academy": "home", "inn": "interior", "court": "court", "cellar": "tombs", "sewer": "tombs", "crypt": "cemetery", "mausoleum": "cemetery",
 }
 const AMBIENCE_GAIN := {"hall": 0.55, "home": 0.7, "interior": 0.8, "tombs": 0.8, "town": 0.85, "church": 0.7, "forge": 0.8}
 
@@ -186,7 +186,7 @@ func set_space(kind: String) -> void:
 	var room := 0.35
 	var wet := 0.12
 	match kind:
-		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava", "temple", "basilica", "forge_hall", "court", "sewer", "crypt":
+		"throne", "tombs", "library", "treasury", "royal", "cathedral", "lava", "temple", "basilica", "forge_hall", "court", "sewer", "crypt", "mausoleum":
 			room = 0.85
 			wet = 0.3
 		"glacier", "mountain", "peaks", "cemetery":

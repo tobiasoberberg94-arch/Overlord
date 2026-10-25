@@ -1569,6 +1569,18 @@
    "target": 1
   },
   {
+   "id": "mausoleum_khajit",
+   "name": "Herr der Spirale",
+   "desc": "Khajit Dale Badantel im Mausoleum unter dem Friedhof von E-Rantel bezwungen.",
+   "icon": "☠",
+   "tier": "gold",
+   "reward": {
+    "gold": 600
+   },
+   "stat": "dungeon_bosses",
+   "target": 2
+  },
+  {
    "id": "schluesselmeister",
    "name": "Schlüsselmeister",
    "desc": "Zwei verschlossene Türen der Welt aufgeschlossen.",

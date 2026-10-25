@@ -1344,8 +1344,11 @@ func _on_enemy_defeated(e: Enemy3D) -> void:
 	var memory := story != null and story.replay        # Erinnerungen bringen keinen Lohn
 	if not memory:
 		quest_world.on_enemy_defeated(e)
-		if e.type_id == "fallen_general":
+		# Verliesbosse nur in ihrem Verlies (Khajit und der General tauchen auch in Story-Einsätzen und im Testmodus auf)
+		if (e.type_id == "fallen_general" and String(loc.id) == "katze_gruft") or (e.type_id == "khajit" and String(loc.id) == "erantel_mausoleum"):
 			quest_world.dungeon_boss_defeated(e)
+		if e.data.has("drops_key"):
+			quest_world.drop_key(e, String(e.data.drops_key))
 	var gold := 0 if memory else int(e.data.get("gold", 0))
 	if gold > 0 and not e.ally:
 		Game.apply_effects({"res": {"gold": gold}})

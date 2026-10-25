@@ -280,17 +280,45 @@ func _discover(p: Pickup) -> bool:
 	return false
 
 
-## Der General der Gefallenen ist besiegt: Flagge (er erhebt sich nicht wieder), Errungenschaft, Schatz auf dem Podest.
-func dungeon_boss_defeated(e: Enemy3D) -> void:
-	if Game.has_flag("gruft_general"):
+## Schlüssel als Beute: Elite-Gegner mit "drops_key" (data/combat.json, z. B. der Priester der Zurrernon) lassen den Schlüssel
+## ihres Verlieses fallen – einmalig, solange er weder im Beutel liegt noch schon aufgehoben wurde.
+func drop_key(e: Enemy3D, item: String) -> void:
+	var pk := "k:%s" % item
+	if Quests.count(item) > 0 or _picked().has(pk):
 		return
-	Game.set_flag("gruft_general")
+	var m: Dictionary = Quests.material(item)
+	var nm := String(m.get("name", item))
+	var p := Pickup.discovery("key", nm, String(e.data.get("key_text", String(m.get("desc", "")))))
+	p.key = pk
+	p.set_meta("item", item)
+	var pos := Vector3(e.global_position.x, 0.15, e.global_position.z)
+	if w.loc.group == "world":
+		pos = w._on_ground(pos)
+	_place(p, pos)
+	w.toast("%s lässt etwas fallen: %s" % [e.display_name, nm], Palette.GOLD_BRIGHT)
+
+
+## Ein Verliesboss ist besiegt (General der Gefallenen, Khajit): Flagge (er erhebt sich nicht wieder), Errungenschaft,
+## Schatz auf dem Podest.
+func dungeon_boss_defeated(e: Enemy3D) -> void:
+	var khajit := e.type_id == "khajit"
+	var flag := "mausoleum_khajit" if khajit else "gruft_general"
+	if Game.has_flag(flag):
+		return
+	Game.set_flag(flag)
 	Progress.bump("dungeon_bosses")
 	var p := Pickup.chest()
-	p.label = "Schatz des Generals"
-	p.entries = [["gold", "", 400], ["item", Progress.roll_item("legendary"), 1], ["relic_shard", "", 3]]
+	if khajit:
+		p.label = "Khajits Vermächtnis"
+		p.entries = [["gold", "", 600], ["item", Progress.roll_item("legendary"), 1], ["relic_shard", "", 4]]
+	else:
+		p.label = "Schatz des Generals"
+		p.entries = [["gold", "", 400], ["item", Progress.roll_item("legendary"), 1], ["relic_shard", "", 3]]
 	_place(p, Vector3(e.global_position.x, 0.15, e.global_position.z))
-	w._show_banner("Die Gruft ist still", "Der General der Gefallenen hat seinen letzten Krieg verloren.")
+	if khajit:
+		w._show_banner("Die Spirale erlischt", "Khajit Dale Badantel wird keine Stadt der Toten mehr errichten.")
+	else:
+		w._show_banner("Die Gruft ist still", "Der General der Gefallenen hat seinen letzten Krieg verloren.")
 	Audio.sfx("levelup", 0.6)
 
 

@@ -1003,5 +1003,47 @@
     "text": "Ein Thron aus Grabplatten, davor ein aufgebrochener Sarkophag. Wer hier saß, hat Jahrhunderte auf den nächsten Krieg gewartet.\n\nAinz-sama würde sagen: ein Untoter, der seinen Platz kennt. Fast bewundernswert."
    }
   ]
+ },
+ "erantel_mausoleum": {
+  "shrines": 0,
+  "caches": 0,
+  "lore": [],
+  "placed": [
+   {
+    "id": "spirale",
+    "kind": "plaque",
+    "at": [
+     -6.4,
+     0.0,
+     4.0
+    ],
+    "yaw": 90,
+    "title": "Die Totenspirale",
+    "text": "In den Boden geritzt, mit Blut nachgezogen: fünf Ringe um einen Punkt. »Wenn die Spirale sich schließt, erhebt sich die Stadt«, steht am Rand.\n\nDie Kerzen sind heruntergebrannt. Der Kreis hat sich nie geschlossen – jemand kam dazwischen."
+   },
+   {
+    "id": "aufzeichnungen",
+    "kind": "note",
+    "at": [
+     3.4,
+     0.9,
+     -11.5
+    ],
+    "yaw": 0,
+    "title": "Khajits Aufzeichnungen",
+    "text": "Zwölf Jahre Vorbereitung. Die Todesperle, ein Geschenk des Meisters. Clementine als Schwert.\n\n»Eine Stadt der Toten, in der ich nicht sterbe« – so endet die letzte Seite. Danach nur noch ein einziges, immer wieder gekritzeltes Wort: Ainz."
+   },
+   {
+    "id": "kaefig",
+    "kind": "spot",
+    "at": [
+     -5.0,
+     0.0,
+     -5.2
+    ],
+    "title": "Der Käfig",
+    "text": "Ein eiserner Käfig, groß genug für einen Menschen. Die Spuren an den Stäben sprechen von Wochen.\n\nDie Zurrernon brauchten Opfer für die Spirale. Niemand in E-Rantel hat die Verschwundenen je gezählt."
+   }
+  ]
  }
 }

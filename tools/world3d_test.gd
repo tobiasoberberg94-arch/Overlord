@@ -874,6 +874,113 @@ func _ready() -> void:
 		print("SEATSDONE")
 		get_tree().quit()
 		return
+	if only == "meshes":
+		# Große Meshes eines Ortes (Gebäude, Grüfte) mit Mittelpunkt und Größe – zum Setzen von Türen und Bühnen:
+		# MESHLOC=ort MESHAT=x,z MESHR=Radius MESHMIN=Mindestgröße
+		var mlid := OS.get_environment("MESHLOC")
+		await w.load_location(mlid)
+		await _wait(1.0)
+		var at := OS.get_environment("MESHAT").split(",")
+		var c0 := Vector3(float(at[0]), 0, float(at[1])) if at.size() == 2 else Vector3.ZERO
+		var rad := float(OS.get_environment("MESHR")) if OS.get_environment("MESHR") != "" else 60.0
+		var mn := float(OS.get_environment("MESHMIN")) if OS.get_environment("MESHMIN") != "" else 3.0
+		var rows: Array = []
+		for mi in w.level.find_children("*", "MeshInstance3D", true, false):
+			var m := mi as MeshInstance3D
+			if m.mesh == null:
+				continue
+			var gb: AABB = m.global_transform * m.get_aabb()
+			var cen := gb.get_center()
+			var dist := Vector2(cen.x - c0.x, cen.z - c0.z).length()
+			if dist > rad or maxf(gb.size.x, gb.size.z) < mn:
+				continue
+			rows.append([dist, "MESH %-34s Mitte (%6.1f, %5.1f, %6.1f) Größe %5.1f x %4.1f x %5.1f Drehung %4.0f°" % [String(m.name).left(34), cen.x, gb.position.y, cen.z, gb.size.x, gb.size.y, gb.size.z, rad_to_deg(m.global_rotation.y)]])
+		rows.sort_custom(func(a, b): return a[0] < b[0])
+		for r in rows.slice(0, 60):
+			print(r[1])
+		print("MESHESDONE %d" % rows.size())
+		get_tree().quit()
+		return
+	if only == "mausoleum":
+		# Khajits Mausoleum: Schlüssel fällt vom Priester in der Kanalisation, Tor auf dem Friedhof, Halle, Altar, Khajit besiegt
+		w._time_running = false
+		if not Game.state.has("flags"):
+			Game.state["flags"] = []
+		for f in ["unlocked_erantel_mausoleum", "mausoleum_khajit"]:
+			Game.state.flags.erase(f)
+		Quests.bag().erase("key_mausoleum")
+		var picked: Dictionary = Game.state.get("picked", {})
+		picked.erase("k:key_mausoleum")
+		await w.load_location("erantel_kanal")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var priest: Enemy3D = null
+		for e in w.enemies:
+			if e.type_id == "zurrernorn_priest":
+				priest = e
+		print("MAUSOLEUM Priester in der Kanalisation: %s" % (priest != null))
+		if priest:
+			w.player.global_position = priest.global_position + Vector3(0, 0.2, 4.0)
+			w.player.cam_yaw = 0.0
+			priest.die()
+			await _wait(2.5)
+		var keyp: Pickup = null
+		for pk in w.quest_world.pickups:
+			if pk.kind == "key" and String(pk.get_meta("item", "")) == "key_mausoleum":
+				keyp = pk
+		print("MAUSOLEUM Schlüssel fällt: %s" % ("bei " + str(keyp.global_position) if keyp else "FEHLT"))
+		_shot("mausoleum_schluessel")
+		if keyp:
+			w.quest_world.collect(keyp)
+			await _wait(0.4)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+		print("MAUSOLEUM Beutel: key_mausoleum %d" % Quests.count("key_mausoleum"))
+		await w.load_location("erantel_friedhof")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		var door: Actor3D = null
+		for a in w.actors:
+			if a.id == "door:mausoleum":
+				door = a
+		print("MAUSOLEUM Tor: %s" % ("bei " + str(door.global_position) + " · " + door.prompt if door else "FEHLT"))
+		if door:
+			w.player.global_position = door.global_position + Vector3(0, 0.5, 6.0)
+			w.player.cam_yaw = 0.0
+			w.player.cam_pitch = -0.1
+			await _wait(0.6)
+			_shot("mausoleum_tor")
+			await w._enter_door(door.get_meta("door"))
+			await _wait(1.5)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+		var kh: Enemy3D = null
+		var cl: Enemy3D = null
+		for e in w.enemies:
+			if e.type_id == "khajit":
+				kh = e
+			elif e.type_id == "clementine":
+				cl = e
+		print("MAUSOLEUM Halle: Ort %s · Gegner %d · Khajit %s · Clementine %s · Entdeckungen %d · Flagge %s" % [w.loc.id, w.enemies.size(), kh != null, cl != null, w.quest_world.pickups.size(), Game.has_flag("unlocked_erantel_mausoleum")])
+		_shot("mausoleum_halle")
+		w.player.global_position = Vector3(0, 0.2, -6.0)
+		w.player.cam_yaw = 0.0
+		w.player.cam_pitch = -0.1
+		await _wait(0.6)
+		_shot("mausoleum_altar")
+		if kh:
+			kh.die()
+			await _wait(2.5)
+		var chests := 0
+		for pk in w.quest_world.pickups:
+			if pk.kind == "chest":
+				chests += 1
+		print("MAUSOLEUM Khajit besiegt: Flagge %s · Truhen %d · Gegner %d" % [Game.has_flag("mausoleum_khajit"), chests, w.enemies.size()])
+		print("MAUSOLEUMDONE")
+		get_tree().quit()
+		return
 	if only == "probe":
 		# Bodenprobe: PROBE="ort:x,z;ort:x,z" – was liegt unter dem Punkt (Kollisionskörper, Höhe, Neigung)?
 		for spec in OS.get_environment("PROBE").split(";", false):
