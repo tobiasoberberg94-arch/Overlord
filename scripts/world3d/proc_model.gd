@@ -8,6 +8,7 @@ const HIP := 0.95
 ## Menschen (Bewohner, Ritter, Händler) sind 1,6–1,85 m groß – nicht 2,1 m wie Ainz. Die Figurenmaße in
 ## data/figures.json („scale“) bleiben relativ dazu; Ainz, Wächter mit Modell und Sonderformen sind unberührt.
 const HUMAN := 0.84
+const VLook := preload("res://scripts/world3d/villager_look.gd")
 
 
 static func _skeleton(r: CharacterRig, scale: float = 1.0) -> Dictionary:
@@ -364,7 +365,17 @@ static func figure_spec(cid: String) -> Dictionary:
 
 ## Modell einer Figur: "model" in data/figures.json (z. B. Jaldabaoth = Demiurges Modell), sonst die ID selbst.
 static func model_of(cid: String) -> String:
-	return String(figure_spec(cid).get("model", cid))
+	var f := figure_spec(cid)
+	if f.has("model"):
+		return String(f.model)
+	if ModelLib.has("characters", cid):
+		return cid
+	# Menschen ohne eigenes Modell tragen das Dorfbewohner-Modell (villager_look.gd); Sonderformen bleiben prozedural
+	if not f.is_empty() and String(f.get("special", "")) == "":
+		var vm: String = VLook.model_for(f)
+		if vm != "":
+			return vm
+	return cid
 
 
 ## Zubehör, das auch an echten Modellen hängt (figures.json): "mask" = Farbe der Maske (Jaldabaoth).
@@ -372,6 +383,8 @@ static func model_of(cid: String) -> String:
 ## Maße eingebacken), wird das echte Modell genommen, sonst die prozedurale Porzellanmaske.
 static func accessories(r: CharacterRig, cid: String) -> void:
 	var f := figure_spec(cid)
+	if r.has_model and r.model_id.begins_with("villager_"):
+		VLook.apply(r, f)
 	if not f.has("mask"):
 		return
 	var mask: Node3D = ModelLib.instance("props", "jaldabaoth_mask")

@@ -7,7 +7,12 @@ extends Node3D
 const SKIN := ["#f0d5c0", "#e2bfa3", "#c99a78", "#a8775a", "#f5ddc8"]
 const HAIR := ["#2a1d14", "#5a3a20", "#8a6a3a", "#c9a25a", "#3a3a3a", "#b9b0a5", "#7a2f1a"]
 const CLOTH := ["#6b4a2e", "#7a6a4a", "#4a5a3a", "#8a3a2a", "#3a4a6a", "#9a8a6a", "#5a3a4a", "#a07a4a", "#4a3a2a"]
-const STYLES := ["short", "long", "bun", "short", "bald"]
+const STYLES_F := ["long", "bun", "ponytail", "bob", "twin", "long"]
+const STYLES_M := ["short", "short", "slick", "bald", "short"]
+## Anteil Frauen je Stil (Rest Männer)
+const FEMALE_SHARE := {"": 0.5, "adventurer": 0.35, "guard": 0.1, "priest": 0.3, "mage": 0.45, "smith": 0.1, "dwarf": 0.1,
+	"maid": 1.0, "noble": 0.5, "merchant": 0.4}
+const VLook := preload("res://scripts/world3d/villager_look.gd")
 
 var _walk: Array = []          ## Vector3-Wegpunkte
 var _people: Array = []        ## {rig, pos, target, speed, wait, talk}
@@ -50,15 +55,24 @@ const CAPE := ["#5a1414", "#1a3a5a", "#2a4a2a", "#3a2a4a", "#6a5a2a"]
 
 
 func _add(pos: Vector3, standing: bool) -> void:
+	# Frau oder Mann (je Stil unterschiedlich häufig), Frisur und Kleid passend – Grundlage für das Dorfbewohner-Modell
+	# (villager_look.gd) wie für die prozedurale Ersatzfigur
+	var female: bool = _rng.randf() < float(FEMALE_SHARE.get(_style, 0.5))
+	var styles: Array = STYLES_F if female else STYLES_M
 	var f := {
 		"skin": SKIN[_rng.randi() % SKIN.size()],
-		"hair": [HAIR[_rng.randi() % HAIR.size()], STYLES[_rng.randi() % STYLES.size()]],
+		"hair": [HAIR[_rng.randi() % HAIR.size()], styles[_rng.randi() % styles.size()]],
 		"top": CLOTH[_rng.randi() % CLOTH.size()],
-		"bottom": ["dress" if _rng.randf() < 0.4 else "pants", CLOTH[_rng.randi() % CLOTH.size()]],
+		"bottom": ["dress" if female and _rng.randf() < 0.7 else "pants", CLOTH[_rng.randi() % CLOTH.size()]],
 		"trim": CLOTH[_rng.randi() % CLOTH.size()],
 		"apron": _rng.randf() < 0.25,
-		"scale": _rng.randf_range(0.88, 1.04),
+		"scale": _rng.randf_range(0.86, 1.0) if female else _rng.randf_range(0.92, 1.06),
+		"female": female,
 	}
+	if not female and _rng.randf() < 0.3:
+		f["beard"] = HAIR[_rng.randi() % HAIR.size()]
+	if _style == "" and _rng.randf() < 0.22:
+		f["straw"] = true
 	if _style == "adventurer":
 		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
 		f["apron"] = false
@@ -133,8 +147,10 @@ func _add(pos: Vector3, standing: bool) -> void:
 		f["apron"] = true
 		f["bottom"] = ["pants", CLOTH[_rng.randi() % CLOTH.size()]]
 		f["trim"] = ["#a07a4a", "#8a3a2a", "#3a4a6a"][_rng.randi() % 3]
-	var rig := CharacterRig.create("", func(r: CharacterRig) -> void: ProcModel._person(r, f))
+	var rig := CharacterRig.create(VLook.model_for(f), func(r: CharacterRig) -> void: ProcModel._person(r, f))
 	add_child(rig)
+	if rig.has_model:
+		VLook.apply(rig, f)
 	rig.position = pos
 	rig.rotation.y = _rng.randf() * TAU
 	# nachts bleiben Händler fort und zwei Drittel der anderen Bewohner – Wachen bleiben

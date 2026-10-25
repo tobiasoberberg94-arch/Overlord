@@ -1,7 +1,7 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.8.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-24 (Version 2.10.0).
 
 ## Gameplay-Bereinigung (erledigt)
 - **Herzenskrieg entfernt**: kein Rivalitätswert, keine Eifersucht, keine sieben Rivalitäts-Ereignisse mehr
@@ -57,6 +57,20 @@ Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stan
   (`requires`/`requires_not`), damit Orte sich mit der Geschichte verändern.
 - Prüfung: `LOC=dresscheck [DRESSLOCS=ort,ort]` lädt die Orte und meldet jedes Stück, das in einem Gebäude oder
   Fels steckt, keinen Boden unter sich hat oder am Hang steht (`AUSSTATTUNG`-Zeilen). Alle Einträge sind geprüft.
+
+## Dorfbewohner-Modelle (erledigt, Version 2.10)
+- Die Holzpuppen sind Geschichte: `tools/pipeline/build_villager.py` baut um Demiurges Mixamo-Skelett zwei stilisierte Körper
+  (`villager_m.glb`, `villager_f.glb`) mit Gesicht, Frisuren, Bart, Hüten, Helm, Krone, Brille, Brustpanzer, Schürze, Wappenrock,
+  Umhang und Rock als schaltbare Knoten; alle Clips des Spenders (Stehen, Gehen, Laufen, Treffer, Tod, Ausweichen, Block, Angriffe,
+  Zauber) sind enthalten. `scripts/world3d/villager_look.gd` färbt die Materialien je Figur und blendet die Teile ein.
+- Bewohner aller Stile (`Townsfolk`: Dorf, Abenteurer, Wachen, Priester, Magier, Schmiede, Zwerge, Dienstmädchen, Adlige, Händler;
+  Frauen/Männer je Stil unterschiedlich häufig, Frisuren und Kleider passend) und alle Menschen aus `data/figures.json` ohne
+  eigenes Modell tragen sie automatisch (`ProcModel.model_of`); eigenes GLB hat Vorrang, Sonderformen bleiben prozedural.
+  Neues Feld `female` in `figures.json`, wo Kleid oder Hose das Geschlecht nicht verraten (Neia, Clementine, Priester, Fluder …).
+- Gebäude werden um ihren Bodenursprung skaliert (vorher hob die Hüllen-Unterkante vergrabener Fundamente Häuser bis 0,55 m an);
+  Prüfmodus `LOC=buildings`. Dunkles Junges brüllt genau einmal je Brüllen.
+- Offen: Mixamo-Clips für Reden, Sitzen, Jubeln, Beten (`Demiurge/mixamo_civil`) auf das Bewohner-Rig übertragen; menschliche Gegner
+  (Banditen, Soldaten, Kultisten) auf das Bewohner-Modell umstellen; Kinder mit eigenen Proportionen.
 
 ## Testmodus und Größen (erledigt, Version 2.9)
 - Titelbild „Testwelt (alles frei)“ (`Game.unlock_everything`: letztes Kapitel, alle Wächter, alle Gegenden erkundet, alle

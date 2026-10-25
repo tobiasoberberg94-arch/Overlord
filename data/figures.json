@@ -84,6 +84,7 @@
    ]
   },
   "mare": {
+   "female": false,
    "scale": 0.72,
    "skin": "#9a6a46",
    "hair": [
@@ -268,6 +269,7 @@
    "eyes": "#7a50a0"
   },
   "neia": {
+   "female": true,
    "scale": 0.86,
    "skin": "#e8d0b8",
    "hair": [
@@ -311,6 +313,7 @@
    ]
   },
   "clementine": {
+   "female": true,
    "scale": 0.92,
    "skin": "#f2dcc8",
    "hair": [
@@ -961,6 +964,7 @@
    "eyes": "#2a2a2a"
   },
   "priest": {
+   "female": false,
    "scale": 0.98,
    "skin": "#e4c4a0",
    "hair": [
@@ -976,6 +980,7 @@
    "eyes": "#3a3a3a"
   },
   "fluder": {
+   "female": false,
    "scale": 0.96,
    "skin": "#e0c8b0",
    "hair": [
@@ -1012,6 +1017,7 @@
    "eyes": "#4a3a2a"
   },
   "cardinal": {
+   "female": false,
    "scale": 0.95,
    "skin": "#e0c0a0",
    "hair": [
@@ -1028,6 +1034,7 @@
    "eyes": "#3a3a3a"
   },
   "ranpossa": {
+   "female": false,
    "scale": 0.95,
    "skin": "#e4c4a8",
    "hair": [

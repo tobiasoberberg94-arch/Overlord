@@ -46,8 +46,10 @@ func _bake_next() -> void:
 	var variant := parts[1] if parts.size() > 1 else ""
 	var vp := _make_studio(variant, cid)
 	add_child(vp)
-	var rig := CharacterRig.create(cid, func(r): ProcModel.figure(r, cid))
+	# Modell wie im Spiel: eigenes GLB, sonst Dorfbewohner-Modell für Menschen (ProcModel.model_of), Zubehör dazu
+	var rig := CharacterRig.create(ProcModel.model_of(cid), func(r): ProcModel.figure(r, cid))
 	vp.add_child(rig)
+	ProcModel.accessories(rig, cid)
 	rig.rotation.y = deg_to_rad(-20.0)
 	if not rig.has_model:
 		rig.pose(Fighter.S.BLOCK if variant == "battle" else Fighter.S.IDLE, "", 0.0, 0.0)

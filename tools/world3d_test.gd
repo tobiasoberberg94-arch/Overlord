@@ -2465,7 +2465,8 @@ func _gallery() -> void:
 	cam.current = true
 	cam.fov = 60
 	for i in ids.size():
-		var r := CharacterRig.create(ids[i], func(rr): ProcModel.figure(rr, ids[i]))
+		var r := CharacterRig.create(ProcModel.model_of(ids[i]), func(rr): ProcModel.figure(rr, ids[i]))
+		ProcModel.accessories(r, ids[i])
 		r.position = Vector3((i % 13 - 6) * 1.55, 0, -(i / 13) * 3.2)
 		root.add_child(r)
 		r.pose(Fighter.S.IDLE, "", 0.0, 0.0)
