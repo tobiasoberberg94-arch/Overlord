@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cdw80sydbst5l"
-path="res://.godot/imported/hamsuke_hamsuke_normal.png-b02587802c0c2bb14891fe0c3ae85070.ctex"
+path.bptc="res://.godot/imported/hamsuke_hamsuke_normal.png-b02587802c0c2bb14891fe0c3ae85070.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5b0b5dbf0b85949c486051315190f1f8"
@@ -14,15 +15,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/hamsuke_hamsuke_normal.png"
-dest_files=["res://.godot/imported/hamsuke_hamsuke_normal.png-b02587802c0c2bb14891fe0c3ae85070.ctex"]
+dest_files=["res://.godot/imported/hamsuke_hamsuke_normal.png-b02587802c0c2bb14891fe0c3ae85070.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

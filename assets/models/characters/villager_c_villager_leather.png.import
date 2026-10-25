@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://br51y2n21rx67"
-path="res://.godot/imported/villager_c_villager_leather.png-4a96a1d6e0e72a81a08cb58bf1ea2172.ctex"
+path.bptc="res://.godot/imported/villager_c_villager_leather.png-4a96a1d6e0e72a81a08cb58bf1ea2172.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "90fe32cedd7b0ec6c0451213b462b602"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/villager_c_villager_leather.png"
-dest_files=["res://.godot/imported/villager_c_villager_leather.png-4a96a1d6e0e72a81a08cb58bf1ea2172.ctex"]
+dest_files=["res://.godot/imported/villager_c_villager_leather.png-4a96a1d6e0e72a81a08cb58bf1ea2172.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

@@ -207,9 +207,14 @@ static func _build(kind: String, n: Node3D, e: Dictionary, rng: RandomNumberGene
 			B3.sphere(n, 0.05, Vector3(0, 2.56, 0.6), B3.mat(Color(1.0, 0.85, 0.55), 0.3, 0.0, Color(1.0, 0.78, 0.5), 4.0))
 			B3.light(n, Vector3(0, 2.5, 0.75), Color(1.0, 0.78, 0.5), 1.4, 8.0).set_meta("flicker", true)
 		"hay":
-			var hm := B3.noise_mat(Color(0.62, 0.5, 0.25), Color(0.85, 0.72, 0.4), 0.9, 0.95, Color.BLACK, 3.0)
-			B3.sphere(n, 1.2 * sc, Vector3(0, 0.7 * sc, 0), hm, Vector3(1.0, 0.75, 1.0), true)
-			B3.sphere(n, 0.8 * sc, Vector3(0.6 * sc, 0.4 * sc, 0.5 * sc), hm, Vector3(1.0, 0.7, 1.0), false)
+			# Heustock: Stock mit gewölbter Haube aus trockenem Gras, Stange oben, loses Heu am Fuß, kleiner Haufen daneben
+			var straw := BuildingLook.photo_material("hay", "plaster", Color(1.1, 1.0, 0.7), 0.15)
+			var hr := 1.15 * sc
+			B3.cyl(n, hr * 0.9, hr, hr * 0.95, Vector3(0, hr * 0.47, 0), straw, true, 16)
+			B3.sphere(n, hr * 0.92, Vector3(0, hr * 0.95, 0), straw, Vector3(1.0, 0.95, 1.0), false)
+			B3.cyl(n, 0.035, 0.05, hr * 0.7, Vector3(0.05, hr * 1.95, 0), B3.mat(Color(0.32, 0.23, 0.14), 0.9), false, 6)
+			B3.cyl(n, hr * 1.3, hr * 1.45, 0.08, Vector3(0, 0.04, 0), straw, false, 18)
+			B3.sphere(n, 0.7 * sc, Vector3(1.45 * sc, 0.3 * sc, 0.9 * sc), straw, Vector3(1.0, 0.6, 1.0), false)
 		"laundry":
 			# Wäscheleine zwischen zwei Pfosten mit bunten Tüchern
 			var post := B3.mat(Color(0.35, 0.25, 0.15), 0.8)

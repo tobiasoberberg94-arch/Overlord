@@ -1,7 +1,24 @@
 # Welt-Überarbeitung – Stand und Fortschritt
 
 Ziel: eine Welt, in der man stehen bleibt und sich umsieht (siehe Masterprompt des Entwicklers, Oktober 2026).
-Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.15.0).
+Dieses Dokument hält fest, was je Ort erledigt ist und was noch offen ist. Stand: 2026-10-25 (Version 2.16.0).
+
+## Spieltest 2.13 – Städte, Drache, Karte (erledigt, Version 2.16)
+- **E-Rantel und Re-Estize neu gebaut**: Häuser ×1,35 (Türen größer als die Figuren), Mauerstücke füllen jeden
+  Abschnitt (`town_kit.wall`, `loc_kit.put(sx=…)`), sanftes Umland, Gehöfte auf ebenen Plätzen, weniger Kleinkram;
+  Kellerabgang der Acht Finger (Türstil `hatch`). Bewohner nur auf freien Wegen (nicht mehr auf Dächern).
+- **Ladezeiten**: Kollisionsformen je Mesh geteilt, Stammpunkte je Baumart (`ModelLib.trimesh_collision`) –
+  Kollision Re-Estize 15,7 → 3,1 s, Grabkammern 11,2 → 2,4 s; Messung je Schritt mit `LOADPROF=1`.
+- **Skelettdrache neu geriggt** (`build_dragon.py`): Quelle nicht mehr gedreht und gespiegelt, Skelett nach den
+  gemessenen Merkmalen – vorher lief er seitwärts mit zwei Schwänzen.
+- **Nacht**: Mondlicht und Umgebungslicht aus Mondlichtfarbe, Belichtung höher, schattenloses Fülllicht.
+- **Friedhof**: Untote nachts oder mit dem Auftrag des Friedhofswärters. **Gras** dünnt stufenlos aus.
+  **Heuhaufen** („Kartoffeln“) sind Heustöcke.
+- **Minikarte und Lageplan** (`scripts/world3d/local_map.gd`, `scripts/ui/hud_minimap.gd`,
+  `scripts/ui/local_map_view.gd`, Taste L).
+- Prüfwerkzeuge: `LOC=lights`, `pick`, `trap`, `dragonside`, `minimap`.
+- **Figuren-Texturen** GPU-komprimiert in hoher Qualität (BC7, Mipmaps) statt unkomprimiert – weniger Grafikspeicher,
+  kein Flimmern in der Ferne (`assets/models/characters/*.import`).
 
 ## Spieltest 2.13 – Nazarick (erledigt, Version 2.15)
 Mängelliste und Abhakstand je Ort: `docs/SPIELTEST_2_13.md`. In 2.15 erledigt:

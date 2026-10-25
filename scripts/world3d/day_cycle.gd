@@ -11,6 +11,7 @@ const CYCLE_DAYS := 8.0
 
 var env: Environment
 var sun: DirectionalLight3D
+var fill: DirectionalLight3D      ## Fülllicht der Nacht (Gegenseite des Mondes, ohne Schatten)
 var sky_mat: ShaderMaterial
 var lamps: Array = []
 var folk: Array = []
@@ -78,6 +79,8 @@ func setup(level: Node3D, loc: Dictionary) -> void:
 		return     # Nacht-Himmel (Friedhof): dort ist es immer Nacht
 	base = {"sun_energy": sun.light_energy, "sun_color": sun.light_color, "sun_rot": sun.rotation,
 		"ambient": env.ambient_light_energy, "sky_energy": float(sky_mat.get_shader_parameter("energy")),
+		"amb_color": env.ambient_light_color, "amb_sky": env.ambient_light_sky_contribution,
+		"exposure": env.tonemap_exposure,
 		"sun_boost": float(sky_mat.get_shader_parameter("sun_boost")), "fog_light": env.fog_light_color,
 		"vol_albedo": env.volumetric_fog_albedo, "shadow": sun.shadow_enabled,
 		"fog_density": env.fog_density, "vol_density": env.volumetric_fog_density}
@@ -86,6 +89,16 @@ func setup(level: Node3D, loc: Dictionary) -> void:
 			l.set_meta("base_day", float(l.get_meta("base")) if l.has_meta("base") else (l as OmniLight3D).light_energy)
 		lamps.append(l)
 	folk = level.find_children("*", "Townsfolk", true, false)
+	fill = DirectionalLight3D.new()
+	fill.name = "Nachtfuellung"
+	fill.shadow_enabled = false
+	fill.light_color = Color(0.55, 0.62, 0.86)
+	fill.light_energy = 0.0
+	fill.light_volumetric_fog_energy = 0.0
+	fill.sky_mode = DirectionalLight3D.SKY_MODE_LIGHT_ONLY
+	fill.light_specular = 0.2
+	fill.rotation = Vector3(deg_to_rad(-32.0), (base.sun_rot as Vector3).y, 0.0)
+	level.add_child(fill)
 	active = true
 
 
@@ -130,14 +143,21 @@ func _apply() -> void:
 	else:
 		# Nacht: die Sonne wird zum Mond (blau, schwach, von der Gegenseite)
 		sun.rotation = Vector3(-lerpf(deg_to_rad(3.0), deg_to_rad(38.0), n), rot.y + PI, rot.z)
-		sun.light_energy = lerpf(0.14, 0.42, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy)) * wk_sun
+		sun.light_energy = lerpf(0.16, 0.55, n) * float(base.sun_energy) / maxf(0.5, float(base.sun_energy)) * wk_sun
 		sun.light_color = Color(0.62, 0.7, 1.0)
 		sun.shadow_enabled = bool(base.shadow)
+	if is_instance_valid(fill):
+		fill.light_energy = 0.28 * n * lerpf(0.6, 1.0, wk_sun)
 	sky_mat.set_shader_parameter("energy", float(base.sky_energy) * lerpf(0.06, 1.0, d) * wk_sky)
 	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost) * d * wk_sun)
 	# Nacht: Umgebungslicht kräftig anheben (Mond, Sterne); in Städten und Dörfern noch etwas mehr (Lichtschein)
 	var town := String(_loc.get("kind", "")) in ["city", "village", "palace", "wall"]
-	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 5.2 if town else 4.4, n) * wk_amb
+	# nachts überwiegend Mondlichtfarbe statt Himmel (der Nachthimmel ist fast schwarz)
+	env.ambient_light_sky_contribution = lerpf(float(base.amb_sky), 0.15, n)
+	env.ambient_light_color = (base.amb_color as Color).lerp(Color(0.42, 0.5, 0.72), n * 0.85)
+	env.ambient_light_energy = float(base.ambient) * lerpf(1.0, 3.4 if town else 2.8, n) * wk_amb
+	# Augen gewöhnen sich an die Nacht: Belichtung nachts etwas höher
+	env.tonemap_exposure = float(base.exposure) * lerpf(1.0, 1.35, n)
 	var fog_c := (base.fog_light as Color).lerp(Color(0.06, 0.08, 0.14), n * 0.85).lerp(Color(0.6, 0.35, 0.2), w * 0.35)
 	if weather.has("fog_color"):
 		fog_c = fog_c.lerp(weather.fog_color, 0.6)
@@ -175,7 +195,12 @@ func _restore() -> void:
 	sun.light_color = base.sun_color
 	sky_mat.set_shader_parameter("energy", float(base.sky_energy))
 	sky_mat.set_shader_parameter("sun_boost", float(base.sun_boost))
+	if is_instance_valid(fill):
+		fill.light_energy = 0.0
 	env.ambient_light_energy = float(base.ambient)
+	env.ambient_light_color = base.amb_color
+	env.tonemap_exposure = float(base.exposure)
+	env.ambient_light_sky_contribution = float(base.amb_sky)
 	env.fog_light_color = base.fog_light
 	env.fog_density = float(base.fog_density)
 	if env.volumetric_fog_enabled:

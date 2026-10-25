@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cxg2lyp37vncx"
-path="res://.godot/imported/victim_victim_basecolor.jpg-a0bb6d8c5f08c243d9425b230c274f74.ctex"
+path.bptc="res://.godot/imported/victim_victim_basecolor.jpg-a0bb6d8c5f08c243d9425b230c274f74.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3f7b9340698f0dbce2827fd544160d37"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/victim_victim_basecolor.jpg"
-dest_files=["res://.godot/imported/victim_victim_basecolor.jpg-a0bb6d8c5f08c243d9425b230c274f74.ctex"]
+dest_files=["res://.godot/imported/victim_victim_basecolor.jpg-a0bb6d8c5f08c243d9425b230c274f74.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

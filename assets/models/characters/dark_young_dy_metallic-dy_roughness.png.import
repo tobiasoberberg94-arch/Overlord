@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bove0m3n72aop"
-path="res://.godot/imported/dark_young_dy_metallic-dy_roughness.png-56b752d863f4decd632d4cd156fc3cfb.ctex"
+path.bptc="res://.godot/imported/dark_young_dy_metallic-dy_roughness.png-56b752d863f4decd632d4cd156fc3cfb.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3c64e13102f9b71bf378a2b294de3b90"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/dark_young_dy_metallic-dy_roughness.png"
-dest_files=["res://.godot/imported/dark_young_dy_metallic-dy_roughness.png-56b752d863f4decd632d4cd156fc3cfb.ctex"]
+dest_files=["res://.godot/imported/dark_young_dy_metallic-dy_roughness.png-56b752d863f4decd632d4cd156fc3cfb.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

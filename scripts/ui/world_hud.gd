@@ -9,8 +9,11 @@ extends Control
 ##   F1 / H      Steuerungshilfe (beim ersten Start sichtbar)
 ## Während ein Fenster offen ist, blendet das HUD aus.
 
+const MinimapScript := preload("res://scripts/ui/hud_minimap.gd")
+
 var world: Node            ## world_3d.gd
 var compass := HudCompass.new()
+var minimap: Control = MinimapScript.new()   ## unten rechts, Draufsicht des Ortes (LocalMap)
 var loc_label := Label.new()
 var date_label := Label.new()
 var time_label := Label.new()      ## Tageszeit („☀ Nachmittag“), nur im Freien
@@ -298,10 +301,17 @@ func _build_misc() -> void:
 	prompt.visible = false
 	add_child(prompt)
 	# Steuerungshilfe
+	minimap.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	minimap.offset_left = -232
+	minimap.offset_top = -232
+	minimap.offset_right = -20
+	minimap.offset_bottom = -20
+	minimap.visible = false
+	add_child(minimap)
 	help_panel.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 	help_panel.offset_left = -380
 	help_panel.offset_right = -20
-	help_panel.offset_bottom = -20
+	help_panel.offset_bottom = -250      # über der Minikarte
 	help_panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_rich(help_text, 15)
 	help_text.custom_minimum_size.x = 340
@@ -430,7 +440,7 @@ func _help_bbcode() -> String:
 		"[color=#ff9a8a]LMB[/color] leicht · [color=#ff9a8a]RMB[/color] schwer · [color=#f5d77a]Leertaste[/color] Rolle\n" + \
 		"[color=#f5d77a]F[/color] Block/Parade · [color=#f5d77a]Q[/color] Ziel · [color=#f5d77a]1–5, R[/color] Zauber · [color=#f5d77a]" + Player3D.key_label("spell_super") + "[/color] Superrang · [color=#f5d77a]X[/color] Momon\n" + \
 		"[color=#f5d77a]E[/color] benutzen · [color=#f5d77a]G[/color] Gate · [color=#f5d77a]T[/color] Zeit · [color=#f5d77a]Enter[/color] Depesche · [color=#c9a8ff]B[/color] Zauberbuch\n" + \
-		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
+		"[color=#f5d77a]J[/color] Questbuch · [color=#f5d77a]K[/color] Entsendungen · [color=#f5d77a]M[/color] Karte · [color=#f5d77a]L[/color] Lageplan · [color=#f5d77a]P[/color] Diplomatie · [color=#f5d77a]C[/color] Chronik\n" + \
 		"[color=#f5d77a]V[/color] Verwaltung · [color=#f5d77a]N[/color] Nazarick · [color=#f5d77a]U[/color] Wächter · [color=#f5d77a]F9[/color] Fotomodus · [color=#f5d77a]Esc[/color] Menü"
 
 
@@ -505,6 +515,11 @@ func tick(delta: float, blocked: bool) -> void:
 	compass.origin = p.global_position
 	compass.markers = _markers()
 	compass.queue_redraw()
+	if minimap.visible:
+		minimap.set("origin", p.global_position)
+		minimap.set("heading", -float(p.cam_yaw))
+		minimap.set("markers", compass.markers)
+		minimap.call("update_view")
 	# Werte
 	bars.hp.set_values(p.hp, p.max_hp)
 	bars.mana.set_values(p.mana, p.max_mana)
@@ -597,6 +612,12 @@ func _markers() -> Array:
 		if is_instance_valid(e) and e.state != Fighter.S.DEAD and e.global_position.distance_to(world.player.global_position) < 45.0:
 			out.append({"pos": e.global_position, "glyph": "✕", "color": Palette.CRIMSON, "label": e.display_name})
 	return out
+
+
+## Draufsicht des Ortes für die Minikarte (null = ausblenden).
+func set_local_map(tex: Texture2D, rect: Rect2) -> void:
+	minimap.call("set_map", tex, rect)
+	minimap.visible = tex != null
 
 
 ## Tageszeit im Freien (leer = ausblenden).

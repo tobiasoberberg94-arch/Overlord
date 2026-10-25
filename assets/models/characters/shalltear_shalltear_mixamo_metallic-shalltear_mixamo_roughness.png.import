@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://buhpsyge1se45"
-path="res://.godot/imported/shalltear_shalltear_mixamo_metallic-shalltear_mixamo_roughness.png-85bb451b64336ba5906361a530708d86.ctex"
+path.bptc="res://.godot/imported/shalltear_shalltear_mixamo_metallic-shalltear_mixamo_roughness.png-85bb451b64336ba5906361a530708d86.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "5eeec80f1e4c01bad7800b3187d87cfe"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/shalltear_shalltear_mixamo_metallic-shalltear_mixamo_roughness.png"
-dest_files=["res://.godot/imported/shalltear_shalltear_mixamo_metallic-shalltear_mixamo_roughness.png-85bb451b64336ba5906361a530708d86.ctex"]
+dest_files=["res://.godot/imported/shalltear_shalltear_mixamo_metallic-shalltear_mixamo_roughness.png-85bb451b64336ba5906361a530708d86.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

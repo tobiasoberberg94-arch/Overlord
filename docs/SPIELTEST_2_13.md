@@ -28,21 +28,37 @@ Legende: [ ] offen · [~] in Arbeit · [x] erledigt (Version)
 - [x] Lichtsäulen mitten im Ort (Gletscher …)
       → waren Ersatz-Kristalle (zwei grell leuchtende Prismen, weil kein Kristallmodell da ist): im Gletscher entfernt,
         der Ersatz-Kristall ist überall eine Gruppe aus Eisnadeln mit Eis-Shader und nur schwachem Glimmen
-- [ ] Rote Lichter ohne Sinn (Re-Estize …)
-- [ ] Lange Ladezeiten (Grabkammern, Gletscher, Lava, E-Rantel, Re-Estize) → messen und verkürzen
+- [~] Rote Lichter ohne Sinn (Re-Estize …)
+      → Prüfung LOC=lights (Re-Estize nachts, 147 Lichter): keine roten Lichtquellen; rote Kreise am Boden sind
+        Angriffswarnungen der Gegner (Flügelschlag, Flächenangriffe) – bitte bei Bedarf mit Bild nachmelden
+- [~] Lange Ladezeiten (Grabkammern, Gletscher, Lava, E-Rantel, Re-Estize) → messen und verkürzen
+      → Messung je Schritt (LOADPROF=1): 60–75 % gingen in die Kollision (eine Dreiecksform je Mesh-Instanz, jeder Baum
+        einzeln vermessen) → Formen je Mesh geteilt, Stammpunkte je Baumart: Kollision Re-Estize 15,7 → 3,1 s,
+        Grabkammern 11,2 → 2,4 s, Carne 5,4 → 2,7 s; Gletscher 8,7 → 5,4 s (Modell vereinfacht)
 - [~] Aus der Welt fallen beim Verlassen des Ortes (Dschungel, Carne, …) → Grenzen an allen Orten
       → Grenzen folgen dem Boden des Ortsmodells (4 m nach innen, 400 m hoch), dazu ein Sicherheitsnetz (40 m unter
         der letzten sicheren Stelle zurück); Lauftest LOC=walk: Dschungel in fünf Richtungen ohne Absturz – übrige Orte folgen
-- [ ] Gras verschwindet je nach Blickrichtung/Bewegung und taucht wieder auf
-- [ ] Texturlose Felsbrocken („große Kartoffeln“) im Grasland und in Carne
-- [~] Nachts zu dunkel (Re-Estize)
-      → Mondlicht 0,3 → 0,42, Umgebungslicht nachts ×4,4 (Städte und Dörfer ×5,2) – im Bild noch prüfen
-- [ ] Festhängen an Ausstattung/Trümmern (Marktplatz Re-Estize …) → Begehbarkeit je Ort prüfen
+- [x] Gras verschwindet je nach Blickrichtung/Bewegung und taucht wieder auf
+      → jede 16-m-Kachel sprang bei 20 m schlagartig auf 28 % der Büschel; jetzt dünnt das Gras je Büschel stufenlos
+        nach Entfernung aus (Shader), Kacheln verschwinden erst hinter dem Einsinken
+- [x] Texturlose Felsbrocken („große Kartoffeln“) im Grasland und in Carne
+      → es waren die Heuhaufen (zwei glatte gelbe Kugeln): jetzt Heustöcke aus trockenem Gras mit Haube, Stange und
+        losem Heu am Fuß (11 Stück in Grasland, Carne, Re-Estize …)
+- [x] Nachts zu dunkel (Re-Estize)
+      → Mondlicht heller, Umgebungslicht nachts aus einer kühlen Mondlichtfarbe statt aus dem fast schwarzen Himmel,
+        Belichtung nachts ×1,35 und ein schattenloses Fülllicht von der Gegenseite des Mondes (abgewandte Hausseiten
+        waren schwarz) – im Bild geprüft (Re-Estize bei Regen und Nacht)
+- [~] Festhängen an Ausstattung/Trümmern (Marktplatz Re-Estize …) → Begehbarkeit je Ort prüfen
+      → Prüfwerkzeug LOC=trap (an jedem freien Punkt acht Richtungen laufen): Markt Re-Estize 161 Punkte, 2 Fallen an
+        Hauswänden (keine auf dem Markt selbst); übrige Orte folgen
 - [x] Bewohner laufen auf Dächern (E-Rantel): nur noch Wegpunkte mit freiem Weg, Bodenstrahl knapp über den Füßen
 - [ ] Gegner spawnen sofort (Friedhof) → erst mit Auftrag bzw. nachts
 - [x] Nach jeder Ankunft flogen weiße Funken und Punkte durchs Bild (Vorwärmen der Kampfeffekte hinter dem Ladeschleier,
       Funken bis 16 m/s, zwei Sekunden lang) → durchsichtig und nach wenigen Bildern wieder entfernt
-- [ ] Idee: Minikarte im HUD und eine Ortskarte mit wichtigen Gebäuden
+- [x] Idee: Minikarte im HUD und eine Ortskarte mit wichtigen Gebäuden
+      → nach jedem Ortsaufbau wird der Ort einmal senkrecht von oben aufgenommen (in Hallen knapp unter der Decke, also
+        als Grundriss); Minikarte unten rechts (Ausschnitt ±46 m, Norden oben, Pfeil in Blickrichtung, Zeichen wie im
+        Kompass), Lageplan mit Taste L: ganzer Ort mit Namen von Gate, Türen, Häusern, Figuren, Truhen und Funden
 
 ## Nazarick
 - [x] Thronsaal: Lampen mit Quadrat-Effekten, Treppen, Gate, Steine im Weg
@@ -83,13 +99,24 @@ Legende: [ ] offen · [~] in Arbeit · [x] erledigt (Version)
 
 ## Neue Welt
 - [ ] Carne: Regen ohne Textur; texturlose Brocken; Gras verschwindet; aus der Welt fallen
-- [ ] E-Rantel: lange Ladezeit; Häuser viel zu klein (Schilder fast so groß wie Häuser); Bewohner laufen auf Dächern;
+- [x] E-Rantel: lange Ladezeit; Häuser viel zu klein (Schilder fast so groß wie Häuser); Bewohner laufen auf Dächern;
       wahllos platzierte Gegenstände; riesige Hügel direkt vor der Stadt; Lücken in der Stadtmauer; Bauernhäuser im Berg
-- [~] Friedhof: Gegner erst mit Auftrag/nachts; Skelettdrache bewegt sich völlig falsch
+      → neu gebaut (build_erantel.py): Häuser ×1,35, Rathaus und Gilde größer, Mauerstücke füllen jeden Abschnitt
+        (vorher 1 m Lücke je Abschnitt), Gelände vor der Stadt sanft (Hügel 10 → 4 m, flach bis 112 m), Gehöfte auf
+        ebenen Plätzen, weniger Kleinkram vor den Häusern; Bewohner nur noch auf freien Wegen; Kollision schneller
+- [x] Friedhof: Gegner erst mit Auftrag/nachts; Skelettdrache bewegt sich völlig falsch
       → Skelette und Bogenschützen erheben sich nachts oder sobald der Auftrag des Friedhofswärters läuft (beim Annehmen
-        vor Ort sofort), der Lich nur nachts; Skelettdrache folgt
-- [ ] Re-Estize: lange Ladezeit; Löcher in der Mauer; Häuser zu klein; Kellerluke der Acht Finger ist nur ein Schild am
+        vor Ort sofort), der Lich nur nachts
+      → Skelettdrache neu geriggt (build_dragon.py): die Quelle lag schon richtig (Kopf -Y, Flügel ±X), das Skript
+        drehte sie um 90°, spiegelte den vermeintlich hängenden Flügel – in Wahrheit Kopf/Schwanz, der Drache hatte zwei
+        Schwänze – und das Skelett lag quer im Körper (Wirbelsäule in den Flügeln, er lief seitwärts). Jetzt Skelett nach
+        gemessenen Merkmalen (Kopf, Schwanzspitze, vier Füße, Flügelansatz); Lauf, Biss, Flügelschlag, Tod geprüft
+- [x] Re-Estize: lange Ladezeit; Löcher in der Mauer; Häuser zu klein; Kellerluke der Acht Finger ist nur ein Schild am
       Boden → echter Eingang; nachts zu dunkel; kaputte Objekte und Kisten auf dem Markt; man hängt fest
+      → neu gebaut (build_recapital.py): Häuser ×1,35, Mauer ohne Lücken, sanftes Umland; Kellerabgang der Acht Finger
+        an einer Hauswand (schräge Doppeltür, ein Flügel offen, Laterne, Fässer); Nacht heller; Ladezeit Kollision
+        15,7 → 3,1 s; Markt: 161 Punkte ohne Falle (LOC=trap); Banner, Statuen und Laternen,
+        die durch die größeren Häuser in Wänden standen, neu gesetzt (Burgweg mit Bannern zu beiden Seiten)
 - [ ] Alle übrigen Orte einzeln prüfen (Baharuth, Roble, Theokratie, Tob-Wald, Elfen, Sumpf, Katze, Azerlisia, Drachen …)
 
 ## Wunsch: begehbares Azerlisia-Gebirge

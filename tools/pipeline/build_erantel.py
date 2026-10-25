@@ -198,7 +198,7 @@ for l in lanes:
 for side in (-1, 1):
     town.frontage(ring_in, 4.5, side, district, on_place=dress, yard_depth=(4, 8))
     town.frontage(cit_loop, 4.0, side, lambda x, y: RICH[:4] if in_citadel(x, y) else None, on_place=dress)
-town.fill(lambda x, y: inside(x, y, 0.9) and not in_citadel(x, y), POOR + MID, tries=900, on_place=dress)
+town.fill(lambda x, y: inside(x, y, 0.9) and not in_citadel(x, y), POOR + MID, tries=2600, on_place=dress)   # größere Häuser: mehr Versuche, sonst bleiben Lücken
 
 # --- Marktplatz ---------------------------------------------------------------------------------------
 mx, my = M

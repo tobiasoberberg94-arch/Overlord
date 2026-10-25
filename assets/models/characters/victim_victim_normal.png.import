@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://crehj1s1d7w0l"
-path="res://.godot/imported/victim_victim_normal.png-2a41bec158cf43c7bd665b84af0ed4ba.ctex"
+path.bptc="res://.godot/imported/victim_victim_normal.png-2a41bec158cf43c7bd665b84af0ed4ba.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "3f6e27d057d50df5ed9aac3b5ca43926"
@@ -14,15 +15,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/victim_victim_normal.png"
-dest_files=["res://.godot/imported/victim_victim_normal.png-2a41bec158cf43c7bd665b84af0ed4ba.ctex"]
+dest_files=["res://.godot/imported/victim_victim_normal.png-2a41bec158cf43c7bd665b84af0ed4ba.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

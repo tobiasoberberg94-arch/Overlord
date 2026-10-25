@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ck1pr1wi0ub8o"
-path="res://.godot/imported/demiurge_demiurge_mixamo_basecolor.jpg-21e89d2a68db00cc3bcbb4493c40a08b.ctex"
+path.bptc="res://.godot/imported/demiurge_demiurge_mixamo_basecolor.jpg-21e89d2a68db00cc3bcbb4493c40a08b.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b21f5fc89668640352dbfb2a5007d677"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/demiurge_demiurge_mixamo_basecolor.jpg"
-dest_files=["res://.godot/imported/demiurge_demiurge_mixamo_basecolor.jpg-21e89d2a68db00cc3bcbb4493c40a08b.ctex"]
+dest_files=["res://.godot/imported/demiurge_demiurge_mixamo_basecolor.jpg-21e89d2a68db00cc3bcbb4493c40a08b.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

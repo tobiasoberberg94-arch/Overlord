@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bognd6eprhugd"
-path="res://.godot/imported/death_knight_dk_mixamo_basecolor.jpg-f665fef3924262e35e28b9a0cc7e2521.ctex"
+path.bptc="res://.godot/imported/death_knight_dk_mixamo_basecolor.jpg-f665fef3924262e35e28b9a0cc7e2521.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "0a34ec6dc9c10912b55bad5db8ab4fae"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/death_knight_dk_mixamo_basecolor.jpg"
-dest_files=["res://.godot/imported/death_knight_dk_mixamo_basecolor.jpg-f665fef3924262e35e28b9a0cc7e2521.ctex"]
+dest_files=["res://.godot/imported/death_knight_dk_mixamo_basecolor.jpg-f665fef3924262e35e28b9a0cc7e2521.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

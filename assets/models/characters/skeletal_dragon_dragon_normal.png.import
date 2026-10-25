@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cklxjkh4hrkel"
-path="res://.godot/imported/skeletal_dragon_dragon_normal.png-19e9e7c2214128e13950debbbdcdb493.ctex"
+path.bptc="res://.godot/imported/skeletal_dragon_dragon_normal.png-19e9e7c2214128e13950debbbdcdb493.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "58e9c2137eab6f23fad348afd5312d31"
@@ -14,15 +15,15 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/skeletal_dragon_dragon_normal.png"
-dest_files=["res://.godot/imported/skeletal_dragon_dragon_normal.png-19e9e7c2214128e13950debbbdcdb493.ctex"]
+dest_files=["res://.godot/imported/skeletal_dragon_dragon_normal.png-19e9e7c2214128e13950debbbdcdb493.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
-compress/normal_map=0
+compress/normal_map=1
 compress/channel_pack=0
 mipmaps/generate=true
 mipmaps/limit=-1

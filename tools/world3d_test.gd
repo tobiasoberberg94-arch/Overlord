@@ -372,6 +372,52 @@ func _ready() -> void:
 		print("DRAGONDONE")
 		get_tree().quit()
 		return
+	if only == "dragonside":
+		# Skelettdrache von der Seite: läuft 16 m auf den Spieler zu, zehn Bilder im Abstand von 0,3 s (Gang, Blickrichtung,
+		# Gleiten der Füße); dazu Lage, Drehung und Animation je Bild
+		w._time_running = false
+		await w.load_location(OS.get_environment("DRAGONLOC") if OS.get_environment("DRAGONLOC") != "" else "erantel_friedhof")
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		await _wait(1.0)
+		for e0 in w.enemies:
+			if is_instance_valid(e0):
+				e0.queue_free()
+		w.enemies.clear()
+		var p0: Vector3 = w.player.global_position
+		var e: Enemy3D = w.spawn_enemy(OS.get_environment("DRAGONID") if OS.get_environment("DRAGONID") != "" else "skeletal_dragon", p0 + Vector3(0, 0.2, -16.0))
+		var cam := Camera3D.new()
+		cam.fov = 55.0
+		w.add_child(cam)
+		if OS.get_environment("DRAGONVIEW") == "top":
+			cam.look_at_from_position(p0 + Vector3(0, 24.0, -9.0), p0 + Vector3(0, 0, -9.0), Vector3(0, 0, -1))
+		else:
+			cam.look_at_from_position(p0 + Vector3(9.0, 2.4, -9.0), p0 + Vector3(0, 1.6, -9.0))
+		cam.current = true
+		for c in w.find_children("*", "CanvasLayer", true, false):
+			(c as CanvasLayer).visible = false
+		await _wait(0.4)
+		for k in 10:
+			if not is_instance_valid(e):
+				break
+			var fwd := -e.global_transform.basis.z
+			var to_p: Vector3 = w.player.global_position - e.global_position
+			var sk: Skeleton3D = e.rig.skeleton()
+			if sk and k == 3:
+				var hi := sk.find_bone("Head")
+				var ti := sk.find_bone("Tail3")
+				var wl := sk.find_bone("WingArm_L")
+				if hi >= 0 and ti >= 0:
+					var hp: Vector3 = sk.global_transform * sk.get_bone_global_pose(hi).origin
+					var tp: Vector3 = sk.global_transform * sk.get_bone_global_pose(ti).origin
+					var wp: Vector3 = sk.global_transform * sk.get_bone_global_pose(wl).origin if wl >= 0 else Vector3.ZERO
+					print("KNOCHEN Kopf %s Schwanz %s Flügel L %s · Kopf minus Schwanz %s" % [str(hp.snapped(Vector3(0.1, 0.1, 0.1))), str(tp.snapped(Vector3(0.1, 0.1, 0.1))), str(wp.snapped(Vector3(0.1, 0.1, 0.1))), str((hp - tp).snapped(Vector3(0.1, 0.1, 0.1)))])
+			print("SEITE %d: Lage (%.1f, %.1f, %.1f) Blick (%.2f, %.2f) zum Spieler (%.2f, %.2f) Zustand %d Animation %s Tempo %.2f" % [k, e.global_position.x, e.global_position.y, e.global_position.z, fwd.x, fwd.z, to_p.normalized().x, to_p.normalized().z, e.state, e.rig._current, e.velocity.length() if "velocity" in e else -1.0])
+			_shot("dragonside_%d" % k)
+			await _wait(0.3)
+		print("DRAGONSIDEDONE")
+		get_tree().quit()
+		return
 	if only == "darkyoung":
 		# Dunkles Junges mit echtem Modell: aufsteigen, stapfen, brüllen
 		w._time_running = false
@@ -872,6 +918,184 @@ func _ready() -> void:
 				await _wait(1.0)
 				_shot("seats_" + lid)
 		print("SEATSDONE")
+		get_tree().quit()
+		return
+	if only == "minimap":
+		# Minikarte und Ortskarte: MAPLOCS=ort,ort – Bild mit HUD (Minikarte unten rechts), dann die Ortskarte (Taste L)
+		w._time_running = false
+		for lid in OS.get_environment("MAPLOCS").split(",", false):
+			await w.load_location(lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(1.5)
+			print("KARTE %s: Bild %s · Ausschnitt %s" % [lid, str(w.map_tex.get_size()) if w.map_tex else "-", str(w.map_rect)])
+			_shot("minimap_%s" % lid)
+			w._open_local_map()
+			await _wait(0.8)
+			_shot("lageplan_%s" % lid)
+			for c in w.overlay_layer.get_children():
+				c.queue_free()
+			await _wait(0.3)
+		print("MINIMAPDONE")
+		get_tree().quit()
+		return
+	if only == "trap":
+		# Festhängen suchen: TRAP="ort:cx,cz,halbe_breite,schritt;…" – an jedem freien Rasterpunkt acht Richtungen je
+		# 0,5 s laufen; wo keine Richtung weiter als 0,6 m führt, hängt man fest (FALLE). Punkte in Gegenständen entfallen.
+		w._time_running = false
+		var probe := SphereShape3D.new()
+		probe.radius = 0.32
+		for spec in OS.get_environment("TRAP").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var v := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				await w.load_location(lid)
+				for c in w.overlay_layer.get_children():
+					c.queue_free()
+				await _wait(1.0)
+			for e in w.enemies:
+				if is_instance_valid(e):
+					e.queue_free()
+			w.enemies.clear()
+			var space: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+			var cx := float(v[0])
+			var cz := float(v[1])
+			var hw := float(v[2])
+			var st := float(v[3])
+			var tested := 0
+			var traps := 0
+			var x := cx - hw
+			while x <= cx + hw + 0.01:
+				var z := cz - hw
+				while z <= cz + hw + 0.01:
+					var p: Vector3 = w._on_ground(Vector3(x, 2.0, z))
+					var q := PhysicsShapeQueryParameters3D.new()
+					q.shape = probe
+					q.transform = Transform3D(Basis(), p + Vector3(0, 0.95, 0))
+					q.exclude = [w.player.get_rid()]
+					if space.intersect_shape(q, 1).is_empty():
+						tested += 1
+						var best := 0.0
+						for k in 8:
+							w.player.global_position = p + Vector3(0, 0.1, 0)
+							w.player.velocity = Vector3.ZERO
+							w.player.cam_yaw = -TAU * k / 8.0
+							await get_tree().physics_frame
+							Input.action_press("move_forward")
+							var t := 0.0
+							while t < 0.5:
+								await get_tree().physics_frame
+								t += get_physics_process_delta_time()
+								w.player.cam_yaw = -TAU * k / 8.0
+							Input.action_release("move_forward")
+							var dd: Vector3 = w.player.global_position - p
+							best = maxf(best, Vector2(dd.x, dd.z).length())
+							if best > 0.6:
+								break
+						if best <= 0.6:
+							traps += 1
+							var blk := PackedStringArray()
+							for k2 in 8:
+								var a2 := TAU * k2 / 8.0
+								var h2 := space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3(0, 0.6, 0), p + Vector3(0, 0.6, 0) + Vector3(sin(a2), 0, -cos(a2)) * 1.2, 0xFFFFFFFF, [w.player.get_rid()]))
+								if not h2.is_empty():
+									var hn: Node = h2.collider
+									blk.append(String(hn.get_parent().name if hn.get_parent() else hn.name).left(24))
+							print("FALLE %s bei (%.1f, %.1f, %.1f): weiteste Richtung %.2f m · ringsum %s" % [lid, p.x, p.y, p.z, best, ", ".join(blk)])
+					z += st
+				x += st
+			print("TRAP %s: %d freie Punkte geprüft, %d Fallen" % [lid, tested, traps])
+		print("TRAPDONE")
+		get_tree().quit()
+		return
+	if only == "lights":
+		# Lichter bei Tageszeit: LIGHTLOC=ort TOD=Phase (0,8 = Nacht) – rötliche Lichter mit Lage und Pfad, dazu zwei
+		# Bilder vom Startpunkt (vorwärts, zurück) als night_<ort>_0/1
+		w._time_running = false
+		var llid := OS.get_environment("LIGHTLOC")
+		await w.load_location(llid)
+		for c in w.overlay_layer.get_children():
+			c.queue_free()
+		if OS.get_environment("TOD") != "":
+			w.day_cycle.force = float(OS.get_environment("TOD"))
+			w.day_cycle.update(0.0)
+		await _wait(1.5)
+		w.cinematic = true
+		var n_l := 0
+		var n_red := 0
+		for l in w.level.find_children("*", "Light3D", true, false):
+			var ol := l as Light3D
+			if ol is DirectionalLight3D or not ol.is_visible_in_tree() or ol.light_energy <= 0.01:
+				continue
+			n_l += 1
+			var lc := ol.light_color
+			if lc.r > 0.7 and lc.g < 0.5 and lc.b < 0.45:
+				n_red += 1
+				print("ROT %s Farbe %s Energie %.2f | %s" % [str(ol.global_position.snapped(Vector3(0.1, 0.1, 0.1))), lc.to_html(false), ol.light_energy, String(w.level.get_path_to(ol)).right(70)])
+		print("LICHTER %s: %d sichtbar, %d rötlich · Tageszeit %s" % [llid, n_l, n_red, w.day_cycle.time_name()])
+		w.player.cam_pitch = -0.12
+		await _wait(0.4)
+		_shot("night_%s_0" % llid)
+		w.player.cam_yaw += PI
+		await _wait(0.4)
+		_shot("night_%s_1" % llid)
+		print("LIGHTSDONE")
+		get_tree().quit()
+		return
+	if only == "pick":
+		# Was ist an einer Bildstelle zu sehen? PICK="ort:sx,sy,zurück;…" – Blick wie bei der Ankunft im Rundgang
+		# (zurück=1: umgedreht), sx/sy als Anteil der Bildbreite/-höhe. Meldet den Kollisionstreffer und die sichtbaren
+		# Geometrien, deren Hülle der Sichtstrahl schneidet (nächste zuerst), mit Material.
+		w._time_running = false
+		for spec in OS.get_environment("PICK").split(";", false):
+			var lid := spec.get_slice(":", 0)
+			var v := spec.get_slice(":", 1).split(",")
+			if w.loc.get("id", "") != lid:
+				await w.load_location(lid)
+				for c in w.overlay_layer.get_children():
+					c.queue_free()
+				await _wait(1.2)
+				w.cinematic = true
+				w.player.set_meta("y0", w.player.cam_yaw)
+			var y0: float = w.player.get_meta("y0", w.player.cam_yaw)
+			w.player.cam_pitch = -0.15
+			w.player.cam_yaw = y0 + (PI if v.size() > 2 and v[2] == "1" else 0.0)
+			await _wait(0.5)
+			var cam := get_viewport().get_camera_3d()
+			var vs := get_viewport().get_visible_rect().size
+			var sp := Vector2(float(v[0]) * vs.x, float(v[1]) * vs.y)
+			var o := cam.project_ray_origin(sp)
+			var to := o + cam.project_ray_normal(sp) * 300.0
+			var pspace: PhysicsDirectSpaceState3D = w.level.get_world_3d().direct_space_state
+			var hit: Dictionary = pspace.intersect_ray(PhysicsRayQueryParameters3D.create(o, to))
+			if not hit.is_empty():
+				var hc: Node = hit.collider
+				print("PICK %s (%s, %s): Treffer %s/%s bei %s, %.1f m" % [lid, v[0], v[1], hc.get_parent().name if hc.get_parent() else "-", hc.name, str((hit.position as Vector3).snapped(Vector3(0.1, 0.1, 0.1))), o.distance_to(hit.position)])
+			var rows: Array = []
+			for gi in w.level.find_children("*", "GeometryInstance3D", true, false):
+				var g := gi as GeometryInstance3D
+				if not g.is_visible_in_tree():
+					continue
+				var ab: AABB = g.global_transform * g.get_aabb()
+				var e: Variant = ab.intersects_segment(o, to)
+				if e != null:
+					rows.append([o.distance_to(e), g])
+			rows.sort_custom(func(a, b): return a[0] < b[0])
+			for r in rows.slice(0, 12):
+				var g2: GeometryInstance3D = r[1]
+				var mat: Material = g2.material_override
+				if mat == null and g2 is MeshInstance3D and (g2 as MeshInstance3D).mesh:
+					mat = (g2 as MeshInstance3D).get_active_material(0)
+				if mat == null and g2 is MultiMeshInstance3D and (g2 as MultiMeshInstance3D).multimesh and (g2 as MultiMeshInstance3D).multimesh.mesh:
+					mat = (g2 as MultiMeshInstance3D).multimesh.mesh.surface_get_material(0)
+				var mi := "-"
+				if mat is StandardMaterial3D:
+					mi = "Std %s tex=%s farbe=%s" % [mat.resource_name, (mat as StandardMaterial3D).albedo_texture != null, (mat as StandardMaterial3D).albedo_color.to_html()]
+				elif mat is ShaderMaterial:
+					mi = "Shader %s %s" % [(mat as ShaderMaterial).shader.resource_path.get_file() if (mat as ShaderMaterial).shader else "-", mat.resource_name]
+				var sz: Vector3 = (g2.global_transform * g2.get_aabb()).size
+				print("PICK   %.1f m %s | %s %.1fx%.1fx%.1f | %s" % [float(r[0]), String(w.level.get_path_to(g2)).right(60), g2.get_class(), sz.x, sz.y, sz.z, mi])
+		print("PICKDONE")
 		get_tree().quit()
 		return
 	if only == "parts":

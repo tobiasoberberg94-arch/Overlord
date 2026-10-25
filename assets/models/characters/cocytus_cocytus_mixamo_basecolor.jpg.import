@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dksmda2qchckm"
-path="res://.godot/imported/cocytus_cocytus_mixamo_basecolor.jpg-5e90d0d227260dd92b48728fe2a578be.ctex"
+path.bptc="res://.godot/imported/cocytus_cocytus_mixamo_basecolor.jpg-5e90d0d227260dd92b48728fe2a578be.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "c628de0c34f67db2c6d3ecf403fa7e9d"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/cocytus_cocytus_mixamo_basecolor.jpg"
-dest_files=["res://.godot/imported/cocytus_cocytus_mixamo_basecolor.jpg-5e90d0d227260dd92b48728fe2a578be.ctex"]
+dest_files=["res://.godot/imported/cocytus_cocytus_mixamo_basecolor.jpg-5e90d0d227260dd92b48728fe2a578be.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

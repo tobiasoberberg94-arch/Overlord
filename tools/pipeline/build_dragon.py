@@ -1,7 +1,7 @@
 # Skelettdrache (Tripo-FBX) → geriggtes, animiertes GLB für assets/models/characters/skeletal_dragon.glb.
 #   blender.exe -b --python tools/pipeline/build_dragon.py [-- <Quellordner> [<Ziel-GLB>]]
 # Quellordner (Standard C:/Projekte/Overlord/Models/SkelettDrache/src): model.fbx + Material_01_{BaseColor,Metallic,Normal,Roughness}.png.
-# Wie build_wolf.py: Blick nach -Y, Füße auf z=0, Länge 4,5 m; Skelett: Root, Pelvis, Spine, Neck1/2, Head, Tail1-3,
+# Wie build_wolf.py: Blick nach -Y, Füße auf z=0, Spannweite 4,5 m, Länge 3,3 m; Skelett: Root, Pelvis, Spine, Neck1/2, Head, Tail1-3,
 # je Bein zwei Knochen, je Flügel Arm + Hand; Flügelhaut per Region (|x| groß) den Flügelknochen zugeordnet.
 # Aktionen: Idle, Walk, Run, Attack_Light (Biss), Attack_Heavy (Flügelschlag), Hit, Stagger, Death (bricht zusammen),
 # Dodge (Satz zurück mit Flügelschlag), Block (geduckt, Flügel vor).
@@ -47,8 +47,9 @@ for n in mat.node_tree.nodes:
         n.inputs["Specular IOR Level"].default_value = 0.3
 print("Texturen:", [(i.name, i.size[:]) for i in bpy.data.images])
 
-# Original: Länge x (Kopf +X), Breite y (Flügel bis ±0,37), Höhe z (-0,27 … 0,27)
-ob.rotation_euler = (0.0, 0.0, math.radians(-90.0))
+# Quelle (gemessen): Länge y (Kopf bei -0,37, Schwanz bei +0,37), Spannweite x (±0,5, beide Flügel ausgebreitet),
+# Höhe z (-0,27 … 0,27) – liegt schon mit Blick nach -Y, also keine Drehung
+ob.rotation_euler = (0.0, 0.0, 0.0)
 ob.scale = (SC, SC, SC)
 ob.location = (0.0, 0.0, 0.269 * SC)
 bpy.context.view_layer.objects.active = ob
@@ -64,59 +65,11 @@ print("Maße nach Ausrichtung: x %.2f..%.2f  y %.2f..%.2f  z %.2f..%.2f" % (co[:
 # ---------------------------------------------------------------- Flügel spiegeln: Tripo hat einen Flügel ausgebreitet und einen
 # zerknittert hängend; der ausgebreitete wird auf die andere Seite gespiegelt, der hängende (außerhalb von |x| 0,55 m) entfernt.
 import bmesh
-def wing_sets(co, me):
-    E = len(me.edges)
-    ev = np.empty(E * 2, dtype=np.int64)
-    me.edges.foreach_get("vertices", ev)
-    ev = ev.reshape(E, 2)
-    ax = np.abs(co[:, 0])
-    is_leg = (co[:, 2] < 0.15) & (ax < 0.75)
-    for it in range(300):
-        grow = is_leg.copy()
-        grow[ev[:, 1][is_leg[ev[:, 0]]]] = True
-        grow[ev[:, 0][is_leg[ev[:, 1]]]] = True
-        grow &= (co[:, 2] < 0.9) & (ax < 0.75)
-        if grow.sum() == is_leg.sum():
-            break
-        is_leg = grow
-    allowed = (ax > 0.45) & ~is_leg
-    w = ax > 1.2
-    for it in range(400):
-        grow = w.copy()
-        grow[ev[:, 1][w[ev[:, 0]]]] = True
-        grow[ev[:, 0][w[ev[:, 1]]]] = True
-        grow &= allowed
-        if grow.sum() == w.sum():
-            break
-        w = grow
-    return w
-wmask = wing_sets(co, me)
-zl = co[wmask & (co[:, 0] > 0), 2].mean(); zr = co[wmask & (co[:, 0] < 0), 2].mean()
-good = 1.0 if zl >= zr else -1.0
-print("Flügel: mittlere Höhe links %.2f rechts %.2f → ausgebreitet ist %s" % (zl, zr, "links (+x)" if good > 0 else "rechts (-x)"))
-bm = bmesh.new()
-bm.from_mesh(me)
-bm.verts.ensure_lookup_table()
-bm.faces.ensure_lookup_table()
-bad_verts = [bm.verts[i] for i in np.nonzero(wmask & ((co[:, 0] * good) < 0) & (np.abs(co[:, 0]) > 0.55))[0]]
-good_faces = [f for f in bm.faces if all(wmask[v.index] and (v.co.x * good) > 0.5 for v in f.verts)]
-ret = bmesh.ops.duplicate(bm, geom=good_faces)
-dup_verts = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMVert)]
-dup_faces = [g for g in ret["geom"] if isinstance(g, bmesh.types.BMFace)]
-bmesh.ops.scale(bm, vec=(-1.0, 1.0, 1.0), verts=dup_verts)
-bmesh.ops.reverse_faces(bm, faces=dup_faces)
-bmesh.ops.delete(bm, geom=bad_verts, context='VERTS')
-bm.to_mesh(me)
-bm.free()
-me.update()
-N = len(me.vertices)
-co = np.empty(N * 3, dtype=np.float64)
-me.vertices.foreach_get("co", co)
-co = co.reshape(N, 3)
-print("Flügel gespiegelt: %d Vertices entfernt, %d Flächen gespiegelt, jetzt %d Vertices" % (len(bad_verts), len(dup_faces), N))
+# (keine Flügel-Spiegelung mehr: die Quelle hat beide Flügel ausgebreitet)
 
-def P(x, z, y=0.0):
-    return (y * SC, -x * SC, (z + 0.269) * SC)
+def Q(x, y, z):
+    """Punkt der Quelle (x Seite, y Länge mit Kopf bei -y, z Höhe) → Meter, Füße auf z = 0."""
+    return (x * SC, y * SC, (z + 0.269) * SC)
 
 arm_data = bpy.data.armatures.new("DragonRig")
 arm = bpy.data.objects.new("DragonRig", arm_data)
@@ -135,23 +88,31 @@ def bone(name, head, tail, parent=None, connect=False):
     EB[name] = b
     return b
 bone("Root", (0, 0, 0), (0, 0, 0.5))
-bone("Pelvis", P(-0.12, -0.06), P(0.0, -0.04), "Root")
-bone("Spine", P(0.0, -0.04), P(0.12, 0.0), "Pelvis", True)
-bone("Neck1", P(0.12, 0.0), P(0.25, 0.14), "Spine", True)
-bone("Neck2", P(0.25, 0.14), P(0.37, 0.23), "Neck1", True)
-bone("Head", P(0.37, 0.23), P(0.50, 0.25), "Neck2", True)
-bone("Tail1", P(-0.12, -0.02), P(-0.26, 0.14), "Pelvis")
-bone("Tail2", P(-0.26, 0.14), P(-0.38, 0.23), "Tail1", True)
-bone("Tail3", P(-0.38, 0.23), P(-0.50, 0.26), "Tail2", True)
+# Rumpf: Becken über den Hinterbeinen (y 0,12 … 0,20), Schultern über den Vorderbeinen (y -0,10 … -0,16), Rücken
+# um z 0,1, Bauch um -0,1; der Hals senkt sich zum Kopf (Schnauze vorn bei y -0,36, z -0,05)
+bone("Pelvis", Q(0, 0.14, -0.03), Q(0, 0.03, 0.0), "Root")
+bone("Spine", Q(0, 0.03, 0.0), Q(0, -0.12, 0.02), "Pelvis", True)
+bone("Neck1", Q(0, -0.12, 0.02), Q(0, -0.21, 0.04), "Spine", True)
+bone("Neck2", Q(0, -0.21, 0.04), Q(0, -0.28, 0.01), "Neck1", True)
+bone("Head", Q(0, -0.28, 0.01), Q(0, -0.36, -0.05), "Neck2", True)
+# Schwanz: nach hinten und hinab, die Spitze rollt sich am Boden zur +x-Seite ein
+bone("Tail1", Q(0, 0.14, -0.03), Q(0, 0.23, -0.06), "Pelvis")
+bone("Tail2", Q(0, 0.23, -0.06), Q(0.03, 0.30, -0.13), "Tail1", True)
+bone("Tail3", Q(0.03, 0.30, -0.13), Q(0.12, 0.35, -0.22), "Tail2", True)
+# Beine bis zu den gemessenen Füßen (+x = L): vorn L (0,147 / -0,104), R (-0,149 / -0,163);
+# hinten L (0,111 / 0,203), R (-0,108 / 0,122)
+FEET = {"L": {"hind": (0.111, 0.203), "front": (0.147, -0.104)}, "R": {"hind": (-0.108, 0.122), "front": (-0.149, -0.163)}}
 for side, sy in [("L", 1.0), ("R", -1.0)]:
-    bone("Thigh_" + side, P(-0.06, -0.08, 0.12 * sy), P(-0.09, -0.18, 0.13 * sy), "Pelvis")
-    bone("Shin_" + side, P(-0.09, -0.18, 0.13 * sy), P(-0.06, -0.27, 0.13 * sy), "Thigh_" + side, True)
-    bone("UpperArm_" + side, P(0.09, -0.08, 0.10 * sy), P(0.11, -0.18, 0.10 * sy), "Spine")
-    bone("Forearm_" + side, P(0.11, -0.18, 0.10 * sy), P(0.13, -0.27, 0.10 * sy), "UpperArm_" + side, True)
-    # Flügel: ein starrer Knochen von der Schulter zum Schwerpunkt des äußeren Flügeldrittels dieser Seite (Mesh-Maß)
+    hx, hy = FEET[side]["hind"]
+    fx, fy = FEET[side]["front"]
+    bone("Thigh_" + side, Q(0.07 * sy, 0.15, -0.03), Q((0.07 * sy + hx) * 0.5 + 0.02 * sy, (0.15 + hy) * 0.5, -0.14), "Pelvis")
+    bone("Shin_" + side, Q((0.07 * sy + hx) * 0.5 + 0.02 * sy, (0.15 + hy) * 0.5, -0.14), Q(hx, hy, -0.245), "Thigh_" + side, True)
+    bone("UpperArm_" + side, Q(0.07 * sy, -0.12, -0.02), Q((0.07 * sy + fx) * 0.5 + 0.02 * sy, (-0.12 + fy) * 0.5, -0.13), "Spine")
+    bone("Forearm_" + side, Q((0.07 * sy + fx) * 0.5 + 0.02 * sy, (-0.12 + fy) * 0.5, -0.13), Q(fx, fy, -0.245), "UpperArm_" + side, True)
+    # Flügel: ein starrer Knochen vom Ansatz über der Schulter zum Schwerpunkt des äußeren Flügeldrittels (Mesh-Maß)
     wsel = (co[:, 0] * sy > 1.15 * SC * 0.25)
-    wtip = co[wsel].mean(axis=0) if wsel.sum() > 50 else np.array(P(0.09, -0.12, 0.36 * sy))
-    bone("WingArm_" + side, P(0.05, 0.02, 0.12 * sy), tuple(wtip), "Spine")
+    wtip = co[wsel].mean(axis=0) if wsel.sum() > 50 else np.array(Q(0.38 * sy, 0.1, 0.23))
+    bone("WingArm_" + side, Q(0.07 * sy, -0.03, 0.10), tuple(wtip), "Spine")
 bpy.ops.object.mode_set(mode='OBJECT')
 
 # ---------------------------------------------------------------- Gewichte

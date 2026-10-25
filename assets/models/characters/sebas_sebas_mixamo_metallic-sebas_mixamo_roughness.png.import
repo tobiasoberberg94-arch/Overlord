@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c2qtmdo70ibwo"
-path="res://.godot/imported/sebas_sebas_mixamo_metallic-sebas_mixamo_roughness.png-b660a4a81abb666709a7478743305cbb.ctex"
+path.bptc="res://.godot/imported/sebas_sebas_mixamo_metallic-sebas_mixamo_roughness.png-b660a4a81abb666709a7478743305cbb.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "43b828e63bf986409aa6084dab85ede2"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/sebas_sebas_mixamo_metallic-sebas_mixamo_roughness.png"
-dest_files=["res://.godot/imported/sebas_sebas_mixamo_metallic-sebas_mixamo_roughness.png-b660a4a81abb666709a7478743305cbb.ctex"]
+dest_files=["res://.godot/imported/sebas_sebas_mixamo_metallic-sebas_mixamo_roughness.png-b660a4a81abb666709a7478743305cbb.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

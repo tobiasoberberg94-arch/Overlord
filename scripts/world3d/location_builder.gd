@@ -12,15 +12,30 @@ const GOLD := Color(0.85, 0.66, 0.22)
 const VIOLET := Color(0.55, 0.2, 0.95)
 
 static var _rng := RandomNumberGenerator.new()
+static var _prof_t := 0
+static var _prof_on := OS.get_environment("LOADPROF") != ""
+
+
+## Ladezeit-Messung (LOADPROF=1): Dauer seit dem letzten Aufruf ausgeben
+static func prof(step: String) -> void:
+	if not _prof_on:
+		return
+	var now := Time.get_ticks_usec()
+	if _prof_t > 0 and step != "":
+		print("LADEN %-22s %6.0f ms" % [step, (now - _prof_t) / 1000.0])
+	_prof_t = now
 
 
 static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 	_rng.seed = hash(loc.id)
 	# Vorlagen und Wind-Kopien des vorigen Ortes freigeben (sonst wächst der Grafikspeicher je Reise)
 	ModelLib.release("locations", loc.id)
+	ModelLib.clear_collision_cache()
 	_wind_cache.clear()
 	# Ein komplettes Ortsmodell (assets/models/locations/<id>.glb) ersetzt das Rezept
+	prof("")
 	var scene := ModelLib.instance("locations", loc.id)
+	prof("Modell laden")
 	var a: Dictionary
 	if scene:
 		# Stücke des Ortsmodells, die nicht passen ("hide_meshes": Namensanfänge), samt Kollision entfernen
@@ -42,6 +57,7 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 			B3.box(root, Vector3(float(pa[3]), float(pa[4]), float(pa[5])), Vector3(float(pa[0]), float(pa[1]) + float(pa[4]) * 0.5, float(pa[2])), pm)
 		_gate(root, a.gate)
 		Dressing.apply(loc, root)
+		prof("Gate, Ausstattung")
 		return a
 	match loc.kind:
 		"throne": a = _throne(root)
@@ -75,27 +91,36 @@ static func build(loc: Dictionary, root: Node3D) -> Dictionary:
 ## Fehlende Anker bekommen sinnvolle Standardwerte.
 static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Dictionary:
 	root.add_child(scene)
+	prof("in den Baum")
 	ModelLib.add_collision(scene)
+	prof("Kollision")
 	if HORIZON.has(loc.get("kind", "")) and loc.get("kind", "") != "glacier":
 		PhProps.swap_rocks(scene, loc.get("kind", ""))
 	if OS.get_environment("NO_PH") == "":
 		PhProps.swap_props(scene)
 		PhProps.spawn_markers(scene)
+	prof("Fotoscans")
 	_grass_on = _grass_field(loc, scene)
+	prof("Grasfeld")
 	_horizon(loc, scene)
 	if not _grass_on:
 		var df := DetailField.create(loc.get("kind", ""), null)
 		if df:
 			scene.add_child(df)
 	AmbientLife.create(loc, scene)
+	prof("Horizont, Leben")
 	_scatter_instances(loc, scene)
+	prof("Streu-Instanzen")
 	_ground_blend(scene, loc.get("kind", ""))
 	_soft_cutouts(scene)
 	_foliage_materials(scene)
+	prof("Boden, Laub")
 	BuildingLook.apply(scene, loc)
+	prof("Gebäude-Materialien")
 	_wall_occluders(scene)
 	_special_surfaces(scene)
 	_auto_instance(scene)
+	prof("Verdecker, Instanzen")
 	var spin: Array = scene.find_children("spin_*", "Node3D", true, false)
 	if not spin.is_empty():
 		var sp := Spinner.new()
@@ -135,8 +160,10 @@ static func _from_model(loc: Dictionary, root: Node3D, scene: Node3D) -> Diction
 		a["yaw"] = (named["spawn"] as Node3D).global_rotation.y
 	if loc.group == "nazarick" and not a.has("keeper"):
 		a["keeper"] = a.spawn + Vector3(0, 0, -10)
+	prof("Lichter, Anker")
 	_model_dressing(loc, root, named, a)
 	_fit_bounds(root, scene)
+	prof("Ausstattung (Modell)")
 	return a
 
 

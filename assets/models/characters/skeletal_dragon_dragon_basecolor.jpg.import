@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://hplnafqme5ed"
-path="res://.godot/imported/skeletal_dragon_dragon_basecolor.jpg-07406808af21c63407ade9db2deb0bed.ctex"
+path.bptc="res://.godot/imported/skeletal_dragon_dragon_basecolor.jpg-07406808af21c63407ade9db2deb0bed.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "55043e00ed1a585f12a638f8bfda6dfe"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/skeletal_dragon_dragon_basecolor.jpg"
-dest_files=["res://.godot/imported/skeletal_dragon_dragon_basecolor.jpg-07406808af21c63407ade9db2deb0bed.ctex"]
+dest_files=["res://.godot/imported/skeletal_dragon_dragon_basecolor.jpg-07406808af21c63407ade9db2deb0bed.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

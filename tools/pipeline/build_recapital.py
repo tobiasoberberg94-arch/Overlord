@@ -259,7 +259,7 @@ for l in lanes:
 for side in (-1, 1):
     town.frontage(ring_in, 4.5, side, district, on_place=dress, yard_depth=(4, 8))
 town.fill(lambda x, y: inside(x, y, 0.9) and river_d(x, y) > 13 and math.hypot(x - CASTLE[0], y - CASTLE[1]) > 46,
-          POOR + MID, tries=1600, on_place=dress)
+          POOR + MID, tries=3200, on_place=dress)   # größere Häuser: mehr Versuche
 
 # --- Märkte, Wirtshäuser ------------------------------------------------------------------------------------
 town.market(M[0], M[1], r=18.0, rings=(9.0, 13.0), n=18)

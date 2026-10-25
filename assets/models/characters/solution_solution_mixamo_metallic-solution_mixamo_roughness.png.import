@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://b5bo0qgp16mkj"
-path="res://.godot/imported/solution_solution_mixamo_metallic-solution_mixamo_roughness.png-1ca5854ebced3e2180918cbd1f0ab4f2.ctex"
+path.bptc="res://.godot/imported/solution_solution_mixamo_metallic-solution_mixamo_roughness.png-1ca5854ebced3e2180918cbd1f0ab4f2.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "835296e2aa3f3576dc512b51e3150574"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/solution_solution_mixamo_metallic-solution_mixamo_roughness.png"
-dest_files=["res://.godot/imported/solution_solution_mixamo_metallic-solution_mixamo_roughness.png-1ca5854ebced3e2180918cbd1f0ab4f2.ctex"]
+dest_files=["res://.godot/imported/solution_solution_mixamo_metallic-solution_mixamo_roughness.png-1ca5854ebced3e2180918cbd1f0ab4f2.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

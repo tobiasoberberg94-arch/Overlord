@@ -82,6 +82,35 @@ static func place_prop(parent: Node, id: String, pos: Vector3, rot_y: float = 0.
 	return true
 
 
+static var _shape_cache: Dictionary = {}      ## Mesh → Dreiecksform (alle Instanzen teilen sie)
+static var _trunk_cache: Dictionary = {}      ## Mesh → Punkte nahe der Unterkante (Stamm)
+
+
+## Formen des vorigen Ortes freigeben (vor dem Bau eines neuen Ortes).
+static func clear_collision_cache() -> void:
+	_shape_cache.clear()
+	_trunk_cache.clear()
+
+
+## Statische Dreieckskollision für ein Mesh – die Form wird je Mesh nur einmal berechnet.
+static func trimesh_collision(m: MeshInstance3D) -> void:
+	if m.mesh == null:
+		return
+	var key := m.mesh.get_instance_id()
+	var shape: Shape3D = _shape_cache.get(key)
+	if shape == null:
+		shape = m.mesh.create_trimesh_shape()
+		if shape == null:
+			return
+		_shape_cache[key] = shape
+	var body := StaticBody3D.new()
+	body.name = String(m.name) + "_col"
+	var cs := CollisionShape3D.new()
+	cs.shape = shape
+	body.add_child(cs)
+	m.add_child(body)
+
+
 ## Erzeugt statische Kollision für alle Meshes eines Modells.
 static func add_collision(root: Node) -> void:
 	for mi in root.find_children("*", "MeshInstance3D", true, false):
@@ -95,9 +124,9 @@ static func add_collision(root: Node) -> void:
 			continue
 		if _is_tree(String(m.name)) and _trunk_collision(m):
 			continue
-		m.create_trimesh_collision()
+		trimesh_collision(m)
 	if root is MeshInstance3D:
-		(root as MeshInstance3D).create_trimesh_collision()
+		trimesh_collision(root as MeshInstance3D)
 
 
 ## Bäume (Unreal-/Kit-Namen): nur der Stamm kollidiert – Äste und Laub sonst unsichtbare Wände.
@@ -111,16 +140,31 @@ static func _trunk_collision(m: MeshInstance3D) -> bool:
 	if m.mesh == null:
 		return false
 	var xf := m.global_transform
+	# Punkte nahe der Unterkante je Baumart einmal (lokal, bis 3 Einheiten über dem Fuß – reicht für Maßstäbe ab 0,4)
+	var key := m.mesh.get_instance_id()
+	if not _trunk_cache.has(key):
+		var all := PackedVector3Array()
+		for s in m.mesh.get_surface_count():
+			var arr := m.mesh.surface_get_arrays(s)
+			all.append_array(arr[Mesh.ARRAY_VERTEX] as PackedVector3Array)
+		var lo_l := INF
+		for v in all:
+			lo_l = minf(lo_l, v.y)
+		var base := PackedVector3Array()
+		if all.size() >= 8:
+			for v in all:
+				if v.y < lo_l + 3.0:
+					base.append(v)
+		_trunk_cache[key] = base
+	var basev: PackedVector3Array = _trunk_cache[key]
+	if basev.size() < 8:
+		return false
 	var pts: Array[Vector3] = []
 	var lo := INF
-	for s in m.mesh.get_surface_count():
-		var arr := m.mesh.surface_get_arrays(s)
-		for v in (arr[Mesh.ARRAY_VERTEX] as PackedVector3Array):
-			var w := xf * v
-			pts.append(w)
-			lo = minf(lo, w.y)
-	if pts.size() < 8:
-		return false
+	for v in basev:
+		var w := xf * v
+		pts.append(w)
+		lo = minf(lo, w.y)
 	var c := Vector2.ZERO
 	var n := 0
 	for w in pts:

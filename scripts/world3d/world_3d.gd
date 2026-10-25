@@ -124,14 +124,19 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	level = Node3D.new()
 	level.name = "Level_" + id
 	add_child(level)
+	LocationBuilder.prof("")
 	LocationBuilder.environment(level, loc, LocationBuilder.preset(loc.kind))
+	LocationBuilder.prof("Umgebung")
 	anchors = LocationBuilder.build(loc, level)
+	LocationBuilder.prof("")
 	_spinners = level.find_children("*", "MeshInstance3D", true, false).filter(func(n): return n.has_meta("spin"))
 	_flickers = level.find_children("*", "OmniLight3D", true, false).filter(func(n): return n.has_meta("flicker"))
 	day_cycle.setup(level, loc)
 	weather.setup(self, loc)
 	_weather_day = int(Game.state.get("day", 1))
+	LocationBuilder.prof("Tageslauf, Wetter")
 	_place_actors()
+	LocationBuilder.prof("Figuren")
 	_spawn_encounters()
 	quest_world.apply_story()
 	quest_world.spawn_pickups()
@@ -157,6 +162,8 @@ func load_location(id: String, fade: bool = false, arrive: Dictionary = {}) -> v
 	_music_calm_t = 0.0
 	hud.set_location(loc.name)
 	_ambient_particles()
+	# Draufsicht für Minikarte und Ortskarte (zwei Bilder, hinter dem Ladeschleier)
+	await _capture_local_map()
 	if story == null:
 		_show_banner(loc.name, loc.get("desc", ""))
 	if arrival_pans and arrive.is_empty() and story == null and loc.group == "world":
@@ -552,6 +559,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		KEY_G: _gate_menu()
 		KEY_T: _time_menu()
 		KEY_H, KEY_F1: hud.toggle_help()
+		KEY_L: _open_local_map()
 		KEY_F9: photo.toggle()
 		KEY_TAB: hud.toggle_goals()
 		KEY_ENTER, KEY_KP_ENTER: _open_next_dispatch(true)
@@ -974,6 +982,62 @@ func _refresh_actors_soft() -> void:
 func _open(o: Control) -> Control:
 	overlay_layer.add_child(o)
 	return o
+
+
+## Draufsicht des aktuellen Ortes (Minikarte, Ortskarte); nach jedem Ortsaufbau neu aufgenommen
+const LocalMap := preload("res://scripts/world3d/local_map.gd")
+const LocalMapView := preload("res://scripts/ui/local_map_view.gd")
+var map_tex: Texture2D
+var map_rect := Rect2()
+
+
+func _capture_local_map() -> void:
+	map_tex = null
+	if OS.get_environment("NO_LOCALMAP") != "" or not is_instance_valid(level):
+		hud.set_local_map(null, Rect2())
+		return
+	var sp: Vector3 = anchors.get("spawn", Vector3.ZERO)
+	var indoor: bool = String(loc.get("group", "")) == "interior" or String(loc.get("kind", "")) in LocalMap.INDOOR_KINDS
+	map_rect = LocalMap.bounds(level, sp)
+	# Ausschnitt: der belebte Teil (Start, Gate, Türen, Figuren) mit Rand – im Freien 30 m (mindestens 90 m),
+	# in Hallen 12 m (mindestens 36 m); nie größer als der Boden des Ortes
+	if true:
+		var pts: Array = [sp]
+		if anchors.has("gate"):
+			pts.append(anchors.gate)
+		for act in actors:
+			if is_instance_valid(act):
+				pts.append((act as Node3D).global_position)
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for pv in pts:
+			var p3: Vector3 = pv
+			lo = Vector2(minf(lo.x, p3.x), minf(lo.y, p3.z))
+			hi = Vector2(maxf(hi.x, p3.x), maxf(hi.y, p3.z))
+		var side := clampf(maxf(hi.x - lo.x, hi.y - lo.y) + (24.0 if indoor else 60.0), 36.0 if indoor else 90.0, maxf(map_rect.size.x, 36.0))
+		var cen := (lo + hi) * 0.5
+		var x0 := clampf(cen.x - side * 0.5, map_rect.position.x, maxf(map_rect.position.x, map_rect.end.x - side))
+		var z0 := clampf(cen.y - side * 0.5, map_rect.position.y, maxf(map_rect.position.y, map_rect.end.y - side))
+		if indoor:
+			x0 = cen.x - side * 0.5      # Hallen: ohne Boden-Mesh ist der Rahmen unsicher – nur auf die Stellen achten
+			z0 = cen.y - side * 0.5
+		map_rect = Rect2(x0, z0, side, side)
+	var floor_y: float = _on_ground(sp).y
+	var lvl := level
+	var bright: bool = String(loc.get("kind", "")) in ["glacier", "peaks"]
+	var tex: ImageTexture = await LocalMap.capture(self, lvl, map_rect, floor_y, indoor, 0.62 if bright else 1.0)
+	if lvl != level:
+		return          # inzwischen ein anderer Ort
+	map_tex = tex
+	hud.set_local_map(map_tex, map_rect)
+
+
+func _open_local_map() -> void:
+	if map_tex == null:
+		toast("Für diesen Ort gibt es keinen Lageplan.", Palette.MUTED)
+		return
+	Audio.sfx("page", 0.5)
+	_open(LocalMapView.new(self, map_tex, map_rect))
 
 
 func _open_map() -> void:

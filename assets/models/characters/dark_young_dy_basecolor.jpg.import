@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dcdmf26wpe1py"
-path="res://.godot/imported/dark_young_dy_basecolor.jpg-bde1b026b90dd76d70a847d85691513f.ctex"
+path.bptc="res://.godot/imported/dark_young_dy_basecolor.jpg-bde1b026b90dd76d70a847d85691513f.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "b15cd9aefa6dad21f23a28afcbc8cc6a"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/dark_young_dy_basecolor.jpg"
-dest_files=["res://.godot/imported/dark_young_dy_basecolor.jpg-bde1b026b90dd76d70a847d85691513f.ctex"]
+dest_files=["res://.godot/imported/dark_young_dy_basecolor.jpg-bde1b026b90dd76d70a847d85691513f.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

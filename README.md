@@ -271,6 +271,7 @@ Der Test `tools/combat_test.tscn` erzeugt zur Laufzeit ein Test-`.glb` mit Anima
 |---|---|---|
 | Aufträge erteilen | Kriegsrat im Thronsaal / Lagetafel jeder Region | `J` |
 | Weltkarte (3D-Kriegstisch), Legionen | Kriegsrat | `M` |
+| Lageplan des Ortes (Gate, Häuser, Türen, Figuren, Funde); Minikarte unten rechts | – | `L` |
 | Diplomatie | Kriegsrat | `P` |
 | Finanzen & Erlasse | Albedos Pult | `V` |
 | Wächter ansehen, Audienz gewähren, ausrüsten | Wächter ansprechen (`E`) | `U` |

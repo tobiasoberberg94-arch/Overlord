@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://c44cr0ixd43le"
-path="res://.godot/imported/skeleton_skeleton_mixamo_metallic-skeleton_mixamo_roughness.png-8111ffc0ede3a20b694a7f4efad15a25.ctex"
+path.bptc="res://.godot/imported/skeleton_skeleton_mixamo_metallic-skeleton_mixamo_roughness.png-8111ffc0ede3a20b694a7f4efad15a25.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "e1d28d379b33751e1f9ec3baaa6b8e95"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/skeleton_skeleton_mixamo_metallic-skeleton_mixamo_roughness.png"
-dest_files=["res://.godot/imported/skeleton_skeleton_mixamo_metallic-skeleton_mixamo_roughness.png-8111ffc0ede3a20b694a7f4efad15a25.ctex"]
+dest_files=["res://.godot/imported/skeleton_skeleton_mixamo_metallic-skeleton_mixamo_roughness.png-8111ffc0ede3a20b694a7f4efad15a25.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

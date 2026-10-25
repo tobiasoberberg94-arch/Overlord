@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://csaun70ut5p5o"
-path="res://.godot/imported/villager_c_villager_linen.png-80cac60c31b33fe127f21e08e7b2ee01.ctex"
+path.bptc="res://.godot/imported/villager_c_villager_linen.png-80cac60c31b33fe127f21e08e7b2ee01.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "1f9f24ce66fe1009454e3ab068f300e2"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/villager_c_villager_linen.png"
-dest_files=["res://.godot/imported/villager_c_villager_linen.png-80cac60c31b33fe127f21e08e7b2ee01.ctex"]
+dest_files=["res://.godot/imported/villager_c_villager_linen.png-80cac60c31b33fe127f21e08e7b2ee01.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

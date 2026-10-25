@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://4nqfjqehka7r"
-path="res://.godot/imported/albedo_badan.png-8b680875a0bdb2e79d59ce62af035e6f.ctex"
+path.bptc="res://.godot/imported/albedo_badan.png-8b680875a0bdb2e79d59ce62af035e6f.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "695ea5e58b3ce1f7f7203e74bf7552a2"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/albedo_badan.png"
-dest_files=["res://.godot/imported/albedo_badan.png-8b680875a0bdb2e79d59ce62af035e6f.ctex"]
+dest_files=["res://.godot/imported/albedo_badan.png-8b680875a0bdb2e79d59ce62af035e6f.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://iyoovftf4p7b"
-path="res://.godot/imported/aura_aura_mixamo_metallic-aura_mixamo_roughness.png-94b2b2ccea21b1bd90975f1bcdb4ae31.ctex"
+path.bptc="res://.godot/imported/aura_aura_mixamo_metallic-aura_mixamo_roughness.png-94b2b2ccea21b1bd90975f1bcdb4ae31.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "54a1db6177efd7aef3a340cf7a6c3ce7"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/aura_aura_mixamo_metallic-aura_mixamo_roughness.png"
-dest_files=["res://.godot/imported/aura_aura_mixamo_metallic-aura_mixamo_roughness.png-94b2b2ccea21b1bd90975f1bcdb4ae31.ctex"]
+dest_files=["res://.godot/imported/aura_aura_mixamo_metallic-aura_mixamo_roughness.png-94b2b2ccea21b1bd90975f1bcdb4ae31.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

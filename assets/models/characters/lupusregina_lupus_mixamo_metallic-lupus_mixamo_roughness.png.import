@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://ct34iw2qaknyf"
-path="res://.godot/imported/lupusregina_lupus_mixamo_metallic-lupus_mixamo_roughness.png-dc43e990f8dc53ebdd233b2cf2061642.ctex"
+path.bptc="res://.godot/imported/lupusregina_lupus_mixamo_metallic-lupus_mixamo_roughness.png-dc43e990f8dc53ebdd233b2cf2061642.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "caf1ea585236311a83243ecd494bf988"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/lupusregina_lupus_mixamo_metallic-lupus_mixamo_roughness.png"
-dest_files=["res://.godot/imported/lupusregina_lupus_mixamo_metallic-lupus_mixamo_roughness.png-dc43e990f8dc53ebdd233b2cf2061642.ctex"]
+dest_files=["res://.godot/imported/lupusregina_lupus_mixamo_metallic-lupus_mixamo_roughness.png-dc43e990f8dc53ebdd233b2cf2061642.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0

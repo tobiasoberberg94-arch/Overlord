@@ -841,11 +841,11 @@
      "to": "re_capital_keller",
      "name": "Kellerluke der Acht Finger",
      "at": [
-      -6.0,
-      -0.3,
-      77.5
+      -5.05,
+      0.0,
+      82.4
      ],
-     "yaw": 90,
+     "yaw": -90,
      "style": "hatch"
     }
    ],

@@ -3,9 +3,10 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dmv0b8f03pja6"
-path="res://.godot/imported/wolf_wolf_basecolor.jpg-82d7bddb941c16e455c6d83ce3863ef7.ctex"
+path.bptc="res://.godot/imported/wolf_wolf_basecolor.jpg-82d7bddb941c16e455c6d83ce3863ef7.bptc.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "f94982b652d95717ddd77c43f6a1d0a5"
@@ -14,12 +15,12 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/models/characters/wolf_wolf_basecolor.jpg"
-dest_files=["res://.godot/imported/wolf_wolf_basecolor.jpg-82d7bddb941c16e455c6d83ce3863ef7.ctex"]
+dest_files=["res://.godot/imported/wolf_wolf_basecolor.jpg-82d7bddb941c16e455c6d83ce3863ef7.bptc.ctex"]
 
 [params]
 
-compress/mode=0
-compress/high_quality=false
+compress/mode=2
+compress/high_quality=true
 compress/lossy_quality=0.7
 compress/hdr_compression=1
 compress/normal_map=0
