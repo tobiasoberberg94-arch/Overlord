@@ -769,7 +769,8 @@
       if (closestSel(a, 'header,footer,[class*="pagination"],[class*="pager"]')) continue;
       if (/(n(ä|ae)chste|vorherige|next|prev|weiter|zur(ü|ue)ck)/i.test(cleanText(a.textContent) + ' ' + (a.getAttribute('aria-label') || ''))) continue;
       var u = a.href.split('#')[0];
-      var m = /^(.*?(?:episode|folge|ep|e)[-_\/=]?)(\d{1,3})(\D{0,24})$/i.exec(u);
+      // Schlüsselwort muss am Wortanfang stehen (sonst wären /page/2, ?seite=3, /archive/2 … Fehlalarme)
+      var m = /^(.*?(?:^|[^a-z])(?:episode|folge|ep|e)[-_\/=]?)(\d{1,3})(\D{0,24})$/i.exec(u);
       if (!m) continue;
       var key = m[1] + '#' + m[3];
       // Einträge aus Folgenlisten (Textzeilen) sind bessere Titelquellen als Bildkarten
