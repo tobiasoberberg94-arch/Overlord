@@ -806,12 +806,16 @@
 
   /** Seite einmal durchscrollen, damit nachladende Bilder/Karten erscheinen. */
   O.prefetch = safe(function () {
-    var i = 0, steps = 8, h = W.innerHeight;
+    // Schrittweise nach unten, bis die Seite nicht mehr wächst (max. ~5 s), dann zurück nach oben
+    var i = 0, still = 0, lastH = 0, h = W.innerHeight;
     var t = setInterval(function () {
       i++;
-      W.scrollTo(0, i * h);
-      if (i >= steps) { clearInterval(t); setTimeout(function () { W.scrollTo(0, 0); }, 250); }
-    }, 220);
+      var docH = Math.max(D.body ? D.body.scrollHeight : 0, D.documentElement.scrollHeight);
+      W.scrollTo(0, Math.min(i * h, docH));
+      if (docH === lastH && i * h >= docH) still++; else still = 0;
+      lastH = docH;
+      if (still >= 2 || i >= 18) { clearInterval(t); setTimeout(function () { W.scrollTo(0, 0); }, 200); }
+    }, 280);
     return true;
   });
 

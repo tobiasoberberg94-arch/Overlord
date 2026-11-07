@@ -90,6 +90,8 @@ class BrowserActivity : Activity() {
     private lateinit var vview: RowsView
     private var videoMode = false
     private var overlayVisible = false
+    /** Nutzer hat bewusst „Webseite anzeigen“ gewählt → beim Weiterklicken nicht zurück in die Video-Ansicht. */
+    private var websiteChosen = false
     private var cinema = false
     private var autoCinema = false
     private var extractToken = 0
@@ -1094,6 +1096,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         extractToken++
         if (!videoMode) { if (overlayVisible) hideOverlay(); if (cinema) { cinema = false; maximized = false }; return }
         if (cinema) { cinema = false; maximized = false }
+        if (websiteChosen && !autoCinema) return
         val cached = extractCache[cacheKey(url)]
         if (cached != null && !autoCinema) renderOverlay(cached)
         else if (autoCinema) {
@@ -1110,7 +1113,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     }
 
     private fun onVideoModePageFinished(url: String) {
-        if (!videoMode) return
+        if (!videoMode || (websiteChosen && !autoCinema)) return
         scheduleExtract(url, prefetch = extractCache[cacheKey(url)] == null && !autoCinema)
     }
 
@@ -1118,16 +1121,32 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     private fun scheduleExtract(url: String, prefetch: Boolean) {
         val token = ++extractToken
         if (prefetch) js("window.__ovl && __ovl.prefetch()")
-        ui.postDelayed({ runExtract(token, url, final = false) }, if (prefetch) 2200 else 900)
-        ui.postDelayed({ runExtract(token, url, final = true) }, if (prefetch) 4500 else 3000)
+        ui.postDelayed({ runExtract(token, url, final = false) }, if (prefetch) 2000 else 900)
+        ui.postDelayed({ runExtract(token, url, final = false) }, if (prefetch) 5000 else 3000)
+        ui.postDelayed({ runExtract(token, url, final = true) }, if (prefetch) 8500 else 5500)
     }
+
+    /** Anzahl der Karten einer Auslese (um unnötiges Neuzeichnen zu vermeiden). */
+    private fun itemCount(o: JSONObject): Int {
+        val secs = o.optJSONArray("sections") ?: return 0
+        var n = 0
+        for (i in 0 until secs.length()) n += secs.optJSONObject(i)?.optJSONArray("items")?.length() ?: 0
+        return n + (if (o.optJSONObject("player") != null) 1000 else 0)
+    }
+    private val renderedCount = HashMap<String, Int>()
 
     private fun runExtract(token: Int, url: String, final: Boolean) {
         if (token != extractToken || !videoMode || isFinishing) return
         js("window.__ovl ? __ovl.extract() : null") { r ->
             if (token != extractToken || !videoMode) return@js
             val o = parseObj(r) ?: return@js
-            extractCache[cacheKey(url)] = o
+            val key = cacheKey(url)
+            val count = itemCount(o)
+            // Nichts Neues gefunden → nicht neu zeichnen (verhindert Flackern)
+            val prevRendered = renderedCount[key]
+            if (prevRendered != null && count <= prevRendered && overlayVisible && !cinema) return@js
+            if (count < (extractCache[key]?.let { itemCount(it) } ?: 0)) return@js
+            extractCache[key] = o
             val sections = o.optJSONArray("sections")?.length() ?: 0
             val hasPlayer = o.optJSONObject("player") != null
             when {
@@ -1135,7 +1154,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
                 hasPlayer && (autoCinema || pendingResume != null) -> { autoCinema = false; enterCinema() }
                 sections == 0 && !hasPlayer && final -> {
                     if (autoCinema) { autoCinema = false; ensurePlayback() }
-                    showWebsite("Keine Videos erkannt – die Webseite wird angezeigt")
+                    showWebsite("Keine Videos erkannt – die Webseite wird angezeigt", userChoice = false)
                 }
                 sections > 0 || hasPlayer -> renderOverlay(o)
                 // sonst: auf den zweiten (finalen) Durchlauf warten
@@ -1215,6 +1234,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         if (player != null) { rows.add(RowData(pageTitle.take(50), actions)); rows.addAll(content) }
         else { rows.addAll(content); rows.add(RowData("Diese Seite", actions)) }
         cmd("pause")
+        renderedCount[cacheKey(pageUrl)] = itemCount(o)
         vview.setRows(rows, lastFocus[cacheKey(pageUrl)] ?: vview.focusedItem?.id)
         showOverlay()
     }
@@ -1242,17 +1262,20 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     }
 
     private fun showOverlayFromCache() {
+        websiteChosen = false
         val cached = extractCache[cacheKey(web.url)]
         if (cached != null) renderOverlay(cached) else { showOverlay(); scheduleExtract(web.url ?: "", prefetch = true) }
     }
 
-    private fun showWebsite(hint: String = "Ganze Webseite · Zurück führt zur Video-Ansicht") {
+    private fun showWebsite(hint: String = "Ganze Webseite · Zurück führt zur Video-Ansicht", userChoice: Boolean = true) {
+        websiteChosen = userChoice
         hideOverlay()
         showChip(hint, R.drawable.ic_globe)
     }
 
     /** Karte gewählt: Seite laden; hat sie einen Player, startet er direkt im Kino-Modus. */
     private fun openItem(url: String) {
+        websiteChosen = false
         vview.focusedItem?.id?.let { lastFocus[cacheKey(web.url)] = it }
         autoCinema = true
         lastActivate = SystemClock.uptimeMillis()
@@ -1260,10 +1283,14 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         web.loadUrl(url)
     }
 
-    private fun enterCinema() {
+    private fun enterCinema(retry: Boolean = true) {
         js("window.__ovl ? __ovl.cinema(true) : null") { r ->
             if (r == null || r == "null") {
-                showWebsite("Kein Player gefunden – die Webseite wird angezeigt")
+                if (retry) {
+                    // Player entsteht oft erst nach Klick auf das Vorschaubild: Play-Knopf drücken, nochmal suchen
+                    cmd("autoplay")
+                    ui.postDelayed({ if (!cinema && !isFinishing) enterCinema(retry = false) }, 1800)
+                } else showWebsite("Kein Player gefunden – die Webseite wird angezeigt", userChoice = false)
                 return@js
             }
             cinema = true
@@ -1310,6 +1337,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
     private fun toggleMaximize() {
         if (customView != null) { chrome.onHideCustomView(); return }
+        if (cinema) { showChip("Kino-Modus · Zurück führt zur Übersicht", R.drawable.ic_movie); return }
         maximized = !maximized
         cmd(if (maximized) "maximize" else "unmaximize")
         if (maximized) showChip("Vollbild · Zurück zum Verlassen", R.drawable.ic_fullscreen)
