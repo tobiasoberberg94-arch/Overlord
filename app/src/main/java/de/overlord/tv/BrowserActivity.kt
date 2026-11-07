@@ -1535,6 +1535,17 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             ui.postDelayed({ if (cinema) cmd("unmute") }, 1500)
             maybeAutoNative()
             ui.postDelayed({ maybeAutoNative() }, 3000)
+            // Eingebettete Player (iframe) starten oft erst nach einem echten Klick in ihre Fläche:
+            // läuft nach 2,5 s noch nichts, einmal mittig antippen – dort sitzt fast immer der Play-Knopf
+            if (r?.trim('"') == "IFRAME") {
+                val serial = pageSerial
+                ui.postDelayed({
+                    if (cinema && serial == pageSerial && !isFinishing && !(videoActive() && videoPlaying)) {
+                        tap(web.width / 2f, web.height / 2f)
+                        ui.postDelayed({ if (cinema) { cmd("unmute"); maybeAutoNative() } }, 1500)
+                    }
+                }, 2500)
+            }
             showPlayerBar(focus = false)
         }
     }

@@ -104,7 +104,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   iframes) bildschirmfüllend gezogen und automatisch gestartet. Player-Leiste, Spulen, „Nächste Folge“,
   automatisches Intro-Überspringen und Weiterschauen funktionieren wie gewohnt.
 - Auch **Player, die erst nach einem Klick entstehen** (Vorschaubild mit Play-Knopf, wie in vielen Mediatheken),
-  werden erkannt: Overlord tippt den Knopf echt an und zieht das entstehende Video bildschirmfüllend.
+  werden erkannt: Overlord tippt den Knopf echt an und zieht das entstehende Video bildschirmfüllend. Eingebettete
+  Player (iframes), die nach dem Start noch stehen, werden einmal mittig angetippt.
   Player im **Shadow-DOM** werden ebenfalls gefunden; stumme Hintergrund-Videos und Trailer im Seitenkopf gelten
   nicht als Player. Im Kino-Modus wird alles neben dem Player ausgeblendet – auch Menüs, die sich sonst darüberlegen.
 - Nachladende Karten (Bild noch nicht geladen) bleiben in ihrer Reihe; Seiten mit eigenem Scroll-Bereich und
