@@ -1400,6 +1400,16 @@
       if (l.length < 12 || l.length > 280 || !NOTICE_RE.test(l)) continue;
       return l.length > 160 ? l.slice(0, 158) + '…' : l;
     }
+    // Angekündigte Folge: ein Datum in der Zukunft weit oben auf der Seite (z. B. „13.11.2026 ∙ ARD“)
+    var today = new Date(); today.setHours(0, 0, 0, 0);
+    for (var k = 0; k < lines.length && k < 60; k++) {
+      var m = /(^|[^\d])(\d{1,2})\.(\d{1,2})\.(\d{4})(?!\d)/.exec(lines[k]);
+      if (!m) continue;
+      var d = new Date(parseInt(m[4], 10), parseInt(m[3], 10) - 1, parseInt(m[2], 10));
+      if (d.getTime() > today.getTime() && d.getTime() - today.getTime() < 400 * 86400000) {
+        return 'Noch nicht verfügbar – die Seite nennt den ' + m[2] + '.' + m[3] + '.' + m[4];
+      }
+    }
     return '';
   }
 

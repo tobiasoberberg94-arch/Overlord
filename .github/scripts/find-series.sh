@@ -42,7 +42,15 @@ for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H
     if ard_ok "$e"; then S="$s"; E="$e"; echo "ARD: Folge laut Mediathek-Schnittstelle abspielbar"; break 2; fi
   done
 done
-[ -z "$S" ] && { S="$S1"; E="$E1"; echo "ARD: keine laut Schnittstelle abspielbare Folge gefunden – nehme die erste"; }
+if [ -z "$S" ]; then
+  S="$S1"; E="$E1"; echo "ARD: keine laut Schnittstelle abspielbare Folge gefunden – nehme die erste"
+  if [ -n "$E1" ]; then
+    id=$(sed -E 's#\?.*##; s#/+$##; s#.*/##' <<<"$E1")
+    api="https://api.ardmediathek.de/page-gateway/pages/ard/item/$id?devicetype=pc&embedded=true"
+    code=$(curl -s -o /tmp/ard-api.json -w '%{http_code}' --max-time 25 -A "$UA" "$api" || true)
+    echo "  Schnittstelle: HTTP $code · $(wc -c < /tmp/ard-api.json 2>/dev/null || echo 0) Bytes · m3u8: $(grep -o 'm3u8' /tmp/ard-api.json 2>/dev/null | wc -l) · $(grep -oE '"(blockedByFsk|maturityContentRating|availableFrom|broadcastedOn)":[^,}]*' /tmp/ard-api.json 2>/dev/null | head -n 4 | tr '\n' ' ')"
+  fi
+fi
 if [ -n "$S" ]; then echo "ARD Serie: $S"; hints "$(get "$S")"; fi
 [ -n "$E" ] && { echo "ARD Folge: $E"; hints "$(get "$E")"; }
 echo "ard|$O|$S|$E" >> series.txt
