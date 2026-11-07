@@ -53,7 +53,8 @@ key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 start -a android.intent.action.VIEW -d "${BASE}watch.html?ep=3" -n de.overlord.tv/.BrowserActivity
 sleep 12
 longkey KEYCODE_MENU
-key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 17-nativer-player 8
+# Menü: Video-Ansicht · Schnellsuche · Adresse · Video nativ abspielen (4. Eintrag)
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 17-nativer-player 8
 key KEYCODE_MENU;                           shot 18-player-optionen 3
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
@@ -61,7 +62,7 @@ key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 start -a android.intent.action.VIEW -d "${BASE}hls.html" -n de.overlord.tv/.BrowserActivity
 sleep 12
 longkey KEYCODE_MENU
-key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 18a-hls-player 10
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 18a-hls-player 10
 key KEYCODE_MENU;                           shot 18b-hls-optionen 3
 key KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER;  shot 18c-hls-qualitaet 3
 key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 18d-hls-360p 8
