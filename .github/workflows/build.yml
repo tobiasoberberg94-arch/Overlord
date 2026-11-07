@@ -8,6 +8,11 @@ on:
 permissions:
   contents: write
 
+# Neuere Pushes brechen ältere, noch laufende Builds desselben Branches ab
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -62,7 +67,7 @@ jobs:
     needs: build
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 30
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -85,6 +90,7 @@ jobs:
           sudo udevadm trigger --name-match=kvm
 
       - name: Emulator starten und Screenshots aufnehmen
+        timeout-minutes: 16
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
