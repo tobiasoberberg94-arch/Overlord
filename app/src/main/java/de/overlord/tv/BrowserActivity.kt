@@ -1230,6 +1230,13 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     private fun jsonItems(arr: org.json.JSONArray?): List<JSONObject> =
         if (arr == null) emptyList() else List(arr.length()) { arr.getJSONObject(it) }
 
+    /** Text an einer Wortgrenze kürzen („…“ statt mitten im Wort abzuschneiden). */
+    private fun shorten(t: String, max: Int): String {
+        if (t.length <= max) return t
+        val cut = t.lastIndexOf(' ', max - 1).takeIf { it > max / 2 } ?: (max - 1)
+        return t.substring(0, cut).trimEnd(' ', '-', '–', '|', ':', '·', ',') + "…"
+    }
+
     /** Ausgelesene Seite als eigene TV-Oberfläche darstellen. */
     private fun renderOverlay(o: JSONObject) {
         val pageUrl = o.optString("url").ifBlank { web.url ?: "" }
@@ -1243,7 +1250,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
         val actions = ArrayList<CardItem>()
         if (player != null) actions.add(CardItem(
-            id = "v:play", title = "Video abspielen", subtitle = pageTitle.take(40), eyebrow = "DIESE SEITE",
+            id = "v:play", title = "Video abspielen", subtitle = shorten(pageTitle, 40), eyebrow = "DIESE SEITE",
             chips = listOf(site, "Kino-Modus"), description = desc.ifBlank { "Startet den Player dieser Seite bildschirmfüllend – ohne den Rest der Webseite." },
             color = tileColor, iconRes = R.drawable.ic_play,
             imageUrls = listOf(player.optString("poster").ifBlank { image }).filter { it.isNotBlank() },
@@ -1354,7 +1361,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         val epRowTitle = if (activeSeason.isNotBlank()) "$activeSeason · Folgen" else "Folgen"
         // Auf Seiten mit Player stehen die Aktionen oben, sonst unter den Inhalten
         if (player != null) {
-            rows.add(RowData(pageTitle.take(50), actions))
+            rows.add(RowData(shorten(pageTitle, 52), actions))
             if (sourceCards.size >= 2) rows.add(RowData("Versionen & Quellen", sourceCards))
             if (episodeCards.isNotEmpty()) rows.add(RowData(epRowTitle, episodeCards))
             if (seasonCards.size >= 2) rows.add(RowData("Staffeln", seasonCards))

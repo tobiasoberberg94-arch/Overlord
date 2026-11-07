@@ -1339,7 +1339,7 @@
     seasons.forEach(function (x) { if (x.active) activeSeason = x.title; });
     return {
       url: location.href,
-      title: cleanText(meta('meta[property="og:title"]')) || cleanText(D.title),
+      title: cleanTitle(cleanText(meta('meta[property="og:title"]')) || cleanText(D.title), cleanText(meta('meta[property="og:site_name"]'))),
       site: cleanText(meta('meta[property="og:site_name"]')),
       description: cleanText(meta('meta[property="og:description"]') || meta('meta[name="description"]')).slice(0, 300),
       image: absUrl(meta('meta[property="og:image"]')),
@@ -1353,6 +1353,26 @@
       sections: merged.slice(0, 24)
     };
   });
+
+  /** Seitentitel ohne Anhängsel: „Folge 1 - hier anschauen“, „… | ARTE“, „- jetzt streamen!“ */
+  var TITLE_JUNK = /streamen|anschauen|ansehen|online|kostenlos|mediathek|jetzt|^hier\b|\bwatch\b|\bstream\b|replay|in voller l(ä|ae)nge/i;
+  function cleanTitle(t, site) {
+    t = cleanText(t);
+    var host = /^[\d.:]+$/.test(location.hostname) ? '' : baseDomain(location.hostname).split('.')[0].toLowerCase();
+    if (host.length < 3) host = '';
+    var sn = String(site || '').toLowerCase();
+    for (var guard = 0; guard < 4; guard++) {
+      var re = /\s+(\||–|—|-|·|:)\s+(?!.*\s(\||–|—|-|·)\s)/;   // letzter Trenner
+      var m = re.exec(t);
+      if (!m) break;
+      var last = cleanText(t.slice(m.index + m[0].length).replace(/[!.]+$/, ''));
+      var l = last.toLowerCase();
+      var isSite = l.length >= 2 && ((host && (l.indexOf(host) >= 0 || (l.length >= 3 && host.indexOf(l.replace(/\s+/g, '')) >= 0))) ||
+        (sn && (l === sn || sn.indexOf(l) >= 0 || l.indexOf(sn) >= 0)));
+      if (isSite || TITLE_JUNK.test(last) || last.length <= 2) t = t.slice(0, m.index); else break;
+    }
+    return t;
+  }
 
   /** Seite einmal durchscrollen, damit nachladende Bilder/Karten erscheinen. */
   /** Scrollt die Seite selbst oder (bei App-artigen Seiten) einen eigenen Scroll-Container? */
