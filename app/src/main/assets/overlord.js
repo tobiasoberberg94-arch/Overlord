@@ -626,6 +626,11 @@
       if (im.naturalWidth && im.naturalWidth < 60 && im.naturalHeight < 60) im = null;
     }
     if (im) {
+      // Kleine Symbole (Flaggen, Icons) sind keine Vorschaubilder
+      var ir = im.getBoundingClientRect();
+      if (ir.width > 0 && (ir.width < 48 || ir.height < 30)) im = null;
+    }
+    if (im) {
       src = im.getAttribute('data-src') || im.getAttribute('data-lazy-src') || im.getAttribute('data-original') ||
         bestFromSrcset(im.getAttribute('data-srcset')) || bestFromSrcset(im.getAttribute('srcset')) || im.currentSrc || im.src;
     }
@@ -792,7 +797,9 @@
     var here = location.href.split('#')[0];
     var items = best.map(function (x) {
       var et = episodeTitle(x.a, x.num);
-      return { url: x.url, num: x.num, title: et.title, image: imageOf(et.row), active: x.url === here };
+      var big = null, imgs = et.row.querySelectorAll ? et.row.querySelectorAll('img') : [];
+      for (var q = 0; q < imgs.length && !big; q++) { var rr = imgs[q].getBoundingClientRect(); if (rr.width >= 80 && rr.height >= 45) big = imgs[q]; }
+      return { url: x.url, num: x.num, title: et.title, image: big ? imageOf(big) : '', active: x.url === here };
     });
     var cur = -1;
     items.forEach(function (it, idx) { if (it.active) cur = idx; });
