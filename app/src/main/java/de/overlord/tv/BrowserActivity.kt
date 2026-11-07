@@ -135,6 +135,8 @@ class BrowserActivity : Activity() {
     private var pendingSearch: String? = null
     /** Blockierte Werbe-Anfragen der aktuellen Seite (Zähler aus dem Netzwerk-Thread). */
     private val blockedCount = java.util.concurrent.atomic.AtomicInteger(0)
+    /** Vom Werbeblocker abgewiesene Server der aktuellen Seite (für das Diagnose-Protokoll). */
+    private val pageBlocked: MutableSet<String> = java.util.Collections.synchronizedSet(LinkedHashSet())
     private var currentSite = ""
 
     // Navigation / Blocker
@@ -624,6 +626,7 @@ class BrowserActivity : Activity() {
             endHandled = false
             cancelCountdown()
             hidePlayerBar()
+            pageBlocked.clear()
             onVideoModePageStarted(url)
             if (url.startsWith("http") && Prefs.consent != "off") consentWatch(pageSerial, 0)
         }
@@ -647,6 +650,7 @@ class BrowserActivity : Activity() {
             if (!request.isForMainFrame && protectionOn() && AdBlock.isBlocked(host)) {
                 blockedCount.incrementAndGet()
                 AdBlock.recordBlocked()
+                if (pageBlocked.size < 40 && host != null) pageBlocked.add(host)
                 return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
             }
             val s = url.toString()
@@ -1174,7 +1178,8 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
                 "next=${o.optString("next").isNotBlank()} | reihen=[$secs] | folgen=$eps ($firstEp) | staffeln=[$seasons] | versionen=[$srcs]")
             // Beim letzten Durchlauf zusätzlich einen Kurzbefund der Seite (Videos, iframes, Cookie-Dialog, Player-Bereiche)
             if (final) js("window.__ovl && __ovl.diag ? __ovl.diag() : null") { d ->
-                if (d != null && d != "null") android.util.Log.i("OverlordVV", "DIAG url=$url | $d")
+                val blocked = synchronized(pageBlocked) { pageBlocked.take(15).joinToString(", ") }
+                if (d != null && d != "null") android.util.Log.i("OverlordVV", "DIAG url=$url | $d | geblockt=[$blocked]")
             }
         } catch (e: Exception) { }
     }
@@ -1459,6 +1464,9 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             js("window.__ovl && __ovl.showHl(false)")
             cursor.visibility = View.GONE
             ensurePlayback()
+            // Viele Player starten stumm vor – im Kino-Modus soll man etwas hören
+            cmd("unmute")
+            ui.postDelayed({ if (cinema) cmd("unmute") }, 1500)
             showPlayerBar(focus = false)
         }
     }

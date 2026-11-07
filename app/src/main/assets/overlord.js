@@ -380,6 +380,10 @@
       case 'toggle': if (v.paused) tryPlay(v); else v.pause(); break;
       case 'play': tryPlay(v); break;
       case 'pause': v.pause(); break;
+      case 'unmute':
+        // Viele Player starten stumm vor – wer „Abspielen“ wählt, will Ton
+        if (real) { try { v.muted = false; if (!v.volume) v.volume = 1; } catch (e) {} }
+        break;
       case 'seek':
         if (real) {
           var t = v.currentTime + Number(arg || 0);
@@ -509,11 +513,10 @@
     }
     return false;
   }
-  var consentScan = safe(function () {
-    if (consentDone || CONSENT === 'off' || !D.body) return;
-    if (++consentTries > 45) return;   // nach ~40 s aufgeben
+  /** Sichtbare Cookie-Knöpfe suchen: { reject, save, accept } (jeweils das erste passende Element). */
+  function consentButtons() {
     var els = deepAll('button,a,[role="button"],input[type="button"],input[type="submit"],[class*="button"],[class*="btn"],[tabindex="0"]');
-    var reject = null, save = null, accept = null;
+    var res = { reject: null, save: null, accept: null };
     for (var i = 0; i < els.length && i < 4000; i++) {
       var el = els[i];
       // textContent ist billig (kein Layout) – innerText erst für Treffer
@@ -521,15 +524,23 @@
       if (t.length > 200) continue;
       t = t.replace(/\s+/g, ' ').trim() || String(el.getAttribute('aria-label') || el.value || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
       if (!t || t.length > 60) continue;
-      var kind = REJECT_RE.test(t) ? 1 : (SAVE_RE.test(t) ? 2 : (ACCEPT_RE.test(t) ? 3 : 0));
-      if (!kind || (kind === 1 && reject) || (kind === 2 && save) || (kind === 3 && accept)) continue;
+      var kind = REJECT_RE.test(t) ? 'reject' : (SAVE_RE.test(t) ? 'save' : (ACCEPT_RE.test(t) ? 'accept' : ''));
+      if (!kind || res[kind]) continue;
       // „Speichern“ nur in eindeutigen Cookie-Dialogen (nicht in Einstellungsdialogen der Seite)
-      if (!visible(el) || !consentContext(el, kind === 2)) continue;
-      if (kind === 1) reject = el; else if (kind === 2) save = el; else accept = el;
+      if (!visible(el) || !consentContext(el, kind === 'save')) continue;
+      res[kind] = el;
     }
-    var pick = CONSENT === 'accept' ? (accept || null) : (reject || save);
+    return res;
+  }
+  function consentPick(b) { return CONSENT === 'accept' ? b.accept : (b.reject || b.save); }
+  var consentScan = safe(function () {
+    if (consentDone || CONSENT === 'off' || !D.body) return;
+    if (++consentTries > 45) return;   // nach ~40 s aufgeben
+    var b = consentButtons();
+    var pick = consentPick(b);
     if (!pick) {
-      if (accept || reject || save) O.consentInfo = 'Dialog ohne passenden Knopf (' + cleanLabel(accept || reject || save).slice(0, 30) + ')';
+      var any = b.accept || b.reject || b.save;
+      if (any) O.consentInfo = 'Dialog ohne passenden Knopf (' + cleanLabel(any).slice(0, 30) + ')';
       return;
     }
     consentDone = true;
@@ -537,22 +548,20 @@
     O.consentInfo = 'gewählt: ' + label;
     try { pick.click(); } catch (e) {}
     call('consentHandled', label);
-    // Manche Dialoge ignorieren Skript-Klicks: bleibt der Knopf sichtbar, tippt die App ihn echt an
-    setTimeout(function () {
-      if (!stillThere(pick)) return;
+    // Manche Dialoge ignorieren Skript-Klicks (oder bauen die Knöpfe nur neu auf): Ist danach wieder ein
+    // passender Knopf sichtbar, tippt die App ihn echt an.
+    setTimeout(safe(function () {
+      var again = consentPick(consentButtons());
+      if (!again) return;
       O.consentInfo = 'Tipp angefordert: ' + label;
-      requestTap(pick, label);
-      setTimeout(function () {
-        if (stillThere(pick)) O.consentInfo = 'Knopf reagiert nicht: ' + label;
+      requestTap(again, label);
+      setTimeout(safe(function () {
+        if (consentPick(consentButtons())) O.consentInfo = 'Dialog bleibt trotz Tipp: ' + label;
         else { O.consentInfo = 'gewählt (Tipp): ' + label; call('consentHandled', label + ' (Tipp)'); }
-      }, 3500);
-    }, 1500);
+      }), 3500);
+    }), 1500);
   });
   setInterval(consentScan, 900);
-  function stillThere(el) {
-    var on = el.isConnected === undefined ? D.documentElement.contains(el) : el.isConnected;
-    return on && visible(el);
-  }
 
   /* Echter Tipp für Cookie-Knöpfe: Die App fragt ihn im Hauptframe ab (__ovl.consentTap) – iframes
      melden ihn per postMessage nach oben, aber nur Cookie-Dialog-Frames und nur innerhalb ihrer Fläche. */
@@ -1066,13 +1075,27 @@
   });
 
   /* Folgen: Links mit gleichem Adressmuster und fortlaufender Nummer (episode-1, folge-2, ?ep=3 …) */
+  // Metadaten-Zeilen auf Karten („25 Min.“, „13.11.2026“, „Ab 12“, „UT“, „ARD · 25 Min.“) sind keine Titel
+  var META_LINE = /^(\d{1,3}\s*(min|minuten|std|stunden|h)\.?|\d{1,2}:\d{2}(:\d{2})?|\d{1,2}\.\s?\d{1,2}\.(\s?\d{2,4})?|(ab|fsk)\s*\d{1,2}|ut|ad|dgs|hd|uhd|4k|neu|new|live|trailer|merken|teilen|abspielen|play|mehr|weitere|verf(ü|ue)gbar\b.*|bis\s+\d.*|\S{1,3})(\s*[·|,∙•]\s*.*)?$/i;
+  var SE_TAIL = /\s*[(\[]?\s*S\d{1,2}\s*[\/|:,.]?\s*E\d{1,3}\s*[)\]]?\s*$/i;
   function episodeTitle(a, num) {
     var row = closestSel(a, 'tr,li,[class*="episode"],[class*="Episode"],[class*="folge"]') || a;
-    var lines = linesOf(row).filter(function (l) { return !/^(#|nr\.?\s*)?\d+\.?$/i.test(l) && l.length < 90; });
+    var lines = linesOf(row).filter(function (l) { return !/^(#|nr\.?\s*)?\d+\.?$/i.test(l) && l.length < 90 && !META_LINE.test(l); });
+    // Eine Zeile wie „Folge 3: Titel (S01/E03)“ ist die beste Titelquelle
+    for (var i = 0; i < lines.length; i++) {
+      if (/^(folge|episode|ep\.?)\s*\d+\s*$/i.test(lines[i])) continue;
+      var n = epNumFrom(lines[i], '');
+      if (n && n.e === num) {
+        var tt = lines[i].replace(SE_TAIL, '');
+        if (tt.length >= 3) return { title: tt, row: row };
+      }
+    }
     var t = lines.filter(function (l) { return !/^(folge|episode|ep\.?)\s*\d+\s*$/i.test(l); })[0] || '';
+    t = t.replace(SE_TAIL, '');
     if (/^(folge|episode|ep\.?)\s*\d+/i.test(t)) return { title: t, row: row };   // steht schon „Folge N – …“ da
     return { title: t ? ('Folge ' + num + ' – ' + t) : ('Folge ' + num), row: row };
   }
+
   /* (a) Fortlaufende Adressen: …/folge-1, …?episode=2 – gleiches Muster, nur die Nummer ändert sich */
   function urlEpisodes() {
     var links = D.querySelectorAll('a[href]');
