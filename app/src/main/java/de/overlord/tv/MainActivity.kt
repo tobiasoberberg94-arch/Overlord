@@ -32,8 +32,9 @@ class MainActivity : Activity() {
     /** Einmalige Begrüßung mit den wichtigsten Tipps. */
     private fun showWelcomeOnce() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
-        if (prefs.getBoolean("welcomed", false) || intent?.getBooleanExtra("overlord_demo", false) == true) return
+        if (prefs.getBoolean("welcomed", false)) return
         prefs.edit().putBoolean("welcomed", true).apply()
+        if (intent?.getBooleanExtra("overlord_demo", false) == true) return   // CI-Screenshots ohne Begrüßung
         rows.postDelayed({
             if (isFinishing) return@postDelayed
             Tv.info(this, "Willkommen bei Overlord TV",
@@ -139,9 +140,9 @@ class MainActivity : Activity() {
             .sortedByDescending { it.first }.map { it.second }
         if (mixed.isNotEmpty()) list.add(RowData("Weiterschauen", mixed))
 
-        // 2. Anbieter & eigene Kacheln
+        // 2. Anbieter & eigene Kacheln (Standard-Reihe + eigene Reihen)
         val tiles = TileStore.load(this)
-        val tileCards = tiles.map { tileCard(it) }.toMutableList()
+        val tileCards = tiles.filter { it.group.isBlank() }.map { tileCard(it) }.toMutableList()
         tileCards.add(CardItem(
             id = "add", title = "Hinzufügen", iconRes = R.drawable.ic_add, dashed = true, color = Brand.SURFACE2,
             eyebrow = "NEU", chips = listOf("Webseite", "App"),
@@ -157,6 +158,9 @@ class MainActivity : Activity() {
             onClick = { openUrlDialog() },
         ))
         list.add(RowData("Meine Anbieter", tileCards))
+        tiles.map { it.group }.filter { it.isNotBlank() }.distinct().forEach { g ->
+            list.add(RowData(g, tiles.filter { it.group == g }.map { tileCard(it) }))
+        }
 
         // 3. Zuletzt besucht (ohne Seiten, die schon Kacheln sind)
         val tileHosts = tiles.filter { it.type == TileType.WEB }.map { baseDomain(hostOf(it.url)) }.toSet()
@@ -487,6 +491,7 @@ class MainActivity : Activity() {
             Tv.input(this, "Beschreibung", "Kurzer Text", t.description, icon = R.drawable.ic_info) { d -> t.description = d; TileStore.update(this, t); refresh(t.id) }
         })
         e.add(MenuEntry("Verschieben", R.drawable.ic_move, "Mit ◀ ▶ an die gewünschte Stelle") { startMove(t) })
+        e.add(MenuEntry("Reihe ändern", R.drawable.ic_apps, if (t.group.isBlank()) "Meine Anbieter" else t.group) { chooseGroup(t) })
         e.add(MenuEntry("Farbe ändern", R.drawable.ic_palette) {
             Tv.colors(this, "Farbe für „${t.name}“", t.color) { c -> t.color = c; t.colorAuto = false; TileStore.update(this, t); refresh(t.id) }
         })
@@ -498,6 +503,27 @@ class MainActivity : Activity() {
             }
         })
         Tv.menu(this, t.name, e, subtitle = if (t.type == TileType.WEB) hostOf(t.url) else "App", eyebrow = "KACHEL BEARBEITEN")
+    }
+
+    /** Kachel in eine andere (oder neue) Reihe der Startseite legen. */
+    private fun chooseGroup(t: Tile) {
+        val groups = TileStore.groups(this)
+        val entries = ArrayList<MenuEntry>()
+        entries.add(MenuEntry("Meine Anbieter", R.drawable.ic_home, if (t.group.isBlank()) "Aktuell" else "Standard-Reihe") { setGroup(t, "") })
+        groups.forEach { g -> entries.add(MenuEntry(g, R.drawable.ic_apps, if (t.group == g) "Aktuell" else null) { setGroup(t, g) }) }
+        entries.add(MenuEntry("Neue Reihe …", R.drawable.ic_add, "z. B. „Anime“, „Mediatheken“, „Sport“") {
+            Tv.input(this, "Neue Reihe", "Name der Reihe", icon = R.drawable.ic_apps, okLabel = "Anlegen") { name ->
+                if (name.isNotBlank()) setGroup(t, name.trim().take(30))
+            }
+        })
+        Tv.menu(this, "Reihe für „${t.name}“", entries, eyebrow = "KACHEL BEARBEITEN", subtitle = "Kacheln lassen sich in eigene Reihen sortieren")
+    }
+
+    private fun setGroup(t: Tile, g: String) {
+        t.group = g
+        TileStore.update(this, t)
+        refresh(t.id)
+        tvToast(if (g.isBlank()) "In „Meine Anbieter“ verschoben" else "In Reihe „$g“ verschoben", R.drawable.ic_check)
     }
 
     private fun startMove(t: Tile) {

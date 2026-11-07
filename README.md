@@ -23,7 +23,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - **Eigene Kacheln:** beliebige **Webseite** (öffnet im eingebauten Browser) oder beliebige **installierte App**.
   Die Kachelfarbe einer App wird automatisch aus ihrem Symbol berechnet.
 - **Bearbeiten** über ☰ oder langes Drücken von OK: öffnen, umbenennen, URL ändern, Beschreibung ändern,
-  verschieben (◀ ▶, OK zum Beenden), Farbe ändern, entfernen, im externen Browser öffnen bzw. im Appstore anzeigen.
+  verschieben (◀ ▶, OK zum Beenden), **Reihe ändern** (eigene Reihen wie „Anime“ oder „Mediatheken“ anlegen),
+  Farbe ändern, entfernen, im externen Browser öffnen bzw. im Appstore anzeigen.
   Entfernte feste Kacheln lassen sich unter *Einstellungen → Feste Kacheln* wiederherstellen.
 
 ### Oberfläche
@@ -55,7 +56,9 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   „Werbung überspringen“ werden automatisch gedrückt – auch im eingebetteten Player (abschaltbar im Browser-Menü).
 - **Nächste Folge automatisch:** Am Ende eines Videos startet nach einem 10-Sekunden-Countdown die nächste Folge
   (abbrechen mit Zurück; abschaltbar).
-- **Textgröße pro Webseite** (80–200 %), gemerkt je Domain.
+- **Textgröße pro Webseite** (80–200 %) und **Ansicht pro Webseite** (Mobil, Desktop oder Smart-TV),
+  gemerkt je Domain – ebenso der zuletzt genutzte Steuerungsmodus (Links/Zeiger/Normal).
+- Das Browser-Menü zeigt, wie viele Werbe-Anfragen auf der Seite blockiert wurden.
 
 ### Handy-Fernbedienung
 - *Einstellungen → Handy-Fernbedienung* (oder **Handy** in der Kopfzeile) zeigt einen **QR-Code** und eine PIN.
@@ -66,6 +69,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   - **Öffnen:** Links vom Handy auf dem Fernseher öffnen oder direkt als Kachel speichern
   - **Mehr:** Weiterschauen-Liste und Kacheln antippen, um sie auf dem TV zu starten
 - Geschützt durch eine 4-stellige PIN (neu erzeugbar), Sperre nach mehreren Fehlversuchen.
+- **Sicherung:** Kacheln, Weiterschauen, Verlauf und Einstellungen als Datei herunterladen und
+  (z. B. auf einem zweiten Fire TV) wieder einspielen.
 
 ### Selbst-Update & Design
 - Overlord TV prüft regelmäßig das Release `latest` (Datei `version.json`) und meldet neue Versionen.

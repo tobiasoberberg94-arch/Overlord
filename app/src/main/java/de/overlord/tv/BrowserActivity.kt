@@ -97,7 +97,7 @@ class BrowserActivity : Activity() {
     private var tileTitle = ""
     private lateinit var script: String
     private var docStartScript = false
-    private var desktopMode = false
+    enum class UaMode(val label: String) { MOBILE("Mobil"), DESKTOP("Desktop"), TV("Smart-TV") }
 
     // Video-Zustand (aus allen Frames gemeldet)
     private var lastVideoReport = 0L
@@ -144,6 +144,7 @@ class BrowserActivity : Activity() {
         private val SPEEDS = listOf(1.0, 1.25, 1.5, 2.0, 0.75)
         private val MEDIA_RE = Regex("""\.(m3u8|mp4|webm|mkv|mov)(\?|$)""", RegexOption.IGNORE_CASE)
         private const val DESKTOP_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        private const val TV_UA = "Mozilla/5.0 (SMART-TV; Linux; Tizen 6.0) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/94.0.4606.31 TV Safari/537.36"
 
         private const val EXTRA_SEARCH = "search"
 
@@ -168,7 +169,6 @@ class BrowserActivity : Activity() {
         if (resume >= 0) pendingResume = resume
         pendingSearch = intent.getStringExtra(EXTRA_SEARCH)
         script = assets.open("overlord.js").bufferedReader().use { it.readText() }
-        desktopMode = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean("desktop", false)
 
         root = FrameLayout(this).apply { setBackgroundColor(Brand.BG) }
         web = WebView(this)
@@ -204,6 +204,7 @@ class BrowserActivity : Activity() {
         // Auch über einen normalen Link (VIEW-Intent) aus anderen Apps aufrufbar
         val url = intent.getStringExtra(EXTRA_URL) ?: intent.dataString ?: "https://duckduckgo.com"
         if (tileTitle.isBlank()) tileTitle = hostOf(url)
+        applyUserAgent(url)
         web.loadUrl(url)
         web.requestFocus()
         showMode()
@@ -399,15 +400,26 @@ class BrowserActivity : Activity() {
         web.webChromeClient = chrome
     }
 
-    private fun applyUserAgent() {
-        val s = web.settings
-        if (desktopMode) {
-            s.userAgentString = DESKTOP_UA
-        } else {
-            // WebView-Kennung entfernen – manche Seiten sperren sonst „eingebettete Browser“.
-            val def = WebSettings.getDefaultUserAgent(this)
-            s.userAgentString = def.replace("; wv", "").replace(Regex("""Version/\d+\.\d+\s"""), "")
-        }
+    /** Gewünschte Ansicht (User-Agent) für die Domain – Standard: Mobil. */
+    private fun uaModeFor(url: String?): UaMode = try {
+        UaMode.valueOf(getSharedPreferences("ua", MODE_PRIVATE).getString(baseDomain(hostOf(url)), UaMode.MOBILE.name) ?: UaMode.MOBILE.name)
+    } catch (e: Exception) {
+        UaMode.MOBILE
+    }
+
+    private fun userAgentFor(mode: UaMode): String = when (mode) {
+        UaMode.DESKTOP -> DESKTOP_UA
+        UaMode.TV -> TV_UA
+        // WebView-Kennung entfernen – manche Seiten sperren sonst „eingebettete Browser“.
+        UaMode.MOBILE -> WebSettings.getDefaultUserAgent(this).replace("; wv", "").replace(Regex("""Version/\d+\.\d+\s"""), "")
+    }
+
+    /** Setzt den User-Agent passend zur Domain; liefert true, wenn er sich geändert hat. */
+    private fun applyUserAgent(url: String? = web.url): Boolean {
+        val ua = userAgentFor(uaModeFor(url))
+        if (web.settings.userAgentString == ua) return false
+        web.settings.userAgentString = ua
+        return true
     }
 
     private fun injectFallback() {
@@ -524,6 +536,12 @@ class BrowserActivity : Activity() {
     private inner class Client : WebViewClient() {
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
             topUrl = url
+            // Andere Ansicht für diese Domain gewünscht → mit passendem User-Agent neu laden
+            if (url.startsWith("http") && applyUserAgent(url)) {
+                view.stopLoading()
+                view.loadUrl(url)
+                return
+            }
             val zoom = zoomFor(url)
             if (web.settings.textZoom != zoom) web.settings.textZoom = zoom
             val site = baseDomain(hostOf(url))
@@ -577,6 +595,15 @@ class BrowserActivity : Activity() {
                 ui.post { onMediaDetected(s, referer) }
             }
             return null
+        }
+
+        override fun onReceivedError(view: WebView, request: WebResourceRequest, error: android.webkit.WebResourceError) {
+            if (Build.VERSION.SDK_INT >= 23 && request.isForMainFrame) showErrorPage(request.url.toString(), error.description?.toString() ?: "")
+        }
+
+        @Deprecated("API < 23")
+        override fun onReceivedError(view: WebView, errorCode: Int, description: String?, failingUrl: String?) {
+            if (Build.VERSION.SDK_INT < 23 && failingUrl != null) showErrorPage(failingUrl, description ?: "")
         }
 
         override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
@@ -635,6 +662,23 @@ class BrowserActivity : Activity() {
             "about", "javascript", "data", "blob" -> return false
             else -> return true
         }
+    }
+
+    /** Fehlerseite im Overlord-Stil (statt der grauen Standardseite). */
+    private fun showErrorPage(url: String, description: String) {
+        val acc = String.format("#%06X", Brand.ACCENT and 0xFFFFFF)
+        val esc = { t: String -> t.replace("&", "&amp;").replace("<", "&lt;").replace("\"", "&quot;") }
+        val offline = description.contains("INTERNET_DISCONNECTED", true) || description.contains("NAME_NOT_RESOLVED", true)
+        val html = """<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
+<style>body{margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#0B0B12;color:#F2F2F7;font-family:sans-serif}
+.c{max-width:640px;padding:40px;text-align:left}.e{color:#22D3EE;font-weight:800;letter-spacing:.2em;font-size:13px}
+h1{font-size:34px;margin:10px 0 12px}p{color:#B4B4C8;font-size:18px;line-height:1.45}code{color:#7A7A92;font-size:14px}
+a{display:inline-block;margin:22px 14px 0 0;padding:14px 26px;border-radius:30px;background:$acc;color:#fff;text-decoration:none;font-weight:700;font-size:18px}
+a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div class="e">SEITE NICHT ERREICHBAR</div>
+<h1>${if (offline) "Keine Verbindung" else "Das hat nicht geklappt"}</h1>
+<p>${if (offline) "Der Fernseher scheint gerade nicht mit dem Internet verbunden zu sein." else "Die Seite <b>${esc(hostOf(url))}</b> konnte nicht geladen werden."}</p>
+<code>${esc(description)}</code><br><a href="${esc(url)}">Erneut versuchen</a><a class="s" href="https://duckduckgo.com/?q=${Uri.encode(hostOf(url))}">Im Web suchen</a></div></body></html>"""
+        web.loadDataWithBaseURL(url, html, "text/html", "utf-8", url)
     }
 
     private fun onBlocked(url: String, what: String) {
@@ -1203,11 +1247,20 @@ class BrowserActivity : Activity() {
             }
         })
         e.add(MenuEntry("Im externen Browser öffnen", R.drawable.ic_open_external) { web.url?.let { Launcher.openExternal(this, it) } })
-        e.add(MenuEntry(if (desktopMode) "Mobile Ansicht" else "Desktop-Ansicht", R.drawable.ic_desktop, "Seite als ${if (desktopMode) "Mobilgerät" else "PC"} anfordern") {
-            desktopMode = !desktopMode
-            getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean("desktop", desktopMode).apply()
-            applyUserAgent()
-            web.reload()
+        e.add(MenuEntry("Ansicht: ${uaModeFor(web.url).label}", R.drawable.ic_desktop, "Mobil, Desktop oder Smart-TV – für ${baseDomain(site)} merken") {
+            Tv.menu(this, "Ansicht", UaMode.values().map { m ->
+                MenuEntry(m.label, if (m == UaMode.TV) R.drawable.ic_tv else if (m == UaMode.DESKTOP) R.drawable.ic_desktop else R.drawable.ic_phone,
+                    when (m) {
+                        UaMode.MOBILE -> "Standard – kompakte Seiten"
+                        UaMode.DESKTOP -> "Volle PC-Seite, oft besser auf großen Bildschirmen"
+                        UaMode.TV -> "Manche Seiten haben eine eigene TV-Oberfläche"
+                    } + (if (m == uaModeFor(web.url)) " · aktuell" else "")) {
+                    getSharedPreferences("ua", MODE_PRIVATE).edit().putString(baseDomain(site), m.name).apply()
+                    applyUserAgent()
+                    web.reload()
+                    showChip("Ansicht „${m.label}“ für ${baseDomain(site)}", R.drawable.ic_desktop)
+                }
+            }, eyebrow = "ANSICHT", subtitle = baseDomain(site))
         })
         e.add(MenuEntry("Textgröße: ${zoomFor(web.url ?: "")} %", R.drawable.ic_zoom, "Für ${baseDomain(site)} merken") {
             val opts = listOf(80, 90, 100, 115, 130, 150, 175, 200)

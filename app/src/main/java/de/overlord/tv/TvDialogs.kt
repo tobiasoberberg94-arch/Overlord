@@ -422,13 +422,13 @@ object Tv {
         col.addView(pinRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = ctx.dp(8) })
         val close = ctx.pillButton("Fertig", R.drawable.ic_check, true) { d.dismiss() }
         val renew = ctx.pillButton("Neue PIN", R.drawable.ic_refresh, false) { d.dismiss(); onNewPin() }
-        val off = ctx.pillButton("Ausschalten", R.drawable.ic_close, false) { d.dismiss(); onDisable() }
+        val off = ctx.pillButton("Aus", R.drawable.ic_close, false) { d.dismiss(); onDisable() }
         val row = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
         row.addView(close, LinearLayout.LayoutParams(-2, ctx.dp(54)))
         row.addView(renew, LinearLayout.LayoutParams(-2, ctx.dp(54)).apply { leftMargin = ctx.dp(12) })
         row.addView(off, LinearLayout.LayoutParams(-2, ctx.dp(54)).apply { leftMargin = ctx.dp(12) })
         col.addView(row, LinearLayout.LayoutParams(-2, -2).apply { topMargin = ctx.dp(22) })
-        card.addView(col, LinearLayout.LayoutParams(ctx.dp(470), -2).apply { leftMargin = ctx.dp(34) })
+        card.addView(col, LinearLayout.LayoutParams(ctx.dp(500), -2).apply { leftMargin = ctx.dp(34) })
         d.root.addView(card, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
         d.show()
         close.requestFocus()

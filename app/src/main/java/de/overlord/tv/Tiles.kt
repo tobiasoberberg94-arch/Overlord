@@ -23,12 +23,14 @@ data class Tile(
     var description: String = "",
     /** true = Farbe darf automatisch (theme-color der Webseite) gesetzt werden. */
     var colorAuto: Boolean = false,
+    /** Name der Reihe auf der Startseite ("" = „Meine Anbieter“). */
+    var group: String = "",
 ) {
     val builtin get() = type == TileType.CRUNCHYROLL || type == TileType.PRIME
 
     fun toJson(): JSONObject = JSONObject()
         .put("id", id).put("type", type.name).put("name", name).put("url", url)
-        .put("pkg", pkg).put("color", color).put("description", description).put("colorAuto", colorAuto)
+        .put("pkg", pkg).put("color", color).put("description", description).put("colorAuto", colorAuto).put("group", group)
 
     companion object {
         fun fromJson(o: JSONObject) = Tile(
@@ -40,6 +42,7 @@ data class Tile(
             color = o.optInt("color", Brand.ACCENT),
             description = o.optString("description"),
             colorAuto = o.optBoolean("colorAuto", false),
+            group = o.optString("group", ""),
         )
     }
 }
@@ -94,17 +97,24 @@ object TileStore {
         save(ctx, load(ctx).filterNot { it.id == id })
     }
 
-    /** Verschiebt eine Kachel um [delta] Plätze; liefert true bei Erfolg. */
+    /** Verschiebt eine Kachel innerhalb ihrer Reihe um eine Position (delta = -1 / +1). */
     fun move(ctx: Context, id: String, delta: Int): Boolean {
         val list = load(ctx)
         val i = list.indexOfFirst { it.id == id }
-        val j = i + delta
-        if (i < 0 || j < 0 || j >= list.size) return false
-        val t = list.removeAt(i)
-        list.add(j, t)
+        if (i < 0) return false
+        val group = list[i].group
+        var j = i + delta
+        while (j in list.indices && list[j].group != group) j += delta
+        if (j !in list.indices) return false
+        val t = list[i]
+        list[i] = list[j]
+        list[j] = t
         save(ctx, list)
         return true
     }
+
+    /** Alle benutzten Reihen-Namen (ohne Standard-Reihe) in Reihenfolge des ersten Auftretens. */
+    fun groups(ctx: Context): List<String> = load(ctx).map { it.group }.filter { it.isNotBlank() }.distinct()
 
     fun restoreBuiltins(ctx: Context) {
         val list = load(ctx)
