@@ -42,6 +42,8 @@ class CardItem(
     val badge: String? = null,
     /** Referer für Bilder fremder Seiten (Hotlink-Schutz). */
     val imageReferer: String? = null,
+    /** Große Nummer auf der Karte (z. B. Folgennummer, wenn kein Bild vorhanden ist). */
+    val number: String? = null,
     val okHint: String = "Öffnen",
     val dashed: Boolean = false,
     val onClick: () -> Unit,
@@ -532,6 +534,11 @@ class CardView(context: Context, val item: CardItem) : FrameLayout(context) {
             }
             item.iconRes != null -> {
                 addView(context.icon(item.iconRes, if (item.dashed) Brand.TEXT_DIM else Brand.TEXT), LayoutParams(context.dp(40), context.dp(40), Gravity.CENTER).apply { bottomMargin = context.dp(18) })
+            }
+            item.number != null -> {
+                addView(context.label(item.number, 54f, Fonts.display, 0xE6FFFFFF.toInt()).apply {
+                    setShadowLayer(12f, 0f, 2f, 0x66000000)
+                }, LayoutParams(-2, -2, Gravity.TOP or Gravity.START).apply { topMargin = context.dp(6); leftMargin = context.dp(14) })
             }
             else -> {
                 addView(context.label(item.title, 22f, Fonts.bold, lines = 2).apply {

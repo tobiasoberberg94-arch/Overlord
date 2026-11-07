@@ -63,6 +63,14 @@ key KEYCODE_DPAD_UP KEYCODE_DPAD_UP KEYCODE_DPAD_CENTER; shot 26-kinomodus 14
 key KEYCODE_BACK;                           shot 27-zurueck-zur-uebersicht 4
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
+# Serien-Aufbau: Staffeln, Folgentabelle, Versionen am Player
+start -a android.intent.action.VIEW -d "${BASE}serie.html?staffel=1" -n de.overlord.tv/.BrowserActivity --ez video true
+shot 30-serie-folgen 10
+key KEYCODE_DPAD_DOWN;                      shot 31-serie-staffeln 3
+key KEYCODE_DPAD_UP KEYCODE_DPAD_RIGHT KEYCODE_DPAD_CENTER; shot 32-folge-kino 12
+key KEYCODE_BACK;                           shot 33-folge-versionen 4
+key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+
 # Video-Ansicht auf einer echten Seite (arte.tv)
 start -a android.intent.action.VIEW -d "https://www.arte.tv/de/" -n de.overlord.tv/.BrowserActivity --ez video true
 shot 28-videoansicht-arte 16

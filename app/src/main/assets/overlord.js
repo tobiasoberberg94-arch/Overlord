@@ -649,7 +649,7 @@
   function cleanText(t) { return String(t || '').replace(/\s+/g, ' ').trim(); }
   function linesOf(el) {
     var raw = String(el.innerText || el.textContent || '');
-    return raw.split(/\n+/).map(cleanText).filter(function (x) { return x.length > 0; });
+    return raw.split(/[\n\t]+/).map(cleanText).filter(function (x) { return x.length > 0; });
   }
   function titleOf(card, link, img) {
     var h = card.querySelector('h1,h2,h3,h4,h5,h6,[class*="title"],[class*="Title"],[class*="name"],[itemprop="name"]') ||
@@ -713,6 +713,128 @@
     }
     return best;
   }
+
+  function isActive(el) {
+    if (!el) return false;
+    var c = clsOf(el) + ' ' + (el.parentElement ? clsOf(el.parentElement) : '');
+    return /(^|[\s_-])(active|selected|current|is-active|aktiv|on)([\s_-]|$)/i.test(c) ||
+      el.getAttribute('aria-selected') === 'true' || !!el.getAttribute('aria-current') ||
+      (!!el.href && el.href.split('#')[0] === location.href.split('#')[0]);
+  }
+
+  /* Staffeln: Reiter/Links wie „Staffel 1“, „Season 2“, „Filme“, „Specials“ */
+  var SEASON_RE = /^\s*((staffel|season|serie|teil|part)\s*\d+|\d+\.?\s*(staffel|season)|s\d{1,2}|filme?|movies?|specials?|extras?|ova)\s*$/i;
+  function seasonsOf() {
+    var els = D.querySelectorAll('a,button,[role="tab"],[data-season]');
+    var hits = [];
+    for (var i = 0; i < els.length && hits.length < 60; i++) {
+      var el = els[i];
+      if (closestSel(el, 'header,footer')) continue;
+      var t = cleanText(el.textContent || el.getAttribute('aria-label'));
+      if (!t || t.length > 24 || !SEASON_RE.test(t) || !visible(el)) continue;
+      if (hits.some(function (h) { return h.contains(el) || el.contains(h); })) continue;
+      hits.push(el);
+    }
+    if (hits.length < 2) return [];
+    // Größte Gruppe im selben Container
+    var best = [];
+    hits.forEach(function (h) {
+      var n = h.parentElement, depth = 0;
+      while (n && depth++ < 5) {
+        var group = hits.filter(function (x) { return n.contains(x); });
+        if (group.length >= 2) { if (group.length > best.length) best = group; break; }
+        n = n.parentElement;
+      }
+    });
+    O._seasonEls = best;
+    return best.map(function (el, i) {
+      return { title: cleanText(el.textContent || el.getAttribute('aria-label')), url: (el.href && /^https?:/i.test(el.href)) ? el.href : '', active: isActive(el), index: i };
+    });
+  }
+  O.clickSeason = safe(function (i) { var el = (O._seasonEls || [])[i]; if (!el) return false; el.click(); return true; });
+
+  /* Folgen: Links mit gleichem Adressmuster und fortlaufender Nummer (episode-1, folge-2, ?ep=3 …) */
+  function episodeTitle(a, num) {
+    var row = closestSel(a, 'tr,li,[class*="episode"],[class*="Episode"],[class*="folge"]') || a;
+    var lines = linesOf(row).filter(function (l) { return !/^(#|nr\.?\s*)?\d+\.?$/i.test(l) && l.length < 90; });
+    var t = lines.filter(function (l) { return !/^(folge|episode|ep\.?)\s*\d+\s*$/i.test(l); })[0] || '';
+    if (/^(folge|episode|ep\.?)\s*\d+/i.test(t)) return { title: t, row: row };   // steht schon „Folge N – …“ da
+    return { title: t ? ('Folge ' + num + ' – ' + t) : ('Folge ' + num), row: row };
+  }
+  function episodesOf() {
+    var links = D.querySelectorAll('a[href]');
+    var groups = {};
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      if (closestSel(a, 'header,footer,[class*="pagination"],[class*="pager"]')) continue;
+      if (/(n(ä|ae)chste|vorherige|next|prev|weiter|zur(ü|ue)ck)/i.test(cleanText(a.textContent) + ' ' + (a.getAttribute('aria-label') || ''))) continue;
+      var u = a.href.split('#')[0];
+      var m = /^(.*?(?:episode|folge|ep|e)[-_\/=]?)(\d{1,3})(\D{0,24})$/i.exec(u);
+      if (!m) continue;
+      var key = m[1] + '#' + m[3];
+      // Einträge aus Folgenlisten (Textzeilen) sind bessere Titelquellen als Bildkarten
+      var score = (closestSel(a, 'tr,li,ol,table') ? 2 : 0) + (a.querySelector('img') ? -1 : 1);
+      (groups[key] = groups[key] || []).push({ a: a, num: parseInt(m[2], 10), url: u, score: score });
+    }
+    var best = null;
+    Object.keys(groups).forEach(function (k) {
+      var byNum = {}, list = [];
+      groups[k].forEach(function (x) {
+        var prev = byNum[x.num];
+        if (!prev) { byNum[x.num] = x; list.push(x); }
+        else if (x.score > prev.score) { list[list.indexOf(prev)] = x; byNum[x.num] = x; }
+      });
+      if (list.length >= 2 && (!best || list.length > best.length)) best = list;
+    });
+    if (!best) return null;
+    best.sort(function (x, y) { return x.num - y.num; });
+    var here = location.href.split('#')[0];
+    var items = best.map(function (x) {
+      var et = episodeTitle(x.a, x.num);
+      return { url: x.url, num: x.num, title: et.title, image: imageOf(et.row), active: x.url === here };
+    });
+    var cur = -1;
+    items.forEach(function (it, idx) { if (it.active) cur = idx; });
+    return { items: items.slice(0, 200), next: (cur >= 0 && cur + 1 < items.length) ? items[cur + 1].url : '' };
+  }
+
+  /* Versionen/Quellen: Umschalter am Player (Sprache, Untertitel, Qualität, Quelle) */
+  var SOURCE_CONT = /source|quelle|server|mirror|hoster|stream-?(select|list|links|switch)|player-?(select|switch|tab|nav|source|option)|lang(uage)?-?(select|switch|list)|sprache|version|variant|audio-?track/i;
+  function sourcesOf() {
+    var conts = D.querySelectorAll('[class],[id]');
+    var best = null;
+    for (var i = 0; i < conts.length; i++) {
+      var c = conts[i];
+      if (!SOURCE_CONT.test(clsOf(c)) || closestSel(c, 'header,footer') || !visible(c)) continue;
+      var cands = c.querySelectorAll('a,button,[role="tab"],[role="option"],li,[data-src],[data-link],[data-url],[data-lang]');
+      var items = [];
+      for (var j = 0; j < cands.length && items.length < 16; j++) {
+        var el = cands[j];
+        if (!visible(el) || items.some(function (x) { return x.contains(el); })) continue;
+        var img = el.querySelector('img');
+        var label = cleanText(el.textContent) || cleanText(el.getAttribute('title')) || cleanText(el.getAttribute('aria-label')) ||
+          (img ? cleanText(img.getAttribute('alt') || img.getAttribute('title')) : '') || cleanText(el.getAttribute('data-lang'));
+        if (!label || label.length > 40) continue;
+        items.push(el);
+      }
+      if (items.length >= 2 && items.length <= 12 && (!best || items.length > best.length)) best = items;
+    }
+    if (!best) return [];
+    O._sourceEls = best;
+    return best.map(function (el, i) {
+      var img = el.querySelector('img');
+      var label = cleanText(el.textContent) || cleanText(el.getAttribute('title')) || cleanText(el.getAttribute('aria-label')) ||
+        (img ? cleanText(img.getAttribute('alt') || img.getAttribute('title')) : '') || ('Version ' + (i + 1));
+      return { label: label, active: isActive(el), index: i };
+    });
+  }
+  O.pickSource = safe(function (i) {
+    var el = (O._sourceEls || [])[i];
+    if (!el) return false;
+    var inner = el.tagName === 'LI' ? el.querySelector('a,button') : null;
+    (inner || el).click();
+    return true;
+  });
 
   O.extract = safe(function () {
     var found = [], byUrl = {};
@@ -792,6 +914,24 @@
     function meta(sel) { var m = D.querySelector(sel); return m ? (m.getAttribute('content') || '') : ''; }
     var player = findPlayer();
     var nextLink = findNext(false);
+    var eps = episodesOf();
+    var seasons = seasonsOf();
+    var sources = player ? sourcesOf() : [];
+    // Folgen und Staffel-Links nicht doppelt in anderen Reihen zeigen
+    if (eps || seasons.length) {
+      var epUrls = {};
+      if (eps) eps.items.forEach(function (e) { epUrls[e.url] = 1; });
+      seasons.forEach(function (x) { if (x.url) epUrls[x.url.split('#')[0]] = 1; });
+      merged = merged.map(function (sct) {
+        // Bildkarten bleiben in ihrer Reihe; Textlinks (z. B. Folgenlisten, Staffel-Links) entfallen
+        var items = sct.items.filter(function (it) { return it.image || !epUrls[it.url.split('#')[0]]; });
+        // Reihe besteht komplett aus denselben Folgen → doppelt, weglassen
+        var allEps = items.length > 0 && items.every(function (it) { return epUrls[it.url.split('#')[0]]; });
+        return { title: sct.title, items: allEps && eps && eps.items.length >= items.length ? [] : items };
+      }).filter(function (sct) { return sct.items.length > 0; });
+    }
+    var activeSeason = '';
+    seasons.forEach(function (x) { if (x.active) activeSeason = x.title; });
     return {
       url: location.href,
       title: cleanText(meta('meta[property="og:title"]')) || cleanText(D.title),
@@ -799,7 +939,11 @@
       description: cleanText(meta('meta[property="og:description"]') || meta('meta[name="description"]')).slice(0, 300),
       image: absUrl(meta('meta[property="og:image"]')),
       player: player ? { tag: player.tagName, poster: absUrl(player.getAttribute('poster') || '') } : null,
-      next: nextLink && nextLink.href ? nextLink.href : '',
+      next: (eps && eps.next) || (nextLink && nextLink.href ? nextLink.href : ''),
+      episodes: eps ? eps.items : [],
+      seasons: seasons,
+      activeSeason: activeSeason,
+      sources: sources,
       sections: merged.slice(0, 24)
     };
   });

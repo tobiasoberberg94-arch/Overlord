@@ -1126,11 +1126,19 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         ui.postDelayed({ runExtract(token, url, final = true) }, if (prefetch) 8500 else 5500)
     }
 
+    /** Reihen-Inhalte einer Auslese: Bildreihen, Folgen, Staffeln. */
+    private fun contentCount(o: JSONObject?): Int {
+        if (o == null) return 0
+        val seasons = o.optJSONArray("seasons")?.length() ?: 0
+        return (o.optJSONArray("sections")?.length() ?: 0) + (o.optJSONArray("episodes")?.length() ?: 0) + (if (seasons >= 2) seasons else 0)
+    }
+
     /** Anzahl der Karten einer Auslese (um unnötiges Neuzeichnen zu vermeiden). */
     private fun itemCount(o: JSONObject): Int {
         val secs = o.optJSONArray("sections") ?: return 0
         var n = 0
         for (i in 0 until secs.length()) n += secs.optJSONObject(i)?.optJSONArray("items")?.length() ?: 0
+        n += (o.optJSONArray("episodes")?.length() ?: 0) + (o.optJSONArray("seasons")?.length() ?: 0) + (o.optJSONArray("sources")?.length() ?: 0)
         return n + (if (o.optJSONObject("player") != null) 1000 else 0)
     }
     private val renderedCount = HashMap<String, Int>()
@@ -1147,7 +1155,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             if (prevRendered != null && count <= prevRendered && overlayVisible && !cinema) return@js
             if (count < (extractCache[key]?.let { itemCount(it) } ?: 0)) return@js
             extractCache[key] = o
-            val sections = o.optJSONArray("sections")?.length() ?: 0
+            val sections = contentCount(o)
             val hasPlayer = o.optJSONObject("player") != null
             when {
                 cinema -> {}
@@ -1202,6 +1210,59 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             okHint = "Suchen", onClick = { quickSearch() },
         ))
 
+        // Staffeln, Folgen, Versionen (Serien-Aufbau)
+        val activeSeason = o.optString("activeSeason")
+        val episodeCards = jsonItems(o.optJSONArray("episodes")).map { ep ->
+            val url = ep.optString("url")
+            val num = ep.optInt("num")
+            val active = ep.optBoolean("active")
+            val img = ep.optString("image")
+            val epTitle = ep.optString("title")
+            CardItem(
+                id = "v:ep:$num:$url", title = epTitle.removePrefix("Folge $num – ").ifBlank { "Folge $num" },
+                subtitle = (if (activeSeason.isNotBlank()) "$activeSeason · " else "") + "Folge $num" + (if (active) " · läuft" else ""),
+                eyebrow = (activeSeason.ifBlank { "Folgen" } + " · Folge $num").uppercase(),
+                chips = listOfNotNull(site, activeSeason.takeIf { it.isNotBlank() }, if (active) "Aktuelle Folge" else null),
+                description = desc.ifBlank { pageTitle },
+                color = if (active) Brand.ACCENT else tileColor,
+                imageUrls = listOf(img).filter { it.isNotBlank() },
+                heroImageUrls = listOf(img.ifBlank { image }).filter { it.isNotBlank() },
+                imageReferer = pageUrl, number = if (img.isBlank()) "$num" else null,
+                okHint = "Abspielen", onClick = { openItem(url) },
+            )
+        }
+        val seasonCards = jsonItems(o.optJSONArray("seasons")).map { se ->
+            val title = se.optString("title")
+            val url = se.optString("url")
+            val idx = se.optInt("index")
+            val active = se.optBoolean("active")
+            CardItem(
+                id = "v:season:$idx:$title", title = title, subtitle = if (active) "Aktuell" else site,
+                eyebrow = "STAFFELN", chips = listOfNotNull(site, if (active) "Aktuell" else null),
+                description = desc.ifBlank { pageTitle }, color = if (active) Brand.ACCENT else darken(tileColor, 0.75f),
+                iconRes = R.drawable.ic_library, heroImageUrls = listOf(image).filter { it.isNotBlank() }, imageReferer = pageUrl,
+                okHint = "Folgen zeigen",
+                onClick = {
+                    if (url.isNotBlank()) { autoCinema = false; lastActivate = SystemClock.uptimeMillis(); web.loadUrl(url) }
+                    else js("window.__ovl ? __ovl.clickSeason($idx) : false") { scheduleExtract(web.url ?: pageUrl, prefetch = false) }
+                },
+            )
+        }
+        val sourceCards = jsonItems(o.optJSONArray("sources")).map { so ->
+            val label = so.optString("label")
+            val idx = so.optInt("index")
+            val active = so.optBoolean("active")
+            val subs = Regex("untertitel|omu|subs?\\b|sub(bed|titled)", RegexOption.IGNORE_CASE).containsMatchIn(label)
+            CardItem(
+                id = "v:src:$idx:$label", title = label, subtitle = if (active) "Aktiv" else "Version ${idx + 1}",
+                eyebrow = "VERSIONEN & QUELLEN", chips = listOfNotNull(site, if (active) "Aktiv" else null),
+                description = "Spielt das Video in dieser Version ab (z. B. Sprache, Untertitel oder Quelle).",
+                color = if (active) Brand.ACCENT else 0xFF334155.toInt(),
+                iconRes = if (subs) R.drawable.ic_subtitles else R.drawable.ic_tune,
+                okHint = "Abspielen", onClick = { pickSource(idx) },
+            )
+        }
+
         val rows = ArrayList<RowData>()
         val content = jsonItems(o.optJSONArray("sections")).mapIndexedNotNull { si, sec ->
             val title = sec.optString("title").ifBlank { if (si == 0) "Videos" else "Mehr" }
@@ -1230,9 +1291,20 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             }
             if (cards.isEmpty()) null else RowData(title, cards)
         }
+        val epRowTitle = if (activeSeason.isNotBlank()) "$activeSeason · Folgen" else "Folgen"
         // Auf Seiten mit Player stehen die Aktionen oben, sonst unter den Inhalten
-        if (player != null) { rows.add(RowData(pageTitle.take(50), actions)); rows.addAll(content) }
-        else { rows.addAll(content); rows.add(RowData("Diese Seite", actions)) }
+        if (player != null) {
+            rows.add(RowData(pageTitle.take(50), actions))
+            if (sourceCards.size >= 2) rows.add(RowData("Versionen & Quellen", sourceCards))
+            if (episodeCards.isNotEmpty()) rows.add(RowData(epRowTitle, episodeCards))
+            if (seasonCards.size >= 2) rows.add(RowData("Staffeln", seasonCards))
+            rows.addAll(content)
+        } else {
+            if (episodeCards.isNotEmpty()) rows.add(RowData(epRowTitle, episodeCards))
+            if (seasonCards.size >= 2) rows.add(RowData("Staffeln", seasonCards))
+            rows.addAll(content)
+            rows.add(RowData("Diese Seite", actions))
+        }
         cmd("pause")
         renderedCount[cacheKey(pageUrl)] = itemCount(o)
         vview.setRows(rows, lastFocus[cacheKey(pageUrl)] ?: vview.focusedItem?.id)
@@ -1273,6 +1345,17 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         showChip(hint, R.drawable.ic_globe)
     }
 
+    /** Version/Quelle am Player umschalten und danach (wieder) im Kino-Modus abspielen. */
+    private fun pickSource(i: Int) {
+        autoCinema = true
+        lastActivate = SystemClock.uptimeMillis()
+        val before = web.url
+        if (cinema) exitCinema(showList = false)
+        js("window.__ovl ? __ovl.pickSource($i) : false")
+        showChip("Version wird gewechselt …", R.drawable.ic_tune)
+        ui.postDelayed({ if (!cinema && web.url == before && !isFinishing) { autoCinema = false; enterCinema() } }, 1600)
+    }
+
     /** Karte gewählt: Seite laden; hat sie einen Player, startet er direkt im Kino-Modus. */
     private fun openItem(url: String) {
         websiteChosen = false
@@ -1311,8 +1394,8 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         hidePlayerBar()
         if (!showList) return
         val cached = extractCache[cacheKey(web.url)]
-        val sections = cached?.optJSONArray("sections")?.length() ?: 0
-        if (cached != null && sections > 0) renderOverlay(cached) else videoBack()
+        val extras = (cached?.optJSONArray("sources")?.length() ?: 0)
+        if (cached != null && (contentCount(cached) > 0 || extras >= 2)) renderOverlay(cached) else videoBack()
     }
 
     /** Zurück in der Video-Ansicht: vorherige Seite (sofort aus dem Zwischenspeicher) oder Startseite. */
@@ -1345,7 +1428,15 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
     private fun nextEpisode() {
         nextDone = false
-        if (videoMode) autoCinema = true
+        if (videoMode) {
+            autoCinema = true
+            extractCache[cacheKey(web.url)]?.optString("next")?.takeIf { it.isNotBlank() }?.let { next ->
+                showChip("Nächste Folge …", R.drawable.ic_next)
+                if (cinema) { cinema = false; maximized = false }
+                openItem(next)
+                return
+            }
+        }
         showChip("Suche nächste Folge …", R.drawable.ic_next)
         js("window.__ovl ? __ovl.nextLocal() : false") { r ->
             if (r == "true") return@js
@@ -1511,6 +1602,12 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             setVideoMode(!videoMode)
         })
         if (videoMode && !overlayVisible) e.add(MenuEntry("Zur Video-Ansicht", R.drawable.ic_movie) { showOverlayFromCache() })
+        val srcs = jsonItems(extractCache[cacheKey(web.url)]?.optJSONArray("sources"))
+        if (srcs.size >= 2) e.add(MenuEntry("Version wählen", R.drawable.ic_tune, srcs.firstOrNull { it.optBoolean("active") }?.optString("label") ?: "${srcs.size} verfügbar") {
+            Tv.menu(this, "Version wählen", srcs.map { so ->
+                MenuEntry(so.optString("label"), R.drawable.ic_tune, if (so.optBoolean("active")) "Aktiv" else null) { pickSource(so.optInt("index")) }
+            }, eyebrow = "VERSIONEN & QUELLEN")
+        })
         e.add(MenuEntry("Schnellsuche auf dieser Seite", R.drawable.ic_search, "Begriff an die Suche von ${hostOf(web.url)} senden") { quickSearch() })
         e.add(MenuEntry("Adresse eingeben", R.drawable.ic_globe, hostOf(web.url)) {
             Tv.input(this, "Adresse", "Adresse oder Suchbegriff", web.url ?: "", url = true, icon = R.drawable.ic_globe, okLabel = "Öffnen") { u ->
