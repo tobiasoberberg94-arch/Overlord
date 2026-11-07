@@ -20,6 +20,22 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         rows = RowsView(this)
         setContentView(rows)
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    /** Direkt-Links: „open_url“ öffnet eine Adresse, „open_library“ die Jellyfin-Bibliothek. */
+    private fun handleIntent(i: Intent?) {
+        if (i == null) return
+        if (i.getBooleanExtra("overlord_demo", false)) Demo.seed(this)
+        i.getStringExtra("open_url")?.takeIf { it.isNotBlank() }?.let { BrowserActivity.open(this, normalizeUrl(it), hostOf(it)) }
+        if (i.getBooleanExtra("open_library", false)) startActivity(Intent(this, LibraryActivity::class.java))
+        i.removeExtra("open_url"); i.removeExtra("open_library"); i.removeExtra("overlord_demo")
     }
 
     override fun onResume() {

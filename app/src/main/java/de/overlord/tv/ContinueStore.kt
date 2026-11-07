@@ -15,6 +15,7 @@ data class ContinueEntry(
     var color: Int,
     var mediaUrl: String = "",
     var referer: String = "",
+    var image: String = "",
 ) {
     val fraction get() = if (duration > 0) (position / duration).toFloat().coerceIn(0f, 1f) else 0f
     val remaining get() = duration - position
@@ -22,14 +23,14 @@ data class ContinueEntry(
     fun toJson(): JSONObject = JSONObject()
         .put("key", key).put("title", title).put("url", url).put("position", position)
         .put("duration", duration).put("updated", updated).put("color", color)
-        .put("mediaUrl", mediaUrl).put("referer", referer)
+        .put("mediaUrl", mediaUrl).put("referer", referer).put("image", image)
 
     companion object {
         fun fromJson(o: JSONObject) = ContinueEntry(
             o.getString("key"), o.optString("title"), o.optString("url"),
             o.optDouble("position", 0.0), o.optDouble("duration", 0.0),
             o.optLong("updated"), o.optInt("color", Brand.ACCENT),
-            o.optString("mediaUrl"), o.optString("referer"),
+            o.optString("mediaUrl"), o.optString("referer"), o.optString("image"),
         )
     }
 }
@@ -68,7 +69,7 @@ object ContinueStore {
      */
     fun report(
         ctx: Context, url: String, title: String, position: Double, duration: Double, color: Int,
-        mediaUrl: String = "", referer: String = "",
+        mediaUrl: String = "", referer: String = "", image: String = "",
     ) {
         if (url.isBlank() || !duration.isFinite() || duration < MIN_DURATION) return
         val key = keyFor(url)
@@ -93,7 +94,14 @@ object ContinueStore {
             e.mediaUrl = mediaUrl
             e.referer = referer
         }
+        if (image.isNotBlank()) e.image = image
         save(ctx, list)
+    }
+
+    /** Zeitstempel setzen (Sortierung) – z. B. für Beispieldaten. */
+    fun touch(ctx: Context, url: String, time: Long) {
+        val list = all(ctx)
+        list.firstOrNull { it.key == keyFor(url) }?.let { it.updated = time; save(ctx, list) }
     }
 
     fun remove(ctx: Context, key: String) = save(ctx, all(ctx).filterNot { it.key == key })

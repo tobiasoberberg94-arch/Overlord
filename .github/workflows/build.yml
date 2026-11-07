@@ -54,3 +54,53 @@ jobs:
             Automatisch gebaut aus ${{ github.sha }}.
             Download auf dem Fire TV (Downloader-App):
             https://github.com/${{ github.repository }}/releases/latest/download/overlord-tv.apk
+
+  # Screenshots im Android-TV-Emulator (zur Kontrolle der Oberfläche).
+  # Die Bilder landen als Artifact und als Dateien am Release „latest“.
+  screenshots:
+    name: Screenshots (Android-TV-Emulator)
+    needs: build
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: overlord-tv-apk
+          path: dist
+
+      - name: KVM aktivieren
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Emulator starten und Screenshots aufnehmen
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: android-tv
+          arch: x86
+          profile: tv_1080p
+          force-avd-creation: true
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -no-snapshot
+          script: bash .github/scripts/screenshots.sh
+
+      - name: Screenshots als Artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots/
+          if-no-files-found: warn
+
+      - name: Screenshots am Release ablegen
+        if: always()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          files: shots/*.png

@@ -164,7 +164,9 @@ class BrowserActivity : Activity() {
         setContentView(root)
         setupWeb()
 
-        val url = intent.getStringExtra(EXTRA_URL) ?: "https://duckduckgo.com"
+        // Auch über einen normalen Link (VIEW-Intent) aus anderen Apps aufrufbar
+        val url = intent.getStringExtra(EXTRA_URL) ?: intent.dataString ?: "https://duckduckgo.com"
+        if (tileTitle.isBlank()) tileTitle = hostOf(url)
         web.loadUrl(url)
         web.requestFocus()
         showMode()
@@ -612,7 +614,7 @@ class BrowserActivity : Activity() {
     private fun handleMenuKey(e: KeyEvent) {
         if (e.action == KeyEvent.ACTION_DOWN) {
             if (e.repeatCount == 0) menuLongFired = false
-            else if (!menuLongFired && e.eventTime - e.downTime >= 600) {
+            else if (!menuLongFired && (e.isLongPress || e.eventTime - e.downTime >= 550)) {
                 menuLongFired = true
                 showBrowserMenu()
             }
@@ -626,7 +628,7 @@ class BrowserActivity : Activity() {
     private fun handleOk(e: KeyEvent, onShort: () -> Unit): Boolean {
         if (e.action == KeyEvent.ACTION_DOWN) {
             if (e.repeatCount == 0) okLongFired = false
-            else if (!okLongFired && e.eventTime - e.downTime >= 700) {
+            else if (!okLongFired && (e.isLongPress || e.eventTime - e.downTime >= 650)) {
                 okLongFired = true
                 showBrowserMenu()
             }

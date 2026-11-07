@@ -59,12 +59,21 @@
             </intent-filter>
         </activity>
 
+        <!-- Als Browser wählbar: Links aus anderen Apps können in Overlord geöffnet werden -->
         <activity
             android:name=".BrowserActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|uiMode"
-            android:exported="false"
+            android:exported="true"
             android:screenOrientation="landscape"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustPan">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".PlayerActivity"
