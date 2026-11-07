@@ -130,6 +130,14 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   sowie die Quelle des gerade laufenden `<video>`, auch in iframes.
 - Erscheint „🎬 Video erkannt“, startet *☰ lang → Video nativ abspielen* (oder **▶ Nativ** in der Player-Leiste)
   den Stream im eigenen, schlanken Vollbild-Player. Referer, Cookies und User-Agent werden übernommen.
+- **Parser für HLS-Streams:** Overlord liest die Playlists erkannter `.m3u8`-Streams im Hintergrund aus –
+  Länge und Qualitätsstufen. Die Liste *Erkannte Videos* zeigt das Hauptvideo zuerst, mit Länge und Qualität
+  („HLS · bis 1080p · 5 Stufen“); kurze Clips sind als „Werbung/Trailer?“ markiert.
+- **Qualität wählen:** Im eigenen Player unter ☰ → *Qualität* (Automatisch, 1080p, 720p …). Die Wahl wird gemerkt
+  und gilt für künftige Streams (*Einstellungen → Eigener Player*).
+- **Streams direkt im eigenen Player** (*Einstellungen → Eigener Player*): Der Kino-Modus wechselt automatisch in den
+  eigenen Player, sobald das Hauptvideo als Stream erkannt ist; Zurück führt wieder zur Übersicht der Seite.
+- Bewusst allgemein: Es gibt keine Auflöser für einzelne Datei-Hoster – erkannt wird, was der Player der Seite lädt.
   Dort gibt es keine Seiten-Werbung, keine Overlays, dafür schnelles Spulen und gespeicherten Fortschritt.
 - Im nativen Player öffnet ☰ die Optionen: **Tempo**, **Audiospur**, **Untertitel** (eingebettete Spuren),
   **Schlaf-Timer** (15–90 Min.) und *Von vorne beginnen*.

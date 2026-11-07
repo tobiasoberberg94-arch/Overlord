@@ -90,6 +90,10 @@ class PlayerActivity : Activity() {
     private var countdown = 0
 
     private var prepared = false
+    // HLS: Qualitätsstufen der Master-Playlist (leer = keine Auswahl möglich)
+    private var masterUrl = ""
+    private var variants: List<Hls.Variant> = emptyList()
+    private var currentVariant: Hls.Variant? = null
     private var pendingSeekMs: Int? = null
     private var lastSave = 0L
     private var player: MediaPlayer? = null
@@ -140,6 +144,14 @@ class PlayerActivity : Activity() {
             }
             startMs = (intent.getDoubleExtra(K_START, 0.0) * 1000).toInt()
             play(mediaUrl)
+            if (Hls.isHls(mediaUrl)) {
+                masterUrl = mediaUrl
+                val h = HashMap(headers)
+                io.execute {
+                    val inf = Hls.info(mediaUrl, h)
+                    ui.post { if (!isFinishing) onHlsInfo(inf) }
+                }
+            }
         }
         ui.post(ticker)
     }
@@ -248,6 +260,29 @@ class PlayerActivity : Activity() {
         video.setVideoURI(Uri.parse(url), headers)
     }
 
+    /** Qualitätsstufen bekannt: anzeigen und ggf. die gemerkte Höchstauflösung anwenden. */
+    private fun onHlsInfo(inf: Hls.Info?) {
+        if (inf == null || inf.variants.size < 2) return
+        variants = inf.variants
+        info.text = ("NATIVER PLAYER · " + hostOf(pageUrl.ifBlank { mediaUrl }) + " · " + inf.summary).uppercase()
+        val max = Prefs.hlsMaxHeight
+        if (max > 0) {
+            val target = Hls.pick(variants, max) ?: return
+            // Nur am Anfang automatisch umschalten – später entscheidet man selbst im Menü
+            val pos = if (prepared) video.currentPosition else startMs
+            if (pos - startMs < 8000) switchQuality(target, announce = false)
+        }
+    }
+
+    private fun switchQuality(v: Hls.Variant?, announce: Boolean = true) {
+        if (masterUrl.isBlank()) return
+        val pos = if (prepared) video.currentPosition else startMs
+        startMs = pos
+        currentVariant = v
+        play(v?.url ?: masterUrl)
+        if (announce) showOverlay("Qualität: ${v?.label ?: "Automatisch"}", R.drawable.ic_tune)
+    }
+
     // ------------------------------------------------------------------ Jellyfin
 
     private fun loadJellyfin(id: String, fromStart: Boolean) {
@@ -284,6 +319,14 @@ class PlayerActivity : Activity() {
             startMs = pos
             toast("Format nicht direkt abspielbar – nutze Server-Stream")
             play(Jellyfin.hlsUrl(item.id))
+            return
+        }
+        if (currentVariant != null && masterUrl.isNotBlank()) {
+            // Gewählte Stufe geht nicht → zurück zur automatischen Auswahl des Streams
+            currentVariant = null
+            startMs = pos
+            toast("Qualität nicht abspielbar – automatische Auswahl")
+            play(masterUrl)
             return
         }
         if (kind == "web" && pageUrl.isNotBlank()) {
@@ -404,6 +447,18 @@ class PlayerActivity : Activity() {
             Tv.menu(this, "Wiedergabe-Tempo", listOf(0.75f, 1f, 1.25f, 1.5f, 2f).map { v ->
                 MenuEntry(speedText(v), R.drawable.ic_speed, if (v == speed) "Aktuell" else null) { speed = v; applySpeed(); showOverlay(speedText(v), R.drawable.ic_speed) }
             }, eyebrow = "PLAYER")
+        })
+        if (variants.size > 1) e.add(MenuEntry("Qualität: ${currentVariant?.label ?: "Automatisch"}", R.drawable.ic_tune, "${variants.size} Stufen · bis ${variants.first().label}") {
+            val entries = listOf(MenuEntry("Automatisch", R.drawable.ic_tune, if (currentVariant == null) "Aktuell · der Stream wählt selbst" else "Der Stream wählt selbst") {
+                Prefs.hlsMaxHeight = 0
+                switchQuality(null)
+            }) + variants.map { v ->
+                MenuEntry(v.label, R.drawable.ic_tune, listOfNotNull(v.rate.takeIf { it.isNotBlank() }, if (v == currentVariant) "Aktuell" else null).joinToString(" · ").ifBlank { null }) {
+                    if (v.height > 0) Prefs.hlsMaxHeight = v.height
+                    switchQuality(v)
+                }
+            }
+            Tv.menu(this, "Qualität", entries, eyebrow = "PLAYER", subtitle = "Wird für künftige Streams gemerkt")
         })
         val audio = tracks(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO)
         if (audio.size > 1) e.add(MenuEntry("Audiospur", R.drawable.ic_tune, "${audio.size} Spuren") {

@@ -55,6 +55,16 @@ sleep 12
 longkey KEYCODE_MENU
 key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 17-nativer-player 8
 key KEYCODE_MENU;                           shot 18-player-optionen 3
+key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+
+# Eigener Player mit HLS-Qualitätsstufen (Parser): Seite lädt Master-Playlist → nativ → ☰ → Qualität → 360p
+start -a android.intent.action.VIEW -d "${BASE}hls.html" -n de.overlord.tv/.BrowserActivity
+sleep 12
+longkey KEYCODE_MENU
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 18a-hls-player 10
+key KEYCODE_MENU;                           shot 18b-hls-optionen 3
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER;  shot 18c-hls-qualitaet 3
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 18d-hls-360p 8
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
 # Video-Ansicht: Demo-Mediathek als TV-Oberfläche, Folge wählen → Kino-Modus

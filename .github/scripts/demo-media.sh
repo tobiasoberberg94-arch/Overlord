@@ -4,6 +4,31 @@ set -e
 mkdir -p demo
 ffmpeg -loglevel error -y -f lavfi -i "testsrc2=size=960x540:rate=24" -f lavfi -i "sine=frequency=220:sample_rate=44100" \
   -t 420 -c:v libx264 -preset veryfast -crf 34 -g 48 -pix_fmt yuv420p -c:a aac -b:a 48k -movflags +faststart demo/demo.mp4
+# HLS-Teststream mit zwei Qualitätsstufen (Qualitätswahl im eigenen Player)
+mkdir -p demo/hls/540 demo/hls/360
+ffmpeg -loglevel error -y -i demo/demo.mp4 -c copy -f hls -hls_time 6 -hls_playlist_type vod \
+  -hls_segment_filename 'demo/hls/540/s%03d.ts' demo/hls/540/index.m3u8
+ffmpeg -loglevel error -y -i demo/demo.mp4 -vf scale=640:360 -c:v libx264 -preset ultrafast -crf 36 -g 48 -pix_fmt yuv420p \
+  -c:a aac -b:a 48k -f hls -hls_time 6 -hls_playlist_type vod -hls_segment_filename 'demo/hls/360/s%03d.ts' demo/hls/360/index.m3u8
+cat > demo/hls/master.m3u8 <<'M3U'
+#EXTM3U
+#EXT-X-STREAM-INF:BANDWIDTH=900000,RESOLUTION=960x540
+540/index.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=400000,RESOLUTION=640x360
+360/index.m3u8
+M3U
+cat > demo/hls.html <<'HTML'
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Die Expedition – HLS-Stream</title>
+<style>body{margin:0;background:#0b1020;color:#fff;font-family:sans-serif}video{width:100%;max-height:80vh;background:#000}h1{margin:16px}</style>
+</head><body>
+<video controls preload="auto" src="hls/master.m3u8" poster="poster1.jpg"></video>
+<h1>Die Expedition – HLS-Stream mit zwei Qualitätsstufen</h1>
+<script>try { fetch('hls/master.m3u8'); } catch (e) {}</script>
+</body></html>
+HTML
+
 i=1
 for spec in "#7c3aed-#0ea5e9|Die Expedition" "#db2777-#f59e0b|Nachtzug" "#0f766e-#22d3ee|Küsten der Welt" "#1e293b-#ef4444|Stadt der Lichter"; do
   grad="${spec%%|*}"; title="${spec#*|}"

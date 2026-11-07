@@ -42,6 +42,18 @@ object Prefs {
         else -> "Automatisch ablehnen"
     }
 
+    /** Im Kino-Modus automatisch in den eigenen Player wechseln, sobald ein direkter Stream erkannt ist. */
+    var autoNative: Boolean
+        get() = p.getBoolean("autoNative", false)
+        set(v) { p.edit().putBoolean("autoNative", v).apply() }
+
+    /** Höchste Auflösung für HLS-Streams im eigenen Player (0 = automatisch, sonst z. B. 1080/720). */
+    var hlsMaxHeight: Int
+        get() = p.getInt("hlsMaxHeight", 0)
+        set(v) { p.edit().putInt("hlsMaxHeight", v).apply() }
+
+    fun qualityLabel(h: Int = hlsMaxHeight) = if (h <= 0) "Automatisch" else "bis ${h}p"
+
     /** Am Ende eines Videos automatisch die nächste Folge starten (mit Countdown). */
     var autoNext: Boolean
         get() = p.getBoolean("autoNext", true)

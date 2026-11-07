@@ -54,7 +54,16 @@ class BrowserActivity : Activity() {
         NORMAL("Normaler Modus", R.drawable.ic_keyboard),
     }
 
-    private data class MediaHit(val url: String, val referer: String, var duration: Double = 0.0)
+    private data class MediaHit(val url: String, val referer: String, var duration: Double = 0.0) {
+        /** Kurzinfo aus dem HLS-Parser, z. B. „HLS · bis 1080p · 5 Stufen“. */
+        var info: String = ""
+        var live: Boolean = false
+    }
+    /** Hintergrund-Thread für das Auslesen erkannter Streams (Playlist laden, Länge/Qualitäten bestimmen). */
+    private val probeIo = java.util.concurrent.Executors.newSingleThreadExecutor()
+    /** Pro Seite nur einmal automatisch in den eigenen Player wechseln; danach Kino-Modus beim Zurückkehren beenden. */
+    private var autoNativeDone = false
+    private var exitCinemaOnReturn = false
 
     private val ui = Handler(Looper.getMainLooper())
     private lateinit var root: FrameLayout
@@ -553,7 +562,9 @@ class BrowserActivity : Activity() {
         if (src.isNotBlank()) {
             videoSrc = src
             val hit = detected.getOrPut(src) { MediaHit(src, web.url ?: "") }
-            hit.duration = videoDur
+            if (videoDur > 0) hit.duration = videoDur
+            hit.live = live
+            maybeAutoNative()
         }
         updateBar()
 
@@ -618,6 +629,7 @@ class BrowserActivity : Activity() {
                 detected.clear()
                 mediaChipShown = false
             }
+            if (url != videoPageUrl) autoNativeDone = false
             videoPageUrl = url
             lastVideoReport = 0
             videoPlaying = false
@@ -754,11 +766,50 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     private fun onMediaDetected(url: String, referer: String) {
         if (AdBlock.isBlocked(Uri.parse(url).host)) return
         if (detected.size > 30) return
-        if (!detected.containsKey(url)) detected[url] = MediaHit(url, referer.ifBlank { web.url ?: "" })
-        if (!mediaChipShown) {
+        if (!detected.containsKey(url)) {
+            val hit = MediaHit(url, referer.ifBlank { web.url ?: "" })
+            detected[url] = hit
+            if (Hls.isHls(url)) probeHls(hit)
+        }
+        if (!mediaChipShown && !cinema) {
             mediaChipShown = true
             showChip("Video erkannt  ·  ☰ lang → „Video nativ abspielen“", R.drawable.ic_movie)
         }
+        maybeAutoNative()
+    }
+
+    /** HLS-Playlist im Hintergrund lesen: Länge (Werbung vs. Hauptvideo) und Qualitätsstufen. */
+    private fun probeHls(hit: MediaHit) {
+        val headers = hashMapOf(
+            "User-Agent" to web.settings.userAgentString,
+            "Referer" to hit.referer,
+            "Cookie" to (CookieManager.getInstance().getCookie(hit.url) ?: ""),
+        )
+        probeIo.execute {
+            val inf = Hls.info(hit.url, headers)
+            ui.post {
+                if (inf == null || isFinishing) return@post
+                hit.info = inf.summary
+                hit.live = inf.live
+                if (!inf.live && inf.durationSec > hit.duration) hit.duration = inf.durationSec
+                maybeAutoNative()
+            }
+        }
+    }
+
+    /** Einstellung „Streams direkt im eigenen Player“: im Kino-Modus zum erkannten Hauptvideo wechseln. */
+    private fun maybeAutoNative() {
+        if (!Prefs.autoNative || autoNativeDone || !cinema || isFinishing) return
+        val best = bestMedia() ?: return
+        // Nur das Hauptvideo (lang oder live) – keine Werbe-Clips
+        if (!best.live && best.duration < ContinueStore.MIN_DURATION) return
+        autoNativeDone = true
+        showChip("Wechsle in den eigenen Player …", R.drawable.ic_tv)
+        ui.postDelayed({
+            if (!cinema || isFinishing) return@postDelayed
+            exitCinemaOnReturn = true
+            playNative(bestMedia() ?: best)
+        }, 700)
     }
 
     private inner class Chrome : WebChromeClient() {
@@ -1482,6 +1533,8 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             // Viele Player starten stumm vor – im Kino-Modus soll man etwas hören
             cmd("unmute")
             ui.postDelayed({ if (cinema) cmd("unmute") }, 1500)
+            maybeAutoNative()
+            ui.postDelayed({ maybeAutoNative() }, 3000)
             showPlayerBar(focus = false)
         }
     }
@@ -1665,7 +1718,9 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     private fun bestMedia(): MediaHit? {
         if (videoSrc.isNotBlank()) detected[videoSrc]?.let { return it }
         return detected.values.sortedWith(
-            compareByDescending<MediaHit> { it.duration }
+            compareByDescending<MediaHit> { it.live || it.duration >= ContinueStore.MIN_DURATION }
+                .thenByDescending { it.info.contains("Stufen") }          // Master-Playlist mit Qualitätswahl
+                .thenByDescending { it.duration }
                 .thenByDescending { it.url.contains("master", true) || it.url.contains("index", true) }
                 .thenByDescending { it.url.contains(".m3u8", true) }
         ).firstOrNull()
@@ -1684,14 +1739,23 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     }
 
     private fun chooseMedia() {
-        val hits = detected.values.toList().asReversed()
+        // Hauptvideo zuerst: live oder lang vor kurzen Clips (meist Werbung/Trailer)
+        val hits = detected.values.toList().asReversed().sortedWith(
+            compareByDescending<MediaHit> { it.live || it.duration >= ContinueStore.MIN_DURATION }.thenByDescending { it.duration }
+        )
         if (hits.isEmpty()) { playNative(null); return }
         if (hits.size == 1) { playNative(hits[0]); return }
         Tv.menu(this, "Erkannte Videos", hits.map { h ->
             val name = Uri.parse(h.url).lastPathSegment ?: h.url
-            val dur = if (h.duration > 0) formatTime(h.duration) else "Länge unbekannt"
-            MenuEntry(name.take(48), if (h.url.contains(".m3u8", true)) R.drawable.ic_tv else R.drawable.ic_movie, "${hostOf(h.url)} · $dur") { playNative(h) }
-        }, subtitle = "Im eigenen Player abspielen – ohne Seiten-Werbung", eyebrow = "VIDEO NATIV")
+            val dur = when {
+                h.live -> "Live"
+                h.duration >= ContinueStore.MIN_DURATION -> formatTime(h.duration)
+                h.duration > 0 -> formatTime(h.duration) + " · kurz (Werbung/Trailer?)"
+                else -> "Länge unbekannt"
+            }
+            val sub = listOf(hostOf(h.url), dur, h.info).filter { it.isNotBlank() }.joinToString(" · ")
+            MenuEntry(name.take(48), if (Hls.isHls(h.url)) R.drawable.ic_tv else R.drawable.ic_movie, sub) { playNative(h) }
+        }, subtitle = "Im eigenen Player abspielen – ohne Seiten-Werbung · Qualität dort unter ☰", eyebrow = "VIDEO NATIV")
     }
 
     // ===================================================================== Menü
@@ -1844,10 +1908,16 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     override fun onResume() {
         super.onResume()
         web.onResume()
+        if (exitCinemaOnReturn) {
+            // Zurück aus dem eigenen Player: Kino-Modus beenden, Übersicht zeigen
+            exitCinemaOnReturn = false
+            if (cinema) exitCinema(showList = true)
+        }
     }
 
     override fun onDestroy() {
         ui.removeCallbacksAndMessages(null)
+        probeIo.shutdownNow()
         (web.parent as? ViewGroup)?.removeView(web)
         web.destroy()
         super.onDestroy()

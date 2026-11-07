@@ -398,6 +398,31 @@ class MainActivity : Activity() {
             },
         ),
         CardItem(
+            id = "native", title = "Eigener Player", iconRes = R.drawable.ic_tv, color = 0xFF9A3412.toInt(),
+            eyebrow = "EINSTELLUNGEN", chips = listOf(if (Prefs.autoNative) "Streams direkt" else "Auf Wunsch", "Qualität: ${Prefs.qualityLabel()}"),
+            description = "Erkannte Video-Streams im schlanken eigenen Player abspielen – ohne Seiten-Overlays, mit schnellem Spulen und Qualitätswahl. Auf Wunsch wechselt der Kino-Modus automatisch dorthin.",
+            okHint = "Ändern",
+            onClick = {
+                Tv.menu(this, "Eigener Player", listOf(
+                    MenuEntry("Streams direkt im eigenen Player: " + (if (Prefs.autoNative) "An" else "Aus"), R.drawable.ic_tv,
+                        "Kino-Modus wechselt zum erkannten Hauptvideo · Zurück führt zur Übersicht") {
+                        Prefs.autoNative = !Prefs.autoNative
+                        tvToast(if (Prefs.autoNative) "Streams laufen direkt im eigenen Player" else "Eigener Player nur auf Wunsch", R.drawable.ic_check)
+                        refresh()
+                    },
+                    MenuEntry("Qualität: ${Prefs.qualityLabel()}", R.drawable.ic_tune, "Höchste Auflösung für HLS-Streams") {
+                        Tv.menu(this, "Qualität", listOf(0, 2160, 1080, 720, 480).map { h ->
+                            MenuEntry(Prefs.qualityLabel(h), R.drawable.ic_tune, if (h == Prefs.hlsMaxHeight) "Aktuell" else null) {
+                                Prefs.hlsMaxHeight = h
+                                tvToast("Qualität: ${Prefs.qualityLabel(h)}", R.drawable.ic_check)
+                                refresh()
+                            }
+                        }, eyebrow = "EIGENER PLAYER", subtitle = "Automatisch = der Stream wählt selbst")
+                    },
+                ), eyebrow = "EINSTELLUNGEN")
+            },
+        ),
+        CardItem(
             id = "theme", title = "Design", iconRes = R.drawable.ic_palette, color = Brand.ACCENT,
             eyebrow = "EINSTELLUNGEN", chips = listOf(Brand.THEMES.getOrElse(Prefs.theme) { Brand.THEMES[0] }.name),
             description = "Akzentfarben der Oberfläche wählen – für Fokus, Knöpfe, Fortschritt und die Link-Markierung im Browser.",
