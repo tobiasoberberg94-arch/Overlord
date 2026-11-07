@@ -1078,9 +1078,22 @@
   // Metadaten-Zeilen auf Karten („25 Min.“, „13.11.2026“, „Ab 12“, „UT“, „ARD · 25 Min.“) sind keine Titel
   var META_LINE = /^(\d{1,3}\s*(min|minuten|std|stunden|h)\.?|\d{1,2}:\d{2}(:\d{2})?|\d{1,2}\.\s?\d{1,2}\.(\s?\d{2,4})?|(ab|fsk)\s*\d{1,2}|ut|ad|dgs|hd|uhd|4k|neu|new|live|trailer|merken|teilen|abspielen|play|mehr|weitere|verf(ü|ue)gbar\b.*|bis\s+\d.*|\S{1,3})(\s*[·|,∙•]\s*.*)?$/i;
   var SE_TAIL = /\s*[(\[]?\s*S\d{1,2}\s*[\/|:,.]?\s*E\d{1,3}\s*[)\]]?\s*$/i;
+  /** Ganze Karte um einen Link: größter Vorfahr, der nur Links zu derselben Adresse enthält. */
+  function cardOf(a) {
+    var url = a.href.split('#')[0], n = a;
+    for (var d = 0; d < 4 && n.parentElement && n.parentElement !== D.body; d++) {
+      var ls = n.parentElement.querySelectorAll('a[href]'), other = false;
+      for (var i = 0; i < ls.length && !other; i++) other = ls[i].href.split('#')[0] !== url;
+      if (other) break;
+      n = n.parentElement;
+    }
+    return n;
+  }
   function episodeTitle(a, num) {
-    var row = closestSel(a, 'tr,li,[class*="episode"],[class*="Episode"],[class*="folge"]') || a;
-    var lines = linesOf(row).filter(function (l) { return !/^(#|nr\.?\s*)?\d+\.?$/i.test(l) && l.length < 90 && !META_LINE.test(l); });
+    var row = closestSel(a, 'tr,li,[class*="episode"],[class*="Episode"],[class*="folge"]') || cardOf(a);
+    // Beschriftung des Links (aria-label/title) zuerst – dort steht oft „Folge 3: Titel“
+    var lines = [cleanText(a.getAttribute('aria-label')), cleanText(a.getAttribute('title'))].concat(linesOf(row))
+      .filter(function (l) { return l && !/^(#|nr\.?\s*)?\d+\.?$/i.test(l) && l.length < 90 && !META_LINE.test(l); });
     // Eine Zeile wie „Folge 3: Titel (S01/E03)“ ist die beste Titelquelle
     for (var i = 0; i < lines.length; i++) {
       if (/^(folge|episode|ep\.?)\s*\d+\s*$/i.test(lines[i])) continue;

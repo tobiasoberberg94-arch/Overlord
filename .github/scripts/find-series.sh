@@ -22,7 +22,8 @@ ard_ok() {
   local id json
   id=$(sed -E 's#\?.*##; s#/+$##; s#.*/##' <<<"$1")
   json=$(get "https://api.ardmediathek.de/page-gateway/pages/ard/item/$id?devicetype=pc&embedded=true")
-  grep -q 'm3u8' <<<"$json" && ! grep -q '"blockedByFsk":true' <<<"$json"
+  # ohne Altersfreigabe ab 12/16/18 – die sind tagsüber (Jugendschutz) nicht abspielbar
+  grep -q 'm3u8' <<<"$json" && ! grep -q '"blockedByFsk":true' <<<"$json" && ! grep -qE 'FSK1[268]' <<<"$json"
 }
 
 # ---------- ARD Mediathek
@@ -32,10 +33,10 @@ O="https://www.ardmediathek.de/serien"
 H=$(get "$O")
 echo "ARD Übersicht: $(wc -c <<<"$H") Bytes · Links: $(links "$H" 10)"
 S=""; E=""; S1=""; E1=""
-for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 5); do
+for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 8); do
   s=$(abs "https://www.ardmediathek.de" "$s")
   HS=$(get "$s")
-  for e in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/video/[^"]+"' <<<"$HS" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 6); do
+  for e in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/video/[^"]+"' <<<"$HS" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 4); do
     e=$(abs "https://www.ardmediathek.de" "$e")
     [ -z "$S1" ] && { S1="$s"; E1="$e"; }
     if ard_ok "$e"; then S="$s"; E="$e"; echo "ARD: Folge laut Mediathek-Schnittstelle abspielbar"; break 2; fi
