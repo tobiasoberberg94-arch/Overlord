@@ -93,7 +93,7 @@ Findet sich kein Suchfeld, wird mit `site:` über DuckDuckGo innerhalb der Seite
 ### APK herunterladen
 Jeder Push baut über GitHub Actions eine installierbare APK:
 - **Actions → „APK bauen“ → gewünschter Lauf → Artifact `overlord-tv-apk`** (ZIP mit `overlord-tv.apk`).
-- Bei Pushes auf den Standard-Branch wird die APK zusätzlich als Release **`latest`** veröffentlicht:
+- Bei jedem Push wird die APK zusätzlich als Release **`latest`** veröffentlicht:
   `https://github.com/tobiasoberberg94-arch/Overlord/releases/latest/download/overlord-tv.apk`
   (der direkte Download klappt nur, wenn das Repository öffentlich ist).
 
