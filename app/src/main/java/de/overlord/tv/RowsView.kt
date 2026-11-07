@@ -40,6 +40,8 @@ class CardItem(
     val progress: Float = -1f,
     val progressText: String = "",
     val badge: String? = null,
+    /** Referer für Bilder fremder Seiten (Hotlink-Schutz). */
+    val imageReferer: String? = null,
     val okHint: String = "Öffnen",
     val dashed: Boolean = false,
     val onClick: () -> Unit,
@@ -95,6 +97,7 @@ class RowsView(context: Context) : FrameLayout(context) {
 
     // Kopfzeile
     private val clock = context.label("", 24f, Fonts.semibold)
+    private val brandText = context.label("OVERLORD", 15f, Fonts.bold).apply { letterSpacing = 0.34f; setPadding(context.dp(12), 0, 0, 0) }
     private val topActions = LinearLayout(context)
     private val date = context.label("", 13f, Fonts.medium, Brand.TEXT_DIM)
 
@@ -153,7 +156,7 @@ class RowsView(context: Context) : FrameLayout(context) {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
             addView(ImageView(context).apply { setImageResource(R.drawable.ic_logo) }, LinearLayout.LayoutParams(context.dp(30), context.dp(30)))
-            addView(context.label("OVERLORD", 15f, Fonts.bold).apply { letterSpacing = 0.34f; setPadding(context.dp(12), 0, 0, 0) })
+            addView(brandText, LinearLayout.LayoutParams(-2, -2))
         }
         top.addView(brand, LayoutParams(-2, -2, Gravity.START or Gravity.CENTER_VERTICAL))
         val time = LinearLayout(context).apply {
@@ -218,6 +221,31 @@ class RowsView(context: Context) : FrameLayout(context) {
     override fun onDetachedFromWindow() {
         ui.removeCallbacks(tick)
         super.onDetachedFromWindow()
+    }
+
+    /** Text neben dem Logo (Standard „OVERLORD“, in der Video-Ansicht der Seitenname). */
+    fun setBrandText(text: String) { brandText.text = text.uppercase() }
+
+    /** Hero-Bereich ohne Karte füllen (z. B. „Lade …“). */
+    fun showInfo(eyebrow: String, title: String, description: String, color: Int = Brand.SURFACE) {
+        heroEyebrow.text = eyebrow
+        heroEyebrow.visibility = if (eyebrow.isBlank()) View.GONE else View.VISIBLE
+        heroTitle.text = title
+        heroTitle.textSize = if (title.length <= 18) 42f else if (title.length <= 26) 36f else 30f
+        heroDesc.text = description
+        heroDesc.visibility = if (description.isBlank()) View.GONE else View.VISIBLE
+        heroChips.removeAllViews(); heroChips.visibility = View.GONE
+        heroProgressBox.visibility = View.GONE
+        heroHints.removeAllViews()
+        heroImage.tag = null; heroImage.setImageDrawable(null); heroImage.visibility = View.GONE
+        heroGlyph.visibility = View.GONE; heroGlow.visibility = View.GONE
+        animateColor(color)
+    }
+
+    /** Fokus wieder auf die zuletzt gewählte Karte (oder die erste) setzen. */
+    fun refocus() {
+        val all = holders.flatMap { it.cards }
+        (all.firstOrNull { it.item.id == focusedItem?.id } ?: all.firstOrNull())?.requestFocus()
     }
 
     /** Knopf in der Kopfzeile (z. B. „Suchen“) – erreichbar mit ▲ aus der ersten Reihe. */
@@ -379,7 +407,7 @@ class RowsView(context: Context) : FrameLayout(context) {
                 heroImage.visibility = View.VISIBLE
                 val urls = item.heroImageUrls.ifEmpty { item.imageUrls }
                 if (animate) { heroImage.alpha = 0f }
-                ImageLoader.load(heroImage, urls, 1280) { bmp: Bitmap ->
+                ImageLoader.load(heroImage, urls, 1280, item.imageReferer) { bmp: Bitmap ->
                     heroImage.animate().alpha(0.92f).setDuration(260).start()
                     if (focusedItem === item) animateColor(tameColor(dominantColor(bmp) ?: item.color))
                 }
@@ -466,7 +494,7 @@ class CardView(context: Context, val item: CardItem) : FrameLayout(context) {
             item.imageUrls.isNotEmpty() -> {
                 val img = ImageView(context).apply { scaleType = ImageView.ScaleType.CENTER_CROP }
                 addView(img, LayoutParams(-1, -1))
-                ImageLoader.load(img, item.imageUrls, 480)
+                ImageLoader.load(img, item.imageUrls, 480, item.imageReferer)
                 scrim = true
                 if (item.logoUrls.isNotEmpty()) {
                     val logo = ImageView(context).apply {

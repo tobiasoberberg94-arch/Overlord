@@ -32,7 +32,7 @@ object ImageLoader {
         pool.execute { trim(dir) }
     }
 
-    fun load(view: ImageView, urls: List<String>, maxWidth: Int = 640, onLoaded: ((Bitmap) -> Unit)? = null) {
+    fun load(view: ImageView, urls: List<String>, maxWidth: Int = 640, referer: String? = null, onLoaded: ((Bitmap) -> Unit)? = null) {
         val key = urls.joinToString("|") + "@" + maxWidth
         view.tag = key
         if (urls.isEmpty()) { view.setImageDrawable(null); return }
@@ -42,7 +42,7 @@ object ImageLoader {
             var bmp: Bitmap? = null
             for (u in urls) {
                 if (u.isBlank() || synchronized(failed) { failed.contains(u) }) continue
-                bmp = fetch(u, maxWidth)
+                bmp = fetch(u, maxWidth, referer)
                 if (bmp != null) break
                 synchronized(failed) { failed.add(u) }
             }
@@ -60,7 +60,7 @@ object ImageLoader {
     private fun md5(s: String): String =
         MessageDigest.getInstance("MD5").digest(s.toByteArray()).joinToString("") { "%02x".format(it) }
 
-    private fun fetch(url: String, maxWidth: Int): Bitmap? = try {
+    private fun fetch(url: String, maxWidth: Int, referer: String? = null): Bitmap? = try {
         val file = diskDir?.let { File(it, md5(url)) }
         val bytes: ByteArray? = if (file != null && file.exists() && file.length() > 0) {
             file.setLastModified(System.currentTimeMillis())
@@ -70,6 +70,7 @@ object ImageLoader {
             conn.connectTimeout = 8000
             conn.readTimeout = 15000
             conn.setRequestProperty("User-Agent", UA)
+            if (!referer.isNullOrBlank()) conn.setRequestProperty("Referer", referer)
             if (conn.responseCode != 200) null else conn.inputStream.use { it.readBytes() }.also { b ->
                 try { file?.writeBytes(b) } catch (e: Exception) { }
             }

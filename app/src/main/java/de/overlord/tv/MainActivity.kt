@@ -294,7 +294,7 @@ class MainActivity : Activity() {
             return CardItem(
                 id = t.id, title = t.name, subtitle = hostOf(t.url),
                 eyebrow = "WEBSEITE",
-                chips = listOf(hostOf(t.url), if (protected) "Werbeblocker aktiv" else "Schutz aus"),
+                chips = listOfNotNull(hostOf(t.url), if (Prefs.videoView(t.url)) "Video-Ansicht" else null, if (protected) "Werbeblocker aktiv" else "Schutz aus"),
                 description = t.description.ifBlank { meta?.description?.takeIf { it.isNotBlank() } ?: "Öffnet ${hostOf(t.url)} im eingebauten Browser mit Werbe- und Pop-up-Blocker." },
                 color = t.color,
                 imageUrls = listOf(image).filter { it.isNotBlank() },
@@ -487,10 +487,17 @@ class MainActivity : Activity() {
             if (raw.isBlank()) return@input
             val url = normalizeUrl(raw)
             val suggested = hostOf(url).substringBefore('.').replaceFirstChar { it.uppercase() }
-            Tv.input(this, "Name der Kachel", "Name", suggested, icon = R.drawable.ic_edit, okLabel = "Hinzufügen") { name ->
+            Tv.input(this, "Name der Kachel", "Name", suggested, icon = R.drawable.ic_edit, okLabel = "Weiter") { name ->
                 val t = TileStore.newWeb(name.ifBlank { suggested }, url)
-                TileStore.add(this, t)
-                refresh(t.id)
+                fun finishAdd(video: Boolean) {
+                    Prefs.setVideoView(url, video)
+                    TileStore.add(this, t)
+                    refresh(t.id)
+                }
+                Tv.menu(this, "Wie soll „${t.name}“ öffnen?", listOf(
+                    MenuEntry("Video-Ansicht", R.drawable.ic_movie, "Nur die Videos der Seite als TV-Oberfläche – Folge wählen, Player startet bildschirmfüllend") { finishAdd(true) },
+                    MenuEntry("Ganze Webseite", R.drawable.ic_globe, "Normale Seite mit Link-Steuerung und Werbeblocker") { finishAdd(false) },
+                ), eyebrow = "NEUE KACHEL", subtitle = "Lässt sich später im Kachel-Menü ändern")
             }
         }
     }
@@ -523,7 +530,15 @@ class MainActivity : Activity() {
         e.add(MenuEntry("Farbe ändern", R.drawable.ic_palette) {
             Tv.colors(this, "Farbe für „${t.name}“", t.color) { c -> t.color = c; t.colorAuto = false; TileStore.update(this, t); refresh(t.id) }
         })
-        if (t.type == TileType.WEB) e.add(MenuEntry("Im externen Browser öffnen", R.drawable.ic_open_external) { Launcher.openExternal(this, t.url) })
+        if (t.type == TileType.WEB) {
+            val vv = Prefs.videoView(t.url)
+            e.add(MenuEntry(if (vv) "Video-Ansicht ausschalten" else "Video-Ansicht einschalten", R.drawable.ic_movie,
+                if (vv) "Wieder die ganze Webseite öffnen" else "Nur die Videos der Seite als TV-Oberfläche") {
+                Prefs.setVideoView(t.url, !vv); refresh(t.id)
+                tvToast(if (!vv) "Video-Ansicht für ${t.name} an" else "Video-Ansicht für ${t.name} aus", R.drawable.ic_movie)
+            })
+            e.add(MenuEntry("Im externen Browser öffnen", R.drawable.ic_open_external) { Launcher.openExternal(this, t.url) })
+        }
         else e.add(MenuEntry("Im Appstore anzeigen", R.drawable.ic_store) { Launcher.openStore(this, Launcher.storePackage(this, t)) })
         e.add(MenuEntry("Entfernen", R.drawable.ic_delete, if (t.builtin) "Wiederherstellbar in den Einstellungen" else null, danger = true) {
             Tv.confirm(this, "„${t.name}“ entfernen?", if (t.builtin) "Feste Kacheln lassen sich unter Einstellungen → Feste Kacheln wiederherstellen." else null, "Entfernen", danger = true) {

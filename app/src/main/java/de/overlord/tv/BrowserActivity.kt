@@ -85,6 +85,18 @@ class BrowserActivity : Activity() {
     private lateinit var nextNow: View
 
     private val chrome by lazy { Chrome() }
+
+    // Video-Ansicht: Seite unsichtbar laden, nur Videos als eigene Oberfläche zeigen
+    private lateinit var vview: RowsView
+    private var videoMode = false
+    private var overlayVisible = false
+    private var cinema = false
+    private var autoCinema = false
+    private var extractToken = 0
+    private val lastFocus = HashMap<String, String>()
+    private val extractCache = object : LinkedHashMap<String, JSONObject>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, JSONObject>?) = size > 30
+    }
     private var customView: View? = null
     private var customCallback: WebChromeClient.CustomViewCallback? = null
 
@@ -168,6 +180,8 @@ class BrowserActivity : Activity() {
         val resume = intent.getDoubleExtra(EXTRA_RESUME, -1.0)
         if (resume >= 0) pendingResume = resume
         pendingSearch = intent.getStringExtra(EXTRA_SEARCH)
+        // Direkt-Schalter (z. B. aus anderen Apps/adb): Video-Ansicht für diese Domain einschalten
+        if (intent.getBooleanExtra("video", false)) Prefs.setVideoView(intent.getStringExtra(EXTRA_URL) ?: intent.dataString, true)
         script = assets.open("overlord.js").bufferedReader().use { it.readText() }
 
         root = FrameLayout(this).apply { setBackgroundColor(Brand.BG) }
@@ -176,6 +190,11 @@ class BrowserActivity : Activity() {
 
         fullscreenHolder = FrameLayout(this).apply { setBackgroundColor(0xFF000000.toInt()); visibility = View.GONE }
         root.addView(fullscreenHolder, FrameLayout.LayoutParams(-1, -1))
+
+        vview = RowsView(this).apply { visibility = View.GONE }
+        vview.addTopAction(R.drawable.ic_search, "Suchen") { quickSearch() }
+        vview.addTopAction(R.drawable.ic_globe, "Webseite") { showWebsite() }
+        root.addView(vview, FrameLayout.LayoutParams(-1, -1))
 
         loadBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 100
@@ -501,7 +520,10 @@ class BrowserActivity : Activity() {
         }
         updateBar()
 
-        if (!wasPlaying && videoPlaying) showPlayerBar(focus = true)
+        if (!wasPlaying && videoPlaying) {
+            if (overlayVisible) cmd("pause")   // z. B. Trailer hinter der Video-Ansicht
+            else showPlayerBar(focus = true)
+        }
         if (ended && !endHandled && d >= ContinueStore.MIN_DURATION) {
             endHandled = true
             web.url?.let { ContinueStore.report(this, it, pageTitle(), d, d, tileColor) }
@@ -567,6 +589,7 @@ class BrowserActivity : Activity() {
             endHandled = false
             cancelCountdown()
             hidePlayerBar()
+            onVideoModePageStarted(url)
         }
 
         override fun onPageFinished(view: WebView, url: String) {
@@ -578,6 +601,7 @@ class BrowserActivity : Activity() {
             if (speed != 1.0) cmd("rate", speed)
             pendingSearch?.let { term -> pendingSearch = null; ui.postDelayed({ runSearch(term) }, 600) }
             js("window.__ovl ? __ovl.pageMeta() : null") { r -> parseObj(r)?.optString("og")?.takeIf { it.isNotBlank() }?.let { pageImage = it } }
+            onVideoModePageFinished(url)
         }
 
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -767,6 +791,11 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
         when (code) {
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE, KeyEvent.KEYCODE_MEDIA_PLAY, KeyEvent.KEYCODE_MEDIA_PAUSE -> {
+                if (overlayVisible) {
+                    // ⏯ in der Video-Ansicht = gewählte Karte abspielen
+                    if (down && e.repeatCount == 0) (currentFocus as? CardView)?.performClick()
+                    return true
+                }
                 if (down && e.repeatCount == 0) {
                     cmd(when (code) { KeyEvent.KEYCODE_MEDIA_PLAY -> "play"; KeyEvent.KEYCODE_MEDIA_PAUSE -> "pause"; else -> "toggle" })
                     showPlayerBar(focus = true)
@@ -774,6 +803,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
                 return true
             }
             KeyEvent.KEYCODE_MEDIA_REWIND, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
+                if (overlayVisible) return true
                 if (down) {
                     val fwd = code == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
                     if (videoActive()) {
@@ -796,6 +826,12 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
         // Countdown-Karte „Nächste Folge“
         if (nextBox.visibility == View.VISIBLE && nextBox.hasFocus()) return super.dispatchKeyEvent(e)
+
+        // Video-Ansicht: Steuerkreuz bedient die Karten
+        if (overlayVisible && !playerBar.hasFocus()) {
+            if (down && !vview.hasFocus()) vview.refocus()
+            return super.dispatchKeyEvent(e)
+        }
 
         // Player-Leiste hat den Fokus
         if (playerBar.visibility == View.VISIBLE && playerBar.hasFocus()) {
@@ -835,7 +871,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
     private fun isOk(code: Int) = code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER || code == KeyEvent.KEYCODE_NUMPAD_ENTER
 
-    /** ☰ kurz = Modus wechseln, ☰ lang = Browser-Menü. */
+    /** ☰ kurz = Modus wechseln (in der Video-Ansicht: Optionen der Karte), ☰ lang = Browser-Menü. */
     private fun handleMenuKey(e: KeyEvent) {
         if (e.action == KeyEvent.ACTION_DOWN) {
             if (e.repeatCount == 0) menuLongFired = false
@@ -844,7 +880,10 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
                 showBrowserMenu()
             }
         } else if (e.action == KeyEvent.ACTION_UP) {
-            if (!menuLongFired) cycleMode()
+            if (!menuLongFired) {
+                if (overlayVisible) ((currentFocus as? CardView)?.item?.onMenu ?: { showBrowserMenu() }).invoke()
+                else cycleMode()
+            }
             menuLongFired = false
         }
     }
@@ -1022,11 +1061,241 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             nextBox.visibility == View.VISIBLE -> cancelCountdown()
             playerBar.visibility == View.VISIBLE && playerBar.hasFocus() -> hidePlayerBar()
             customView != null -> chrome.onHideCustomView()
+            cinema -> exitCinema()
+            videoMode && !overlayVisible -> showOverlayFromCache()
+            videoMode && overlayVisible -> videoBack()
             maximized -> { maximized = false; cmd("unmaximize") }
             playerBar.visibility == View.VISIBLE -> hidePlayerBar()
             web.canGoBack() -> web.goBack()
             else -> finish()
         }
+    }
+
+    // ===================================================================== Video-Ansicht
+
+    private fun cacheKey(url: String?) = ContinueStore.keyFor(url ?: "")
+
+    private fun setVideoMode(on: Boolean) {
+        Prefs.setVideoView(web.url, on)
+        videoMode = on
+        if (on) {
+            showChip("Video-Ansicht für ${baseDomain(hostOf(web.url))} an", R.drawable.ic_movie)
+            showOverlayFromCache()
+            scheduleExtract(web.url ?: "", prefetch = true)
+        } else {
+            if (cinema) exitCinema(showList = false)
+            hideOverlay()
+            showChip("Video-Ansicht aus – ganze Webseite", R.drawable.ic_globe)
+        }
+    }
+
+    private fun onVideoModePageStarted(url: String) {
+        videoMode = Prefs.videoView(url)
+        extractToken++
+        if (!videoMode) { if (overlayVisible) hideOverlay(); if (cinema) { cinema = false; maximized = false }; return }
+        if (cinema) { cinema = false; maximized = false }
+        val cached = extractCache[cacheKey(url)]
+        if (cached != null && !autoCinema) renderOverlay(cached)
+        else if (autoCinema) {
+            // Folge wurde gewählt: schwarzer Ladebildschirm statt Übersicht, Player startet gleich
+            vview.setRows(emptyList(), null)
+            vview.showInfo("WIRD GELADEN", tileTitle.ifBlank { hostOf(url) }, "Der Player startet gleich …", tileColor)
+            showOverlay()
+        } else {
+            vview.setRows(emptyList(), null)
+            vview.setBrandText(hostOf(url))
+            vview.showInfo("VIDEO-ANSICHT", hostOf(url), "Suche Videos auf der Seite …", tileColor)
+            showOverlay()
+        }
+    }
+
+    private fun onVideoModePageFinished(url: String) {
+        if (!videoMode) return
+        scheduleExtract(url, prefetch = extractCache[cacheKey(url)] == null && !autoCinema)
+    }
+
+    /** Seite (nach dem Nachladen) auslesen – zweimal, weil viele Seiten Inhalte erst später einfügen. */
+    private fun scheduleExtract(url: String, prefetch: Boolean) {
+        val token = ++extractToken
+        if (prefetch) js("window.__ovl && __ovl.prefetch()")
+        ui.postDelayed({ runExtract(token, url, final = false) }, if (prefetch) 2200 else 900)
+        ui.postDelayed({ runExtract(token, url, final = true) }, if (prefetch) 4500 else 3000)
+    }
+
+    private fun runExtract(token: Int, url: String, final: Boolean) {
+        if (token != extractToken || !videoMode || isFinishing) return
+        js("window.__ovl ? __ovl.extract() : null") { r ->
+            if (token != extractToken || !videoMode) return@js
+            val o = parseObj(r) ?: return@js
+            extractCache[cacheKey(url)] = o
+            val sections = o.optJSONArray("sections")?.length() ?: 0
+            val hasPlayer = o.optJSONObject("player") != null
+            when {
+                cinema -> {}
+                hasPlayer && (autoCinema || pendingResume != null) -> { autoCinema = false; enterCinema() }
+                sections == 0 && !hasPlayer && final -> {
+                    if (autoCinema) { autoCinema = false; ensurePlayback() }
+                    showWebsite("Keine Videos erkannt – die Webseite wird angezeigt")
+                }
+                sections > 0 || hasPlayer -> renderOverlay(o)
+                // sonst: auf den zweiten (finalen) Durchlauf warten
+            }
+        }
+    }
+
+    private fun jsonItems(arr: org.json.JSONArray?): List<JSONObject> =
+        if (arr == null) emptyList() else List(arr.length()) { arr.getJSONObject(it) }
+
+    /** Ausgelesene Seite als eigene TV-Oberfläche darstellen. */
+    private fun renderOverlay(o: JSONObject) {
+        val pageUrl = o.optString("url").ifBlank { web.url ?: "" }
+        val site = o.optString("site").ifBlank { hostOf(pageUrl) }
+        val pageTitle = o.optString("title").ifBlank { site }
+        val desc = o.optString("description")
+        val image = o.optString("image")
+        val player = o.optJSONObject("player")
+        val next = o.optString("next")
+        vview.setBrandText(site)
+
+        val actions = ArrayList<CardItem>()
+        if (player != null) actions.add(CardItem(
+            id = "v:play", title = "Video abspielen", subtitle = pageTitle.take(40), eyebrow = "DIESE SEITE",
+            chips = listOf(site, "Kino-Modus"), description = desc.ifBlank { "Startet den Player dieser Seite bildschirmfüllend – ohne den Rest der Webseite." },
+            color = tileColor, iconRes = R.drawable.ic_play,
+            imageUrls = listOf(player.optString("poster").ifBlank { image }).filter { it.isNotBlank() },
+            heroImageUrls = listOf(image).filter { it.isNotBlank() }, imageReferer = pageUrl,
+            okHint = "Abspielen", onClick = { enterCinema() },
+        ))
+        if (next.isNotBlank()) actions.add(CardItem(
+            id = "v:next", title = "Nächste Folge", iconRes = R.drawable.ic_next, color = darken(tileColor, 0.8f),
+            eyebrow = "DIESE SEITE", chips = listOf(hostOf(next)), description = "Öffnet die nächste Folge und startet sie direkt.",
+            okHint = "Abspielen", onClick = { openItem(next) },
+        ))
+        actions.add(CardItem(
+            id = "v:web", title = "Webseite anzeigen", iconRes = R.drawable.ic_globe, color = 0xFF1F2937.toInt(),
+            eyebrow = "VIDEO-ANSICHT", chips = listOf(site),
+            description = "Die ganze Seite anzeigen – z. B. für Anmeldung, Cookie-Hinweise oder Menüs. Zurück führt wieder hierher.",
+            onClick = { showWebsite() },
+        ))
+        actions.add(CardItem(
+            id = "v:search", title = "Suchen", iconRes = R.drawable.ic_search, color = 0xFF312E81.toInt(),
+            eyebrow = "VIDEO-ANSICHT", chips = listOf(site), description = "Einen Begriff an die Suche der Seite schicken – die Treffer erscheinen hier als Karten.",
+            okHint = "Suchen", onClick = { quickSearch() },
+        ))
+
+        val rows = ArrayList<RowData>()
+        val content = jsonItems(o.optJSONArray("sections")).mapIndexedNotNull { si, sec ->
+            val title = sec.optString("title").ifBlank { if (si == 0) "Videos" else "Mehr" }
+            val cards = jsonItems(sec.optJSONArray("items")).mapIndexed { ii, it ->
+                val url = it.optString("url")
+                val img = it.optString("image")
+                val sub = it.optString("sub")
+                CardItem(
+                    id = "v:$si:$ii:$url", title = it.optString("title"), subtitle = sub,
+                    eyebrow = title.uppercase().take(40), chips = listOf(site) + sub.split(" · ").filter { s -> s.isNotBlank() },
+                    description = "", color = Brand.colorFor(url),
+                    imageUrls = listOf(img).filter { s -> s.isNotBlank() }, heroImageUrls = listOf(img).filter { s -> s.isNotBlank() },
+                    imageReferer = pageUrl, okHint = "Öffnen",
+                    onClick = { openItem(url) },
+                    onMenu = {
+                        Tv.menu(this, it.optString("title"), listOf(
+                            MenuEntry("Öffnen und abspielen", R.drawable.ic_play) { openItem(url) },
+                            MenuEntry("Als Webseite öffnen", R.drawable.ic_globe) { autoCinema = false; lastActivate = SystemClock.uptimeMillis(); web.loadUrl(url); showWebsite() },
+                            MenuEntry("Als Kachel speichern", R.drawable.ic_bookmark) {
+                                TileStore.add(this, TileStore.newWeb(it.optString("title").take(30), url))
+                                tvToast("Kachel gespeichert", R.drawable.ic_check)
+                            },
+                        ), subtitle = hostOf(url), eyebrow = "VIDEO-ANSICHT")
+                    },
+                )
+            }
+            if (cards.isEmpty()) null else RowData(title, cards)
+        }
+        // Auf Seiten mit Player stehen die Aktionen oben, sonst unter den Inhalten
+        if (player != null) { rows.add(RowData(pageTitle.take(50), actions)); rows.addAll(content) }
+        else { rows.addAll(content); rows.add(RowData("Diese Seite", actions)) }
+        cmd("pause")
+        vview.setRows(rows, lastFocus[cacheKey(pageUrl)] ?: vview.focusedItem?.id)
+        showOverlay()
+    }
+
+    private fun showOverlay() {
+        if (!overlayVisible) {
+            overlayVisible = true
+            vview.alpha = 0f
+            vview.visibility = View.VISIBLE
+            vview.animate().alpha(1f).setDuration(200).start()
+            cursor.visibility = View.GONE
+            js("window.__ovl && __ovl.showHl(false)")
+        }
+        hidePlayerBar()
+        vview.post { if (!vview.hasFocus()) vview.refocus() }
+    }
+
+    private fun hideOverlay() {
+        if (!overlayVisible) return
+        overlayVisible = false
+        vview.visibility = View.GONE
+        web.requestFocus()
+        if (mode == Mode.LINKS) js("window.__ovl && __ovl.showHl(true)")
+        if (mode == Mode.POINTER) cursor.visibility = View.VISIBLE
+    }
+
+    private fun showOverlayFromCache() {
+        val cached = extractCache[cacheKey(web.url)]
+        if (cached != null) renderOverlay(cached) else { showOverlay(); scheduleExtract(web.url ?: "", prefetch = true) }
+    }
+
+    private fun showWebsite(hint: String = "Ganze Webseite · Zurück führt zur Video-Ansicht") {
+        hideOverlay()
+        showChip(hint, R.drawable.ic_globe)
+    }
+
+    /** Karte gewählt: Seite laden; hat sie einen Player, startet er direkt im Kino-Modus. */
+    private fun openItem(url: String) {
+        vview.focusedItem?.id?.let { lastFocus[cacheKey(web.url)] = it }
+        autoCinema = true
+        lastActivate = SystemClock.uptimeMillis()
+        tileTitle = ""
+        web.loadUrl(url)
+    }
+
+    private fun enterCinema() {
+        js("window.__ovl ? __ovl.cinema(true) : null") { r ->
+            if (r == null || r == "null") {
+                showWebsite("Kein Player gefunden – die Webseite wird angezeigt")
+                return@js
+            }
+            cinema = true
+            maximized = true
+            hideOverlay()
+            js("window.__ovl && __ovl.showHl(false)")
+            cursor.visibility = View.GONE
+            ensurePlayback()
+            showPlayerBar(focus = false)
+        }
+    }
+
+    private fun exitCinema(showList: Boolean = true) {
+        cinema = false
+        maximized = false
+        js("window.__ovl && __ovl.cinema(false)")
+        cmd("pause")
+        hidePlayerBar()
+        if (!showList) return
+        val cached = extractCache[cacheKey(web.url)]
+        val sections = cached?.optJSONArray("sections")?.length() ?: 0
+        if (cached != null && sections > 0) renderOverlay(cached) else videoBack()
+    }
+
+    /** Zurück in der Video-Ansicht: vorherige Seite (sofort aus dem Zwischenspeicher) oder Startseite. */
+    private fun videoBack() {
+        autoCinema = false
+        if (!web.canGoBack()) { finish(); return }
+        val list = web.copyBackForwardList()
+        val prev = list.getItemAtIndex(list.currentIndex - 1)?.url
+        web.goBack()
+        extractCache[cacheKey(prev)]?.let { renderOverlay(it) }
     }
 
     // ===================================================================== Video-Steuerung
@@ -1048,6 +1317,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
     private fun nextEpisode() {
         nextDone = false
+        if (videoMode) autoCinema = true
         showChip("Suche nächste Folge …", R.drawable.ic_next)
         js("window.__ovl ? __ovl.nextLocal() : false") { r ->
             if (r == "true") return@js
@@ -1208,6 +1478,11 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
 
     private fun showBrowserMenu() {
         val e = ArrayList<MenuEntry>()
+        e.add(MenuEntry(if (videoMode) "Video-Ansicht ausschalten" else "Video-Ansicht einschalten", R.drawable.ic_movie,
+            if (videoMode) "Wieder die ganze Webseite anzeigen" else "Nur die Videos dieser Seite – als TV-Oberfläche, für ${baseDomain(hostOf(web.url))} merken") {
+            setVideoMode(!videoMode)
+        })
+        if (videoMode && !overlayVisible) e.add(MenuEntry("Zur Video-Ansicht", R.drawable.ic_movie) { showOverlayFromCache() })
         e.add(MenuEntry("Schnellsuche auf dieser Seite", R.drawable.ic_search, "Begriff an die Suche von ${hostOf(web.url)} senden") { quickSearch() })
         e.add(MenuEntry("Adresse eingeben", R.drawable.ic_globe, hostOf(web.url)) {
             Tv.input(this, "Adresse", "Adresse oder Suchbegriff", web.url ?: "", url = true, icon = R.drawable.ic_globe, okLabel = "Öffnen") { u ->

@@ -91,6 +91,21 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   findet passende Kacheln, Weiterschauen-Einträge und Jellyfin-Titel – und schickt den Begriff auf Wunsch
   **direkt an die Suche jeder Webseiten-Kachel** („Auf Arte suchen“ öffnet Arte und sucht dort).
 
+### Video-Ansicht – nur die Videos statt der ganzen Seite
+- Für jede Webseite einschaltbar (beim Anlegen der Kachel, im Kachel-Menü oder im Browser-Menü; wird je Domain gemerkt).
+- Overlord lädt die Seite unsichtbar im Hintergrund und liest **Vorschaubilder, Titel und Reihen** aus
+  („Neue Folgen“, „Beliebte Serien“, Folgenlisten einer Staffel …). Angezeigt wird alles in der gewohnten
+  Overlord-Oberfläche mit 16:9-Karten – ohne Navigation, Banner und Werbung der Seite.
+- **Folge wählen → Kino-Modus:** Die Folgenseite wird im Hintergrund geöffnet, der Player (auch in eingebetteten
+  iframes) bildschirmfüllend gezogen und automatisch gestartet. Player-Leiste, Spulen, „Nächste Folge“,
+  automatisches Intro-Überspringen und Weiterschauen funktionieren wie gewohnt.
+- **Zurück** führt aus dem Kino-Modus zurück zur Übersicht – sofort, aus dem Zwischenspeicher, auf die zuletzt
+  gewählte Karte. ⏯ spielt die gewählte Karte ab.
+- „Webseite anzeigen“ (oben rechts oder in der Reihe *Diese Seite*) zeigt bei Bedarf die ganze Seite – z. B. für
+  Anmeldung oder Cookie-Hinweise. Mit Zurück geht es wieder in die Video-Ansicht.
+- „Suchen“ schickt einen Begriff an die Suche der Seite; die Treffer erscheinen wieder als Karten.
+- Findet Overlord keine Videos, wird automatisch die normale Seite angezeigt.
+
 ### Abspielen auf Webseiten („Scraper“)
 - Der Browser erkennt Video-Streams einer Seite automatisch: Netzwerk-Anfragen auf `.m3u8`, `.mp4`, `.webm` usw.
   sowie die Quelle des gerade laufenden `<video>`, auch in iframes.

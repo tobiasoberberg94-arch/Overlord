@@ -592,6 +592,243 @@
     scrollDir(dir > 0 ? 'down' : 'up', cur);
   });
 
+  /* ------------------------------------------------------------------ Video-Ansicht (Scraper) */
+  /* Liest Karten (Bild + Titel + Link), Reihen und den Player einer Seite aus,
+     damit Overlord sie als eigene TV-Oberfläche darstellen kann. */
+  function matchesSel(el, sel) {
+    var f = el.matches || el.webkitMatchesSelector || el.msMatchesSelector;
+    try { return f ? f.call(el, sel) : false; } catch (e) { return false; }
+  }
+  function closestSel(el, sel) {
+    while (el && el.nodeType === 1) { if (matchesSel(el, sel)) return el; el = el.parentElement; }
+    return null;
+  }
+  function absUrl(u) {
+    if (!u) return '';
+    u = String(u).trim();
+    if (/^data:|^blob:|^javascript:/i.test(u)) return '';
+    try { return new URL(u, location.href).href; } catch (e) { return ''; }
+  }
+  function bestFromSrcset(ss) {
+    if (!ss) return '';
+    var best = '', bw = -1;
+    ss.split(',').forEach(function (part) {
+      var bits = part.trim().split(/\s+/);
+      var w = parseInt(bits[1], 10) || 1;
+      if (bits[0] && w > bw) { bw = w; best = bits[0]; }
+    });
+    return best;
+  }
+  function imageOf(root) {
+    var im = root.tagName === 'IMG' ? root : root.querySelector('img');
+    var src = '';
+    if (im) {
+      if (im.naturalWidth && im.naturalWidth < 60 && im.naturalHeight < 60) im = null;
+    }
+    if (im) {
+      src = im.getAttribute('data-src') || im.getAttribute('data-lazy-src') || im.getAttribute('data-original') ||
+        bestFromSrcset(im.getAttribute('data-srcset')) || bestFromSrcset(im.getAttribute('srcset')) || im.currentSrc || im.src;
+    }
+    if (!src) {
+      var source = root.querySelector('source[srcset],source[data-srcset]');
+      if (source) src = bestFromSrcset(source.getAttribute('data-srcset') || source.getAttribute('srcset'));
+    }
+    if (!src) {
+      var cands = [root].concat([].slice.call(root.querySelectorAll('[style*="background"]'), 0, 6));
+      for (var i = 0; i < cands.length && !src; i++) {
+        var bg = '';
+        try { bg = W.getComputedStyle(cands[i]).backgroundImage || ''; } catch (e) {}
+        var m = /url\(["']?(.*?)["']?\)/.exec(bg);
+        if (m) src = m[1];
+      }
+    }
+    src = absUrl(src);
+    if (/\.svg(\?|$)/i.test(src)) return '';
+    return src;
+  }
+  function cleanText(t) { return String(t || '').replace(/\s+/g, ' ').trim(); }
+  function linesOf(el) {
+    var raw = String(el.innerText || el.textContent || '');
+    return raw.split(/\n+/).map(cleanText).filter(function (x) { return x.length > 0; });
+  }
+  function titleOf(card, link, img) {
+    var h = card.querySelector('h1,h2,h3,h4,h5,h6,[class*="title"],[class*="Title"],[class*="name"],[itemprop="name"]') ||
+      card.querySelector('strong,b');
+    var t = cleanText(link.getAttribute('title')) || cleanText(link.getAttribute('aria-label')) ||
+      (h ? cleanText(h.textContent) : '') || (img ? cleanText(img.getAttribute('alt')) : '') ||
+      cleanText(card.getAttribute('aria-label')) || (linesOf(link)[0] || '');
+    if (t.length > 90) t = t.slice(0, 88) + '…';
+    return t;
+  }
+  var DUR_RE = /\b(\d{1,2}:\d{2}(?::\d{2})?)\b|\b(\d{1,3})\s*(min\b|min\.|minuten)/i;
+  var EP_RE = /\b(s\d{1,2}\s*e\d{1,3}|staffel\s*\d+|folge\s*\d+|episode\s*\d+|ep\.?\s*\d+|teil\s*\d+)\b/i;
+  function subOf(card, title) {
+    var lines = linesOf(card).filter(function (l) { return l !== title && title.indexOf(l) < 0; });
+    if (lines.length && lines[0].length <= 60) return lines[0];
+    var txt = lines.join(' ');
+    var parts = [];
+    var ep = EP_RE.exec(txt); if (ep && title.toLowerCase().indexOf(ep[0].toLowerCase()) < 0) parts.push(ep[0]);
+    var d = DUR_RE.exec(txt); if (d) parts.push(d[0]);
+    return parts.join(' · ');
+  }
+  function inChrome(el) { return !!closestSel(el, 'nav,header,footer,[role="navigation"],[role="banner"],[role="contentinfo"],#cookie,[class*="cookie"],[id*="cookie"],[class*="consent"]'); }
+
+  var HEADING = 'h1,h2,h3,h4,[role="heading"],[class*="headline"],[class*="heading"],[class*="section-title"],[class*="sectionTitle"],[class*="rail-title"],[class*="row-title"]';
+  function headingFor(container, firstItem) {
+    var lbl = cleanText(container.getAttribute('aria-label'));
+    if (lbl && lbl.length < 60) return lbl;
+    var hs = container.querySelectorAll(HEADING);
+    for (var i = 0; i < hs.length; i++) {
+      var pos = hs[i].compareDocumentPosition(firstItem);
+      if ((pos & 4) && !hs[i].contains(firstItem)) { var t = cleanText(hs[i].textContent); if (t && t.length < 70) return t; }
+    }
+    var node = container;
+    for (var depth = 0; depth < 4 && node; depth++) {
+      var sib = node.previousElementSibling;
+      for (var k = 0; k < 3 && sib; k++) {
+        var h = matchesSel(sib, HEADING) ? sib : null;
+        if (!h) { var all = sib.querySelectorAll(HEADING); h = all.length ? all[all.length - 1] : null; }
+        if (h) { var tt = cleanText(h.textContent); if (tt && tt.length < 70) return tt; }
+        sib = sib.previousElementSibling;
+      }
+      node = node.parentElement;
+    }
+    return '';
+  }
+
+  function findPlayer() {
+    var best = null, area = 0;
+    var els = D.querySelectorAll('video,iframe,embed,object');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i], r = el.getBoundingClientRect();
+      if (r.width < 200 || r.height < 110) continue;
+      if (el.tagName === 'IFRAME') {
+        var s = (el.src || el.getAttribute('data-src') || '') + ' ' + clsOf(el) + ' ' + (el.getAttribute('allow') || '') + (el.hasAttribute('allowfullscreen') ? ' allowfullscreen' : '');
+        var looks = /player|embed|video|stream|watch|\/e\/|\/v\/|fullscreen|autoplay|encrypted-media/i.test(s) ||
+          (r.width >= W.innerWidth * 0.45 && r.height >= 200);
+        if (!looks || /doubleclick|googlesyndication|ads?[\.\/-]/i.test(el.src || '')) continue;
+      }
+      var a = r.width * r.height;
+      if (a > area) { area = a; best = el; }
+    }
+    return best;
+  }
+
+  O.extract = safe(function () {
+    var found = [], byUrl = {};
+    function add(card, link, img, textOnly) {
+      if (!link || !link.href || inChrome(card)) return;
+      var url = link.href;
+      if (!/^https?:/i.test(url) || url.split('#')[0] === location.href.split('#')[0]) return;
+      var r = card.getBoundingClientRect();
+      var w = r.width, h = r.height;
+      if (img) { var ri = img.getBoundingClientRect(); w = Math.max(w, ri.width); h = Math.max(h, ri.height); }
+      if (textOnly ? (w < 30 || h < 10) : (w < 70 || h < 40)) return;
+      var image = textOnly ? '' : (img ? imageOf(img.tagName === 'IMG' ? img : card) : imageOf(card));
+      var title = titleOf(card, link, img);
+      if (!title || title.length < 2) return;
+      var prev = byUrl[url];
+      if (prev && !textOnly) { if (!prev.image && image) prev.image = image; return; }
+      if (prev && textOnly && prev.textOnly) return;
+      var it = { el: card, url: url, title: title, image: image, sub: subOf(card, title), textOnly: !!textOnly };
+      if (!prev) byUrl[url] = it;
+      found.push(it);
+    }
+    // 1) Links mit Bild
+    var links = D.querySelectorAll('a[href]');
+    for (var i = 0; i < links.length && found.length < 400; i++) {
+      var a = links[i];
+      var im = a.querySelector('img,picture,[style*="background"]');
+      if (im) add(a, a, a.querySelector('img'));
+    }
+    // 2) Karten, bei denen Bild und Link Geschwister sind
+    var cards = D.querySelectorAll('article,li,[class*="card"],[class*="Card"],[class*="teaser"],[class*="Teaser"],[class*="tile"],[class*="item"],[class*="episode"],[class*="Episode"]');
+    for (var j = 0; j < cards.length && found.length < 400; j++) {
+      var c = cards[j];
+      if (!c.querySelector('img,[style*="background"]')) continue;
+      var l = c.querySelector('a[href]');
+      if (l && !byUrl[l.href]) add(c, l, c.querySelector('img'));
+    }
+    // 3) Folgen-Listen ohne Bilder („Folge 3“, „S1E4“ …)
+    for (var k = 0; k < links.length && found.length < 400; k++) {
+      var e = links[k];
+      if (e.querySelector('img')) continue;
+      var tx = cleanText(e.textContent);
+      if (tx && tx.length < 80 && EP_RE.test(tx)) add(e, e, null, true);
+    }
+
+    // Gruppieren: kleinster gemeinsamer Container mit mehreren Karten = eine Reihe
+    var touched = [];
+    found.forEach(function (it) {
+      var n = it.el.parentElement, depth = 0;
+      while (n && n !== D.body && depth++ < 14) {
+        if (!n.__ovlCnt) { n.__ovlCnt = 0; touched.push(n); }
+        n.__ovlCnt++;
+        n = n.parentElement;
+      }
+    });
+    var groups = [];
+    found.forEach(function (it) {
+      var n = it.el.parentElement, c = null, depth = 0;
+      while (n && n !== D.body && depth++ < 14) { if (n.__ovlCnt >= 3) { c = n; break; } n = n.parentElement; }
+      if (!c) c = it.el.parentElement || D.body;
+      var g = null;
+      for (var q = 0; q < groups.length; q++) if (groups[q].c === c) { g = groups[q]; break; }
+      if (!g) { g = { c: c, items: [] }; groups.push(g); }
+      g.items.push(it);
+    });
+    touched.forEach(function (n) { try { delete n.__ovlCnt; } catch (e) { n.__ovlCnt = 0; } });
+
+    var sections = [];
+    groups.forEach(function (g) {
+      var items = g.items.slice(0, 60).map(function (it) { return { url: it.url, title: it.title, image: it.image, sub: it.sub }; });
+      sections.push({ title: headingFor(g.c, g.items[0].el), items: items });
+    });
+    // Einzelne Karten ohne Reihe sammeln
+    var merged = [], loose = [];
+    sections.forEach(function (sct) { if (sct.items.length >= 2 || sct.title) merged.push(sct); else loose = loose.concat(sct.items); });
+    if (loose.length) merged.push({ title: '', items: loose.slice(0, 60) });
+
+    function meta(sel) { var m = D.querySelector(sel); return m ? (m.getAttribute('content') || '') : ''; }
+    var player = findPlayer();
+    var nextLink = findNext(false);
+    return {
+      url: location.href,
+      title: cleanText(meta('meta[property="og:title"]')) || cleanText(D.title),
+      site: cleanText(meta('meta[property="og:site_name"]')),
+      description: cleanText(meta('meta[property="og:description"]') || meta('meta[name="description"]')).slice(0, 300),
+      image: absUrl(meta('meta[property="og:image"]')),
+      player: player ? { tag: player.tagName, poster: absUrl(player.getAttribute('poster') || '') } : null,
+      next: nextLink && nextLink.href ? nextLink.href : '',
+      sections: merged.slice(0, 24)
+    };
+  });
+
+  /** Seite einmal durchscrollen, damit nachladende Bilder/Karten erscheinen. */
+  O.prefetch = safe(function () {
+    var i = 0, steps = 8, h = W.innerHeight;
+    var t = setInterval(function () {
+      i++;
+      W.scrollTo(0, i * h);
+      if (i >= steps) { clearInterval(t); setTimeout(function () { W.scrollTo(0, 0); }, 250); }
+    }, 220);
+    return true;
+  });
+
+  /** Kino-Modus: nur der Player, bildschirmfüllend (auch Player in iframes). */
+  O.cinema = safe(function (on) {
+    var marked = D.querySelectorAll('[data-ovl-cinema]');
+    for (var i = 0; i < marked.length; i++) { applyMax(marked[i], false); marked[i].removeAttribute('data-ovl-cinema'); }
+    if (!on) { O.cmd('unmaximize'); return 'off'; }
+    var p = findPlayer();
+    if (!p) return null;
+    try { p.scrollIntoView(); } catch (e) {}
+    p.setAttribute('data-ovl-cinema', '1');
+    applyMax(p, true);
+    if (p.tagName === 'VIDEO') tryPlay(p);
+    return p.tagName;
+  });
+
   /* ------------------------------------------------------------------ Text vom Handy */
   O.insertText = safe(function (text, submit) {
     var el = D.activeElement;

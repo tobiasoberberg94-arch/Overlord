@@ -54,6 +54,21 @@ key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 17-nativer-pla
 key KEYCODE_MENU;                           shot 18-player-optionen 3
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
+# Video-Ansicht: Demo-Mediathek als TV-Oberfläche, Folge wählen → Kino-Modus
+start -a android.intent.action.VIEW -d "${BASE}index.html" -n de.overlord.tv/.BrowserActivity --ez video true
+shot 23-videoansicht 10
+key KEYCODE_DPAD_RIGHT;                     shot 24-videoansicht-karte 3
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN;    shot 25-videoansicht-folgen 3
+key KEYCODE_DPAD_UP KEYCODE_DPAD_UP KEYCODE_DPAD_CENTER; shot 26-kinomodus 14
+key KEYCODE_BACK;                           shot 27-zurueck-zur-uebersicht 4
+key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+
+# Video-Ansicht auf einer echten Seite (arte.tv)
+start -a android.intent.action.VIEW -d "https://www.arte.tv/de/" -n de.overlord.tv/.BrowserActivity --ez video true
+shot 28-videoansicht-arte 16
+key KEYCODE_DPAD_DOWN;                      shot 29-videoansicht-arte-2 4
+key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+
 # Suche und Handy-Fernbedienung
 start -n de.overlord.tv/.MainActivity --es open_search "Expedition"
 shot 19-suche 8
