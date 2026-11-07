@@ -286,6 +286,10 @@ class BrowserActivity : Activity() {
         @JavascriptInterface
         fun textFocus(focused: Boolean) { ui.post { textFocus = focused } }
 
+        /** Synchron aus dem Skript: Schutz für die Hauptseite [topHost] aktiv? */
+        @JavascriptInterface
+        fun protect(topHost: String): Boolean = !AdBlock.isAllowed(applicationContext, topHost.ifBlank { hostOf(topUrl) })
+
         @JavascriptInterface
         fun nextDone() { ui.post { this@BrowserActivity.nextDone = true } }
     }
@@ -361,6 +365,7 @@ class BrowserActivity : Activity() {
 
     private inner class Client : WebViewClient() {
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
+            topUrl = url
             loadBar.visibility = View.VISIBLE
             textFocus = false
             maximized = false
@@ -385,7 +390,8 @@ class BrowserActivity : Activity() {
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
             val url = request.url
             val host = url.host
-            if (!request.isForMainFrame && AdBlock.isBlocked(host)) {
+            if (request.isForMainFrame) topUrl = url.toString()
+            if (!request.isForMainFrame && protectionOn() && AdBlock.isBlocked(host)) {
                 return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
             }
             val s = url.toString()
@@ -410,6 +416,12 @@ class BrowserActivity : Activity() {
 
     private var videoPageUrl: String? = null
 
+    /** Aktuelle Hauptseite (auch aus Hintergrund-Threads lesbar). */
+    @Volatile
+    private var topUrl: String? = null
+
+    private fun protectionOn() = !AdBlock.isAllowed(applicationContext, hostOf(topUrl))
+
     private fun recentActivate() = SystemClock.uptimeMillis() - lastActivate < 2000
 
     /** true = Navigation verhindern. */
@@ -417,10 +429,11 @@ class BrowserActivity : Activity() {
         val uri = Uri.parse(url)
         when (uri.scheme?.lowercase()) {
             "http", "https" -> {
+                if (!protectionOn()) { topUrl = url; return false }
                 if (AdBlock.isBlocked(uri.host)) { onBlocked(url, "Werbeseite blockiert"); return true }
-                if (redirect || gesture) return false
+                if (redirect || gesture) { topUrl = url; return false }
                 val cur = web.url
-                if (cur == null || cur == "about:blank" || sameSite(url, cur)) return false
+                if (cur == null || cur == "about:blank" || sameSite(url, cur)) { topUrl = url; return false }
                 // Automatische Umleitung ohne Klick auf eine fremde Domain
                 onBlocked(url, "Umleitung blockiert")
                 return true
@@ -487,6 +500,12 @@ class BrowserActivity : Activity() {
             web.requestFocus()
         }
 
+        /** DRM-geschützte Videos (Widevine) brauchen diese Freigabe, sonst bleiben sie schwarz. */
+        override fun onPermissionRequest(request: android.webkit.PermissionRequest) {
+            val wanted = request.resources.filter { it == android.webkit.PermissionRequest.RESOURCE_PROTECTED_MEDIA_ID }
+            if (wanted.isNotEmpty()) request.grant(wanted.toTypedArray()) else request.deny()
+        }
+
         override fun getDefaultVideoPoster(): Bitmap? = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
 
         override fun onCreateWindow(view: WebView, isDialog: Boolean, isUserGesture: Boolean, resultMsg: Message): Boolean {
@@ -496,7 +515,8 @@ class BrowserActivity : Activity() {
             fun handle(url: String) {
                 if (handled || url.isBlank() || url == "about:blank") return
                 handled = true
-                if (isUserGesture && sameSite(url, web.url) && !AdBlock.isBlocked(Uri.parse(url).host)) web.loadUrl(url)
+                if (!protectionOn() && isUserGesture) web.loadUrl(url)
+                else if (isUserGesture && sameSite(url, web.url) && !AdBlock.isBlocked(Uri.parse(url).host)) web.loadUrl(url)
                 else onBlocked(url, "Neues Fenster blockiert")
                 ui.postDelayed({ try { temp.destroy() } catch (e: Exception) { } }, 500)
             }
@@ -644,6 +664,7 @@ class BrowserActivity : Activity() {
             val iw = o.optDouble("iw", 0.0)
             val scale = if (iw > 0) web.width / iw else resources.displayMetrics.density.toDouble()
             tap((o.optDouble("x") * scale).toFloat(), (o.optDouble("y") * scale).toFloat())
+            if (o.optBoolean("media")) ensurePlayback()
         }
     }
 
@@ -799,6 +820,22 @@ class BrowserActivity : Activity() {
         }
     }
 
+    /**
+     * OK auf einen Player: Reagiert der Player nicht auf den Tipp (z. B. weil eine Klickfläche
+     * ein Pop-up statt des Videos öffnet), wird das Video per Skript gestartet – auch im iframe.
+     */
+    private fun ensurePlayback() {
+        var tries = 0
+        val tick = object : Runnable {
+            override fun run() {
+                if (isFinishing || (videoActive() && videoPlaying)) return
+                cmd("autoplay")
+                if (++tries < 4) ui.postDelayed(this, 1200)
+            }
+        }
+        ui.postDelayed(tick, 900)
+    }
+
     /** Beim Fortsetzen: Video automatisch starten (auch Player in iframes). */
     private fun startAutoplay() {
         autoplayTries = 0
@@ -890,6 +927,15 @@ class BrowserActivity : Activity() {
         if (detected.isNotEmpty()) items.add("🎬  Video nativ abspielen (${detected.size} erkannt)" to { chooseMedia() })
         if (videoActive()) items.add("⏯  Player-Leiste zeigen" to { showPlayerBar(true) })
         lastBlockedUrl?.let { b -> items.add("⚠  Blockiert – trotzdem öffnen: ${hostOf(b)}" to { lastActivate = SystemClock.uptimeMillis(); web.loadUrl(b) }) }
+        val site = hostOf(web.url)
+        if (site.isNotBlank()) {
+            val on = !AdBlock.isAllowed(this, site)
+            items.add((if (on) "🛡  Schutz auf ${baseDomain(site)} ausschalten (falls Videos nicht starten)" else "🛡  Schutz auf ${baseDomain(site)} wieder einschalten") to {
+                AdBlock.setAllowed(this, site, on)
+                showChip(if (on) "Werbe-/Pop-up-Schutz für ${baseDomain(site)} aus" else "Schutz für ${baseDomain(site)} an")
+                web.reload()
+            })
+        }
         items.add("🔗  Link-Modus" to { setMode(Mode.LINKS) })
         items.add("🖱  Zeiger-Modus" to { setMode(Mode.POINTER) })
         items.add("⌨  Normaler Modus" to { setMode(Mode.NORMAL) })

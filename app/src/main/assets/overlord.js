@@ -12,8 +12,23 @@
   try { isTop = (W.top === W); } catch (e) { isTop = false; }
   var B = null;
   try { B = W.OverlordBridge || null; } catch (e) { B = null; }
-  var O = W.__ovl = { version: 1 };
+  var O = W.__ovl = { version: 2 };
   var lastGesture = 0;
+
+  /* Schutz (Blocker/Overlay-Filter) für diese Seite aktiv? Entscheidet die App anhand der
+     Domain der Hauptseite – iframes ermitteln sie über ancestorOrigins/referrer. */
+  var topHost = '';
+  try { topHost = isTop ? location.hostname : ''; } catch (e) {}
+  if (!topHost) {
+    try {
+      var ao = location.ancestorOrigins;
+      if (ao && ao.length) topHost = new URL(ao[ao.length - 1]).hostname;
+    } catch (e) {}
+  }
+  if (!topHost) { try { topHost = new URL(D.referrer).hostname; } catch (e) {} }
+  var PROTECT = true;
+  try { if (B && B.protect) PROTECT = !!B.protect(String(topHost || '')); } catch (e) {}
+  O.protect = PROTECT;
 
   function now() { return new Date().getTime(); }
   function safe(fn) { return function () { try { return fn.apply(this, arguments); } catch (e) { return null; } }; }
@@ -51,7 +66,7 @@
     };
     return f;
   }
-  try {
+  if (PROTECT) try {
     W.open = function (url) {
       var href = '';
       try { href = new URL(String(url || ''), location.href).href; } catch (e) {}
@@ -76,7 +91,7 @@
     'a[href*="/aff_c?"]', 'a[href*="popads"]', 'a[href*="adsterra"]', 'a[href*="clickadu"]',
     'iframe[src*="exoclick"]', 'iframe[src*="juicyads"]', 'iframe[src*="adsterra"]'
   ].join(',');
-  var CSS = HIDE + '{display:none!important;visibility:hidden!important;pointer-events:none!important}' +
+  var CSS = (PROTECT ? HIDE + '{display:none!important;visibility:hidden!important;pointer-events:none!important}' : '') +
     '#__ovl_hl{position:fixed;z-index:2147483647;pointer-events:none;border:4px solid #FFD54A;border-radius:8px;' +
     'box-shadow:0 0 0 3px rgba(0,0,0,.65),0 0 22px rgba(255,213,74,.85);transition:all .12s ease-out;display:none;box-sizing:border-box}';
   function addStyle() {
@@ -90,7 +105,7 @@
   D.addEventListener('DOMContentLoaded', safe(addStyle));
 
   /* Unsichtbare Klickflächen über der Seite entschärfen */
-  var PLAYERISH = /player|vjs|video|plyr|jw-|jwplayer|shaka|control|bitmovin|clappr|dplayer|artplayer|mejs|flowplayer|__ovl/i;
+  var PLAYERISH = /player|vjs|video|plyr|jw-|jwplayer|shaka|control|bitmovin|clappr|dplayer|artplayer|mejs|flowplayer|play|poster|start|thumb|cover|preview|episode|stream|watch|media|__ovl/i;
   function isTransparent(el, cs) {
     if (parseFloat(cs.opacity) < 0.1) return true;
     var bg = cs.backgroundColor || '';
@@ -102,7 +117,6 @@
   function kill(el) {
     el.__ovlKilled = true;
     el.style.setProperty('pointer-events', 'none', 'important');
-    if (el.tagName === 'A') el.style.setProperty('display', 'none', 'important');
   }
   function checkOverlay(el, area) {
     if (!el || el.__ovlKilled || el.id === '__ovl_hl') return;
@@ -115,11 +129,11 @@
     if (PLAYERISH.test(clsOf(el))) return;
     if (el.querySelector('video,iframe,embed,object')) return;
     var z = parseInt(cs.zIndex, 10) || 0;
-    if (tag === 'A' && (z > 50 || isTransparent(el, cs))) { kill(el); return; }
+    // Nur klar unsichtbare Flächen entschärfen (sichtbare Links/Knöpfe bleiben unangetastet)
     if (z > 0 && isTransparent(el, cs)) kill(el);
   }
   var sweep = safe(function () {
-    if (!D.body) return;
+    if (!PROTECT || !D.body) return;
     var vw = W.innerWidth, vh = W.innerHeight, area = vw * vh;
     if (!vw || !vh) return;
     var pts = [[0.5, 0.5], [0.25, 0.3], [0.75, 0.3], [0.25, 0.75], [0.75, 0.75], [0.5, 0.12], [0.5, 0.9]];
@@ -506,7 +520,9 @@
     var x = r.left + r.width / 2, y = r.top + r.height / 2;
     x = Math.max(1, Math.min(W.innerWidth - 1, x));
     y = Math.max(1, Math.min(W.innerHeight - 1, y));
-    return { x: x, y: y, iw: W.innerWidth, tag: cur.tagName };
+    var media = cur.tagName === 'VIDEO' || cur.tagName === 'IFRAME' || !!(cur.querySelector && cur.querySelector('video,iframe')) ||
+      PLAYERISH.test(clsOf(cur));
+    return { x: x, y: y, iw: W.innerWidth, tag: cur.tagName, media: media };
   });
 
   O.showHl = safe(function (on) { hlOn = !!on; drawHl(); });

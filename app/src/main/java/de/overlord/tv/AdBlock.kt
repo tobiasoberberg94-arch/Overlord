@@ -25,7 +25,7 @@ object AdBlock {
     val BUILTIN: Set<String> = hashSetOf(
         // Werbenetzwerke
         "doubleclick.net", "googlesyndication.com", "googleadservices.com", "adservice.google.com",
-        "pagead2.googlesyndication.com", "imasdk.googleapis.com", "amazon-adsystem.com", "adnxs.com",
+        "pagead2.googlesyndication.com", "amazon-adsystem.com", "adnxs.com",
         "adsrvr.org", "criteo.com", "criteo.net", "pubmatic.com", "rubiconproject.com", "openx.net",
         "smartadserver.com", "adform.net", "yieldmo.com", "taboola.com", "outbrain.com", "mgid.com",
         "revcontent.com", "zedo.com", "media.net", "adition.com", "teads.tv", "sharethrough.com",
@@ -109,6 +109,19 @@ object AdBlock {
         } catch (e: Throwable) {
             false
         }
+    }
+
+    /** Domains (Hauptseite), auf denen der Schutz abgeschaltet ist. */
+    fun isAllowed(ctx: Context, host: String?): Boolean {
+        if (host.isNullOrBlank()) return false
+        return ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getStringSet("allow", emptySet())!!.contains(baseDomain(host))
+    }
+
+    fun setAllowed(ctx: Context, host: String, allowed: Boolean) {
+        val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        val set = HashSet(prefs.getStringSet("allow", emptySet())!!)
+        if (allowed) set.add(baseDomain(host)) else set.remove(baseDomain(host))
+        prefs.edit().putStringSet("allow", set).apply()
     }
 
     /** Prüft den Host und alle übergeordneten Domains. */

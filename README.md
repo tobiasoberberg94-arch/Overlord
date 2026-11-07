@@ -49,6 +49,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   und lässt sich unter *Einstellungen → Werbeblocker* sofort aktualisieren.
 - Blockiert `window.open`-Pop-ups, Pop-unders, neue Fenster auf fremde Domains und automatische Umleitungen ohne Klick.
   Die zuletzt blockierte Adresse lässt sich bei Bedarf über *☰ lang → Blockiert – trotzdem öffnen* aufrufen.
+- **Startet ein Video auf einer Seite nicht?** *☰ lang → Schutz auf … ausschalten* deaktiviert Blocker und Overlay-Filter nur für diese Domain (wird gespeichert, lässt sich dort wieder einschalten).
+- DRM-geschützte Web-Videos (Widevine) werden im eingebauten Browser freigegeben.
 - Blendet Werbebanner und unsichtbare Klickflächen über der Seite aus, auch in iframes.
   Das Skript wird per `androidx.webkit` **`addDocumentStartJavaScript`** in alle Frames eingeschleust.
   Ältere WebViews ohne diese Funktion bekommen es als Fallback nach dem Laden der Seite in den Hauptframe.
