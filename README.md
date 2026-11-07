@@ -6,21 +6,25 @@ Eine schlanke Fire-TV-App, die mehrere Streaming-Anbieter auf einem Startbildsch
 
 ## Funktionen
 
-- **Kachel-Startbildschirm**, voll mit der Fernbedienung steuerbar
+- **Startseite im Streaming-Look**: großer Hero-Bereich mit Infos zur ausgewählten Kachel,
+  darunter horizontale Reihen – komplett mit der Fernbedienung bedienbar
+- **Weiterschauen**: Folgen, die du im eingebauten Browser angefangen hast, erscheinen in einer
+  eigenen Reihe mit Fortschrittsbalken und laufen an der letzten Stelle weiter
+  (Videos unter 5 Minuten – Werbung/Trailer – werden ignoriert, fertig geschaute fliegen raus)
 - **Crunchyroll** und **Prime Video** sind vorinstalliert – die offiziellen Apps werden direkt gestartet
-  (ist eine App nicht installiert, öffnet sich der Amazon Appstore)
-- **Eigene Kacheln hinzufügen** (Kachel „+“):
-  - *Webseite* – wird im eingebauten TV-Browser geöffnet
-  - *Installierte App* – jede App auf dem Fire TV als Kachel
-- **Eingebauter TV-Browser** mit Maus-Cursor für Webseiten, die nicht für Fernbedienungen gemacht sind
-  - Steuerkreuz: Cursor bewegen (am Bildschirmrand wird gescrollt, gedrückt halten = schneller)
-  - OK: klicken
-  - Menü-Taste (☰): Cursor an/aus
-  - ⏪ / ⏩: seitenweise scrollen
-  - Zurück: vorherige Seite / Vollbild verlassen / Browser schließen
-  - Vollbild-Videos werden unterstützt, Pop-ups und `intent://`-Werbelinks werden blockiert
-- Kacheln **bearbeiten**: Kachel auswählen und **Menü-Taste** oder **OK lange drücken** →
-  Umbenennen, URL ändern, verschieben, Farbe ändern, entfernen
+- **Eigene Kacheln** (Karte „+ Hinzufügen“): beliebige Webseite oder installierte App
+- **Werbe- & Pop-up-Blocker** im eingebauten Browser:
+  - Werbe-Domains werden geblockt (eingebaute Liste + StevenBlack-Hosts-Liste, wöchentlich aktualisiert)
+  - `window.open`-Pop-ups, Pop-unders und Umleitungen auf fremde Domains ohne Klick werden verhindert
+  - typische Werbebanner und unsichtbare Klick-Fänger werden ausgeblendet – auch in Player-iframes
+- **Fernbedienungs-Steuerung** im Browser:
+  - **Link-Modus** (Standard): Steuerkreuz springt von Link zu Link, OK klickt
+  - **Cursor-Modus**: Steuerkreuz bewegt einen Zeiger (z. B. für Player-Knöpfe)
+  - **☰ Menü**: Modus wechseln (Links → Cursor → Normal)
+  - **⏯ Play/Pause**: Video starten/pausieren – auch wenn der Player in einem iframe steckt
+  - **⏪ / ⏩**: 10 s spulen (bei laufendem Video) bzw. seitenweise scrollen
+  - **Zurück**: Vollbild verlassen / vorherige Seite / Startseite
+- Kacheln **bearbeiten**: Karte auswählen und **☰** oder **OK lange drücken**
 
 ## APK bekommen
 
@@ -54,9 +58,14 @@ Die App erscheint danach unter **Apps & Kanäle**.
 
 ```
 app/src/main/java/de/overlord/tv/
-  MainActivity.kt   Startbildschirm mit Kacheln, Hinzufügen/Bearbeiten
-  WebActivity.kt    TV-Browser mit Fernbedienungs-Cursor und Vollbild-Video
-  Tile.kt           Kachel-Modell + Speicherung (SharedPreferences)
+  MainActivity.kt   Startseite (Hero + Reihen), Hinzufügen/Bearbeiten
+  WebActivity.kt    TV-Browser: Link-/Cursor-Steuerung, Pop-up-Filter, Vollbild-Video
+  AdBlocker.kt      Domain-Blockliste
+  HistoryStore.kt   Weiterschauen (Video-Fortschritt pro Seite)
+  Tile.kt           Kachel-Modell + Speicherung
+app/src/main/assets/
+  inject.js         läuft in jeder Seite/jedem iframe: Werbung ausblenden, Video-Fortschritt,
+                    Play/Pause-Befehle, Link-Navigation
 ```
 
-Keine externen Bibliotheken – nur Android-Framework + Kotlin. Läuft ab Fire OS 5 (API 22).
+Einzige Abhängigkeit: `androidx.webkit`. Läuft ab Fire OS 5 (API 22).

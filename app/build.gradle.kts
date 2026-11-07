@@ -35,3 +35,8 @@ android {
         jvmTarget = "17"
     }
 }
+
+dependencies {
+    // Skript-Injektion in alle Frames (auch Player-iframes) für Werbeblocker & Weiterschauen
+    implementation("androidx.webkit:webkit:1.12.1")
+}
