@@ -57,6 +57,7 @@ class RowsView(context: Context) : FrameLayout(context) {
     private val screenH = resources.displayMetrics.heightPixels
     private val screenW = resources.displayMetrics.widthPixels
     private val heroH = (screenH * 0.47f).toInt()
+    private val rowsTop = (screenH * 0.555f).toInt()
     private val side = context.dp(56)
     private val cardW = context.dp(240)
     private val cardH = cardW * 9 / 16
@@ -80,9 +81,9 @@ class RowsView(context: Context) : FrameLayout(context) {
     private val heroGlow = View(context)
     private val heroText = LinearLayout(context)
     private val heroEyebrow = context.label("", 13f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.2f }
-    private val heroTitle = context.label("", 44f, Fonts.display).apply { setShadowLayer(16f, 0f, 2f, 0xAA000000.toInt()) }
+    private val heroTitle = context.label("", 42f, Fonts.display).apply { setShadowLayer(16f, 0f, 2f, 0xAA000000.toInt()) }
     private val heroChips = LinearLayout(context)
-    private val heroDesc = context.label("", 16f, Fonts.regular, 0xFFD6D6E2.toInt(), lines = 3).apply {
+    private val heroDesc = context.label("", 16f, Fonts.regular, 0xFFD6D6E2.toInt(), lines = 2).apply {
         setLineSpacing(0f, 1.25f)
         setShadowLayer(10f, 0f, 1f, 0xAA000000.toInt())
     }
@@ -142,6 +143,9 @@ class RowsView(context: Context) : FrameLayout(context) {
         heroArt.addView(heroImage, LayoutParams(-1, -1))
         heroArt.addView(heroGlyph, LayoutParams(context.dp(170), context.dp(170), Gravity.CENTER))
         addView(heroArt, LayoutParams(imgW, imgH, Gravity.END or Gravity.TOP))
+        addView(View(context).apply {
+            background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(0x8C000000.toInt(), Color.TRANSPARENT))
+        }, LayoutParams(-1, context.dp(130), Gravity.TOP))
 
         // Kopfzeile: Logo links, Uhr rechts
         val top = FrameLayout(context).apply { setPadding(side, context.dp(26), side, 0) }
@@ -172,23 +176,25 @@ class RowsView(context: Context) : FrameLayout(context) {
         // Hero-Text links
         heroText.orientation = LinearLayout.VERTICAL
         heroText.setPadding(side, 0, 0, 0)
-        val textW = (screenW * 0.48f).toInt()
+        val textW = (screenW * 0.52f).toInt()
         heroText.addView(heroEyebrow)
-        heroText.addView(heroTitle, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(8) })
+        heroText.addView(heroTitle, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(6) })
         heroChips.orientation = LinearLayout.HORIZONTAL
-        heroText.addView(heroChips, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(12) })
-        heroText.addView(heroDesc, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(14) })
+        heroText.addView(heroChips, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(10) })
+        heroText.addView(heroDesc, LinearLayout.LayoutParams(textW, -2).apply { topMargin = context.dp(12) })
         heroProgressBox.orientation = LinearLayout.HORIZONTAL
         heroProgressBox.gravity = Gravity.CENTER_VERTICAL
         heroProgressTrack.background = rounded(0x33FFFFFF, context.dpf(3f))
         heroProgressFill.background = rounded(Brand.ACCENT2, context.dpf(3f))
         heroProgressTrack.addView(heroProgressFill, LayoutParams(0, -1))
-        heroProgressBox.addView(heroProgressTrack, LinearLayout.LayoutParams(context.dp(260), context.dp(5)))
+        heroProgressBox.addView(heroProgressTrack, LinearLayout.LayoutParams(context.dp(200), context.dp(5)))
         heroProgressBox.addView(heroProgressText, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = context.dp(14) })
-        heroText.addView(heroProgressBox, LinearLayout.LayoutParams(-2, -2).apply { topMargin = context.dp(16) })
         heroHints.orientation = LinearLayout.HORIZONTAL
-        heroText.addView(heroHints, LinearLayout.LayoutParams(-2, -2).apply { topMargin = context.dp(16) })
-        addView(heroText, LayoutParams(-1, heroH, Gravity.TOP).apply { topMargin = context.dp(92) })
+        val bottomRow = LinearLayout(context).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        bottomRow.addView(heroProgressBox, LinearLayout.LayoutParams(-2, -2).apply { rightMargin = context.dp(28) })
+        bottomRow.addView(heroHints)
+        heroText.addView(bottomRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = context.dp(14) })
+        addView(heroText, LayoutParams(-1, rowsTop - context.dp(84), Gravity.TOP).apply { topMargin = context.dp(84) })
 
         // Reihen
         rowsContainer.orientation = LinearLayout.VERTICAL
@@ -199,7 +205,7 @@ class RowsView(context: Context) : FrameLayout(context) {
         emptyText.setPadding(side, context.dp(24), side, 0)
         emptyText.visibility = View.GONE
         rowsClip.addView(emptyText)
-        addView(rowsClip, LayoutParams(-1, -1).apply { topMargin = heroH + context.dp(26) })
+        addView(rowsClip, LayoutParams(-1, -1).apply { topMargin = rowsTop })
 
         applyColor(Brand.SURFACE)
     }
@@ -329,7 +335,9 @@ class RowsView(context: Context) : FrameLayout(context) {
         val o = heroOverride
         heroEyebrow.text = if (o != null) "VERSCHIEBEN" else item.eyebrow
         heroEyebrow.visibility = if (heroEyebrow.text.isNullOrBlank()) View.GONE else View.VISIBLE
-        heroTitle.text = o?.first ?: item.title
+        val title = o?.first ?: item.title
+        heroTitle.text = title
+        heroTitle.textSize = when { title.length <= 18 -> 42f; title.length <= 26 -> 36f; else -> 30f }
         heroDesc.text = o?.third ?: item.description
         heroDesc.visibility = if (heroDesc.text.isNullOrBlank()) View.GONE else View.VISIBLE
 
@@ -463,12 +471,15 @@ class CardView(context: Context, val item: CardItem) : FrameLayout(context) {
                 if (item.logoUrls.isNotEmpty()) {
                     val logo = ImageView(context).apply {
                         scaleType = ImageView.ScaleType.CENTER_CROP
-                        background = rounded(Color.WHITE, context.dpf(8f))
                         outlineProvider = ViewOutlineProvider.BACKGROUND
                         clipToOutline = true
+                        visibility = View.INVISIBLE
                     }
                     addView(logo, LayoutParams(context.dp(30), context.dp(30), Gravity.TOP or Gravity.START).apply { topMargin = context.dp(10); leftMargin = context.dp(10) })
-                    ImageLoader.load(logo, item.logoUrls, 96)
+                    ImageLoader.load(logo, item.logoUrls, 96) {
+                        logo.background = rounded(Color.WHITE, context.dpf(8f))
+                        logo.visibility = View.VISIBLE
+                    }
                 }
             }
             icon != null && iconIsBanner -> {
@@ -486,7 +497,10 @@ class CardView(context: Context, val item: CardItem) : FrameLayout(context) {
                     clipToOutline = true
                 }
                 addView(logo, LayoutParams(context.dp(58), context.dp(58), Gravity.CENTER).apply { bottomMargin = context.dp(18) })
-                ImageLoader.load(logo, item.logoUrls, 192)
+                // Kein Symbol ladbar → Anfangsbuchstabe als Ersatz
+                val letter = context.label(item.title.take(1).uppercase(), 30f, Fonts.bold).apply { gravity = Gravity.CENTER }
+                addView(letter, LayoutParams(context.dp(58), context.dp(58), Gravity.CENTER).apply { bottomMargin = context.dp(18) })
+                ImageLoader.load(logo, item.logoUrls, 192) { letter.visibility = View.GONE }
             }
             item.iconRes != null -> {
                 addView(context.icon(item.iconRes, if (item.dashed) Brand.TEXT_DIM else Brand.TEXT), LayoutParams(context.dp(40), context.dp(40), Gravity.CENTER).apply { bottomMargin = context.dp(18) })

@@ -111,6 +111,32 @@ object AdBlock {
         }
     }
 
+    // ------------------------------------------------------------------ Statistik
+
+    private val today = java.util.concurrent.atomic.AtomicInteger(-1)
+    private var todayKey = ""
+
+    private fun dayKey() = java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.US).format(java.util.Date())
+
+    /** Eine blockierte Anfrage zählen (wird alle 25 Anfragen gespeichert). */
+    fun recordBlocked() {
+        val ctx = App.instance
+        val key = dayKey()
+        if (today.get() < 0 || key != todayKey) {
+            todayKey = key
+            today.set(ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt("blocked_$key", 0))
+        }
+        val n = today.incrementAndGet()
+        if (n % 25 == 0) ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putInt("blocked_$key", n).apply()
+    }
+
+    /** Heute blockierte Werbe-Anfragen. */
+    fun blockedToday(ctx: Context): Int {
+        val key = dayKey()
+        val saved = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getInt("blocked_$key", 0)
+        return if (key == todayKey) maxOf(saved, today.get()) else saved
+    }
+
     /** Domains (Hauptseite), auf denen der Schutz abgeschaltet ist. */
     fun isAllowed(ctx: Context, host: String?): Boolean {
         if (host.isNullOrBlank()) return false

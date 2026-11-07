@@ -49,8 +49,11 @@ object PhoneRemote {
 
     fun newPin() { prefs.edit().putString("pin", String.format("%04d", Random.nextInt(10000))).apply() }
 
+    @Volatile private var starting = false
+
     fun start() {
-        if (running) return
+        if (running || starting) return
+        starting = true
         Thread {
             for (p in PORT until PORT + 10) {
                 try {
@@ -60,6 +63,7 @@ object PhoneRemote {
                     break
                 } catch (e: Exception) { }
             }
+            starting = false
             val s = server ?: return@Thread
             while (!s.isClosed) {
                 try {
@@ -103,7 +107,9 @@ object PhoneRemote {
                 val req = read(BufferedInputStream(s.getInputStream())) ?: return
                 val (status, type, body) = route(req)
                 val bytes = body.toByteArray(Charsets.UTF_8)
-                val head = "HTTP/1.1 $status\r\nContent-Type: $type\r\nContent-Length: ${bytes.size}\r\n" +
+                val extra = if (req.path == "/api/export" && status.startsWith("200"))
+                    "Content-Disposition: attachment; filename=\"overlord-sicherung.json\"\r\n" else ""
+                val head = "HTTP/1.1 $status\r\nContent-Type: $type\r\nContent-Length: ${bytes.size}\r\n" + extra +
                     "Cache-Control: no-store\r\nConnection: close\r\n\r\n"
                 s.getOutputStream().apply { write(head.toByteArray(Charsets.ISO_8859_1)); write(bytes); flush() }
             } catch (e: Exception) { }
@@ -126,7 +132,7 @@ object PhoneRemote {
         if (parts.size < 2) return null
         val headers = HashMap<String, String>()
         lines.drop(1).forEach { l -> val i = l.indexOf(':'); if (i > 0) headers[l.substring(0, i).trim().lowercase()] = l.substring(i + 1).trim() }
-        val len = headers["content-length"]?.toIntOrNull()?.coerceIn(0, 65_536) ?: 0
+        val len = headers["content-length"]?.toIntOrNull()?.coerceIn(0, 2_000_000) ?: 0
         val body = ByteArray(len)
         var off = 0
         while (off < len) { val n = input.read(body, off, len - off); if (n < 0) break; off += n }
@@ -159,6 +165,14 @@ object PhoneRemote {
         val body = try { if (r.body.isBlank()) JSONObject() else JSONObject(r.body) } catch (e: Exception) { JSONObject() }
         return when (r.path) {
             "/api/info" -> json(info())
+            "/api/export" -> json(Backup.export().toString(2))
+            "/api/import" -> try {
+                val summary = Backup.import(body)
+                onMain { ctx -> Events.changed(); (ctx as? Activity)?.tvToast("Sicherung eingespielt: $summary", R.drawable.ic_check) }
+                json(JSONObject().put("ok", true).put("summary", summary))
+            } catch (e: Exception) {
+                Triple("400 Bad Request", "application/json", JSONObject().put("error", e.message ?: "Ungültige Datei").toString())
+            }
             "/api/key" -> { key(body.optString("key")); json(JSONObject().put("ok", true)) }
             "/api/text" -> { val ok = text(body.optString("text"), body.optBoolean("submit")); json(JSONObject().put("ok", ok)) }
             "/api/open" -> {

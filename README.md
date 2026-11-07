@@ -67,6 +67,14 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   - **Mehr:** Weiterschauen-Liste und Kacheln antippen, um sie auf dem TV zu starten
 - Geschützt durch eine 4-stellige PIN (neu erzeugbar), Sperre nach mehreren Fehlversuchen.
 
+### Selbst-Update & Design
+- Overlord TV prüft regelmäßig das Release `latest` (Datei `version.json`) und meldet neue Versionen.
+  Unter *Einstellungen → Update* wird die neue APK heruntergeladen und über den System-Installer eingespielt –
+  ohne Downloader-App. (Einmalig „Apps aus unbekannten Quellen“ für Overlord TV erlauben.)
+  Manuell: *Einstellungen → Info*, dann ☰.
+- *Einstellungen → Design*: Akzentfarben wählen (Overlord, Ozean, Rubin, Smaragd, Sonne, Mitternacht) –
+  gilt auch für die Link-Markierung im Browser.
+
 ### Suche
 - **Globale Suche** über *Suchen* in der Kopfzeile, die Suchtaste oder vom Handy:
   findet passende Kacheln, Weiterschauen-Einträge und Jellyfin-Titel – und schickt den Begriff auf Wunsch

@@ -9,6 +9,7 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        Brand.applyTheme(Prefs.theme)
         Fonts.init(this)
         ImageLoader.init(this)
         AdBlock.init(this)

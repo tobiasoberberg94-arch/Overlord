@@ -27,7 +27,7 @@
   .btn { border:0; border-radius:16px; padding:15px 10px; background:var(--s2); color:var(--tx); font-size:16px; font-weight:650; border:1px solid var(--st); }
   .btn:active { transform:scale(.97); background:var(--ac); }
   .btn.primary { background:var(--ac); border-color:var(--ac); }
-  input, textarea { width:100%; background:var(--s2); color:var(--tx); border:1px solid var(--st); border-radius:14px; padding:14px; font-size:17px; outline:none; }
+  input, textarea { width:100%; background:var(--s2); color:var(--tx); border:1px solid var(--st); border-radius:14px; padding:14px; font:inherit; font-size:17px; outline:none; }
   input:focus, textarea:focus { border-color:var(--ac); }
   textarea { min-height:96px; resize:vertical; }
   label.chk { display:flex; align-items:center; gap:10px; color:var(--dim); margin:10px 0 14px; font-size:15px; }
@@ -107,6 +107,13 @@
 <section class="tab" id="more">
   <div class="card"><div class="eyebrow">WEITERSCHAUEN</div><div class="list" id="cont"><p class="muted">Lade …</p></div></div>
   <div class="card"><div class="eyebrow">KACHELN</div><div class="list" id="tiles"></div></div>
+  <div class="card">
+    <div class="eyebrow">SICHERUNG</div>
+    <h2>Kacheln &amp; Einstellungen sichern</h2>
+    <p class="muted">Kacheln, Weiterschauen, Verlauf und Einstellungen als Datei – z. B. für einen zweiten Fire TV oder nach einer Neuinstallation.</p>
+    <div class="row"><button class="btn" onclick="exportBackup()">Herunterladen</button><button class="btn" onclick="$('imp').click()">Einspielen …</button></div>
+    <input type="file" id="imp" accept="application/json,.json" style="display:none" onchange="importBackup(this)">
+  </div>
 </section>
 
 <nav id="nav">
@@ -153,6 +160,17 @@ function sendText() { var t = $('txt').value; if (!t) return; api('text', { text
 function search() { var t = $('txt').value.trim(); if (!t) return; api('search', { q: t }).then(function () { toast('Suche auf dem TV …'); }); }
 function openUrl() { var u = $('url').value.trim(); if (!u) return; api('open', { url: u }).then(function () { toast('Wird geöffnet …'); }); }
 function addTile() { var u = $('url').value.trim(); if (!u) { toast('Erst oben einen Link eingeben'); return; } api('tile', { url: u, name: $('tname').value.trim() }).then(function (r) { toast('Kachel „' + r.name + '“ angelegt'); $('tname').value = ''; }); }
+function exportBackup() { location.href = '/api/export?pin=' + encodeURIComponent(PIN); }
+function importBackup(inp) {
+  var f = inp.files && inp.files[0]; if (!f) return;
+  var r = new FileReader();
+  r.onload = function () {
+    var data; try { data = JSON.parse(r.result); } catch (e) { toast('Keine gültige Datei'); return; }
+    if (!confirm('Sicherung einspielen? Kacheln und Einstellungen auf dem Fernseher werden ersetzt.')) return;
+    api('import', data).then(function (res) { toast(res.ok ? 'Eingespielt: ' + res.summary : (res.error || 'Fehler')); loadInfo(); }).catch(function () { toast('Fehler beim Einspielen'); });
+  };
+  r.readAsText(f); inp.value = '';
+}
 function esc(s) { return String(s || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 function loadInfo() {
   api('info').then(function (d) {

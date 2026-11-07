@@ -11,6 +11,11 @@ object Prefs {
         get() = p.getBoolean("autoSkip", true)
         set(v) { p.edit().putBoolean("autoSkip", v).apply() }
 
+    /** Gewähltes Farbthema (Index in Brand.THEMES). */
+    var theme: Int
+        get() = p.getInt("theme", 0)
+        set(v) { p.edit().putInt("theme", v).apply() }
+
     /** Am Ende eines Videos automatisch die nächste Folge starten (mit Countdown). */
     var autoNext: Boolean
         get() = p.getBoolean("autoNext", true)

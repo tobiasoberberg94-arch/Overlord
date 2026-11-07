@@ -91,10 +91,12 @@
     'a[href*="/aff_c?"]', 'a[href*="popads"]', 'a[href*="adsterra"]', 'a[href*="clickadu"]',
     'iframe[src*="exoclick"]', 'iframe[src*="juicyads"]', 'iframe[src*="adsterra"]'
   ].join(',');
+  var ACC = '#8B5CF6';
+  try { if (B && B.accent) ACC = String(B.accent()); } catch (e) {}
   var CSS = (PROTECT ? HIDE + '{display:none!important;visibility:hidden!important;pointer-events:none!important}' : '') +
     '#__ovl_hl{position:fixed;z-index:2147483647;pointer-events:none;border:3px solid #fff;border-radius:10px;' +
-    'box-shadow:0 0 0 3px #8B5CF6,0 0 26px 6px rgba(139,92,246,.75),inset 0 0 0 1px rgba(0,0,0,.35);' +
-    'background:rgba(139,92,246,.10);transition:all .14s ease-out;display:none;box-sizing:border-box}';
+    'box-shadow:0 0 0 3px ' + ACC + ',0 0 26px 6px ' + ACC + 'BF,inset 0 0 0 1px rgba(0,0,0,.35);' +
+    'background:' + ACC + '1A;transition:all .14s ease-out;display:none;box-sizing:border-box}';
   function addStyle() {
     if (D.getElementById('__ovl_css')) return;
     var s = D.createElement('style');
@@ -450,11 +452,16 @@
     if (!hlOn || !cur || !cur.isConnected && !D.documentElement.contains(cur)) { if (hl) hl.style.display = 'none'; return; }
     var r = cur.getBoundingClientRect();
     var h = ensureHl();
+    // Auf den sichtbaren Bereich zuschneiden, damit bei riesigen Elementen alle vier Kanten sichtbar bleiben
+    var vw = W.innerWidth, vh = W.innerHeight;
+    var l = Math.max(r.left - 4, 4), t = Math.max(r.top - 4, 4);
+    var rr = Math.min(r.right + 4, vw - 4), bb = Math.min(r.bottom + 4, vh - 4);
+    if (rr - l < 8 || bb - t < 8) { h.style.display = 'none'; return; }
     h.style.display = 'block';
-    h.style.left = (r.left - 4) + 'px';
-    h.style.top = (r.top - 4) + 'px';
-    h.style.width = (r.width + 8) + 'px';
-    h.style.height = (r.height + 8) + 'px';
+    h.style.left = l + 'px';
+    h.style.top = t + 'px';
+    h.style.width = (rr - l) + 'px';
+    h.style.height = (bb - t) + 'px';
   });
   W.addEventListener('scroll', drawHl, true);
   W.addEventListener('resize', drawHl);

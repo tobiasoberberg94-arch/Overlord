@@ -9,7 +9,7 @@ longkey() { timeout 15 adb shell input keyevent --longpress "$1"; sleep 0.8; }
 start() { timeout 30 adb shell am start "$@"; }
 
 # Lokaler Demo-Server (aus Sicht des Emulators: 10.0.2.2)
-(cd demo && setsid nohup python3 -m http.server 8000 </dev/null >/dev/null 2>&1 &)
+setsid nohup python3 .github/scripts/serve.py demo </dev/null >/dev/null 2>&1 &
 BASE="http://10.0.2.2:8000/"
 
 adb install -r dist/overlord-tv.apk || exit 0
@@ -46,12 +46,28 @@ key KEYCODE_BACK
 longkey KEYCODE_MENU;                       shot 16-browsermenue-video 3
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
+# Nativer Player (Browser-Menü → „Video nativ abspielen“)
+start -a android.intent.action.VIEW -d "${BASE}watch.html?ep=3" -n de.overlord.tv/.BrowserActivity
+sleep 12
+longkey KEYCODE_MENU
+key KEYCODE_DPAD_DOWN KEYCODE_DPAD_DOWN KEYCODE_DPAD_CENTER; shot 17-nativer-player 8
+key KEYCODE_MENU;                           shot 18-player-optionen 3
+key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+
+# Suche und Handy-Fernbedienung
+start -n de.overlord.tv/.MainActivity --es open_search "Expedition"
+shot 19-suche 8
+key KEYCODE_BACK
+start -n de.overlord.tv/.MainActivity --ez show_phone true
+shot 20-handy-qr 6
+key KEYCODE_BACK
+
 # Jellyfin-Demo-Server
 start -n de.overlord.tv/.MainActivity --ez open_library true
-shot 17-jellyfin 25
-key KEYCODE_DPAD_DOWN;                      shot 18-jellyfin-reihen 6
+shot 21-jellyfin 25
+key KEYCODE_DPAD_DOWN;                      shot 22-jellyfin-reihen 6
 
-pkill -f "http.server 8000" || true
+pkill -f "serve.py demo" || true
 echo "===== LOGCAT (Fehler) ====="
 timeout 30 adb logcat -d -v brief AndroidRuntime:E System.err:W '*:S' | tail -n 120
 ls -la shots

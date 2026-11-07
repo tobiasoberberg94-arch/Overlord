@@ -117,6 +117,9 @@ class BrowserActivity : Activity() {
     private var endHandled = false
     private var countdown = 0
     private var pendingSearch: String? = null
+    /** Blockierte Werbe-Anfragen der aktuellen Seite (Zähler aus dem Netzwerk-Thread). */
+    private val blockedCount = java.util.concurrent.atomic.AtomicInteger(0)
+    private var currentSite = ""
 
     // Navigation / Blocker
     private var lastActivate = 0L
@@ -204,6 +207,31 @@ class BrowserActivity : Activity() {
         web.loadUrl(url)
         web.requestFocus()
         showMode()
+        showKeyHelpOnce()
+    }
+
+    /** Kurze Tastenhilfe bei den ersten drei Browser-Starts. */
+    private fun showKeyHelpOnce() {
+        val prefs = getSharedPreferences(PREFS, MODE_PRIVATE)
+        val shown = prefs.getInt("help_shown", 0)
+        if (shown >= 3) return
+        prefs.edit().putInt("help_shown", shown + 1).apply()
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(24), dp(20), dp(26), dp(20))
+            background = rounded(0xF0161622.toInt(), dpf(20f), dp(1), withAlpha(Brand.ACCENT, 0x99))
+            elevation = dpf(28f)
+            alpha = 0f
+        }
+        panel.addView(label("SO STEUERST DU WEBSEITEN", 12f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.2f })
+        listOf("◀ ▲ ▼ ▶" to "zum nächsten Link springen", "OK" to "anklicken", "☰" to "Modus: Links → Zeiger → Normal",
+            "☰ lang" to "Menü: Suche, Video nativ, Schutz …", "⏯ ⏪ ⏩" to "Video steuern – auch im eingebetteten Player",
+            "Zurück" to "vorherige Seite / Startseite").forEach { (k, t) ->
+            panel.addView(Tv.keyHint(this, k, t), LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(10) })
+        }
+        root.addView(panel, FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.START).apply { leftMargin = dp(40); bottomMargin = dp(40) })
+        panel.animate().alpha(1f).setStartDelay(600).setDuration(250).start()
+        ui.postDelayed({ panel.animate().alpha(0f).setDuration(400).withEndAction { root.removeView(panel) }.start() }, 9000)
     }
 
     /** Glas-Pille mit Symbol und Text (Modus-Anzeige, Hinweise). */
@@ -405,6 +433,10 @@ class BrowserActivity : Activity() {
         @JavascriptInterface
         fun nextDone() { ui.post { this@BrowserActivity.nextDone = true } }
 
+        /** Synchron: Akzentfarbe für die Link-Markierung. */
+        @JavascriptInterface
+        fun accent(): String = String.format("#%06X", Brand.ACCENT and 0xFFFFFF)
+
         /** Synchron: Intro/Werbung automatisch überspringen? */
         @JavascriptInterface
         fun autoSkip(): Boolean = Prefs.autoSkip
@@ -494,6 +526,13 @@ class BrowserActivity : Activity() {
             topUrl = url
             val zoom = zoomFor(url)
             if (web.settings.textZoom != zoom) web.settings.textZoom = zoom
+            val site = baseDomain(hostOf(url))
+            if (site != currentSite) {
+                currentSite = site
+                blockedCount.set(0)
+                val saved = savedModeFor(url)
+                if (saved != mode) setMode(saved, remember = false)
+            }
             loadBar.visibility = View.VISIBLE
             textFocus = false
             maximized = false
@@ -528,6 +567,8 @@ class BrowserActivity : Activity() {
             val host = url.host
             if (request.isForMainFrame) topUrl = url.toString()
             if (!request.isForMainFrame && protectionOn() && AdBlock.isBlocked(host)) {
+                blockedCount.incrementAndGet()
+                AdBlock.recordBlocked()
                 return WebResourceResponse("text/plain", "utf-8", ByteArrayInputStream(ByteArray(0)))
             }
             val s = url.toString()
@@ -882,16 +923,26 @@ class BrowserActivity : Activity() {
         setMode(when (mode) { Mode.LINKS -> Mode.POINTER; Mode.POINTER -> Mode.NORMAL; Mode.NORMAL -> Mode.LINKS })
     }
 
-    private fun setMode(m: Mode) {
+    /** Zuletzt genutzter Steuerungsmodus für diese Domain (Standard: Link-Modus). */
+    private fun savedModeFor(url: String): Mode = try {
+        Mode.valueOf(getSharedPreferences("mode", MODE_PRIVATE).getString(baseDomain(hostOf(url)), Mode.LINKS.name) ?: Mode.LINKS.name)
+    } catch (e: Exception) {
+        Mode.LINKS
+    }
+
+    private fun setMode(m: Mode, remember: Boolean = true) {
         mode = m
+        if (remember) hostOf(web.url).takeIf { it.isNotBlank() }?.let { getSharedPreferences("mode", MODE_PRIVATE).edit().putString(baseDomain(it), m.name).apply() }
         when (m) {
             Mode.LINKS -> {
                 cursor.visibility = View.GONE
                 js("window.__ovl && __ovl.showHl(true)")
             }
             Mode.POINTER -> {
-                if (cursorX == 0f && cursorY == 0f) { cursorX = web.width / 2f; cursorY = web.height / 2f }
-                placeCursor()
+                web.post {
+                    if (cursorX == 0f && cursorY == 0f) { cursorX = web.width / 2f; cursorY = web.height / 2f }
+                    placeCursor()
+                }
                 cursor.visibility = View.VISIBLE
                 js("window.__ovl && __ovl.showHl(false)")
             }
@@ -1170,7 +1221,9 @@ class BrowserActivity : Activity() {
         })
         e.add(MenuEntry("Neu laden", R.drawable.ic_refresh) { web.reload() })
         e.add(MenuEntry("Zur Startseite", R.drawable.ic_home) { finish() })
-        Tv.menu(this, pageTitle(), e, subtitle = hostOf(web.url), eyebrow = "BROWSER")
+        val blocked = blockedCount.get()
+        Tv.menu(this, pageTitle(), e,
+            subtitle = hostOf(web.url) + (if (blocked > 0) "  ·  $blocked Werbe-Anfragen blockiert" else ""), eyebrow = "BROWSER")
     }
 
     private fun quickSearch() {

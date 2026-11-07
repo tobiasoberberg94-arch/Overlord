@@ -25,7 +25,25 @@ class MainActivity : Activity() {
         root.addView(rows)
         setContentView(root)
         if (savedInstanceState == null) showSplash(root)
+        showWelcomeOnce()   // vor handleIntent: das Demo-Extra (CI) unterdrückt die Begrüßung
         handleIntent(intent)
+    }
+
+    /** Einmalige Begrüßung mit den wichtigsten Tipps. */
+    private fun showWelcomeOnce() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        if (prefs.getBoolean("welcomed", false) || intent?.getBooleanExtra("overlord_demo", false) == true) return
+        prefs.edit().putBoolean("welcomed", true).apply()
+        rows.postDelayed({
+            if (isFinishing) return@postDelayed
+            Tv.info(this, "Willkommen bei Overlord TV",
+                "• Steuerkreuz wählt, OK öffnet – ☰ oder OK lange drücken zeigt Optionen zu jeder Kachel.\n\n" +
+                    "• „Hinzufügen“ legt Kacheln für Webseiten oder Apps an. Webseiten bekommen Vorschaubild und Farbe automatisch.\n\n" +
+                    "• Im eingebauten Browser springt das Steuerkreuz von Link zu Link, ☰ wechselt zum Mauszeiger. Werbung und Pop-ups werden blockiert.\n\n" +
+                    "• Angefangene Videos landen in „Weiterschauen“ – ein Klick setzt sie fort.\n\n" +
+                    "• Tipp: Mit „Handy“ oben rechts steuerst du alles bequem vom Smartphone – inklusive Tippen.",
+                R.drawable.ic_star)
+        }, 1600)
     }
 
     /** Kurzes Logo-Intro beim Kaltstart. */
@@ -60,7 +78,9 @@ class MainActivity : Activity() {
         if (i.getBooleanExtra("overlord_demo", false)) Demo.seed(this, i.getStringExtra("demo_base"))
         i.getStringExtra("open_url")?.takeIf { it.isNotBlank() }?.let { BrowserActivity.open(this, normalizeUrl(it), hostOf(it)) }
         if (i.getBooleanExtra("open_library", false)) startActivity(Intent(this, LibraryActivity::class.java))
-        i.removeExtra("open_url"); i.removeExtra("open_library"); i.removeExtra("overlord_demo")
+        i.getStringExtra("open_search")?.let { SearchActivity.open(this, it.ifBlank { null }) }
+        if (i.getBooleanExtra("show_phone", false)) rows.postDelayed({ showCompanion() }, 1500)
+        listOf("open_url", "open_library", "overlord_demo", "open_search", "show_phone").forEach { i.removeExtra(it) }
     }
 
     private val onDataChanged: () -> Unit = { scheduleRefresh() }
@@ -343,7 +363,7 @@ class MainActivity : Activity() {
         CardItem(
             id = "adblock", title = "Werbeblocker", iconRes = R.drawable.ic_shield, color = 0xFF0F766E.toInt(),
             eyebrow = "EINSTELLUNGEN",
-            chips = listOf("${AdBlock.count} Domains", AdBlock.lastUpdateText(this)),
+            chips = listOf("${AdBlock.blockedToday(this)} heute blockiert", "${AdBlock.count} Domains", AdBlock.lastUpdateText(this)),
             description = "Eingebaute Liste plus StevenBlack-Hosts-Liste, wöchentlich im Hintergrund aktualisiert. Pop-ups, Umleitungen und unsichtbare Klickflächen werden ebenfalls blockiert.",
             okHint = "Jetzt aktualisieren",
             onClick = {
@@ -352,6 +372,21 @@ class MainActivity : Activity() {
                     val ok = AdBlock.update(applicationContext)
                     runOnUiThread { tvToast(if (ok) "Werbeblocker aktualisiert: ${AdBlock.count} Domains" else "Aktualisierung fehlgeschlagen", R.drawable.ic_shield); refresh() }
                 }.start()
+            },
+        ),
+        CardItem(
+            id = "theme", title = "Design", iconRes = R.drawable.ic_palette, color = Brand.ACCENT,
+            eyebrow = "EINSTELLUNGEN", chips = listOf(Brand.THEMES.getOrElse(Prefs.theme) { Brand.THEMES[0] }.name),
+            description = "Akzentfarben der Oberfläche wählen – für Fokus, Knöpfe, Fortschritt und die Link-Markierung im Browser.",
+            okHint = "Design wählen",
+            onClick = {
+                Tv.menu(this, "Design", Brand.THEMES.mapIndexed { i, t ->
+                    MenuEntry(t.name, R.drawable.ic_palette, if (i == Prefs.theme) "Aktuell" else null) {
+                        Prefs.theme = i
+                        Brand.applyTheme(i)
+                        recreate()
+                    }
+                }, eyebrow = "EINSTELLUNGEN", subtitle = "Wird sofort übernommen")
             },
         ),
         CardItem(

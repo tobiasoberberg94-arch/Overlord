@@ -26,8 +26,28 @@ object Brand {
     const val SURFACE = 0xFF161622.toInt()
     const val SURFACE2 = 0xFF20202F.toInt()
     const val STROKE = 0xFF2E2E42.toInt()
-    const val ACCENT = 0xFF8B5CF6.toInt()   // Violett
-    const val ACCENT2 = 0xFF22D3EE.toInt()  // Cyan
+    /** Akzentfarben – wählbar über Einstellungen → Design. */
+    var ACCENT = 0xFF8B5CF6.toInt()   // Violett
+        private set
+    var ACCENT2 = 0xFF22D3EE.toInt()  // Cyan
+        private set
+
+    class Theme(val name: String, val accent: Int, val accent2: Int)
+
+    val THEMES = listOf(
+        Theme("Overlord (Violett & Cyan)", 0xFF8B5CF6.toInt(), 0xFF22D3EE.toInt()),
+        Theme("Ozean (Blau & Limette)", 0xFF0EA5E9.toInt(), 0xFFA3E635.toInt()),
+        Theme("Rubin (Rot & Gold)", 0xFFE11D48.toInt(), 0xFFFBBF24.toInt()),
+        Theme("Smaragd (Grün & Pink)", 0xFF10B981.toInt(), 0xFFF472B6.toInt()),
+        Theme("Sonne (Orange & Himmelblau)", 0xFFF59E0B.toInt(), 0xFF38BDF8.toInt()),
+        Theme("Mitternacht (Indigo & Rosé)", 0xFF6366F1.toInt(), 0xFFFDA4AF.toInt()),
+    )
+
+    fun applyTheme(index: Int) {
+        val t = THEMES.getOrElse(index) { THEMES[0] }
+        ACCENT = t.accent
+        ACCENT2 = t.accent2
+    }
     const val TEXT = 0xFFF2F2F7.toInt()
     const val TEXT_DIM = 0xFFB4B4C8.toInt()
     const val TEXT_MUTED = 0xFF7A7A92.toInt()
@@ -162,6 +182,7 @@ fun hostOf(url: String?): String = try {
 /** Grobe Ermittlung der registrierbaren Domain (example.co.uk → example.co.uk, a.b.example.com → example.com). */
 fun baseDomain(host: String): String {
     val h = host.lowercase().removePrefix("www.")
+    if (Regex("""\d{1,3}(\.\d{1,3}){3}""").matches(h) || h.contains(':')) return h   // IP-Adresse
     val p = h.split('.')
     if (p.size <= 2) return h
     val tld = p[p.size - 1]

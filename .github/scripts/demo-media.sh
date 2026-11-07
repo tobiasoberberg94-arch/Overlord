@@ -7,8 +7,12 @@ ffmpeg -loglevel error -y -f lavfi -i "testsrc2=size=960x540:rate=24" -f lavfi -
 i=1
 for spec in "#7c3aed-#0ea5e9|Die Expedition" "#db2777-#f59e0b|Nachtzug" "#0f766e-#22d3ee|Küsten der Welt" "#1e293b-#ef4444|Stadt der Lichter"; do
   grad="${spec%%|*}"; title="${spec#*|}"
-  convert -size 1280x720 "gradient:${grad}" -font DejaVu-Sans-Bold -pointsize 92 -fill white \
-    -gravity southwest -annotate +64+64 "$title" "demo/poster$i.jpg" \
+  # Poster ohne Text (der Titel steht bereits auf der Karte): Verlauf + weiche Kreise
+  convert -size 1280x720 "gradient:${grad}" \
+    -fill "rgba(255,255,255,0.18)" -draw "circle 980,250 980,520" \
+    -fill "rgba(0,0,0,0.20)" -draw "circle 260,620 260,860" \
+    -fill "rgba(255,255,255,0.10)" -draw "circle 640,120 640,200" \
+    -blur 0x2 "demo/poster$i.jpg" \
     || ffmpeg -loglevel error -y -f lavfi -i "testsrc2=size=1280x720" -frames:v 1 "demo/poster$i.jpg"
   i=$((i+1))
 done
