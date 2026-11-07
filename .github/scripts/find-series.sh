@@ -13,25 +13,35 @@ hints() {
 }
 
 : > series.txt
+exec > >(tee series-hints.txt) 2>&1
+links() { grep -oE 'href="[^"]+"' <<<"$1" | sed -E 's/^href="//; s/"$//' | grep -vE '^(#|javascript:|mailto:)' | awk '!seen[$0]++' | head -n "${2:-12}" | tr '\n' ' '; }
 
 # ---------- ARD Mediathek
+# Mehrere Serien probieren; als Folge eine nehmen, die schon/noch einen Stream hat (nicht erst angekündigt,
+# nicht durch Jugendschutz-Zeiten gesperrt).
 O="https://www.ardmediathek.de/serien"
 H=$(get "$O")
-S=$(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | head -n 1 | sed -E 's/^href="//; s/"$//')
-S=$(abs "https://www.ardmediathek.de" "$S")
-E=""
-if [ -n "$S" ]; then
-  HS=$(get "$S")
-  E=$(grep -oE 'href="(https://www\.ardmediathek\.de)?/video/[^"]+"' <<<"$HS" | head -n 1 | sed -E 's/^href="//; s/"$//')
-  E=$(abs "https://www.ardmediathek.de" "$E")
-  echo "ARD Serie: $S"; hints "$HS"
-fi
+echo "ARD Übersicht: $(wc -c <<<"$H") Bytes · Links: $(links "$H" 10)"
+S=""; E=""; S1=""; E1=""
+for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 5); do
+  s=$(abs "https://www.ardmediathek.de" "$s")
+  HS=$(get "$s")
+  for e in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/video/[^"]+"' <<<"$HS" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 6); do
+    e=$(abs "https://www.ardmediathek.de" "$e")
+    [ -z "$S1" ] && { S1="$s"; E1="$e"; }
+    HE=$(get "$e")
+    if grep -qiE '\.m3u8|\.mp4' <<<"$HE" && ! grep -qiE '"blockedByFsk":true|jugendschutz' <<<"$HE"; then S="$s"; E="$e"; break 2; fi
+  done
+done
+[ -z "$S" ] && { S="$S1"; E="$E1"; echo "ARD: keine Folge mit Stream im HTML gefunden – nehme die erste"; }
+if [ -n "$S" ]; then echo "ARD Serie: $S"; hints "$(get "$S")"; fi
 [ -n "$E" ] && { echo "ARD Folge: $E"; hints "$(get "$E")"; }
 echo "ard|$O|$S|$E" >> series.txt
 
 # ---------- ZDF
 O="https://www.zdf.de/serien"
 H=$(get "$O")
+echo "ZDF Übersicht: $(wc -c <<<"$H") Bytes · Links: $(links "$H" 25)"
 S=$(grep -oE 'href="(https://www\.zdf\.de)?/serien/[a-z0-9-]+/?"' <<<"$H" | head -n 1 | sed -E 's/^href="//; s/"$//')
 S=$(abs "https://www.zdf.de" "$S")
 E=""
@@ -49,6 +59,7 @@ echo "zdf|$O|$S|$E" >> series.txt
 # ---------- arte
 O="https://www.arte.tv/de/videos/fernsehfilme-und-serien/"
 H=$(get "$O")
+echo "arte Übersicht: $(wc -c <<<"$H") Bytes"
 [ -z "$(grep -oE 'href="(https://www\.arte\.tv)?/de/videos/' <<<"$H" | head -n 1)" ] && { O="https://www.arte.tv/de/"; H=$(get "$O"); }
 S=$(grep -oE 'href="(https://www\.arte\.tv)?/de/videos/RC-[0-9]+/[^"]+"' <<<"$H" | head -n 1 | sed -E 's/^href="//; s/"$//')
 S=$(abs "https://www.arte.tv" "$S")

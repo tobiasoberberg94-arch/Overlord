@@ -86,7 +86,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - **Werbeblocker-Statistik:** wie viele Werbe-Anfragen heute blockiert wurden.
 - **Cookie-Hinweise:** Einwilligungs-Dialoge („Cookies erlauben?“) werden automatisch beantwortet –
   standardmäßig **abgelehnt** (nur notwendige Cookies), wahlweise *zustimmen* oder *nicht anfassen*.
-  Funktioniert auch bei Dialogen in iframes und im Shadow-DOM; danach liest die Video-Ansicht die Seite neu aus.
+  Funktioniert auch bei Dialogen in iframes und im Shadow-DOM; reagiert ein Dialog nicht auf Skript-Klicks,
+  tippt Overlord den Knopf echt an. Danach liest die Video-Ansicht die Seite neu aus.
 - **Verlauf leeren**, **Weiterschauen leeren**, **feste Kacheln wiederherstellen**.
 
 ### Suche
@@ -104,7 +105,8 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   automatisches Intro-Überspringen und Weiterschauen funktionieren wie gewohnt.
 - Auch **Player, die erst nach einem Klick entstehen** (Vorschaubild mit Play-Knopf, wie in vielen Mediatheken),
   werden erkannt: Overlord tippt den Knopf echt an und zieht das entstehende Video bildschirmfüllend.
-  Player im **Shadow-DOM** werden ebenfalls gefunden; stumme Hintergrund-Videos gelten nicht als Player.
+  Player im **Shadow-DOM** werden ebenfalls gefunden; stumme Hintergrund-Videos und Trailer im Seitenkopf gelten
+  nicht als Player. Im Kino-Modus wird alles neben dem Player ausgeblendet – auch Menüs, die sich sonst darüberlegen.
 - Nachladende Karten (Bild noch nicht geladen) bleiben in ihrer Reihe; Seiten mit eigenem Scroll-Bereich und
   waagerechte Karussells werden beim Vorladen mit durchgescrollt.
 - **Zurück** führt aus dem Kino-Modus zurück zur Übersicht – sofort, aus dem Zwischenspeicher, auf die zuletzt
@@ -114,7 +116,7 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - „Suchen“ schickt einen Begriff an die Suche der Seite; die Treffer erscheinen wieder als Karten.
 - **Serien-Aufbau:** Staffel-Reiter oder -Auswahllisten („Staffel 1“, „Season 2“, „Filme“ …) werden zur Reihe
   *Staffeln*, Folgentabellen und Folgen-Karten zur Reihe *Folgen* – erkannt am Nummernmuster der Adressen oder,
-  bei Mediatheken mit eindeutiger ID je Folge, an „Folge 3“ / „S01 E05“ im Text bzw. Adress-Teil
+  bei Mediatheken mit eindeutiger ID je Folge, an „Folge 3“ / „S01 E05“ / „(2/6)“ im Text bzw. Adress-Teil
   (Titel aus der Tabellenzeile, große Folgennummer auf Karten ohne Bild). Umschalter am Player (Sprache, Untertitel, Audiodeskription, Quelle)
   erscheinen als *Versionen & Quellen*; auch während des Schauens über ☰ lang → „Version wählen“.
 - **Nächste Folge** wird exakt aus der Folgenliste bestimmt (Player-Leiste, Countdown am Folgenende).

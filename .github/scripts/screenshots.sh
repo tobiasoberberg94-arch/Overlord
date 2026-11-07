@@ -7,6 +7,9 @@ shot() { sleep "${2:-3}"; timeout 30 adb exec-out screencap -p > "shots/$1.png";
 key() { for k in "$@"; do timeout 15 adb shell input keyevent "$k"; sleep 0.8; done; }
 longkey() { timeout 15 adb shell input keyevent --longpress "$1"; sleep 0.8; }
 start() { timeout 30 adb shell am start "$@"; }
+# Anzahl fertiger Auslesen der Video-Ansicht (FINAL im Logcat) – zum Warten auf langsame Seiten
+finals() { timeout 10 adb logcat -d -s OverlordVV:I </dev/null 2>/dev/null | grep -c "FINAL url=" || true; }
+waitfinal() { local before="$1" max="${2:-45}" t=0; while [ "$t" -lt "$max" ]; do sleep 3; t=$((t+3)); [ "$(finals)" -gt "$before" ] && return 0; done; return 0; }
 
 # Lokaler Demo-Server (aus Sicht des Emulators: 10.0.2.2)
 setsid nohup python3 .github/scripts/serve.py demo </dev/null >/dev/null 2>&1 &
@@ -87,17 +90,17 @@ for line in "${SITES[@]}"; do
   [ -z "$name" ] && continue
   echo "== $name: $over | ${serie:-–} | ${folge:-–}"
   timeout 20 adb shell am force-stop de.overlord.tv < /dev/null
-  start -a android.intent.action.VIEW -d "$over" -n de.overlord.tv/.BrowserActivity --ez video true
-  shot "$n-$name-uebersicht" 18; n=$((n+1))
+  b=$(finals); start -a android.intent.action.VIEW -d "$over" -n de.overlord.tv/.BrowserActivity --ez video true
+  waitfinal "$b" 48; shot "$n-$name-uebersicht" 3; n=$((n+1))
   key KEYCODE_DPAD_DOWN;                    shot "$n-$name-uebersicht-2" 3; n=$((n+1))
   if [ -n "$serie" ]; then
-    start -a android.intent.action.VIEW -d "$serie" -n de.overlord.tv/.BrowserActivity
-    shot "$n-$name-serie" 18; n=$((n+1))
+    b=$(finals); start -a android.intent.action.VIEW -d "$serie" -n de.overlord.tv/.BrowserActivity
+    waitfinal "$b" 48; shot "$n-$name-serie" 3; n=$((n+1))
     key KEYCODE_DPAD_DOWN;                  shot "$n-$name-serie-2" 3; n=$((n+1))
   fi
   if [ -n "$folge" ]; then
-    start -a android.intent.action.VIEW -d "$folge" -n de.overlord.tv/.BrowserActivity
-    shot "$n-$name-folge" 16; n=$((n+1))
+    b=$(finals); start -a android.intent.action.VIEW -d "$folge" -n de.overlord.tv/.BrowserActivity
+    waitfinal "$b" 48; shot "$n-$name-folge" 3; n=$((n+1))
     key KEYCODE_DPAD_CENTER;                shot "$n-$name-kino" 16; n=$((n+1))
     key KEYCODE_BACK;                       shot "$n-$name-zurueck" 5; n=$((n+1))
   fi
@@ -118,8 +121,10 @@ shot 21-jellyfin 25
 key KEYCODE_DPAD_DOWN;                      shot 22-jellyfin-reihen 6
 
 pkill -f "serve.py demo" || true
+echo "===== TESTSEITEN (find-series) ====="
+cat series-hints.txt 2>/dev/null || true
 echo "===== ERKENNUNG (Video-Ansicht) ====="
-timeout 30 adb logcat -d -v brief -s OverlordVV:I | grep -v "zwischen" | tail -n 160
+timeout 30 adb logcat -d -v brief -s OverlordVV:I | grep -v "zwischen" | tail -n 200
 echo "===== LOGCAT (Fehler) ====="
 timeout 30 adb logcat -d -v brief AndroidRuntime:E System.err:W '*:S' | tail -n 120
 ls -la shots

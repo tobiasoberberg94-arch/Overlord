@@ -487,6 +487,23 @@ class BrowserActivity : Activity() {
         fun consentHandled(label: String) { ui.post { onConsentHandled(label) } }
     }
 
+    /**
+     * Manche Cookie-Dialoge reagieren nur auf echte Berührungen. Das Seiten-Skript meldet dann im Hauptframe
+     * die Position des Knopfs (iframes nur als Cookie-Dialog-Frame) – hier wird sie abgefragt und echt angetippt.
+     */
+    private fun consentWatch(serial: Int, n: Int) {
+        if (serial != pageSerial || isFinishing || n > 24) return
+        js("window.__ovl && __ovl.consentTap ? __ovl.consentTap() : null") { r ->
+            val o = parseObj(r) ?: return@js
+            if (serial != pageSerial || isFinishing) return@js
+            val iw = o.optDouble("iw", 0.0)
+            val scale = if (iw > 0) web.width / iw else resources.displayMetrics.density.toDouble()
+            android.util.Log.i("OverlordVV", "COOKIE-TIPP url=${web.url} | knopf=${o.optString("label")}")
+            tap((o.optDouble("x") * scale).toFloat(), (o.optDouble("y") * scale).toFloat())
+        }
+        ui.postDelayed({ consentWatch(serial, n + 1) }, 1500)
+    }
+
     /** Cookie-Hinweis wurde automatisch beantwortet: Hinweis zeigen, Video-Ansicht neu auslesen (Inhalte erscheinen oft erst danach). */
     private fun onConsentHandled(label: String) {
         android.util.Log.i("OverlordVV", "COOKIE url=${web.url} | knopf=$label")
@@ -608,6 +625,7 @@ class BrowserActivity : Activity() {
             cancelCountdown()
             hidePlayerBar()
             onVideoModePageStarted(url)
+            if (url.startsWith("http") && Prefs.consent != "off") consentWatch(pageSerial, 0)
         }
 
         override fun onPageFinished(view: WebView, url: String) {
@@ -1188,6 +1206,8 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             // Nichts Neues gefunden → nicht neu zeichnen (verhindert Flackern)
             val prevRendered = renderedCount[key]
             if (final) logExtract(url, o, true)
+            // Im Kino-Modus nichts überschreiben – die Übersicht von vorher bleibt die Grundlage für Zurück
+            if (cinema && extractCache[key] != null) return@js
             if (prevRendered != null && count <= prevRendered && overlayVisible && !cinema) return@js
             if (count < (extractCache[key]?.let { itemCount(it) } ?: 0)) return@js
             extractCache[key] = o

@@ -246,7 +246,25 @@
 
   /** Stummes Endlos-Video ohne Bedienelemente = Hintergrund-/Vorschau-Video, kein Player. */
   function isBackdrop(v) {
-    return !!(v.loop && (v.muted || v.hasAttribute('muted')) && !v.controls);
+    if (v.controls) return false;
+    var muted = v.muted || v.hasAttribute('muted');
+    if (!muted) return false;
+    if (v.loop) return true;
+    // Stummes Autoplay-Video: in einem Link, in einem Teaser-/Hero-Bereich oder kurz = Vorschau/Trailer
+    if (v.autoplay || v.hasAttribute('autoplay') || !v.paused) {
+      if (closestSel(v, 'a[href]')) return true;
+      var n = v.parentElement, k = 0, playerish = false;
+      while (n && k++ < 6) {
+        var c = clsOf(n);
+        if (/hero|teaser|preview|backdrop|background|banner|trailer|cover|header-?video|ambient/i.test(c)) return true;
+        if (/player|vjs|video-js|jw|plyr|bitmovin|shaka|mejs|flowplayer|clappr|dplayer|artplayer/i.test(c)) playerish = true;
+        n = n.parentElement;
+      }
+      // Kurzer stummer Clip außerhalb eines Players (z. B. Trailer im Seitenkopf)
+      var d = v.duration;
+      if (!playerish && isFinite(d) && d > 0 && d < 180) return true;
+    }
+    return false;
   }
 
   var STYLE_MAX = ';position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;' +
@@ -258,7 +276,8 @@
     'will-change:auto!important;-webkit-clip-path:none!important;clip-path:none!important;' +
     '-webkit-mask-image:none!important;mask-image:none!important;backdrop-filter:none!important;' +
     'visibility:visible!important;opacity:1!important;';
-  var STYLE_HIDE = ';visibility:hidden!important;';
+  var STYLE_HIDE = ';visibility:hidden!important;opacity:0!important;pointer-events:none!important;';
+  var cinemaOn = false;   // Overlord hat selbst ein Element bildschirmfüllend gemacht (Nachbarn ausgeblendet)
   function stash(el, extra) {
     if (el.__ovlOld === undefined) el.__ovlOld = el.getAttribute('style') || '';
     el.setAttribute('style', el.__ovlOld + extra);
@@ -293,6 +312,7 @@
       for (var j = 0; j < maxTouched.length; j++) unstash(maxTouched[j]);
       maxTouched = [];
     }
+    cinemaOn = !!on;
     try { D.documentElement.style.overflow = on ? 'hidden' : ''; } catch (e) {}
   }
   function toggleMax(v, force) {
@@ -393,6 +413,7 @@
     if (!m || typeof m !== 'object' || m.__ovl !== 1) return;
     if (m.cmd && e.source === W.parent && !isTop) O.cmd(m.cmd, m.arg);
     else if (m.maxMe) maxChildFrame(e.source, !!m.on);
+    else if (m.tapReq) relayTap(e.source, m);
   }, false);
 
   O.nextLocal = safe(function () {
@@ -447,7 +468,10 @@
     var r = el.getBoundingClientRect();
     if (r.width < 4 || r.height < 4) return false;
     var cs = W.getComputedStyle(el);
-    if (cs.visibility === 'hidden' || cs.display === 'none' || parseFloat(cs.opacity) === 0) return false;
+    if (cs.display === 'none') return false;
+    // Im Kino-Modus blendet Overlord selbst alles neben dem Player aus – das zählt nicht als unsichtbar
+    if (cinemaOn) return true;
+    if (cs.visibility === 'hidden' || parseFloat(cs.opacity) === 0) return false;
     if (cs.pointerEvents === 'none' && el.tagName !== 'IFRAME' && el.tagName !== 'VIDEO') return false;
     return true;
   }
@@ -513,8 +537,54 @@
     O.consentInfo = 'gewählt: ' + label;
     try { pick.click(); } catch (e) {}
     call('consentHandled', label);
+    // Manche Dialoge ignorieren Skript-Klicks: bleibt der Knopf sichtbar, tippt die App ihn echt an
+    setTimeout(function () {
+      if (!stillThere(pick)) return;
+      O.consentInfo = 'Tipp angefordert: ' + label;
+      requestTap(pick, label);
+      setTimeout(function () {
+        if (stillThere(pick)) O.consentInfo = 'Knopf reagiert nicht: ' + label;
+        else { O.consentInfo = 'gewählt (Tipp): ' + label; call('consentHandled', label + ' (Tipp)'); }
+      }, 3500);
+    }, 1500);
   });
   setInterval(consentScan, 900);
+  function stillThere(el) {
+    var on = el.isConnected === undefined ? D.documentElement.contains(el) : el.isConnected;
+    return on && visible(el);
+  }
+
+  /* Echter Tipp für Cookie-Knöpfe: Die App fragt ihn im Hauptframe ab (__ovl.consentTap) – iframes
+     melden ihn per postMessage nach oben, aber nur Cookie-Dialog-Frames und nur innerhalb ihrer Fläche. */
+  var consentTapReq = null;
+  function requestTap(el, label) {
+    var r = el.getBoundingClientRect();
+    var x = r.left + r.width / 2, y = r.top + r.height / 2;
+    if (isTop) consentTapReq = { x: x, y: y, iw: W.innerWidth, label: label, t: now() };
+    else { try { W.parent.postMessage({ __ovl: 1, tapReq: 1, x: x, y: y, label: label }, '*'); } catch (e) {} }
+  }
+  function relayTap(src, m) {
+    var fr = deepAll('iframe');
+    for (var i = 0; i < fr.length; i++) {
+      if (fr[i].contentWindow !== src) continue;
+      var desc = String(fr[i].getAttribute('src') || '') + ' ' + clsOf(fr[i]) + ' ' + String(fr[i].getAttribute('title') || '');
+      if (!CMP_FRAME.test(desc)) return;
+      var r = fr[i].getBoundingClientRect();
+      var x = Number(m.x), y = Number(m.y);
+      if (!(x >= 0 && y >= 0 && x <= r.width && y <= r.height)) return;
+      x += r.left + (fr[i].clientLeft || 0);
+      y += r.top + (fr[i].clientTop || 0);
+      if (isTop) consentTapReq = { x: x, y: y, iw: W.innerWidth, label: String(m.label || '').slice(0, 40), t: now() };
+      else { try { W.parent.postMessage({ __ovl: 1, tapReq: 1, x: x, y: y, label: m.label }, '*'); } catch (e) {} }
+      return;
+    }
+  }
+  O.consentTap = function () {
+    var r = consentTapReq;
+    consentTapReq = null;
+    if (!r || now() - r.t > 10000) return null;
+    return { x: r.x, y: r.y, iw: r.iw, label: r.label };
+  };
 
   if (!isTop) return;
 
@@ -837,23 +907,36 @@
       var lt = le ? cleanText(le.textContent) : '';
       if (lt && lt.length < 70) return lt;
     }
-    var hs = container.querySelectorAll(HEADING);
+    // Nächstgelegene Überschrift vor der ersten Karte – Kartentitel (in Links/Karten) zählen nicht
+    var hs = container.querySelectorAll(HEADING), found = '';
     for (var i = 0; i < hs.length; i++) {
       var pos = hs[i].compareDocumentPosition(firstItem);
-      if ((pos & 4) && !hs[i].contains(firstItem)) { var t = cleanText(hs[i].textContent); if (t && t.length < 70) return t; }
+      if (!(pos & 4) || hs[i].contains(firstItem) || cardHeading(hs[i])) continue;
+      var t = cleanText(hs[i].textContent);
+      if (t && t.length < 70) found = t;
     }
+    if (found) return found;
     var node = container;
     for (var depth = 0; depth < 4 && node; depth++) {
       var sib = node.previousElementSibling;
       for (var k = 0; k < 3 && sib; k++) {
-        var h = matchesSel(sib, HEADING) ? sib : null;
-        if (!h) { var all = sib.querySelectorAll(HEADING); h = all.length ? all[all.length - 1] : null; }
+        var h = (matchesSel(sib, HEADING) && !cardHeading(sib)) ? sib : null;
+        if (!h) {
+          var all = sib.querySelectorAll(HEADING);
+          for (var q = all.length - 1; q >= 0 && !h; q--) if (!cardHeading(all[q])) h = all[q];
+        }
         if (h) { var tt = cleanText(h.textContent); if (tt && tt.length < 70) return tt; }
         sib = sib.previousElementSibling;
       }
       node = node.parentElement;
     }
     return '';
+  }
+  function cardHeading(h) {
+    if (closestSel(h, 'a[href]')) return true;
+    var c = closestSel(h, 'li,article,[class*="card"],[class*="Card"],[class*="teaser"],[class*="Teaser"],[class*="tile"]');
+    return !!(c && c.querySelector('img,picture') && c.querySelectorAll('a[href]').length <= 3 &&
+      c.getBoundingClientRect().width < W.innerWidth * 0.6);
   }
 
   function findPlayer() {
@@ -1025,11 +1108,15 @@
   var EP_SE_URL = /[-_\/]s(\d{1,2})[-_]?e(\d{1,3})(?=[-_\/.?#]|$)/i;
   var EP_N_TXT = /(?:^|[^a-zäöüé])(?:folge|[ée]pisode|ep\.|teil)\s*(\d{1,3})(?![0-9]|[.,][0-9])/i;
   var EP_N_URL = /[-_\/](?:folge|episode)[-_]?(\d{1,3})(?=[-_\/.?#]|$)/i;
+  var EP_OF_TXT = /\((\d{1,3})\s*\/\s*(\d{1,3})\)/;   // „Die letzte Stunde (2/6)“
   function epNumFrom(text, url) {
     var m = EP_SE_TXT.exec(text) || EP_SE_URL.exec(url);
     if (m) return { s: parseInt(m[1], 10), e: parseInt(m[2], 10) };
     m = EP_N_TXT.exec(text) || EP_N_URL.exec(url);
-    return m ? { s: 0, e: parseInt(m[1], 10) } : null;
+    if (m) return { s: 0, e: parseInt(m[1], 10) };
+    m = EP_OF_TXT.exec(text);
+    if (m && parseInt(m[1], 10) >= 1 && parseInt(m[1], 10) <= parseInt(m[2], 10)) return { s: 0, e: parseInt(m[1], 10) };
+    return null;
   }
   function textEpisodes() {
     var links = D.querySelectorAll('a[href]');
@@ -1141,7 +1228,7 @@
   });
 
   O.extract = safe(function () {
-    var found = [], byUrl = {};
+    var found = [], byUrl = {}, imgByUrl = {};
     function add(card, link, img, textOnly) {
       if (!link || !link.href || inChrome(card)) return;
       var url = link.href;
@@ -1151,11 +1238,14 @@
       if (img) { var ri = img.getBoundingClientRect(); w = Math.max(w, ri.width); h = Math.max(h, ri.height); }
       if (textOnly ? (w < 30 || h < 10) : (w < 70 || h < 40)) return;
       var image = textOnly ? '' : (img ? imageOf(img.tagName === 'IMG' ? img : card) : imageOf(card));
+      // Bild und Titel stecken oft in getrennten Links zur selben Adresse (Bild-Link + Titel-/Overlay-Link)
+      if (image && !imgByUrl[url]) imgByUrl[url] = image;
+      var prev = byUrl[url];
+      if (prev && !textOnly) { if (!prev.image && image) { prev.image = image; prev.noimg = false; } return; }
       var title = titleOf(card, link, img);
       if (!title || title.length < 2) return;
-      var prev = byUrl[url];
-      if (prev && !textOnly) { if (!prev.image && image) prev.image = image; return; }
       if (prev && textOnly && prev.textOnly) return;
+      if (!image && !textOnly && imgByUrl[url]) image = imgByUrl[url];
       var it = { el: card, url: url, title: title, image: image, sub: subOf(card, title), textOnly: !!textOnly };
       if (!prev) byUrl[url] = it;
       found.push(it);
@@ -1214,7 +1304,7 @@
     var sections = [];
     groups.forEach(function (g) {
       // Kartengroße Links ohne Bild nur in Reihen, die auch echte Bildkarten haben
-      var hasImg = g.items.some(function (it) { return !it.noimg; });
+      var hasImg = g.items.some(function (it) { return !!it.image; });
       var list = hasImg ? g.items : g.items.filter(function (it) { return !it.noimg; });
       if (!list.length) return;
       var items = list.slice(0, 60).map(function (it) { return { url: it.url, title: it.title, image: it.image, sub: it.sub }; });
@@ -1328,9 +1418,11 @@
   /** Kurzbefund der Seite für das Protokoll (adb logcat -s OverlordVV). */
   O.diag = safe(function () {
     var vids = deepAll('video').map(function (v) {
-      var r = v.getBoundingClientRect();
+      var r = v.getBoundingClientRect(), anc = [], n = v.parentElement;
+      for (var a = 0; a < 3 && n; a++) { anc.push((n.tagName.toLowerCase() + '.' + clsOf(n).trim().split(/\s+/)[0]).slice(0, 28)); n = n.parentElement; }
       return Math.round(r.width) + 'x' + Math.round(r.height) + (v.paused ? '' : ' läuft') + (isBackdrop(v) ? ' hintergrund' : '') +
-        (v.currentSrc ? '' : ' ohne-quelle');
+        (v.muted ? ' stumm' : '') + (v.autoplay ? ' autoplay' : '') + (v.loop ? ' loop' : '') + (v.controls ? ' controls' : '') +
+        (isFinite(v.duration) ? ' ' + Math.round(v.duration) + 's' : '') + (v.currentSrc ? '' : ' ohne-quelle') + ' in ' + anc.join(' < ');
     }).slice(0, 4);
     var fr = [], ifr = D.getElementsByTagName('iframe');
     for (var i = 0; i < ifr.length && fr.length < 6; i++) {
