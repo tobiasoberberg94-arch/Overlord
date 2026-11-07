@@ -582,6 +582,28 @@
     scrollDir(dir > 0 ? 'down' : 'up', cur);
   });
 
+  /* ------------------------------------------------------------------ Text vom Handy */
+  O.insertText = safe(function (text, submit) {
+    var el = D.activeElement;
+    if (!isTextInput(el)) return false;
+    if (el.isContentEditable) {
+      D.execCommand('insertText', false, text);
+    } else {
+      var proto = el.tagName === 'TEXTAREA' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
+      var desc = Object.getOwnPropertyDescriptor(proto, 'value');
+      if (desc && desc.set) desc.set.call(el, text); else el.value = text;
+      ['input', 'change'].forEach(function (n) { var ev = D.createEvent('Event'); ev.initEvent(n, true, true); el.dispatchEvent(ev); });
+    }
+    if (submit) {
+      ['keydown', 'keypress', 'keyup'].forEach(function (n) {
+        try { el.dispatchEvent(new KeyboardEvent(n, { key: 'Enter', code: 'Enter', keyCode: 13, which: 13, bubbles: true, cancelable: true })); } catch (e) {}
+      });
+      var f = el.form;
+      if (f) { try { if (f.requestSubmit) f.requestSubmit(); else f.submit(); } catch (e) {} }
+    }
+    return true;
+  });
+
   /* ------------------------------------------------------------------ Schnellsuche */
   var SEARCH_SEL = 'input[type=search],input[name=q],input[name=s],input[name=search],input[name=query],' +
     'input[name=keyword],input[name=keywords],input[name*=search],input[name*=query],input[id*=search],' +

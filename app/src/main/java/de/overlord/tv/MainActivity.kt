@@ -17,6 +17,8 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         rows = RowsView(this)
+        rows.addTopAction(R.drawable.ic_search, "Suchen") { SearchActivity.open(this) }
+        rows.addTopAction(R.drawable.ic_phone, "Handy") { showCompanion() }
         val root = FrameLayout(this)
         root.addView(rows)
         setContentView(root)
@@ -59,9 +61,34 @@ class MainActivity : Activity() {
         i.removeExtra("open_url"); i.removeExtra("open_library"); i.removeExtra("overlord_demo")
     }
 
+    private val onDataChanged: () -> Unit = { scheduleRefresh() }
+
     override fun onResume() {
         super.onResume()
+        Events.listen(onDataChanged)
         refresh()
+    }
+
+    override fun onPause() {
+        Events.unlisten(onDataChanged)
+        super.onPause()
+    }
+
+    /** Handy-Fernbedienung einschalten und QR-Code zeigen. */
+    private fun showCompanion() {
+        Companion.enabled = true
+        Companion.start()
+        rows.postDelayed({
+            val url = Companion.url()
+            if (url == null) {
+                Tv.info(this, "Kein Netzwerk", "Der Fernseher ist mit keinem WLAN/LAN verbunden. Die Handy-Fernbedienung braucht dasselbe Heimnetz wie dein Handy.", R.drawable.ic_warning)
+            } else {
+                Tv.qr(this, url, Companion.pin,
+                    onNewPin = { Companion.newPin(); showCompanion() },
+                    onDisable = { Companion.enabled = false; Companion.stop(); tvToast("Handy-Fernbedienung ausgeschaltet", R.drawable.ic_phone); refresh() })
+            }
+            refresh()
+        }, 300)
     }
 
     /** Mehrere Aktualisierungen kurz hintereinander zusammenfassen (z. B. wenn Artwork eintrifft). */
@@ -97,6 +124,11 @@ class MainActivity : Activity() {
         ))
         list.add(RowData("Meine Anbieter", tileCards))
 
+        // 3. Zuletzt besucht (ohne Seiten, die schon Kacheln sind)
+        val tileHosts = tiles.filter { it.type == TileType.WEB }.map { baseDomain(hostOf(it.url)) }.toSet()
+        val recent = History.all().filter { baseDomain(it.host) !in tileHosts }.take(12)
+        if (recent.isNotEmpty()) list.add(RowData("Zuletzt besucht", recent.map { historyCard(it) }))
+
         // 3. Medienbibliothek
         list.add(RowData("Medienbibliothek", listOf(jellyfinCard())))
 
@@ -117,6 +149,7 @@ class MainActivity : Activity() {
             }
         }
         cont.forEach { e -> if (e.image.isBlank()) SiteMeta.ensure(e.url) { scheduleRefresh() } }
+        recent.forEach { h -> SiteMeta.ensure(h.url) { scheduleRefresh() } }
     }
 
     // ---------------------------------------------------------------- Karten
@@ -147,6 +180,35 @@ class MainActivity : Activity() {
                     MenuEntry("Webseite öffnen", R.drawable.ic_globe, hostOf(e.url)) { BrowserActivity.open(this, e.url, e.title, e.color) },
                     MenuEntry("Aus der Liste entfernen", R.drawable.ic_delete, danger = true) { ContinueStore.remove(this, e.key); refresh() },
                 ), subtitle = "${formatRemaining(e.remaining)} · $pct % gesehen", eyebrow = "WEITERSCHAUEN")
+            },
+        )
+    }
+
+    private fun historyCard(h: History.Entry): CardItem {
+        val meta = SiteMeta.get(h.url)
+        val image = meta?.image ?: ""
+        val color = meta?.themeColor?.let { tameColor(it) } ?: Brand.colorFor(h.host)
+        return CardItem(
+            id = "hist:" + h.url, title = h.title.take(60), subtitle = h.host,
+            eyebrow = "ZULETZT BESUCHT",
+            chips = listOf(h.host, android.text.format.DateUtils.getRelativeTimeSpanString(h.time).toString()),
+            description = meta?.description?.takeIf { it.isNotBlank() } ?: "Zuletzt geöffnete Seite im eingebauten Browser.",
+            color = color,
+            imageUrls = listOf(image).filter { it.isNotBlank() },
+            logoUrls = SiteMeta.iconUrls(h.url),
+            heroImageUrls = listOf(image).filter { it.isNotBlank() },
+            okHint = "Öffnen",
+            onClick = { BrowserActivity.open(this, h.url, h.title, color) },
+            onMenu = {
+                Tv.menu(this, h.title, listOf(
+                    MenuEntry("Öffnen", R.drawable.ic_globe) { BrowserActivity.open(this, h.url, h.title, color) },
+                    MenuEntry("Als Kachel speichern", R.drawable.ic_bookmark) {
+                        val t = TileStore.newWeb(h.title.take(30).ifBlank { h.host }, h.url)
+                        TileStore.add(this, t); refresh(t.id)
+                    },
+                    MenuEntry("Im externen Browser öffnen", R.drawable.ic_open_external) { Launcher.openExternal(this, h.url) },
+                    MenuEntry("Aus dem Verlauf entfernen", R.drawable.ic_delete, danger = true) { History.remove(h.url); refresh() },
+                ), subtitle = h.host, eyebrow = "ZULETZT BESUCHT")
             },
         )
     }
@@ -222,6 +284,14 @@ class MainActivity : Activity() {
     }
 
     private fun settingsCards(): List<CardItem> = listOf(
+        CardItem(
+            id = "companion", title = "Handy-Fernbedienung", iconRes = R.drawable.ic_phone, color = 0xFF6D28D9.toInt(),
+            eyebrow = "EINSTELLUNGEN",
+            chips = if (Companion.running) listOfNotNull("Aktiv", Companion.ipAddress()?.let { "$it:${Companion.port}" }) else listOf("Aus"),
+            description = "Mit dem Handy tippen, Links an den Fernseher schicken, Kacheln anlegen und steuern – per QR-Code, ohne App-Installation.",
+            okHint = "QR-Code zeigen",
+            onClick = { showCompanion() },
+        ),
         CardItem(
             id = "adblock", title = "Werbeblocker", iconRes = R.drawable.ic_shield, color = 0xFF0F766E.toInt(),
             eyebrow = "EINSTELLUNGEN",
@@ -400,6 +470,10 @@ class MainActivity : Activity() {
         }
         if (event.keyCode == KeyEvent.KEYCODE_MENU) {
             if (event.action == KeyEvent.ACTION_UP) (currentFocus as? CardView)?.item?.onMenu?.invoke()
+            return true
+        }
+        if (event.keyCode == KeyEvent.KEYCODE_SEARCH) {
+            if (event.action == KeyEvent.ACTION_UP) SearchActivity.open(this)
             return true
         }
         return super.dispatchKeyEvent(event)

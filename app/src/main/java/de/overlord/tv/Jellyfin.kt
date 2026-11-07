@@ -134,6 +134,7 @@ object Jellyfin {
     fun seasons(seriesId: String) = items(get("/Shows/$seriesId/Seasons?UserId=$userId&$FIELDS"))
     fun episodes(seriesId: String, seasonId: String) = items(get("/Shows/$seriesId/Episodes?UserId=$userId&SeasonId=$seasonId&$FIELDS"))
     fun item(id: String): Item = Item(get("/Users/$userId/Items/$id") as JSONObject)
+    fun search(term: String) = items(get("/Users/$userId/Items?searchTerm=${Uri.encode(term)}&Recursive=true&IncludeItemTypes=Movie,Series,Episode&Limit=30&$FIELDS"))
 
     /** Nächste Folge nach [item] (gleiche Serie, auch über Staffelgrenzen). */
     fun nextEpisode(item: Item): Item? {

@@ -94,6 +94,7 @@ class RowsView(context: Context) : FrameLayout(context) {
 
     // Kopfzeile
     private val clock = context.label("", 24f, Fonts.semibold)
+    private val topActions = LinearLayout(context)
     private val date = context.label("", 13f, Fonts.medium, Brand.TEXT_DIM)
 
     // Reihen-Container misst seine Kinder ohne Höhenbegrenzung – sonst werden untere Reihen abgeschnitten
@@ -157,7 +158,15 @@ class RowsView(context: Context) : FrameLayout(context) {
             addView(clock)
             addView(date, LinearLayout.LayoutParams(-2, -2).apply { topMargin = context.dp(2) })
         }
-        top.addView(time, LayoutParams(-2, -2, Gravity.END or Gravity.CENTER_VERTICAL))
+        topActions.orientation = LinearLayout.HORIZONTAL
+        topActions.gravity = Gravity.CENTER_VERTICAL
+        val right = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            addView(topActions)
+            addView(time, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = context.dp(26) })
+        }
+        top.addView(right, LayoutParams(-2, -2, Gravity.END or Gravity.CENTER_VERTICAL))
         addView(top, LayoutParams(-1, -2, Gravity.TOP))
 
         // Hero-Text links
@@ -203,6 +212,27 @@ class RowsView(context: Context) : FrameLayout(context) {
     override fun onDetachedFromWindow() {
         ui.removeCallbacks(tick)
         super.onDetachedFromWindow()
+    }
+
+    /** Knopf in der Kopfzeile (z. B. „Suchen“) – erreichbar mit ▲ aus der ersten Reihe. */
+    fun addTopAction(iconRes: Int, text: String, onClick: () -> Unit) {
+        val colors = ColorStateList(arrayOf(intArrayOf(android.R.attr.state_focused), intArrayOf()), intArrayOf(Brand.BG, Brand.TEXT))
+        val pill = LinearLayout(context).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            isFocusable = true
+            isClickable = true
+            setPadding(context.dp(16), context.dp(9), context.dp(20), context.dp(9))
+            background = android.graphics.drawable.StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_focused), rounded(Brand.FOCUS, context.dpf(24f)))
+                addState(intArrayOf(), rounded(0x1FFFFFFF, context.dpf(24f), context.dp(1), 0x33FFFFFF))
+            }
+            addView(context.icon(iconRes).apply { imageTintList = colors; isDuplicateParentStateEnabled = true }, LinearLayout.LayoutParams(context.dp(20), context.dp(20)).apply { rightMargin = context.dp(10) })
+            addView(context.label(text, 15f, Fonts.semibold).apply { setTextColor(colors); isDuplicateParentStateEnabled = true })
+            setOnClickListener { onClick() }
+            setOnFocusChangeListener { v, f -> v.animate().scaleX(if (f) 1.06f else 1f).scaleY(if (f) 1.06f else 1f).setDuration(120).start() }
+        }
+        topActions.addView(pill, LinearLayout.LayoutParams(-2, -2).apply { if (topActions.childCount > 0) leftMargin = context.dp(12) })
     }
 
     fun setMessage(msg: String?) {

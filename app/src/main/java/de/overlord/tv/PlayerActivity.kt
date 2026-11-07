@@ -92,6 +92,10 @@ class PlayerActivity : Activity() {
     private var prepared = false
     private var pendingSeekMs: Int? = null
     private var lastSave = 0L
+    private var player: MediaPlayer? = null
+    private var speed = 1.0f
+    private var sleepAt = 0L
+    private lateinit var subtitle: TextView
 
     private val hideOverlay = Runnable { overlay.animate().alpha(0f).setDuration(300).start(); center.animate().alpha(0f).setDuration(300).start() }
     private val doSeek = Runnable {
@@ -102,6 +106,12 @@ class PlayerActivity : Activity() {
         override fun run() {
             updateUi()
             val now = System.currentTimeMillis()
+            if (sleepAt in 1..now && prepared && video.isPlaying) {
+                sleepAt = 0
+                video.pause()
+                saveProgress(true)
+                showOverlay("Schlaf-Timer: pausiert", R.drawable.ic_moon)
+            }
             if (prepared && now - lastSave > 10_000) { lastSave = now; saveProgress(video.isPlaying.not()) }
             ui.postDelayed(this, 1000)
         }
@@ -180,6 +190,7 @@ class PlayerActivity : Activity() {
         val hints = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         hints.addView(Tv.keyHint(this, "OK", "Pause"))
         hints.addView(Tv.keyHint(this, "◀ ▶", "spulen (halten = schneller)"), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(22) })
+        hints.addView(Tv.keyHint(this, "☰", "Optionen"), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(22) })
         hints.addView(Tv.keyHint(this, "Zurück", "beenden"), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(22) })
         overlay.addView(hints, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(18) })
         root.addView(overlay, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
@@ -195,7 +206,23 @@ class PlayerActivity : Activity() {
 
         setContentView(root)
 
+        subtitle = label("", 26f, Fonts.semibold, lines = 3).apply {
+            gravity = Gravity.CENTER
+            setShadowLayer(8f, 0f, 2f, 0xFF000000.toInt())
+            setPadding(dp(14), dp(6), dp(14), dp(6))
+            background = rounded(0x99000000.toInt(), dpf(8f))
+            visibility = View.GONE
+        }
+        root.addView(subtitle, FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL).apply { bottomMargin = dp(70) })
+
         video.setOnPreparedListener { mp ->
+            player = mp
+            applySpeed()
+            mp.setOnTimedTextListener { _, text ->
+                val t = text?.text?.trim().orEmpty()
+                subtitle.text = t
+                subtitle.visibility = if (t.isEmpty()) View.GONE else View.VISIBLE
+            }
             prepared = true
             spinner.visibility = View.GONE
             mp.setOnInfoListener { _, what, _ ->
@@ -345,6 +372,63 @@ class PlayerActivity : Activity() {
         ui.postDelayed(hideOverlay, if (video.isPlaying) 3500 else 8000)
     }
 
+    // ------------------------------------------------------------------ Optionen (☰)
+
+    private fun speedText(v: Float) = String.format("%.2f", v).trimEnd('0').trimEnd(',', '.').replace('.', ',') + "×"
+
+    private fun applySpeed() {
+        val mp = player ?: return
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            try {
+                val wasPlaying = mp.isPlaying
+                mp.playbackParams = mp.playbackParams.setSpeed(speed)
+                if (!wasPlaying) mp.pause()
+            } catch (e: Exception) { }
+        }
+    }
+
+    private fun tracks(type: Int): List<Pair<Int, String>> = try {
+        player?.trackInfo?.mapIndexedNotNull { i, t ->
+            if (t.trackType != type) null else {
+                val lang = t.language?.takeIf { it.isNotBlank() && it != "und" }?.let { java.util.Locale(it).getDisplayLanguage(java.util.Locale.GERMAN) }
+                i to (lang ?: "Spur ${i + 1}")
+            }
+        } ?: emptyList()
+    } catch (e: Exception) {
+        emptyList()
+    }
+
+    private fun showOptions() {
+        val e = ArrayList<MenuEntry>()
+        if (android.os.Build.VERSION.SDK_INT >= 23) e.add(MenuEntry("Tempo: ${speedText(speed)}", R.drawable.ic_speed) {
+            Tv.menu(this, "Wiedergabe-Tempo", listOf(0.75f, 1f, 1.25f, 1.5f, 2f).map { v ->
+                MenuEntry(speedText(v), R.drawable.ic_speed, if (v == speed) "Aktuell" else null) { speed = v; applySpeed(); showOverlay(speedText(v), R.drawable.ic_speed) }
+            }, eyebrow = "PLAYER")
+        })
+        val audio = tracks(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_AUDIO)
+        if (audio.size > 1) e.add(MenuEntry("Audiospur", R.drawable.ic_tune, "${audio.size} Spuren") {
+            Tv.menu(this, "Audiospur", audio.map { (i, name) -> MenuEntry(name, R.drawable.ic_tune) { try { player?.selectTrack(i) } catch (x: Exception) { } } }, eyebrow = "PLAYER")
+        })
+        val subs = tracks(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT) + tracks(MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE)
+        if (subs.isNotEmpty()) e.add(MenuEntry("Untertitel", R.drawable.ic_subtitles, "${subs.size} verfügbar") {
+            Tv.menu(this, "Untertitel", listOf(MenuEntry("Aus", R.drawable.ic_close) {
+                subs.forEach { (i, _) -> try { player?.deselectTrack(i) } catch (x: Exception) { } }
+                subtitle.visibility = View.GONE
+            }) + subs.map { (i, name) -> MenuEntry(name, R.drawable.ic_subtitles) { try { player?.selectTrack(i) } catch (x: Exception) { } } }, eyebrow = "PLAYER")
+        })
+        val sleepInfo = if (sleepAt > 0) "Endet in ${((sleepAt - System.currentTimeMillis()) / 60000).coerceAtLeast(0)} Min." else "Aus"
+        e.add(MenuEntry("Schlaf-Timer", R.drawable.ic_moon, sleepInfo) {
+            Tv.menu(this, "Schlaf-Timer", listOf(0, 15, 30, 45, 60, 90).map { m ->
+                MenuEntry(if (m == 0) "Aus" else "$m Minuten", R.drawable.ic_moon) {
+                    sleepAt = if (m == 0) 0 else System.currentTimeMillis() + m * 60_000L
+                    showOverlay(if (m == 0) "Schlaf-Timer aus" else "Pause in $m Min.", R.drawable.ic_moon)
+                }
+            }, eyebrow = "PLAYER", subtitle = "Pausiert die Wiedergabe nach der gewählten Zeit")
+        })
+        e.add(MenuEntry("Von vorne beginnen", R.drawable.ic_replay) { if (prepared) { video.seekTo(0); video.start(); showOverlay("0:00", R.drawable.ic_replay) } })
+        Tv.menu(this, title.text.toString(), e, eyebrow = "PLAYER", subtitle = info.text.toString())
+    }
+
     private fun togglePlay() {
         if (!prepared) return
         if (video.isPlaying) { video.pause(); showOverlay("", R.drawable.ic_pause); saveProgress(true) } else { video.start(); showOverlay("", R.drawable.ic_play) }
@@ -389,7 +473,8 @@ class PlayerActivity : Activity() {
                 }
                 return true
             }
-            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN, KeyEvent.KEYCODE_MENU -> { if (down) showOverlay(); return true }
+            KeyEvent.KEYCODE_DPAD_UP, KeyEvent.KEYCODE_DPAD_DOWN -> { if (down) showOverlay(); return true }
+            KeyEvent.KEYCODE_MENU -> { if (!down) showOptions(); return true }
             KeyEvent.KEYCODE_MEDIA_NEXT -> {
                 if (down && jfItem != null) {
                     val item = jfItem!!

@@ -116,6 +116,7 @@ class BrowserActivity : Activity() {
     private var pageImage = ""
     private var endHandled = false
     private var countdown = 0
+    private var pendingSearch: String? = null
 
     // Navigation / Blocker
     private var lastActivate = 0L
@@ -141,12 +142,15 @@ class BrowserActivity : Activity() {
         private val MEDIA_RE = Regex("""\.(m3u8|mp4|webm|mkv|mov)(\?|$)""", RegexOption.IGNORE_CASE)
         private const val DESKTOP_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
-        fun open(ctx: Context, url: String, title: String = "", color: Int = Brand.ACCENT, resume: Double = -1.0) {
-            ctx.startActivity(
-                Intent(ctx, BrowserActivity::class.java)
-                    .putExtra(EXTRA_URL, url).putExtra(EXTRA_TITLE, title)
-                    .putExtra(EXTRA_COLOR, color).putExtra(EXTRA_RESUME, resume)
-            )
+        private const val EXTRA_SEARCH = "search"
+
+        fun open(ctx: Context, url: String, title: String = "", color: Int = Brand.ACCENT, resume: Double = -1.0, search: String? = null) {
+            val i = Intent(ctx, BrowserActivity::class.java)
+                .putExtra(EXTRA_URL, url).putExtra(EXTRA_TITLE, title)
+                .putExtra(EXTRA_COLOR, color).putExtra(EXTRA_RESUME, resume)
+            if (search != null) i.putExtra(EXTRA_SEARCH, search)
+            if (ctx !is Activity) i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            ctx.startActivity(i)
         }
     }
 
@@ -159,6 +163,7 @@ class BrowserActivity : Activity() {
         tileTitle = intent.getStringExtra(EXTRA_TITLE) ?: ""
         val resume = intent.getDoubleExtra(EXTRA_RESUME, -1.0)
         if (resume >= 0) pendingResume = resume
+        pendingSearch = intent.getStringExtra(EXTRA_SEARCH)
         script = assets.open("overlord.js").bufferedReader().use { it.readText() }
         desktopMode = getSharedPreferences(PREFS, MODE_PRIVATE).getBoolean("desktop", false)
 
@@ -487,6 +492,8 @@ class BrowserActivity : Activity() {
     private inner class Client : WebViewClient() {
         override fun onPageStarted(view: WebView, url: String, favicon: Bitmap?) {
             topUrl = url
+            val zoom = zoomFor(url)
+            if (web.settings.textZoom != zoom) web.settings.textZoom = zoom
             loadBar.visibility = View.VISIBLE
             textFocus = false
             maximized = false
@@ -507,10 +514,12 @@ class BrowserActivity : Activity() {
 
         override fun onPageFinished(view: WebView, url: String) {
             loadBar.visibility = View.GONE
+            if (url.startsWith("http")) History.add(url, view.title ?: "")
             injectFallback()
             if (mode != Mode.LINKS) js("window.__ovl && __ovl.showHl(false)")
             if (pendingResume != null) startAutoplay()
             if (speed != 1.0) cmd("rate", speed)
+            pendingSearch?.let { term -> pendingSearch = null; ui.postDelayed({ runSearch(term) }, 600) }
             js("window.__ovl ? __ovl.pageMeta() : null") { r -> parseObj(r)?.optString("og")?.takeIf { it.isNotBlank() }?.let { pageImage = it } }
         }
 
@@ -550,6 +559,9 @@ class BrowserActivity : Activity() {
     private fun protectionOn() = !AdBlock.isAllowed(applicationContext, hostOf(topUrl))
 
     private fun recentActivate() = SystemClock.uptimeMillis() - lastActivate < 2000
+
+    /** Gespeicherte Textgröße für die Domain (Standard 100 %). */
+    private fun zoomFor(url: String): Int = getSharedPreferences("zoom", MODE_PRIVATE).getInt(baseDomain(hostOf(url)), 100)
 
     /** true = Navigation verhindern. */
     private fun decideNavigation(url: String, gesture: Boolean, redirect: Boolean): Boolean {
@@ -1146,6 +1158,16 @@ class BrowserActivity : Activity() {
             applyUserAgent()
             web.reload()
         })
+        e.add(MenuEntry("Textgröße: ${zoomFor(web.url ?: "")} %", R.drawable.ic_zoom, "Für ${baseDomain(site)} merken") {
+            val opts = listOf(80, 90, 100, 115, 130, 150, 175, 200)
+            Tv.menu(this, "Textgröße", opts.map { z ->
+                MenuEntry("$z %", R.drawable.ic_zoom, if (z == zoomFor(web.url ?: "")) "Aktuell" else null) {
+                    getSharedPreferences("zoom", MODE_PRIVATE).edit().putInt(baseDomain(site), z).apply()
+                    web.settings.textZoom = z
+                    showChip("Textgröße $z % für ${baseDomain(site)}", R.drawable.ic_zoom)
+                }
+            }, subtitle = baseDomain(site), eyebrow = "ANSICHT")
+        })
         e.add(MenuEntry("Neu laden", R.drawable.ic_refresh) { web.reload() })
         e.add(MenuEntry("Zur Startseite", R.drawable.ic_home) { finish() })
         Tv.menu(this, pageTitle(), e, subtitle = hostOf(web.url), eyebrow = "BROWSER")
@@ -1157,6 +1179,24 @@ class BrowserActivity : Activity() {
             message = "Der Begriff wird an das Suchfeld von ${hostOf(web.url)} geschickt. Tipp: Das Mikrofon der Bildschirmtastatur funktioniert auch.") { term ->
             if (term.isNotBlank()) runSearch(term)
         }
+    }
+
+    /**
+     * Text vom Handy in das aktive Feld der Webseite schreiben (auch React-Formulare).
+     * Klappt das nicht (z. B. Feld in fremdem iframe), wird der Text als Tastendrücke eingespeist.
+     */
+    fun insertText(text: String, submit: Boolean): Boolean {
+        js("window.__ovl ? __ovl.insertText(${JSONObject.quote(text)}, $submit) : false") { r ->
+            if (r != "true") Thread {
+                try {
+                    val inst = android.app.Instrumentation()
+                    inst.sendStringSync(text)
+                    if (submit) inst.sendKeyDownUpSync(KeyEvent.KEYCODE_ENTER)
+                } catch (e: Exception) { }
+            }.start()
+        }
+        showChip("Text vom Handy empfangen", R.drawable.ic_phone)
+        return true
     }
 
     private fun runSearch(term: String, second: Boolean = false) {

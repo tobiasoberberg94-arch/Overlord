@@ -34,6 +34,18 @@ class MenuEntry(
  * Seitenmenü (gleitet von rechts herein), Eingabe, Bestätigung, Farbwahl, App-Raster, Infotext.
  */
 object Tv {
+    private var activeInput: java.lang.ref.WeakReference<EditText>? = null
+    private var activeSubmit: (() -> Unit)? = null
+
+    /** Text vom Handy in den offenen Eingabe-Dialog schreiben. */
+    fun typeIntoActiveInput(text: String, submit: Boolean): Boolean {
+        val e = activeInput?.get() ?: return false
+        if (!e.isAttachedToWindow) return false
+        e.setText(text)
+        e.setSelection(e.text.length)
+        if (submit) activeSubmit?.invoke()
+        return true
+    }
 
     /** Grundgerüst: Vollbild-Fenster mit abgedunkeltem Hintergrund. */
     private open class Overlay(val activity: Activity) : Dialog(activity, android.R.style.Theme_Translucent_NoTitleBar) {
@@ -256,6 +268,9 @@ object Tv {
         card.addView(edit, LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(22) })
         fun submit() { d.dismiss(); val v = edit.text.toString().trim(); ctx.window.decorView.post { onOk(v) } }
         edit.setOnEditorActionListener { _, _, _ -> submit(); true }
+        activeInput = java.lang.ref.WeakReference(edit)
+        activeSubmit = { submit() }
+        d.setOnDismissListener { if (activeInput?.get() === edit) { activeInput = null; activeSubmit = null } }
         val buttons = ArrayList<View>()
         if (voice != null) buttons.add(ctx.pillButton("Sprache", R.drawable.ic_mic, false) { d.dismiss(); voice() })
         buttons.add(ctx.pillButton("Abbrechen", null, false) { d.dismiss() })
@@ -374,6 +389,64 @@ object Tv {
         d.root.addView(card)
         d.show()
         (grid.getChildAt(0) as? ViewGroup)?.getChildAt(0)?.requestFocus()
+    }
+
+    // ------------------------------------------------------------------ Handy-Begleiter (QR-Code)
+
+    fun qr(activity: Activity, url: String, pin: String, onNewPin: () -> Unit, onDisable: () -> Unit) {
+        val d = Overlay(activity)
+        val ctx = activity
+        val card = LinearLayout(ctx).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            background = rounded(Brand.SURFACE, ctx.dpf(26f), ctx.dp(1), Brand.STROKE)
+            setPadding(ctx.dp(36), ctx.dp(32), ctx.dp(36), ctx.dp(32))
+            elevation = ctx.dpf(24f)
+            clipChildren = false
+        }
+        val img = ImageView(ctx).apply {
+            setImageBitmap(qrBitmap(url, ctx.dp(260)))
+            background = rounded(Color.WHITE, ctx.dpf(16f))
+            setPadding(ctx.dp(10), ctx.dp(10), ctx.dp(10), ctx.dp(10))
+        }
+        card.addView(img, LinearLayout.LayoutParams(ctx.dp(280), ctx.dp(280)))
+        val col = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; clipChildren = false }
+        col.addView(ctx.label("HANDY-FERNBEDIENUNG", 12f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.22f })
+        col.addView(ctx.label("Mit dem Handy steuern", 28f, Fonts.bold, lines = 2), LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(8) })
+        col.addView(ctx.label("QR-Code mit der Handy-Kamera scannen – oder die Adresse im Handy-Browser öffnen (gleiches WLAN). Dann kannst du tippen, Links schicken, Kacheln anlegen und wie mit der Fernbedienung steuern.", 15f, Fonts.regular, Brand.TEXT_DIM, lines = 0).apply { setLineSpacing(0f, 1.25f) },
+            LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(10) })
+        col.addView(ctx.label(url.substringBefore("?pin="), 18f, Fonts.semibold, Brand.TEXT), LinearLayout.LayoutParams(-1, -2).apply { topMargin = ctx.dp(16) })
+        val pinRow = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        pinRow.addView(ctx.label("PIN", 14f, Fonts.bold, Brand.TEXT_MUTED))
+        pinRow.addView(ctx.label(pin.toCharArray().joinToString(" "), 30f, Fonts.display, Brand.ACCENT2), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = ctx.dp(14) })
+        col.addView(pinRow, LinearLayout.LayoutParams(-2, -2).apply { topMargin = ctx.dp(8) })
+        val close = ctx.pillButton("Fertig", R.drawable.ic_check, true) { d.dismiss() }
+        val renew = ctx.pillButton("Neue PIN", R.drawable.ic_refresh, false) { d.dismiss(); onNewPin() }
+        val off = ctx.pillButton("Ausschalten", R.drawable.ic_close, false) { d.dismiss(); onDisable() }
+        val row = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; clipChildren = false }
+        row.addView(close, LinearLayout.LayoutParams(-2, ctx.dp(54)))
+        row.addView(renew, LinearLayout.LayoutParams(-2, ctx.dp(54)).apply { leftMargin = ctx.dp(12) })
+        row.addView(off, LinearLayout.LayoutParams(-2, ctx.dp(54)).apply { leftMargin = ctx.dp(12) })
+        col.addView(row, LinearLayout.LayoutParams(-2, -2).apply { topMargin = ctx.dp(22) })
+        card.addView(col, LinearLayout.LayoutParams(ctx.dp(470), -2).apply { leftMargin = ctx.dp(34) })
+        d.root.addView(card, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
+        d.show()
+        close.requestFocus()
+    }
+
+    private fun qrBitmap(text: String, sizePx: Int): android.graphics.Bitmap {
+        val q = QrCode.encode(text)
+        val quiet = 2
+        val n = q.size + quiet * 2
+        val scale = maxOf(1, sizePx / n)
+        val bmp = android.graphics.Bitmap.createBitmap(n * scale, n * scale, android.graphics.Bitmap.Config.ARGB_8888)
+        bmp.eraseColor(Color.WHITE)
+        val c = android.graphics.Canvas(bmp)
+        val p = android.graphics.Paint().apply { color = 0xFF0B0B12.toInt() }
+        for (y in 0 until q.size) for (x in 0 until q.size) {
+            if (q.isDark(x, y)) c.drawRect(((x + quiet) * scale).toFloat(), ((y + quiet) * scale).toFloat(), ((x + quiet + 1) * scale).toFloat(), ((y + quiet + 1) * scale).toFloat(), p)
+        }
+        return bmp
     }
 
     // ------------------------------------------------------------------ Hinweis-Leiste
