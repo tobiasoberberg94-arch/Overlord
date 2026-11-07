@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 320x180 Banner für den Fire-TV-Startbildschirm -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp" android:height="180dp"
+    android:viewportWidth="320" android:viewportHeight="180">
+    <path android:fillColor="#101018" android:pathData="M0,0h320v180h-320z" />
+    <path android:fillColor="#F47521" android:pathData="M40,40h50v50h-50z" />
+    <path android:fillColor="#00A8E1" android:pathData="M100,40h50v50h-50z" />
+    <path android:fillColor="#7B4DFF" android:pathData="M40,100h50v50h-50z" />
+    <path android:fillColor="#2EC27E" android:pathData="M100,100h50v50h-50z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M185,70h95v8h-95z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M185,90h70v8h-70z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M185,110h85v8h-85z" />
+</vector>
