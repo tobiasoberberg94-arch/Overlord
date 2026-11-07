@@ -1254,12 +1254,15 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             val num = ep.optInt("num")
             val active = ep.optBoolean("active")
             val img = ep.optString("image")
-            val epTitle = ep.optString("title")
+            val season = ep.optInt("season")
+            val seasonLabel = activeSeason.ifBlank { if (season > 0) "Staffel $season" else "" }
+            // „Folge 3: Titel“ → „Titel“ (die Nummer steht schon im Untertitel)
+            val epTitle = ep.optString("title").replace(Regex("^(Folge|Episode|Ep\\.?)\\s*$num\\s*[–:|.\\-]\\s*", RegexOption.IGNORE_CASE), "")
             CardItem(
-                id = "v:ep:$num:$url", title = epTitle.removePrefix("Folge $num – ").ifBlank { "Folge $num" },
-                subtitle = (if (activeSeason.isNotBlank()) "$activeSeason · " else "") + "Folge $num" + (if (active) " · läuft" else ""),
-                eyebrow = (activeSeason.ifBlank { "Folgen" } + " · Folge $num").uppercase(),
-                chips = listOfNotNull(site, activeSeason.takeIf { it.isNotBlank() }, if (active) "Aktuelle Folge" else null),
+                id = "v:ep:$season:$num:$url", title = epTitle.ifBlank { "Folge $num" },
+                subtitle = (if (seasonLabel.isNotBlank()) "$seasonLabel · " else "") + "Folge $num" + (if (active) " · läuft" else ""),
+                eyebrow = (seasonLabel.ifBlank { "Folgen" } + " · Folge $num").uppercase(),
+                chips = listOfNotNull(site, seasonLabel.takeIf { it.isNotBlank() }, if (active) "Aktuelle Folge" else null),
                 description = desc.ifBlank { pageTitle },
                 color = if (active) Brand.ACCENT else tileColor,
                 imageUrls = listOf(img).filter { it.isNotBlank() },

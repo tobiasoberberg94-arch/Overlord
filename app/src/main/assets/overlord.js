@@ -492,7 +492,10 @@
     var reject = null, save = null, accept = null;
     for (var i = 0; i < els.length && i < 4000; i++) {
       var el = els[i];
-      var t = cleanLabel(el);
+      // textContent ist billig (kein Layout) – innerText erst für Treffer
+      var t = String(el.textContent || '');
+      if (t.length > 200) continue;
+      t = t.replace(/\s+/g, ' ').trim() || String(el.getAttribute('aria-label') || el.value || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
       if (!t || t.length > 60) continue;
       var kind = REJECT_RE.test(t) ? 1 : (SAVE_RE.test(t) ? 2 : (ACCEPT_RE.test(t) ? 3 : 0));
       if (!kind || (kind === 1 && reject) || (kind === 2 && save) || (kind === 3 && accept)) continue;
@@ -828,6 +831,12 @@
   function headingFor(container, firstItem) {
     var lbl = cleanText(container.getAttribute('aria-label'));
     if (lbl && lbl.length < 60) return lbl;
+    var lb = container.getAttribute('aria-labelledby') || (container.parentElement && container.parentElement.getAttribute('aria-labelledby'));
+    if (lb) {
+      var le = D.getElementById(lb.split(/\s+/)[0]);
+      var lt = le ? cleanText(le.textContent) : '';
+      if (lt && lt.length < 70) return lt;
+    }
     var hs = container.querySelectorAll(HEADING);
     for (var i = 0; i < hs.length; i++) {
       var pos = hs[i].compareDocumentPosition(firstItem);
@@ -919,7 +928,9 @@
 
   /* Staffeln: Reiter/Links wie „Staffel 1“, „Season 2“, „Filme“, „Specials“ */
   var SEASON_RE = /^\s*((staffel|season|serie|teil|part)\s*\d+|\d+\.?\s*(staffel|season)|s\d{1,2}|filme?|movies?|specials?|extras?|ova)\s*$/i;
+  var SEASON_OPT = /^\s*((staffel|season|saison|temporada)\s*\d+|\d+\.?\s*(staffel|season))\b/i;
   function seasonsOf() {
+    O._seasonSelect = null;
     var els = D.querySelectorAll('a,button,[role="tab"],[data-season]');
     var hits = [];
     for (var i = 0; i < els.length && hits.length < 60; i++) {
@@ -930,7 +941,19 @@
       if (hits.some(function (h) { return h.contains(el) || el.contains(h); })) continue;
       hits.push(el);
     }
-    if (hits.length < 2) return [];
+    if (hits.length < 2) {
+      // Staffel-Auswahl als Klappliste (<select>)
+      var sels = D.querySelectorAll('select');
+      for (var si = 0; si < sels.length; si++) {
+        var sel = sels[si];
+        if (!visible(sel) || closestSel(sel, 'header,footer')) continue;
+        var opts = [].filter.call(sel.options, function (o) { return SEASON_OPT.test(cleanText(o.textContent)); });
+        if (opts.length < 2) continue;
+        O._seasonSelect = sel;
+        return opts.map(function (o) { return { title: cleanText(o.textContent).slice(0, 40), url: '', active: !!o.selected, index: o.index }; });
+      }
+      return [];
+    }
     // Größte Gruppe im selben Container
     var best = [];
     hits.forEach(function (h) {
@@ -946,7 +969,18 @@
       return { title: cleanText(el.textContent || el.getAttribute('aria-label')), url: (el.href && /^https?:/i.test(el.href)) ? el.href : '', active: isActive(el), index: i };
     });
   }
-  O.clickSeason = safe(function (i) { var el = (O._seasonEls || [])[i]; if (!el) return false; el.click(); return true; });
+  O.clickSeason = safe(function (i) {
+    var sel = O._seasonSelect;
+    if (sel) {
+      sel.selectedIndex = i;
+      ['input', 'change'].forEach(function (n) { var ev = D.createEvent('Event'); ev.initEvent(n, true, true); sel.dispatchEvent(ev); });
+      return true;
+    }
+    var el = (O._seasonEls || [])[i];
+    if (!el) return false;
+    el.click();
+    return true;
+  });
 
   /* Folgen: Links mit gleichem Adressmuster und fortlaufender Nummer (episode-1, folge-2, ?ep=3 …) */
   function episodeTitle(a, num) {
@@ -956,7 +990,8 @@
     if (/^(folge|episode|ep\.?)\s*\d+/i.test(t)) return { title: t, row: row };   // steht schon „Folge N – …“ da
     return { title: t ? ('Folge ' + num + ' – ' + t) : ('Folge ' + num), row: row };
   }
-  function episodesOf() {
+  /* (a) Fortlaufende Adressen: …/folge-1, …?episode=2 – gleiches Muster, nur die Nummer ändert sich */
+  function urlEpisodes() {
     var links = D.querySelectorAll('a[href]');
     var groups = {};
     for (var i = 0; i < links.length; i++) {
@@ -970,7 +1005,7 @@
       var key = m[1] + '#' + m[3];
       // Einträge aus Folgenlisten (Textzeilen) sind bessere Titelquellen als Bildkarten
       var score = (closestSel(a, 'tr,li,ol,table') ? 2 : 0) + (a.querySelector('img') ? -1 : 1);
-      (groups[key] = groups[key] || []).push({ a: a, num: parseInt(m[2], 10), url: u, score: score });
+      (groups[key] = groups[key] || []).push({ a: a, num: parseInt(m[2], 10), s: 0, url: u, score: score });
     }
     var best = null;
     Object.keys(groups).forEach(function (k) {
@@ -982,17 +1017,88 @@
       });
       if (list.length >= 2 && (!best || list.length > best.length)) best = list;
     });
-    if (!best) return null;
-    best.sort(function (x, y) { return x.num - y.num; });
+    return best;
+  }
+
+  /* (b) Nummer aus Text oder Adress-Teil („Folge 3“, „S01 E05“, …-s01-e05/…) – für Seiten mit eindeutiger ID je Folge */
+  var EP_SE_TXT = /(?:^|[^a-z0-9])S(\d{1,2})\s*[|:\/,.]?\s*E(\d{1,3})(?![0-9])/i;
+  var EP_SE_URL = /[-_\/]s(\d{1,2})[-_]?e(\d{1,3})(?=[-_\/.?#]|$)/i;
+  var EP_N_TXT = /(?:^|[^a-zäöüé])(?:folge|[ée]pisode|ep\.|teil)\s*(\d{1,3})(?![0-9]|[.,][0-9])/i;
+  var EP_N_URL = /[-_\/](?:folge|episode)[-_]?(\d{1,3})(?=[-_\/.?#]|$)/i;
+  function epNumFrom(text, url) {
+    var m = EP_SE_TXT.exec(text) || EP_SE_URL.exec(url);
+    if (m) return { s: parseInt(m[1], 10), e: parseInt(m[2], 10) };
+    m = EP_N_TXT.exec(text) || EP_N_URL.exec(url);
+    return m ? { s: 0, e: parseInt(m[1], 10) } : null;
+  }
+  function textEpisodes() {
+    var links = D.querySelectorAll('a[href]');
+    var byUrl = {}, hits = [];
+    for (var i = 0; i < links.length && hits.length < 400; i++) {
+      var a = links[i];
+      if (!/^https?:/i.test(a.href) || closestSel(a, 'header,footer,nav,[class*="pagination"],[class*="pager"]')) continue;
+      var txt = cleanText((a.getAttribute('aria-label') || '') + ' ' + (a.getAttribute('title') || '') + ' ' + (a.innerText || a.textContent || ''));
+      if (txt.length > 300) txt = txt.slice(0, 300);
+      if (/(n(ä|ae)chste|vorherige|next|prev(ious)?)\s*(folge|episode)/i.test(txt)) continue;
+      var u = a.href.split('#')[0];
+      var n = epNumFrom(txt, u.split('?')[0]);
+      if (!n) continue;
+      var prev = byUrl[u];
+      if (prev) { if (txt.length > prev.txt.length) { prev.a = a; prev.txt = txt; } continue; }
+      var h = { a: a, s: n.s, num: n.e, url: u, txt: txt, score: 0 };
+      byUrl[u] = h;
+      hits.push(h);
+    }
+    if (hits.length < 2) return null;
+    // Kleinster Container mit mehreren Folgen-Links = eine Folgenliste
+    var touched = [];
+    hits.forEach(function (h) {
+      var n = h.a.parentElement, d = 0;
+      while (n && n !== D.body && d++ < 12) { if (!n.__ovlEp) { n.__ovlEp = 0; touched.push(n); } n.__ovlEp++; n = n.parentElement; }
+    });
+    var groups = [];
+    hits.forEach(function (h) {
+      var n = h.a.parentElement, c = null, d = 0;
+      while (n && n !== D.body && d++ < 12) { if (n.__ovlEp >= 2) { c = n; break; } n = n.parentElement; }
+      if (!c) return;
+      var g = null;
+      for (var q = 0; q < groups.length; q++) if (groups[q].c === c) { g = groups[q]; break; }
+      if (!g) { g = { c: c, list: [], seen: {} }; groups.push(g); }
+      var k = h.s + ':' + h.num;
+      if (!g.seen[k]) { g.seen[k] = 1; g.list.push(h); }
+    });
+    touched.forEach(function (n) { try { delete n.__ovlEp; } catch (e) { n.__ovlEp = 0; } });
+    var best = null;
+    groups.forEach(function (g) { if (g.list.length >= 2 && (!best || g.list.length > best.length)) best = g.list; });
+    return best;
+  }
+
+  function episodesOf() {
+    var list = urlEpisodes();
+    if (!list || list.length < 3) {
+      var alt = textEpisodes();
+      if (alt && (!list || alt.length > list.length)) list = alt;
+    }
+    if (!list) return null;
+    list.sort(function (x, y) { return (x.s - y.s) || (x.num - y.num); });
     var here = location.href.split('#')[0];
-    var items = best.map(function (x) {
+    var items = list.map(function (x) {
       var et = episodeTitle(x.a, x.num);
-      var big = null, imgs = et.row.querySelectorAll ? et.row.querySelectorAll('img') : [];
+      var card = closestSel(x.a, 'li,article,[class*="card"],[class*="Card"],[class*="teaser"],[class*="Teaser"],[class*="tile"]');
+      var root = (card && card.contains(et.row)) ? card : et.row;
+      var big = null, imgs = root.querySelectorAll ? root.querySelectorAll('img') : [];
       for (var q = 0; q < imgs.length && !big; q++) { var rr = imgs[q].getBoundingClientRect(); if (rr.width >= 80 && rr.height >= 45) big = imgs[q]; }
-      return { url: x.url, num: x.num, title: et.title, image: big ? imageOf(big) : '', active: x.url === here };
+      return { url: x.url, num: x.num, season: x.s || 0, title: et.title, image: big ? imageOf(big) : '', active: x.url === here };
     });
     var cur = -1;
     items.forEach(function (it, idx) { if (it.active) cur = idx; });
+    if (cur < 0) {
+      // Aktuelle Folge über den Seitentitel bestimmen („Folge 2: …“, „S01 E02“)
+      var og = D.querySelector('meta[property="og:title"]');
+      var me = epNumFrom(cleanText(D.title) + ' ' + cleanText(og ? og.getAttribute('content') : ''), here.split('?')[0]);
+      if (me) items.forEach(function (it, idx) { if (cur < 0 && it.num === me.e && (!me.s || !it.season || it.season === me.s)) cur = idx; });
+      if (cur >= 0) items[cur].active = true;
+    }
     return { items: items.slice(0, 200), next: (cur >= 0 && cur + 1 < items.length) ? items[cur + 1].url : '' };
   }
 

@@ -112,9 +112,10 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - „Webseite anzeigen“ (oben rechts oder in der Reihe *Diese Seite*) zeigt bei Bedarf die ganze Seite – z. B. für
   Anmeldung oder Cookie-Hinweise. Mit Zurück geht es wieder in die Video-Ansicht.
 - „Suchen“ schickt einen Begriff an die Suche der Seite; die Treffer erscheinen wieder als Karten.
-- **Serien-Aufbau:** Staffel-Reiter („Staffel 1“, „Season 2“, „Filme“ …) werden zur Reihe *Staffeln*,
-  Folgentabellen zur Reihe *Folgen* (erkannt am Nummernmuster der Adressen, Titel aus der Tabellenzeile,
-  große Folgennummer auf der Karte). Umschalter am Player (Sprache, Untertitel, Audiodeskription, Quelle)
+- **Serien-Aufbau:** Staffel-Reiter oder -Auswahllisten („Staffel 1“, „Season 2“, „Filme“ …) werden zur Reihe
+  *Staffeln*, Folgentabellen und Folgen-Karten zur Reihe *Folgen* – erkannt am Nummernmuster der Adressen oder,
+  bei Mediatheken mit eindeutiger ID je Folge, an „Folge 3“ / „S01 E05“ im Text bzw. Adress-Teil
+  (Titel aus der Tabellenzeile, große Folgennummer auf Karten ohne Bild). Umschalter am Player (Sprache, Untertitel, Audiodeskription, Quelle)
   erscheinen als *Versionen & Quellen*; auch während des Schauens über ☰ lang → „Version wählen“.
 - **Nächste Folge** wird exakt aus der Folgenliste bestimmt (Player-Leiste, Countdown am Folgenende).
 - Die Erkennung ist bewusst allgemein gehalten – ohne Regeln für einzelne Webseiten.
