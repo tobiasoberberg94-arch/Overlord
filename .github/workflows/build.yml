@@ -35,6 +35,9 @@ jobs:
         run: |
           mkdir -p dist
           cp app/build/outputs/apk/release/app-release.apk dist/overlord-tv.apk
+          # Versionsinfo für das Selbst-Update der App
+          python3 -c 'import json,os,subprocess; n=int(os.environ["GITHUB_RUN_NUMBER"]); notes=subprocess.check_output(["git","log","-1","--pretty=%s"]).decode().strip(); json.dump({"versionCode":n,"versionName":"1.0.%d"%n,"notes":notes}, open("dist/version.json","w"), ensure_ascii=False)'
+          cat dist/version.json
           ls -la dist
 
       - name: Als Artifact bereitstellen
@@ -54,7 +57,9 @@ jobs:
           name: Overlord TV (neuester Build)
           prerelease: false
           make_latest: true
-          files: dist/overlord-tv.apk
+          files: |
+            dist/overlord-tv.apk
+            dist/version.json
           body: |
             Automatisch gebaut aus ${{ github.sha }}.
             Download auf dem Fire TV (Downloader-App):

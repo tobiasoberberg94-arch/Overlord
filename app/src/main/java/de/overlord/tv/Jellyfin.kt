@@ -90,6 +90,15 @@ object Jellyfin {
         val positionSec: Double get() = (json.optJSONObject("UserData")?.optLong("PlaybackPositionTicks", 0) ?: 0) / 10_000_000.0
         val playedPercent: Double get() = json.optJSONObject("UserData")?.optDouble("PlayedPercentage", 0.0) ?: 0.0
         val played: Boolean get() = json.optJSONObject("UserData")?.optBoolean("Played", false) ?: false
+        /** Zeitpunkt der letzten Wiedergabe (ms seit 1970) oder 0. */
+        val lastPlayed: Long
+            get() = try {
+                val s = json.optJSONObject("UserData")?.optString("LastPlayedDate").orEmpty()
+                if (s.length < 19) 0L else java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.US)
+                    .apply { timeZone = java.util.TimeZone.getTimeZone("UTC") }.parse(s.substring(0, 19))?.time ?: 0L
+            } catch (e: Exception) {
+                0L
+            }
         val playable get() = type == "Movie" || type == "Episode" || type == "Video" || type == "MusicVideo"
 
         fun hasImage(kind: String) = json.optJSONObject("ImageTags")?.has(kind) == true

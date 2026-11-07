@@ -25,7 +25,7 @@ import kotlin.random.Random
  * und kann dann tippen, Links öffnen, Kacheln anlegen und die App wie eine Fernbedienung steuern.
  * Geschützt durch eine 4-stellige PIN.
  */
-object Companion {
+object PhoneRemote {
     const val PORT = 8765
     private const val PREFS = "companion"
     private val main = Handler(Looper.getMainLooper())

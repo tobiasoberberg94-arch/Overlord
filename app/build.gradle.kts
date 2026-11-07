@@ -4,6 +4,7 @@ plugins {
 }
 
 val runNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
+val repo = System.getenv("GITHUB_REPOSITORY") ?: "tobiasoberberg94-arch/Overlord"
 
 android {
     namespace = "de.overlord.tv"
@@ -15,6 +16,8 @@ android {
         targetSdk = 34
         versionCode = runNumber
         versionName = "1.0.$runNumber"
+        // Quelle für das Selbst-Update (Release „latest“ dieses Repositorys)
+        buildConfigField("String", "UPDATE_BASE", "\"https://github.com/$repo/releases/latest/download/\"")
     }
 
     signingConfigs {

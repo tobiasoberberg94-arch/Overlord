@@ -13,6 +13,8 @@ class MainActivity : Activity() {
     private lateinit var rows: RowsView
     private var movingId: String? = null
     private var refreshPending = false
+    private var jfResume: List<Jellyfin.Item> = emptyList()
+    private val io = java.util.concurrent.Executors.newSingleThreadExecutor()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,6 +69,16 @@ class MainActivity : Activity() {
         super.onResume()
         Events.listen(onDataChanged)
         refresh()
+        // Alle 6 Stunden nach Updates sehen
+        if (System.currentTimeMillis() - Updater.lastCheck > 6 * 3600_000L) io.execute {
+            val u = Updater.check()
+            if (u != null) runOnUiThread { if (!isFinishing) { tvToast("Update verfügbar: Version ${u.name} – siehe Einstellungen", R.drawable.ic_refresh); scheduleRefresh() } }
+        }
+        // Jellyfin-„Weiterschauen“ im Hintergrund nachladen
+        if (Jellyfin.isConfigured()) io.execute {
+            val r = try { Jellyfin.resume() } catch (e: Exception) { null }
+            if (r != null) runOnUiThread { if (!isFinishing && r.map { it.id } != jfResume.map { it.id }) { jfResume = r; scheduleRefresh() } }
+        } else jfResume = emptyList()
     }
 
     override fun onPause() {
@@ -76,16 +88,16 @@ class MainActivity : Activity() {
 
     /** Handy-Fernbedienung einschalten und QR-Code zeigen. */
     private fun showCompanion() {
-        Companion.enabled = true
-        Companion.start()
+        PhoneRemote.enabled = true
+        PhoneRemote.start()
         rows.postDelayed({
-            val url = Companion.url()
+            val url = PhoneRemote.url()
             if (url == null) {
                 Tv.info(this, "Kein Netzwerk", "Der Fernseher ist mit keinem WLAN/LAN verbunden. Die Handy-Fernbedienung braucht dasselbe Heimnetz wie dein Handy.", R.drawable.ic_warning)
             } else {
-                Tv.qr(this, url, Companion.pin,
-                    onNewPin = { Companion.newPin(); showCompanion() },
-                    onDisable = { Companion.enabled = false; Companion.stop(); tvToast("Handy-Fernbedienung ausgeschaltet", R.drawable.ic_phone); refresh() })
+                Tv.qr(this, url, PhoneRemote.pin,
+                    onNewPin = { PhoneRemote.newPin(); showCompanion() },
+                    onDisable = { PhoneRemote.enabled = false; PhoneRemote.stop(); tvToast("Handy-Fernbedienung ausgeschaltet", R.drawable.ic_phone); refresh() })
             }
             refresh()
         }, 300)
@@ -101,9 +113,11 @@ class MainActivity : Activity() {
     private fun refresh(focusId: String? = rows.focusedItem?.id) {
         val list = ArrayList<RowData>()
 
-        // 1. Weiterschauen
+        // 1. Weiterschauen (Web-Videos und Jellyfin, nach Zeit sortiert)
         val cont = ContinueStore.all(this)
-        if (cont.isNotEmpty()) list.add(RowData("Weiterschauen", cont.map { continueCard(it) }))
+        val mixed = (cont.map { it.updated to continueCard(it) } + jfResume.map { it.lastPlayed to jellyfinResumeCard(it) })
+            .sortedByDescending { it.first }.map { it.second }
+        if (mixed.isNotEmpty()) list.add(RowData("Weiterschauen", mixed))
 
         // 2. Anbieter & eigene Kacheln
         val tiles = TileStore.load(this)
@@ -180,6 +194,31 @@ class MainActivity : Activity() {
                     MenuEntry("Webseite öffnen", R.drawable.ic_globe, hostOf(e.url)) { BrowserActivity.open(this, e.url, e.title, e.color) },
                     MenuEntry("Aus der Liste entfernen", R.drawable.ic_delete, danger = true) { ContinueStore.remove(this, e.key); refresh() },
                 ), subtitle = "${formatRemaining(e.remaining)} · $pct % gesehen", eyebrow = "WEITERSCHAUEN")
+            },
+        )
+    }
+
+    private fun jellyfinResumeCard(i: Jellyfin.Item): CardItem {
+        val frac = if (i.runtimeSec > 0) (i.positionSec / i.runtimeSec).toFloat() else (i.playedPercent / 100).toFloat()
+        return CardItem(
+            id = "jfr:" + i.id, title = i.displayTitle,
+            subtitle = if (i.type == "Episode") i.seriesName else "Jellyfin",
+            eyebrow = "WEITERSCHAUEN · JELLYFIN",
+            chips = listOf("Jellyfin") + i.infoLine.split(" · ").filter { it.isNotBlank() }.take(3),
+            description = i.overview,
+            color = Brand.colorFor(i.seriesId.ifBlank { i.id }),
+            imageUrls = Jellyfin.cardImages(i), heroImageUrls = Jellyfin.heroImages(i),
+            progress = frac.coerceIn(0f, 1f),
+            progressText = if (i.runtimeSec > 0) "${formatRemaining(i.runtimeSec - i.positionSec)} · ${(frac * 100).toInt()} %" else "",
+            badge = if (i.runtimeSec > 0) formatRemaining(i.runtimeSec - i.positionSec) else null,
+            okHint = "Weiterschauen",
+            onClick = { PlayerActivity.startJellyfin(this, i.id, false) },
+            onMenu = {
+                Tv.menu(this, i.displayTitle, listOfNotNull(
+                    MenuEntry("Weiterschauen", R.drawable.ic_play, "Ab ${formatTime(i.positionSec)}") { PlayerActivity.startJellyfin(this, i.id, false) },
+                    MenuEntry("Von vorne beginnen", R.drawable.ic_replay) { PlayerActivity.startJellyfin(this, i.id, true) },
+                    if (i.type == "Episode" && i.seriesId.isNotBlank()) MenuEntry("Zur Serie", R.drawable.ic_library, i.seriesName) { LibraryActivity.openSeries(this, i.seriesId, i.seriesName) } else null,
+                ), subtitle = i.infoLine, eyebrow = "JELLYFIN")
             },
         )
     }
@@ -283,11 +322,20 @@ class MainActivity : Activity() {
         )
     }
 
-    private fun settingsCards(): List<CardItem> = listOf(
+    private fun settingsCards(): List<CardItem> = listOfNotNull(
+        Updater.available?.let { u ->
+            CardItem(
+                id = "update", title = "Update ${u.name}", iconRes = R.drawable.ic_refresh, color = Brand.ACCENT,
+                eyebrow = "UPDATE VERFÜGBAR", chips = listOf("Installiert: ${BuildConfig.VERSION_NAME}", "Neu: ${u.name}"),
+                description = u.notes.ifBlank { "Eine neue Version von Overlord TV ist verfügbar." },
+                okHint = "Jetzt installieren",
+                onClick = { Updater.runInteractive(this, u) },
+            )
+        },
         CardItem(
             id = "companion", title = "Handy-Fernbedienung", iconRes = R.drawable.ic_phone, color = 0xFF6D28D9.toInt(),
             eyebrow = "EINSTELLUNGEN",
-            chips = if (Companion.running) listOfNotNull("Aktiv", Companion.ipAddress()?.let { "$it:${Companion.port}" }) else listOf("Aus"),
+            chips = if (PhoneRemote.running) listOfNotNull("Aktiv", PhoneRemote.ipAddress()?.let { "$it:${PhoneRemote.port}" }) else listOf("Aus"),
             description = "Mit dem Handy tippen, Links an den Fernseher schicken, Kacheln anlegen und steuern – per QR-Code, ohne App-Installation.",
             okHint = "QR-Code zeigen",
             onClick = { showCompanion() },
@@ -331,9 +379,23 @@ class MainActivity : Activity() {
             },
         ),
         CardItem(
+            id = "clearhist", title = "Verlauf leeren", iconRes = R.drawable.ic_history, color = 0xFF3F3F46.toInt(),
+            eyebrow = "EINSTELLUNGEN", chips = listOf("${History.all().size} Seiten"),
+            description = "Entfernt die Reihe „Zuletzt besucht“ (Cookies und Anmeldungen bleiben erhalten).",
+            okHint = "Leeren",
+            onClick = { Tv.confirm(this, "Verlauf leeren?", null, "Leeren", danger = true) { History.clear(); refresh() } },
+        ),
+        CardItem(
             id = "about", title = "Info", iconRes = R.drawable.ic_info, color = 0xFF1E1B4B.toInt(),
-            eyebrow = "OVERLORD TV", chips = listOf("Version ${BuildConfig.VERSION_NAME}"),
-            description = "Streaming-Startseite für Fire TV mit eigenem Browser, Werbeblocker, Weiterschauen und Jellyfin.",
+            eyebrow = "OVERLORD TV", chips = listOf("Version ${BuildConfig.VERSION_NAME}", if (Updater.available == null) "Aktuell" else "Update verfügbar"),
+            description = "Streaming-Startseite für Fire TV mit eigenem Browser, Werbeblocker, Weiterschauen und Jellyfin. OK zeigt Infos, ☰ sucht nach Updates.",
+            onMenu = {
+                tvToast("Suche nach Updates …", R.drawable.ic_refresh)
+                io.execute {
+                    val u = Updater.check()
+                    runOnUiThread { if (u == null) tvToast("Overlord TV ist aktuell (${BuildConfig.VERSION_NAME})", R.drawable.ic_check) else Updater.runInteractive(this, u); refresh() }
+                }
+            },
             onClick = {
                 Tv.info(this, "Overlord TV ${BuildConfig.VERSION_NAME}",
                     "Bündelt Streaming-Apps, Webseiten und deine Jellyfin-Bibliothek auf einer Startseite.\n\n" +

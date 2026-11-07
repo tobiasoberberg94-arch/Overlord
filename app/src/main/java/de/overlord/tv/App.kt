@@ -13,7 +13,7 @@ class App : Application() {
         ImageLoader.init(this)
         AdBlock.init(this)
         HostsUpdateJob.schedule(this)
-        if (Companion.enabled) Companion.start()
+        if (PhoneRemote.enabled) PhoneRemote.start()
 
         // Sichtbare Activity merken (für den Handy-Begleiter)
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
