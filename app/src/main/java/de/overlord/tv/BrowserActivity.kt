@@ -1224,9 +1224,17 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
                 hasPlayer && (autoCinema || pendingResume != null) -> { autoCinema = false; enterCinema() }
                 sections == 0 && !hasPlayer && final -> {
                     if (autoCinema) { autoCinema = false; ensurePlayback() }
-                    showWebsite("Keine Videos erkannt – die Webseite wird angezeigt", userChoice = false)
+                    // Hinweis der Seite (z. B. Jugendschutz-Zeiten) statt der allgemeinen Meldung
+                    showWebsite(shorten(o.optString("notice"), 90).ifBlank { "Keine Videos erkannt – die Webseite wird angezeigt" }, userChoice = false)
                 }
-                sections > 0 || hasPlayer -> renderOverlay(o)
+                sections > 0 || hasPlayer -> {
+                    renderOverlay(o)
+                    if (final && !hasPlayer && autoCinema) {
+                        // Folge gewählt, aber kein Player: Grund nennen, falls die Seite einen angibt
+                        autoCinema = false
+                        o.optString("notice").takeIf { it.isNotBlank() }?.let { showChip(shorten(it, 90), R.drawable.ic_warning) }
+                    }
+                }
                 // sonst: auf den zweiten (finalen) Durchlauf warten
             }
         }
@@ -1266,6 +1274,13 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             id = "v:next", title = "Nächste Folge", iconRes = R.drawable.ic_next, color = darken(tileColor, 0.8f),
             eyebrow = "DIESE SEITE", chips = listOf(hostOf(next)), description = "Öffnet die nächste Folge und startet sie direkt.",
             okHint = "Abspielen", onClick = { openItem(next) },
+        ))
+        // Nur auf Seiten ohne Player und ohne viele Inhalte (Folgenseite statt Übersicht) – sonst wären Teaser-Texte gemeint
+        val notice = o.optString("notice").takeIf { (o.optJSONArray("sections")?.length() ?: 0) <= 2 } ?: ""
+        if (player == null && notice.isNotBlank()) actions.add(CardItem(
+            id = "v:notice", title = "Hinweis der Seite", subtitle = shorten(notice, 40), iconRes = R.drawable.ic_warning,
+            color = 0xFF92400E.toInt(), eyebrow = "KEIN VIDEO VERFÜGBAR", chips = listOf(site), description = notice,
+            okHint = "Webseite zeigen", onClick = { showWebsite() },
         ))
         actions.add(CardItem(
             id = "v:web", title = "Webseite anzeigen", iconRes = R.drawable.ic_globe, color = 0xFF1F2937.toInt(),

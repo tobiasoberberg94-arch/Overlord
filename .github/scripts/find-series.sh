@@ -33,7 +33,7 @@ O="https://www.ardmediathek.de/serien"
 H=$(get "$O")
 echo "ARD Übersicht: $(wc -c <<<"$H") Bytes · Links: $(links "$H" 10)"
 S=""; E=""; S1=""; E1=""
-for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 8); do
+for s in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/serie/[^"]+"' <<<"$H" | sed -E 's/^href="//; s/"$//' 2>/dev/null | awk '!seen[$0]++' | head -n 8); do
   s=$(abs "https://www.ardmediathek.de" "$s")
   HS=$(get "$s")
   for e in $(grep -oE 'href="(https://www\.ardmediathek\.de)?/video/[^"]+"' <<<"$HS" | sed -E 's/^href="//; s/"$//' | awk '!seen[$0]++' | head -n 4); do

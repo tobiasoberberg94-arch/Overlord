@@ -1386,9 +1386,22 @@
       seasons: seasons,
       activeSeason: activeSeason,
       sources: sources,
-      sections: merged.slice(0, 24)
+      sections: merged.slice(0, 24),
+      notice: (player || holder) ? '' : pageNotice()
     };
   });
+
+  /** Hinweis der Seite statt Player: Jugendschutz-Zeiten, „verfügbar ab …“, „nicht mehr verfügbar“, Geo-Sperre. */
+  var NOTICE_RE = /jugendschutz|nur (zwischen|von) \d{1,2}([:.]\d{2})?\s*(uhr)?\s*(und|bis) \d{1,2}|ab \d{1,2}([:.]\d{2})?\s*uhr (verf(ü|ue)gbar|abrufbar|zu sehen)|(verf(ü|ue)gbar|abrufbar|online) ab \d|nicht (mehr )?(verf(ü|ue)gbar|abrufbar)|in (deinem|ihrem) land nicht|geo-?(blocking|gesperrt|beschr(ä|ae)nkt)|aus lizenzrechtlichen gr(ü|ue)nden|only available (in|between|from|after)|not available in your/i;
+  function pageNotice() {
+    var lines = linesOf(D.body || D.documentElement);
+    for (var i = 0; i < lines.length && i < 500; i++) {
+      var l = lines[i];
+      if (l.length < 12 || l.length > 280 || !NOTICE_RE.test(l)) continue;
+      return l.length > 160 ? l.slice(0, 158) + '…' : l;
+    }
+    return '';
+  }
 
   /** Seitentitel ohne Anhängsel: „Folge 1 - hier anschauen“, „… | ARTE“, „- jetzt streamen!“ */
   var TITLE_JUNK = /streamen|anschauen|ansehen|online|kostenlos|mediathek|jetzt|^hier\b|\bwatch\b|\bstream\b|replay|in voller l(ä|ae)nge/i;

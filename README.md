@@ -121,7 +121,9 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
   erscheinen als *Versionen & Quellen*; auch während des Schauens über ☰ lang → „Version wählen“.
 - **Nächste Folge** wird exakt aus der Folgenliste bestimmt (Player-Leiste, Countdown am Folgenende).
 - Die Erkennung ist bewusst allgemein gehalten – ohne Regeln für einzelne Webseiten.
-- Findet Overlord keine Videos, wird automatisch die normale Seite angezeigt.
+- Findet Overlord keine Videos, wird automatisch die normale Seite angezeigt. Nennt die Seite einen Grund
+  (z. B. Jugendschutz-Zeiten „nur von 20 bis 6 Uhr“, „verfügbar ab …“, „nicht mehr verfügbar“), erscheint
+  dieser Hinweis direkt in der Video-Ansicht.
 
 ### Abspielen auf Webseiten („Scraper“)
 - Der Browser erkennt Video-Streams einer Seite automatisch: Netzwerk-Anfragen auf `.m3u8`, `.mp4`, `.webm` usw.
