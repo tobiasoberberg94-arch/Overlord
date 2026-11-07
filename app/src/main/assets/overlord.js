@@ -92,8 +92,9 @@
     'iframe[src*="exoclick"]', 'iframe[src*="juicyads"]', 'iframe[src*="adsterra"]'
   ].join(',');
   var CSS = (PROTECT ? HIDE + '{display:none!important;visibility:hidden!important;pointer-events:none!important}' : '') +
-    '#__ovl_hl{position:fixed;z-index:2147483647;pointer-events:none;border:4px solid #FFD54A;border-radius:8px;' +
-    'box-shadow:0 0 0 3px rgba(0,0,0,.65),0 0 22px rgba(255,213,74,.85);transition:all .12s ease-out;display:none;box-sizing:border-box}';
+    '#__ovl_hl{position:fixed;z-index:2147483647;pointer-events:none;border:3px solid #fff;border-radius:10px;' +
+    'box-shadow:0 0 0 3px #8B5CF6,0 0 26px 6px rgba(139,92,246,.75),inset 0 0 0 1px rgba(0,0,0,.35);' +
+    'background:rgba(139,92,246,.10);transition:all .14s ease-out;display:none;box-sizing:border-box}';
   function addStyle() {
     if (D.getElementById('__ovl_css')) return;
     var s = D.createElement('style');
@@ -174,7 +175,11 @@
     if (!v) return;
     var d = v.duration;
     var src = String(v.currentSrc || v.src || '');
+    if (O.rate && v.playbackRate !== O.rate && isFinite(d) && d >= 30) { try { v.playbackRate = O.rate; } catch (e) {} }
+    var poster = '';
+    try { poster = v.poster ? String(new URL(v.poster, location.href).href) : ''; } catch (e) {}
     call('video', JSON.stringify({
+      poster: /^https?:/i.test(poster) ? poster : '',
       t: v.currentTime || 0,
       d: isFinite(d) ? d : (d === Infinity ? -2 : -1),
       p: !!v.paused,
@@ -284,6 +289,10 @@
         if (isFinite(d) && d >= 300) { v.currentTime = Math.max(0, Number(arg || 0)); tryPlay(v); }
         break;
       case 'maximize': if (real) toggleMax(v); break;
+      case 'rate':
+        O.rate = Number(arg) || 1;
+        if (real) { try { v.playbackRate = O.rate; } catch (e) {} }
+        break;
       case 'unmaximize': if (v.__ovlMax) toggleMax(v, false); break;
     }
   }
@@ -319,6 +328,27 @@
     location.href = u.replace(re, m[1] + m[2] + m[3] + n);
     return true;
   });
+
+  /* ------------------------------------------------------------------ Intro/Werbung überspringen */
+  var AUTOSKIP = true;
+  try { if (B && B.autoSkip) AUTOSKIP = !!B.autoSkip(); } catch (e) {}
+  var SKIP_RE = /^\s*((intro|vorspann|opening|r(ü|ue)ckblick|recap|zusammenfassung|werbung|anzeige|ad|ads)\s*(jetzt\s*)?((ü|ue)berspringen|skip)|skip\s*(intro|recap|opening|ad|ads)|(ü|ue)berspringen|skip)\s*[›»>→]?\s*$/i;
+  var SKIP_SEL = 'button,[role=button],[class*="skip"],[class*="Skip"],[id*="skip"],[class*="intro"],.ytp-ad-skip-button,.ytp-skip-ad-button';
+  var skipScan = safe(function () {
+    if (!AUTOSKIP || !D.body) return;
+    var els = D.querySelectorAll(SKIP_SEL);
+    for (var i = 0; i < els.length && i < 400; i++) {
+      var el = els[i];
+      if (el.__ovlSkipped) continue;
+      var t = ((el.getAttribute('aria-label') || '') + ' ' + (el.textContent || '')).replace(/\s+/g, ' ').trim();
+      if (!t || t.length > 40 || !SKIP_RE.test(t)) continue;
+      if (!visible(el)) continue;
+      el.__ovlSkipped = true;
+      el.click();
+      call('skipped', t);
+    }
+  });
+  setInterval(skipScan, 1200);
 
   /* ------------------------------------------------------------------ Texteingabe */
   function isTextInput(t) {
@@ -526,6 +556,18 @@
   });
 
   O.showHl = safe(function (on) { hlOn = !!on; drawHl(); });
+
+  /** Vorschaubild, Symbol und Markenfarbe der Seite (für Weiterschauen-Karten). */
+  O.pageMeta = safe(function () {
+    function meta(sel) { var m = D.querySelector(sel); return m ? (m.getAttribute('content') || '') : ''; }
+    function abs(u) { try { return u ? new URL(u, location.href).href : ''; } catch (e) { return ''; } }
+    var icon = D.querySelector('link[rel~="apple-touch-icon"],link[rel="apple-touch-icon-precomposed"],link[rel~="icon"][sizes]');
+    return {
+      og: abs(meta('meta[property="og:image"]') || meta('meta[name="twitter:image"]')),
+      icon: abs(icon ? icon.getAttribute('href') : ''),
+      theme: meta('meta[name="theme-color"]')
+    };
+  });
 
   O.viewport = function () { return { iw: W.innerWidth, ih: W.innerHeight }; };
 

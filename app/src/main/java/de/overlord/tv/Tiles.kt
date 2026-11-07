@@ -21,12 +21,14 @@ data class Tile(
     var pkg: String = "",
     var color: Int,
     var description: String = "",
+    /** true = Farbe darf automatisch (theme-color der Webseite) gesetzt werden. */
+    var colorAuto: Boolean = false,
 ) {
     val builtin get() = type == TileType.CRUNCHYROLL || type == TileType.PRIME
 
     fun toJson(): JSONObject = JSONObject()
         .put("id", id).put("type", type.name).put("name", name).put("url", url)
-        .put("pkg", pkg).put("color", color).put("description", description)
+        .put("pkg", pkg).put("color", color).put("description", description).put("colorAuto", colorAuto)
 
     companion object {
         fun fromJson(o: JSONObject) = Tile(
@@ -37,6 +39,7 @@ data class Tile(
             pkg = o.optString("pkg"),
             color = o.optInt("color", Brand.ACCENT),
             description = o.optString("description"),
+            colorAuto = o.optBoolean("colorAuto", false),
         )
     }
 }
@@ -111,7 +114,7 @@ object TileStore {
     }
 
     fun newWeb(name: String, url: String) =
-        Tile(UUID.randomUUID().toString(), TileType.WEB, name, url = url, color = Brand.colorFor(url))
+        Tile(UUID.randomUUID().toString(), TileType.WEB, name, url = url, color = Brand.colorFor(url), colorAuto = true)
 
     fun newApp(name: String, pkg: String, color: Int) =
         Tile(UUID.randomUUID().toString(), TileType.APP, name, pkg = pkg, color = color)

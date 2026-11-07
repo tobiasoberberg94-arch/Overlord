@@ -78,9 +78,10 @@ class LibraryActivity : Activity() {
         out.add(RowData("Bibliotheken", views.map { v ->
             CardItem(
                 id = "view:" + v.id, title = v.name, color = Brand.colorFor(v.id),
-                info = "Bibliothek",
+                eyebrow = "BIBLIOTHEK", chips = listOfNotNull(collectionLabel(v.collectionType)),
                 description = "Alle Titel in „${v.name}“ anzeigen.",
                 imageUrls = listOf(Jellyfin.image(v.id, "Primary")),
+                okHint = "Anzeigen",
                 onClick = { openFolder(this, v.id, v.name) },
             )
         }))
@@ -90,8 +91,9 @@ class LibraryActivity : Activity() {
             if (latest.isEmpty()) continue
             val cards = latest.map { card(it, "l" + v.id) }.toMutableList()
             cards.add(CardItem(
-                id = "all:" + v.id, title = "Alle anzeigen", bigLabel = "→", color = Brand.SURFACE,
-                info = v.name, description = "Alle Titel in „${v.name}“.",
+                id = "all:" + v.id, title = "Alle anzeigen", iconRes = R.drawable.ic_arrow_forward, color = Brand.SURFACE2, dashed = true,
+                eyebrow = "BIBLIOTHEK", chips = listOf(v.name), description = "Alle Titel in „${v.name}“.",
+                okHint = "Anzeigen",
                 onClick = { openFolder(this, v.id, v.name) },
             ))
             out.add(RowData("Neu in ${v.name}", cards))
@@ -131,7 +133,11 @@ class LibraryActivity : Activity() {
         return CardItem(
             id = "$prefix:${i.id}",
             title = i.displayTitle,
-            info = i.infoLine,
+            subtitle = if (i.type == "Episode") i.seriesName else (if (i.year > 0) i.year.toString() else ""),
+            eyebrow = when (i.type) { "Movie" -> "FILM"; "Series" -> "SERIE"; "Episode" -> "FOLGE"; "Season" -> "STAFFEL"; else -> "" },
+            chips = i.infoLine.split(" · ").filter { it.isNotBlank() },
+            progressText = if (i.positionSec > 0 && i.runtimeSec > 0) "${formatRemaining(i.runtimeSec - i.positionSec)} · ${(i.positionSec * 100 / i.runtimeSec).toInt()} %" else "",
+            okHint = if (i.playable) (if (i.positionSec > 0) "Weiterschauen" else "Abspielen") else "Öffnen",
             description = i.overview.ifBlank { if (i.type == "Series") "Serie" else "" },
             color = Brand.colorFor(i.seriesId.ifBlank { i.id }),
             imageUrls = Jellyfin.cardImages(i),
@@ -153,13 +159,24 @@ class LibraryActivity : Activity() {
     }
 
     private fun menu(i: Jellyfin.Item) {
-        val actions = ArrayList<Pair<String, () -> Unit>>()
+        val e = ArrayList<MenuEntry>()
         if (i.playable) {
-            actions.add((if (i.positionSec > 0) "Weiterschauen" else "Abspielen") to { open(i, false) })
-            actions.add("Von vorne beginnen" to { open(i, true) })
-        } else actions.add("Öffnen" to { open(i, false) })
-        if (i.type == "Episode" && i.seriesId.isNotBlank()) actions.add("Zur Serie" to { openSeries(this, i.seriesId, i.seriesName) })
-        Dialogs.list(this, i.displayTitle, actions.map { it.first }) { actions[it].second() }
+            e.add(MenuEntry(if (i.positionSec > 0) "Weiterschauen" else "Abspielen", R.drawable.ic_play,
+                if (i.positionSec > 0) "Ab ${formatTime(i.positionSec)}" else null) { open(i, false) })
+            if (i.positionSec > 0) e.add(MenuEntry("Von vorne beginnen", R.drawable.ic_replay) { open(i, true) })
+        } else e.add(MenuEntry("Öffnen", R.drawable.ic_library) { open(i, false) })
+        if (i.type == "Episode" && i.seriesId.isNotBlank()) e.add(MenuEntry("Zur Serie", R.drawable.ic_arrow_forward, i.seriesName) { openSeries(this, i.seriesId, i.seriesName) })
+        Tv.menu(this, i.displayTitle, e, subtitle = i.infoLine, eyebrow = "JELLYFIN")
+    }
+
+    private fun collectionLabel(type: String): String? = when (type) {
+        "movies" -> "Filme"
+        "tvshows" -> "Serien"
+        "music" -> "Musik"
+        "homevideos" -> "Heimvideos"
+        "playlists" -> "Wiedergabelisten"
+        "boxsets" -> "Sammlungen"
+        else -> null
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {

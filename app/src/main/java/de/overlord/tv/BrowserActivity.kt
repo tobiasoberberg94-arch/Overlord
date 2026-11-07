@@ -7,6 +7,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.StateListDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -28,7 +29,6 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -48,7 +48,11 @@ import kotlin.math.min
  */
 class BrowserActivity : Activity() {
 
-    enum class Mode(val label: String) { LINKS("🔗  Link-Modus"), POINTER("🖱  Zeiger-Modus"), NORMAL("⌨  Normaler Modus") }
+    enum class Mode(val label: String, val icon: Int) {
+        LINKS("Link-Modus", R.drawable.ic_link),
+        POINTER("Zeiger-Modus", R.drawable.ic_mouse),
+        NORMAL("Normaler Modus", R.drawable.ic_keyboard),
+    }
 
     private data class MediaHit(val url: String, val referer: String, var duration: Double = 0.0)
 
@@ -56,15 +60,29 @@ class BrowserActivity : Activity() {
     private lateinit var root: FrameLayout
     private lateinit var web: WebView
     private lateinit var cursor: ImageView
-    private lateinit var modeLabel: TextView
-    private lateinit var chip: TextView
+    private lateinit var modePill: LinearLayout
+    private lateinit var modeIcon: ImageView
+    private lateinit var modeText: TextView
+    private lateinit var chipPill: LinearLayout
+    private lateinit var chipIcon: ImageView
+    private lateinit var chipText: TextView
     private lateinit var loadBar: ProgressBar
     private lateinit var fullscreenHolder: FrameLayout
     private lateinit var playerBar: LinearLayout
+    private lateinit var barHost: TextView
     private lateinit var barTitle: TextView
-    private lateinit var barTime: TextView
-    private lateinit var barProgress: ProgressBar
-    private lateinit var btnPlay: Button
+    private lateinit var barTimeLeft: TextView
+    private lateinit var barTimeRight: TextView
+    private lateinit var barTrack: FrameLayout
+    private lateinit var barFill: View
+    private lateinit var barSpeedChip: TextView
+    private lateinit var btnPlay: View
+    private lateinit var btnPlayIcon: ImageView
+    private lateinit var btnPlayLabel: TextView
+    private lateinit var btnSpeedLabel: TextView
+    private lateinit var nextBox: LinearLayout
+    private lateinit var nextCount: TextView
+    private lateinit var nextNow: View
 
     private val chrome by lazy { Chrome() }
     private var customView: View? = null
@@ -93,6 +111,11 @@ class BrowserActivity : Activity() {
     private var autoplayTries = 0
     private var maximized = false
     private var nextDone = false
+    private var speed = 1.0
+    private var videoPoster = ""
+    private var pageImage = ""
+    private var endHandled = false
+    private var countdown = 0
 
     // Navigation / Blocker
     private var lastActivate = 0L
@@ -104,8 +127,8 @@ class BrowserActivity : Activity() {
     private var menuLongFired = false
     private var okLongFired = false
 
-    private val hideChip = Runnable { chip.animate().alpha(0f).setDuration(250).start() }
-    private val hideMode = Runnable { modeLabel.animate().alpha(0f).setDuration(250).start() }
+    private val hideChip = Runnable { chipPill.animate().alpha(0f).translationY(-dpf(10f)).setDuration(250).start() }
+    private val hideMode = Runnable { modePill.animate().alpha(0f).setDuration(250).start() }
     private val hideBar = Runnable { hidePlayerBar() }
 
     companion object {
@@ -114,6 +137,7 @@ class BrowserActivity : Activity() {
         private const val EXTRA_COLOR = "color"
         private const val EXTRA_RESUME = "resume"
         private const val PREFS = "browser"
+        private val SPEEDS = listOf(1.0, 1.25, 1.5, 2.0, 0.75)
         private val MEDIA_RE = Regex("""\.(m3u8|mp4|webm|mkv|mov)(\?|$)""", RegexOption.IGNORE_CASE)
         private const val DESKTOP_UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
 
@@ -148,19 +172,24 @@ class BrowserActivity : Activity() {
         loadBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
             max = 100
             progressTintList = android.content.res.ColorStateList.valueOf(Brand.ACCENT2)
+            progressBackgroundTintList = android.content.res.ColorStateList.valueOf(0x22FFFFFF)
         }
         root.addView(loadBar, FrameLayout.LayoutParams(-1, dp(4), Gravity.TOP))
 
         cursor = ImageView(this).apply { setImageResource(R.drawable.cursor); visibility = View.GONE; elevation = dpf(20f) }
         root.addView(cursor, FrameLayout.LayoutParams(dp(32), dp(32)))
 
-        modeLabel = pill(18f).apply { alpha = 0f }
-        root.addView(modeLabel, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.END).apply { topMargin = dp(20); rightMargin = dp(28) })
+        pill().let { (p, i, t) -> modePill = p; modeIcon = i; modeText = t }
+        modePill.alpha = 0f
+        root.addView(modePill, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.END).apply { topMargin = dp(22); rightMargin = dp(28) })
 
-        chip = pill(15f).apply { alpha = 0f; maxWidth = (resources.displayMetrics.widthPixels * 0.7f).toInt() }
-        root.addView(chip, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dp(20) })
+        pill().let { (p, i, t) -> chipPill = p; chipIcon = i; chipText = t }
+        chipPill.alpha = 0f
+        chipText.maxWidth = (resources.displayMetrics.widthPixels * 0.62f).toInt()
+        root.addView(chipPill, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = dp(22) })
 
         buildPlayerBar()
+        buildNextBox()
         setContentView(root)
         setupWeb()
 
@@ -172,54 +201,130 @@ class BrowserActivity : Activity() {
         showMode()
     }
 
-    private fun pill(size: Float) = TextView(this).apply {
-        setTextColor(Brand.TEXT)
-        textSize = size
-        typeface = Typeface.DEFAULT_BOLD
-        setPadding(dp(18), dp(10), dp(18), dp(10))
-        background = GradientDrawable().apply { cornerRadius = dpf(30f); setColor(0xE6141420.toInt()); setStroke(dp(1), withAlpha(Brand.ACCENT, 0xAA)) }
-        elevation = dpf(24f)
+    /** Glas-Pille mit Symbol und Text (Modus-Anzeige, Hinweise). */
+    private fun pill(): Triple<LinearLayout, ImageView, TextView> {
+        val icon = icon(R.drawable.ic_info, Brand.ACCENT2)
+        val text = label("", 16f, Fonts.semibold, lines = 2)
+        val p = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(18), dp(11), dp(22), dp(11))
+            background = rounded(0xEE16161F.toInt(), dpf(30f), dp(1), withAlpha(Brand.ACCENT, 0x99))
+            elevation = dpf(24f)
+            addView(icon, LinearLayout.LayoutParams(dp(22), dp(22)).apply { rightMargin = dp(12) })
+            addView(text)
+        }
+        return Triple(p, icon, text)
+    }
+
+    /** Runder Symbol-Knopf mit Beschriftung darunter. */
+    private fun roundButton(row: LinearLayout, iconRes: Int, text: String, big: Boolean = false, action: () -> Unit): Triple<View, ImageView, TextView> {
+        val size = dp(if (big) 76 else 62)
+        val col = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; clipChildren = false }
+        val circle = FrameLayout(this).apply {
+            isFocusable = true
+            isClickable = true
+            background = StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_focused), GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(Brand.FOCUS) })
+                addState(intArrayOf(), GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(if (big) Brand.ACCENT else 0x33FFFFFF) })
+            }
+        }
+        val ic = icon(iconRes).apply {
+            imageTintList = android.content.res.ColorStateList(
+                arrayOf(intArrayOf(android.R.attr.state_focused), intArrayOf()), intArrayOf(Brand.BG, Brand.TEXT))
+            isDuplicateParentStateEnabled = true
+        }
+        circle.addView(ic, FrameLayout.LayoutParams(dp(if (big) 36 else 28), dp(if (big) 36 else 28), Gravity.CENTER))
+        val lbl = label(text, 13f, Fonts.semibold, Brand.TEXT_DIM).apply { gravity = Gravity.CENTER }
+        col.addView(circle, LinearLayout.LayoutParams(size, size))
+        col.addView(lbl, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(9) })
+        circle.setOnClickListener { action(); scheduleBarHide() }
+        circle.setOnFocusChangeListener { v, f ->
+            v.animate().scaleX(if (f) 1.12f else 1f).scaleY(if (f) 1.12f else 1f).setDuration(120).start()
+            lbl.setTextColor(if (f) Brand.TEXT else Brand.TEXT_DIM)
+        }
+        row.addView(col, LinearLayout.LayoutParams(dp(100), -2))
+        return Triple(circle, ic, lbl)
     }
 
     private fun buildPlayerBar() {
         playerBar = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(40), dp(20), dp(40), dp(24))
-            background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xF0000000.toInt(), 0x00000000))
+            setPadding(dp(56), dp(70), dp(56), dp(28))
+            background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xF2000000.toInt(), 0xB0000000.toInt(), 0x00000000))
             visibility = View.GONE
             elevation = dpf(30f)
+            clipChildren = false
         }
-        barTitle = TextView(this).apply { setTextColor(Brand.TEXT); textSize = 20f; typeface = Typeface.DEFAULT_BOLD; maxLines = 1 }
-        barTime = TextView(this).apply { setTextColor(Brand.TEXT_DIM); textSize = 15f }
-        barProgress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 1000
-            progressTintList = android.content.res.ColorStateList.valueOf(Brand.ACCENT2)
+        barHost = label("", 13f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.18f }
+        barTitle = label("", 28f, Fonts.bold)
+        barSpeedChip = label("", 14f, Fonts.bold, Brand.BG).apply {
+            setPadding(dp(10), dp(4), dp(10), dp(4))
+            background = rounded(Brand.ACCENT2, dpf(6f))
+            visibility = View.GONE
         }
         val head = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.BOTTOM }
-        head.addView(barTitle, LinearLayout.LayoutParams(0, -2, 1f))
-        head.addView(barTime)
+        val titles = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        titles.addView(barHost)
+        titles.addView(barTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        head.addView(titles, LinearLayout.LayoutParams(0, -2, 1f))
+        head.addView(barSpeedChip)
         playerBar.addView(head)
-        playerBar.addView(barProgress, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(8); bottomMargin = dp(14) })
 
-        val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER }
-        fun btn(label: String, action: () -> Unit) = Button(this).apply {
-            text = label
-            isAllCaps = false
-            textSize = 18f
-            setTextColor(Brand.TEXT)
-            background = buttonBackground(14)
-            setPadding(dp(22), dp(12), dp(22), dp(12))
-            setOnClickListener { action(); scheduleBarHide() }
-            buttons.addView(this, LinearLayout.LayoutParams(-2, dp(60)).apply { marginStart = dp(8); marginEnd = dp(8) })
-        }
-        btn("⏪  10 s") { seek(-10.0) }
-        btnPlay = btn("⏯  Play/Pause") { cmd("toggle") }
-        btn("10 s  ⏩") { seek(10.0) }
-        btn("⏭  Nächste Folge") { nextEpisode() }
-        btn("⛶  Vollbild") { toggleMaximize() }
-        btn("▶  Nativ") { playNative() }
+        val prog = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        barTimeLeft = label("0:00", 15f, Fonts.semibold)
+        barTimeRight = label("", 15f, Fonts.semibold, Brand.TEXT_DIM)
+        barTrack = FrameLayout(this).apply { background = rounded(0x40FFFFFF, dpf(4f)) }
+        barFill = View(this).apply { background = rounded(Brand.ACCENT2, dpf(4f)) }
+        barTrack.addView(barFill, FrameLayout.LayoutParams(0, -1))
+        prog.addView(barTimeLeft, LinearLayout.LayoutParams(dp(84), -2))
+        prog.addView(barTrack, LinearLayout.LayoutParams(0, dp(7), 1f))
+        prog.addView(barTimeRight, LinearLayout.LayoutParams(dp(84), -2).apply { leftMargin = dp(4) })
+        barTimeRight.gravity = Gravity.END
+        playerBar.addView(prog, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(16); bottomMargin = dp(22) })
+
+        val buttons = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER; clipChildren = false }
+        roundButton(buttons, R.drawable.ic_rewind, "−10 s") { seek(-10.0) }
+        roundButton(buttons, R.drawable.ic_play, "Pause", big = true) { cmd("toggle") }.let { (v, i, l) -> btnPlay = v; btnPlayIcon = i; btnPlayLabel = l }
+        roundButton(buttons, R.drawable.ic_forward, "+10 s") { seek(10.0) }
+        roundButton(buttons, R.drawable.ic_next, "Nächste") { nextEpisode() }
+        roundButton(buttons, R.drawable.ic_skip_intro, "Intro +85 s") { seek(85.0); showChip("Intro übersprungen (+85 s)", R.drawable.ic_skip_intro) }
+        roundButton(buttons, R.drawable.ic_speed, "Tempo 1,0×") { cycleSpeed() }.let { (_, _, l) -> btnSpeedLabel = l }
+        roundButton(buttons, R.drawable.ic_fullscreen, "Vollbild") { toggleMaximize() }
+        roundButton(buttons, R.drawable.ic_tv, "Nativ") { playNative() }
         playerBar.addView(buttons)
         root.addView(playerBar, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
+    }
+
+    /** Hinweis-Karte „Nächste Folge in … s“ am Ende eines Videos. */
+    private fun buildNextBox() {
+        nextBox = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(dp(26), dp(22), dp(26), dp(22))
+            background = rounded(0xF2161622.toInt(), dpf(20f), dp(1), withAlpha(Brand.ACCENT, 0xAA))
+            elevation = dpf(32f)
+            visibility = View.GONE
+        }
+        nextBox.addView(label("NÄCHSTE FOLGE", 12f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.2f })
+        nextCount = label("", 24f, Fonts.bold)
+        nextBox.addView(nextCount, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(6) })
+        val row = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        fun b(text: String, primary: Boolean, action: () -> Unit) = label(text, 16f, Fonts.semibold).apply {
+            setPadding(dp(20), dp(12), dp(20), dp(12))
+            isFocusable = true
+            isClickable = true
+            background = StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_focused), rounded(Brand.FOCUS, dpf(24f)))
+                addState(intArrayOf(), if (primary) rounded(Brand.ACCENT, dpf(24f)) else rounded(0x26FFFFFF, dpf(24f)))
+            }
+            setTextColor(android.content.res.ColorStateList(arrayOf(intArrayOf(android.R.attr.state_focused), intArrayOf()), intArrayOf(Brand.BG, Brand.TEXT)))
+            setOnClickListener { action() }
+        }
+        nextNow = b("Jetzt abspielen", true) { cancelCountdown(); nextEpisode() }
+        row.addView(nextNow)
+        row.addView(b("Abbrechen", false) { cancelCountdown() }, LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(12) })
+        nextBox.addView(row, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(16) })
+        root.addView(nextBox, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.BOTTOM).apply { rightMargin = dp(56); bottomMargin = dp(60) })
     }
 
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface", "AddJavascriptInterface")
@@ -294,6 +399,13 @@ class BrowserActivity : Activity() {
 
         @JavascriptInterface
         fun nextDone() { ui.post { this@BrowserActivity.nextDone = true } }
+
+        /** Synchron: Intro/Werbung automatisch überspringen? */
+        @JavascriptInterface
+        fun autoSkip(): Boolean = Prefs.autoSkip
+
+        @JavascriptInterface
+        fun skipped(text: String) { ui.post { showChip("Automatisch übersprungen: ${text.take(30)}", R.drawable.ic_skip_intro) } }
     }
 
     private fun js(code: String, cb: ((String?) -> Unit)? = null) {
@@ -323,6 +435,8 @@ class BrowserActivity : Activity() {
         val d = o.optDouble("d", -1.0)
         val paused = o.optBoolean("p", true)
         val src = o.optString("src")
+        val ended = o.optBoolean("e", false)
+        o.optString("poster").takeIf { it.isNotBlank() }?.let { videoPoster = it }
         val live = d == -2.0
         if (d < 60 && !live) return   // kurze Clips (Werbung) ignorieren
         lastVideoReport = SystemClock.uptimeMillis()
@@ -339,13 +453,18 @@ class BrowserActivity : Activity() {
         updateBar()
 
         if (!wasPlaying && videoPlaying) showPlayerBar(focus = true)
+        if (ended && !endHandled && d >= ContinueStore.MIN_DURATION) {
+            endHandled = true
+            web.url?.let { ContinueStore.report(this, it, pageTitle(), d, d, tileColor) }
+            if (Prefs.autoNext) startCountdown()
+        }
 
         if (d >= ContinueStore.MIN_DURATION) {
             pendingResume?.let { target ->
                 if (abs(t - target) > 5) {
                     resumeAttempts++
                     cmd("seekTo", target)
-                    toast(if (target < 1) "Starte von vorne" else "Setze fort bei ${formatTime(target)}")
+                    showChip(if (target < 1) "Starte von vorne" else "Setze fort bei ${formatTime(target)}", R.drawable.ic_play)
                     if (resumeAttempts >= 4) pendingResume = null
                 } else pendingResume = null
             }
@@ -353,7 +472,7 @@ class BrowserActivity : Activity() {
             if (pendingResume == null && (now - lastSave > 5000 || (wasPlaying && paused))) {
                 lastSave = now
                 val pageUrl = web.url ?: return
-                ContinueStore.report(this, pageUrl, pageTitle(), t, d, tileColor)
+                ContinueStore.report(this, pageUrl, pageTitle(), t, d, tileColor, image = videoPoster.ifBlank { pageImage })
             }
         }
     }
@@ -379,6 +498,10 @@ class BrowserActivity : Activity() {
             videoPageUrl = url
             lastVideoReport = 0
             videoPlaying = false
+            videoPoster = ""
+            pageImage = ""
+            endHandled = false
+            cancelCountdown()
             hidePlayerBar()
         }
 
@@ -387,6 +510,8 @@ class BrowserActivity : Activity() {
             injectFallback()
             if (mode != Mode.LINKS) js("window.__ovl && __ovl.showHl(false)")
             if (pendingResume != null) startAutoplay()
+            if (speed != 1.0) cmd("rate", speed)
+            js("window.__ovl ? __ovl.pageMeta() : null") { r -> parseObj(r)?.optString("og")?.takeIf { it.isNotBlank() }?.let { pageImage = it } }
         }
 
         override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
@@ -460,9 +585,9 @@ class BrowserActivity : Activity() {
     }
 
     private fun onBlocked(url: String, what: String) {
-        if (url.isBlank() || url == "about:blank") { showChip("$what"); return }
+        if (url.isBlank() || url == "about:blank") { showChip(what, R.drawable.ic_shield); return }
         lastBlockedUrl = url
-        showChip("$what: ${hostOf(url)}  ·  ☰ lang → trotzdem öffnen")
+        showChip("$what: ${hostOf(url)}  ·  ☰ lang → trotzdem öffnen", R.drawable.ic_shield)
     }
 
     private fun onMediaDetected(url: String, referer: String) {
@@ -471,7 +596,7 @@ class BrowserActivity : Activity() {
         if (!detected.containsKey(url)) detected[url] = MediaHit(url, referer.ifBlank { web.url ?: "" })
         if (!mediaChipShown) {
             mediaChipShown = true
-            showChip("🎬 Video erkannt  ·  ☰ lang → „Video nativ abspielen“")
+            showChip("Video erkannt  ·  ☰ lang → „Video nativ abspielen“", R.drawable.ic_movie)
         }
     }
 
@@ -530,7 +655,7 @@ class BrowserActivity : Activity() {
             }
             (resultMsg.obj as WebView.WebViewTransport).webView = temp
             resultMsg.sendToTarget()
-            ui.postDelayed({ if (!handled) { handled = true; showChip("Pop-up blockiert"); try { temp.destroy() } catch (e: Exception) { } } }, 3000)
+            ui.postDelayed({ if (!handled) { handled = true; showChip("Pop-up blockiert", R.drawable.ic_shield); try { temp.destroy() } catch (e: Exception) { } } }, 3000)
             return true
         }
     }
@@ -571,6 +696,9 @@ class BrowserActivity : Activity() {
                 return true
             }
         }
+
+        // Countdown-Karte „Nächste Folge“
+        if (nextBox.visibility == View.VISIBLE && nextBox.hasFocus()) return super.dispatchKeyEvent(e)
 
         // Player-Leiste hat den Fokus
         if (playerBar.visibility == View.VISIBLE && playerBar.hasFocus()) {
@@ -765,15 +893,18 @@ class BrowserActivity : Activity() {
     }
 
     private fun showMode() {
-        modeLabel.text = mode.label
-        modeLabel.animate().alpha(1f).setDuration(150).start()
+        modeText.text = mode.label
+        modeIcon.setImageResource(mode.icon)
+        modePill.animate().alpha(1f).setDuration(150).start()
         ui.removeCallbacks(hideMode)
         ui.postDelayed(hideMode, 1800)
     }
 
-    private fun showChip(msg: String) {
-        chip.text = msg
-        chip.animate().alpha(1f).setDuration(150).start()
+    private fun showChip(msg: String, iconRes: Int = R.drawable.ic_info) {
+        chipText.text = msg
+        chipIcon.setImageResource(iconRes)
+        chipPill.translationY = -dpf(10f)
+        chipPill.animate().alpha(1f).translationY(0f).setDuration(180).start()
         ui.removeCallbacks(hideChip)
         ui.postDelayed(hideChip, 3500)
     }
@@ -781,6 +912,7 @@ class BrowserActivity : Activity() {
     /** Zurück: Leiste ausblenden → Vollbild verlassen → vorherige Seite → Startseite. */
     private fun handleBack() {
         when {
+            nextBox.visibility == View.VISIBLE -> cancelCountdown()
             playerBar.visibility == View.VISIBLE && playerBar.hasFocus() -> hidePlayerBar()
             customView != null -> chrome.onHideCustomView()
             maximized -> { maximized = false; cmd("unmaximize") }
@@ -804,19 +936,19 @@ class BrowserActivity : Activity() {
         if (customView != null) { chrome.onHideCustomView(); return }
         maximized = !maximized
         cmd(if (maximized) "maximize" else "unmaximize")
-        if (maximized) showChip("Vollbild · Zurück zum Verlassen")
+        if (maximized) showChip("Vollbild · Zurück zum Verlassen", R.drawable.ic_fullscreen)
     }
 
     private fun nextEpisode() {
         nextDone = false
-        showChip("Suche nächste Folge …")
+        showChip("Suche nächste Folge …", R.drawable.ic_next)
         js("window.__ovl ? __ovl.nextLocal() : false") { r ->
             if (r == "true") return@js
             cmd("next")
             ui.postDelayed({
                 if (nextDone) return@postDelayed
                 js("window.__ovl ? __ovl.nextByUrl() : false") { r2 ->
-                    if (r2 != "true") showChip("Keine nächste Folge gefunden")
+                    if (r2 != "true") showChip("Keine nächste Folge gefunden", R.drawable.ic_warning)
                 }
             }, 900)
         }
@@ -874,12 +1006,60 @@ class BrowserActivity : Activity() {
 
     private fun updateBar() {
         barTitle.text = pageTitle()
+        barHost.text = hostOf(web.url).uppercase()
+        btnPlayIcon.setImageResource(if (videoPlaying) R.drawable.ic_pause else R.drawable.ic_play)
+        btnPlayLabel.text = if (videoPlaying) "Pause" else "Abspielen"
         if (videoDur > 0) {
-            barTime.text = "${formatTime(videoPos)} / ${formatTime(videoDur)}  ·  ${formatRemaining(videoDur - videoPos)}"
-            barProgress.progress = ((videoPos / videoDur) * 1000).toInt()
+            barTimeLeft.text = formatTime(videoPos)
+            barTimeRight.text = "−" + formatTime(videoDur - videoPos)
+            val frac = (videoPos / videoDur).coerceIn(0.0, 1.0)
+            barTrack.post { barFill.layoutParams = FrameLayout.LayoutParams((barTrack.width * frac).toInt(), -1) }
         } else {
-            barTime.text = if (videoActive()) "LIVE" else ""
-            barProgress.progress = 0
+            barTimeLeft.text = if (videoActive()) "LIVE" else ""
+            barTimeRight.text = ""
+            barFill.layoutParams = FrameLayout.LayoutParams(0, -1)
+        }
+        barSpeedChip.text = speedText(speed)
+        barSpeedChip.visibility = if (speed != 1.0) View.VISIBLE else View.GONE
+    }
+
+    private fun speedText(v: Double) = (if (v % 1.0 == 0.0) String.format("%.1f", v) else v.toString()).replace('.', ',') + "×"
+
+    private fun cycleSpeed() {
+        speed = SPEEDS[(SPEEDS.indexOf(speed) + 1) % SPEEDS.size]
+        cmd("rate", speed)
+        btnSpeedLabel.text = "Tempo " + speedText(speed)
+        showChip("Wiedergabe-Tempo ${speedText(speed)}", R.drawable.ic_speed)
+        updateBar()
+    }
+
+    private val countdownTick = object : Runnable {
+        override fun run() {
+            if (nextBox.visibility != View.VISIBLE) return
+            if (countdown <= 0) { cancelCountdown(); nextEpisode(); return }
+            nextCount.text = "Startet in $countdown s"
+            countdown--
+            ui.postDelayed(this, 1000)
+        }
+    }
+
+    private fun startCountdown() {
+        hidePlayerBar()
+        countdown = 10
+        nextBox.visibility = View.VISIBLE
+        nextBox.alpha = 0f
+        nextBox.animate().alpha(1f).setDuration(200).start()
+        nextNow.requestFocus()
+        ui.removeCallbacks(countdownTick)
+        ui.post(countdownTick)
+    }
+
+    private fun cancelCountdown() {
+        ui.removeCallbacks(countdownTick)
+        if (nextBox.visibility == View.VISIBLE) {
+            val hadFocus = nextBox.hasFocus()
+            nextBox.visibility = View.GONE
+            if (hadFocus) web.requestFocus()
         }
     }
 
@@ -895,7 +1075,7 @@ class BrowserActivity : Activity() {
     }
 
     private fun playNative(hit: MediaHit? = bestMedia()) {
-        if (hit == null) { showChip("Kein Video-Stream erkannt – Video zuerst auf der Seite starten"); return }
+        if (hit == null) { showChip("Kein Video-Stream erkannt – Video zuerst auf der Seite starten", R.drawable.ic_movie); return }
         cmd("pause")
         val pageUrl = web.url ?: hit.referer
         val start = if (videoActive() && videoDur > 0) videoPos else (ContinueStore.get(this, pageUrl)?.position ?: 0.0)
@@ -910,58 +1090,71 @@ class BrowserActivity : Activity() {
         val hits = detected.values.toList().asReversed()
         if (hits.isEmpty()) { playNative(null); return }
         if (hits.size == 1) { playNative(hits[0]); return }
-        val labels = hits.map { h ->
+        Tv.menu(this, "Erkannte Videos", hits.map { h ->
             val name = Uri.parse(h.url).lastPathSegment ?: h.url
-            val dur = if (h.duration > 0) " · ${formatTime(h.duration)}" else ""
-            "${hostOf(h.url)} · $name$dur"
-        }
-        Dialogs.list(this, "Erkannte Videos", labels) { i -> playNative(hits[i]) }
+            val dur = if (h.duration > 0) formatTime(h.duration) else "Länge unbekannt"
+            MenuEntry(name.take(48), if (h.url.contains(".m3u8", true)) R.drawable.ic_tv else R.drawable.ic_movie, "${hostOf(h.url)} · $dur") { playNative(h) }
+        }, subtitle = "Im eigenen Player abspielen – ohne Seiten-Werbung", eyebrow = "VIDEO NATIV")
     }
 
     // ===================================================================== Menü
 
     private fun showBrowserMenu() {
-        val items = ArrayList<Pair<String, () -> Unit>>()
-        items.add("🔍  Schnellsuche auf dieser Seite" to { quickSearch() })
-        items.add("🌐  Adresse eingeben" to {
-            Dialogs.input(this, "Adresse", "Adresse oder Suchbegriff", web.url ?: "", url = true) { u -> if (u.isNotBlank()) web.loadUrl(normalizeUrl(u)) }
+        val e = ArrayList<MenuEntry>()
+        e.add(MenuEntry("Schnellsuche auf dieser Seite", R.drawable.ic_search, "Begriff an die Suche von ${hostOf(web.url)} senden") { quickSearch() })
+        e.add(MenuEntry("Adresse eingeben", R.drawable.ic_globe, hostOf(web.url)) {
+            Tv.input(this, "Adresse", "Adresse oder Suchbegriff", web.url ?: "", url = true, icon = R.drawable.ic_globe, okLabel = "Öffnen") { u ->
+                if (u.isNotBlank()) { lastActivate = SystemClock.uptimeMillis(); web.loadUrl(normalizeUrl(u)) }
+            }
         })
-        if (detected.isNotEmpty()) items.add("🎬  Video nativ abspielen (${detected.size} erkannt)" to { chooseMedia() })
-        if (videoActive()) items.add("⏯  Player-Leiste zeigen" to { showPlayerBar(true) })
-        lastBlockedUrl?.let { b -> items.add("⚠  Blockiert – trotzdem öffnen: ${hostOf(b)}" to { lastActivate = SystemClock.uptimeMillis(); web.loadUrl(b) }) }
+        if (detected.isNotEmpty()) e.add(MenuEntry("Video nativ abspielen", R.drawable.ic_tv, "${detected.size} Stream(s) erkannt – ohne Werbung, schnelles Spulen") { chooseMedia() })
+        if (videoActive()) e.add(MenuEntry("Player-Leiste zeigen", R.drawable.ic_play, "Tempo ${speedText(speed)}") { showPlayerBar(true) })
+        lastBlockedUrl?.let { b -> e.add(MenuEntry("Blockiertes trotzdem öffnen", R.drawable.ic_warning, hostOf(b)) { lastActivate = SystemClock.uptimeMillis(); web.loadUrl(b) }) }
         val site = hostOf(web.url)
         if (site.isNotBlank()) {
             val on = !AdBlock.isAllowed(this, site)
-            items.add((if (on) "🛡  Schutz auf ${baseDomain(site)} ausschalten (falls Videos nicht starten)" else "🛡  Schutz auf ${baseDomain(site)} wieder einschalten") to {
+            e.add(MenuEntry(if (on) "Schutz auf ${baseDomain(site)} ausschalten" else "Schutz auf ${baseDomain(site)} einschalten", R.drawable.ic_shield,
+                if (on) "Falls Videos auf dieser Seite nicht starten" else "Werbe- und Pop-up-Blocker ist hier aus") {
                 AdBlock.setAllowed(this, site, on)
-                showChip(if (on) "Werbe-/Pop-up-Schutz für ${baseDomain(site)} aus" else "Schutz für ${baseDomain(site)} an")
+                showChip(if (on) "Werbe-/Pop-up-Schutz für ${baseDomain(site)} aus" else "Schutz für ${baseDomain(site)} an", R.drawable.ic_shield)
                 web.reload()
             })
         }
-        items.add("🔗  Link-Modus" to { setMode(Mode.LINKS) })
-        items.add("🖱  Zeiger-Modus" to { setMode(Mode.POINTER) })
-        items.add("⌨  Normaler Modus" to { setMode(Mode.NORMAL) })
-        items.add("➕  Als Kachel zur Startseite hinzufügen" to {
-            val url = web.url ?: return@to
-            val t = TileStore.newWeb(pageTitle().take(30), url)
-            TileStore.add(this, t)
-            toast("Kachel „${t.name}“ hinzugefügt")
+        e.add(MenuEntry("Steuerung: ${mode.label}", mode.icon, "Wechseln: Link → Zeiger → Normal (☰ kurz)") {
+            Tv.menu(this, "Steuerung", Mode.values().map { m -> MenuEntry(m.label, m.icon, if (m == mode) "Aktiv" else null) { setMode(m) } }, eyebrow = "MODUS")
         })
-        items.add("↗  Im externen Browser öffnen" to { web.url?.let { Launcher.openExternal(this, it) } })
-        items.add((if (desktopMode) "📱  Mobile Ansicht" else "🖥  Desktop-Ansicht") to {
+        e.add(MenuEntry("Intro & Werbung automatisch überspringen", R.drawable.ic_skip_intro, if (Prefs.autoSkip) "An" else "Aus") {
+            Prefs.autoSkip = !Prefs.autoSkip
+            showChip("Automatisch überspringen: ${if (Prefs.autoSkip) "an" else "aus"}", R.drawable.ic_skip_intro)
+            web.reload()
+        })
+        e.add(MenuEntry("Nächste Folge automatisch", R.drawable.ic_next, if (Prefs.autoNext) "An – Countdown am Ende eines Videos" else "Aus") {
+            Prefs.autoNext = !Prefs.autoNext
+            showChip("Nächste Folge automatisch: ${if (Prefs.autoNext) "an" else "aus"}", R.drawable.ic_next)
+        })
+        e.add(MenuEntry("Als Kachel zur Startseite hinzufügen", R.drawable.ic_bookmark, pageTitle().take(40)) {
+            web.url?.let { url ->
+                val t = TileStore.newWeb(pageTitle().take(30), url)
+                TileStore.add(this, t)
+                tvToast("Kachel „${t.name}“ hinzugefügt", R.drawable.ic_check)
+            }
+        })
+        e.add(MenuEntry("Im externen Browser öffnen", R.drawable.ic_open_external) { web.url?.let { Launcher.openExternal(this, it) } })
+        e.add(MenuEntry(if (desktopMode) "Mobile Ansicht" else "Desktop-Ansicht", R.drawable.ic_desktop, "Seite als ${if (desktopMode) "Mobilgerät" else "PC"} anfordern") {
             desktopMode = !desktopMode
             getSharedPreferences(PREFS, MODE_PRIVATE).edit().putBoolean("desktop", desktopMode).apply()
             applyUserAgent()
             web.reload()
         })
-        items.add("⟳  Neu laden" to { web.reload() })
-        items.add("⌂  Zur Startseite" to { finish() })
-        Dialogs.list(this, pageTitle(), items.map { it.first }) { i -> items[i].second() }
+        e.add(MenuEntry("Neu laden", R.drawable.ic_refresh) { web.reload() })
+        e.add(MenuEntry("Zur Startseite", R.drawable.ic_home) { finish() })
+        Tv.menu(this, pageTitle(), e, subtitle = hostOf(web.url), eyebrow = "BROWSER")
     }
 
     private fun quickSearch() {
-        val neutral = if (Voice.available(this)) "🎤 Sprache" to { if (!Voice.start(this, "Wonach suchen?")) toast("Spracheingabe nicht verfügbar") } else null
-        Dialogs.input(this, "Schnellsuche auf ${hostOf(web.url)}", "Suchbegriff (Tastatur oder Mikrofon der Tastatur)", neutral = neutral) { term ->
+        val voice: (() -> Unit)? = if (Voice.available(this)) ({ if (!Voice.start(this, "Wonach suchen?")) tvToast("Spracheingabe nicht verfügbar", R.drawable.ic_mic) }) else null
+        Tv.input(this, "Schnellsuche", "Suchbegriff", icon = R.drawable.ic_search, okLabel = "Suchen", voice = voice,
+            message = "Der Begriff wird an das Suchfeld von ${hostOf(web.url)} geschickt. Tipp: Das Mikrofon der Bildschirmtastatur funktioniert auch.") { term ->
             if (term.isNotBlank()) runSearch(term)
         }
     }
@@ -970,11 +1163,11 @@ class BrowserActivity : Activity() {
         js("window.__ovl ? __ovl.search(${JSONObject.quote(term)}, $second) : 'none'") { r ->
             val res = r?.trim('"') ?: "none"
             when {
-                res == "ok" -> showChip("Suche nach „$term“ …")
+                res == "ok" -> showChip("Suche nach „$term“ …", R.drawable.ic_search)
                 res == "opened" && !second -> ui.postDelayed({ runSearch(term, true) }, 700)
                 else -> {
                     val host = hostOf(web.url)
-                    showChip("Kein Suchfeld gefunden – suche über DuckDuckGo auf $host")
+                    showChip("Kein Suchfeld gefunden – suche über DuckDuckGo auf $host", R.drawable.ic_search)
                     web.loadUrl("https://duckduckgo.com/?q=" + Uri.encode("site:$host $term"))
                 }
             }

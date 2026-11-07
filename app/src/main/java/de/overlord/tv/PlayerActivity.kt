@@ -15,6 +15,7 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -64,9 +65,13 @@ class PlayerActivity : Activity() {
     private lateinit var overlay: LinearLayout
     private lateinit var title: TextView
     private lateinit var info: TextView
-    private lateinit var time: TextView
-    private lateinit var progress: ProgressBar
-    private lateinit var center: TextView
+    private lateinit var timeLeft: TextView
+    private lateinit var timeRight: TextView
+    private lateinit var track: FrameLayout
+    private lateinit var fill: View
+    private lateinit var center: LinearLayout
+    private lateinit var centerIcon: ImageView
+    private lateinit var centerText: TextView
     private lateinit var spinner: ProgressBar
     private lateinit var nextBox: TextView
 
@@ -116,7 +121,7 @@ class PlayerActivity : Activity() {
             referer = intent.getStringExtra(K_REFERER) ?: ""
             color = intent.getIntExtra(K_COLOR, Brand.ACCENT)
             title.text = intent.getStringExtra(K_TITLE) ?: hostOf(pageUrl)
-            info.text = hostOf(mediaUrl)
+            info.text = ("NATIVER PLAYER · " + hostOf(pageUrl.ifBlank { mediaUrl })).uppercase()
             intent.getStringExtra(K_UA)?.takeIf { it.isNotBlank() }?.let { headers["User-Agent"] = it }
             intent.getStringExtra(K_COOKIES)?.takeIf { it.isNotBlank() }?.let { headers["Cookie"] = it }
             if (referer.isNotBlank()) {
@@ -137,40 +142,53 @@ class PlayerActivity : Activity() {
         spinner = ProgressBar(this).apply { isIndeterminate = true }
         root.addView(spinner, FrameLayout.LayoutParams(dp(64), dp(64), Gravity.CENTER))
 
-        center = TextView(this).apply {
-            setTextColor(Brand.TEXT); textSize = 34f; typeface = Typeface.DEFAULT_BOLD
-            setPadding(dp(28), dp(14), dp(28), dp(14))
-            background = GradientDrawable().apply { cornerRadius = dpf(20f); setColor(0xAA000000.toInt()) }
+        center = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER_HORIZONTAL
             alpha = 0f
         }
+        val circle = FrameLayout(this).apply { background = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(0xB3000000.toInt()) } }
+        centerIcon = icon(R.drawable.ic_play)
+        circle.addView(centerIcon, FrameLayout.LayoutParams(dp(48), dp(48), Gravity.CENTER))
+        center.addView(circle, LinearLayout.LayoutParams(dp(104), dp(104)))
+        centerText = label("", 22f, Fonts.bold).apply {
+            setPadding(dp(16), dp(6), dp(16), dp(6))
+            background = rounded(0xB3000000.toInt(), dpf(18f))
+        }
+        center.addView(centerText, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(14) })
         root.addView(center, FrameLayout.LayoutParams(-2, -2, Gravity.CENTER))
 
         overlay = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(48), dp(40), dp(48), dp(32))
-            background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xF0000000.toInt(), 0x00000000))
+            setPadding(dp(56), dp(80), dp(56), dp(34))
+            background = GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, intArrayOf(0xF2000000.toInt(), 0xA0000000.toInt(), 0x00000000))
         }
-        title = TextView(this).apply { setTextColor(Brand.TEXT); textSize = 24f; typeface = Typeface.DEFAULT_BOLD; maxLines = 1 }
-        info = TextView(this).apply { setTextColor(Brand.ACCENT2); textSize = 15f; maxLines = 1 }
-        progress = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal).apply {
-            max = 1000
-            progressTintList = android.content.res.ColorStateList.valueOf(Brand.ACCENT2)
-        }
-        time = TextView(this).apply { setTextColor(Brand.TEXT_DIM); textSize = 15f }
-        overlay.addView(title)
+        info = label("", 13f, Fonts.bold, Brand.ACCENT2).apply { letterSpacing = 0.18f }
+        title = label("", 30f, Fonts.bold)
         overlay.addView(info)
-        overlay.addView(progress, LinearLayout.LayoutParams(-1, dp(8)).apply { topMargin = dp(14) })
-        overlay.addView(time, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
-        overlay.addView(TextView(this).apply {
-            text = "OK/⏯ Pause  ·  ◀ ▶ spulen (halten = schneller)  ·  Zurück beenden"
-            setTextColor(Brand.TEXT_DIM); textSize = 13f
-        })
+        overlay.addView(title, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(6) })
+        val prog = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
+        timeLeft = label("0:00", 15f, Fonts.semibold)
+        timeRight = label("", 15f, Fonts.semibold, Brand.TEXT_DIM).apply { gravity = Gravity.END }
+        track = FrameLayout(this).apply { background = rounded(0x40FFFFFF, dpf(4f)) }
+        fill = View(this).apply { background = rounded(Brand.ACCENT2, dpf(4f)) }
+        track.addView(fill, FrameLayout.LayoutParams(0, -1))
+        prog.addView(timeLeft, LinearLayout.LayoutParams(dp(90), -2))
+        prog.addView(track, LinearLayout.LayoutParams(0, dp(7), 1f))
+        prog.addView(timeRight, LinearLayout.LayoutParams(dp(90), -2))
+        overlay.addView(prog, LinearLayout.LayoutParams(-1, -2).apply { topMargin = dp(18) })
+        val hints = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        hints.addView(Tv.keyHint(this, "OK", "Pause"))
+        hints.addView(Tv.keyHint(this, "◀ ▶", "spulen (halten = schneller)"), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(22) })
+        hints.addView(Tv.keyHint(this, "Zurück", "beenden"), LinearLayout.LayoutParams(-2, -2).apply { leftMargin = dp(22) })
+        overlay.addView(hints, LinearLayout.LayoutParams(-2, -2).apply { topMargin = dp(18) })
         root.addView(overlay, FrameLayout.LayoutParams(-1, -2, Gravity.BOTTOM))
 
-        nextBox = TextView(this).apply {
-            setTextColor(Brand.TEXT); textSize = 18f
-            setPadding(dp(24), dp(18), dp(24), dp(18))
-            background = GradientDrawable().apply { cornerRadius = dpf(16f); setColor(0xEE141420.toInt()); setStroke(dp(2), Brand.ACCENT) }
+        nextBox = label("", 18f, Fonts.semibold, lines = 4).apply {
+            setPadding(dp(26), dp(20), dp(26), dp(20))
+            setLineSpacing(0f, 1.25f)
+            background = rounded(0xF2161622.toInt(), dpf(20f), dp(1), withAlpha(Brand.ACCENT, 0xAA))
+            elevation = dpf(30f)
             visibility = View.GONE
         }
         root.addView(nextBox, FrameLayout.LayoutParams(-2, -2, Gravity.END or Gravity.BOTTOM).apply { rightMargin = dp(48); bottomMargin = dp(150) })
@@ -222,7 +240,7 @@ class PlayerActivity : Activity() {
         triedHls = false
         jfMethod = "DirectPlay"
         title.text = item.displayTitle
-        info.text = item.infoLine
+        info.text = ("JELLYFIN · " + item.infoLine).uppercase()
         startMs = if (fromStart) 0 else (item.positionSec * 1000).toInt()
         play(Jellyfin.directUrl(item.id))
     }
@@ -304,18 +322,23 @@ class PlayerActivity : Activity() {
         val dur = video.duration
         val pos = pendingSeekMs ?: video.currentPosition
         if (dur > 0) {
-            progress.progress = (pos.toLong() * 1000 / dur).toInt()
-            time.text = "${formatTime(pos / 1000.0)} / ${formatTime(dur / 1000.0)}  ·  ${formatRemaining((dur - pos) / 1000.0)}"
+            val frac = pos.toDouble() / dur
+            track.post { fill.layoutParams = FrameLayout.LayoutParams((track.width * frac).toInt(), -1) }
+            timeLeft.text = formatTime(pos / 1000.0)
+            timeRight.text = "−" + formatTime((dur - pos) / 1000.0)
         } else {
-            time.text = "LIVE · ${formatTime(pos / 1000.0)}"
+            timeLeft.text = "LIVE"
+            timeRight.text = formatTime(pos / 1000.0)
         }
     }
 
-    private fun showOverlay(centerText: String? = null) {
+    private fun showOverlay(text: String? = null, iconRes: Int = R.drawable.ic_play) {
         updateUi()
         overlay.animate().alpha(1f).setDuration(150).start()
-        if (centerText != null) {
-            center.text = centerText
+        if (text != null) {
+            centerIcon.setImageResource(iconRes)
+            centerText.text = text
+            centerText.visibility = if (text.isEmpty()) View.GONE else View.VISIBLE
             center.animate().alpha(1f).setDuration(120).start()
         }
         ui.removeCallbacks(hideOverlay)
@@ -324,7 +347,7 @@ class PlayerActivity : Activity() {
 
     private fun togglePlay() {
         if (!prepared) return
-        if (video.isPlaying) { video.pause(); showOverlay("⏸"); saveProgress(true) } else { video.start(); showOverlay("▶") }
+        if (video.isPlaying) { video.pause(); showOverlay("", R.drawable.ic_pause); saveProgress(true) } else { video.start(); showOverlay("", R.drawable.ic_play) }
     }
 
     private fun seekBy(sec: Int) {
@@ -334,7 +357,7 @@ class PlayerActivity : Activity() {
         var target = base + sec * 1000
         target = if (dur > 0) target.coerceIn(0, dur - 1000) else target.coerceAtLeast(0)
         pendingSeekMs = target
-        showOverlay((if (sec < 0) "⏪ " else "⏩ ") + formatTime(target / 1000.0))
+        showOverlay(formatTime(target / 1000.0), if (sec < 0) R.drawable.ic_rewind else R.drawable.ic_forward)
         ui.removeCallbacks(doSeek)
         ui.postDelayed(doSeek, 650)
     }
@@ -355,8 +378,8 @@ class PlayerActivity : Activity() {
             KeyEvent.KEYCODE_SPACE, KeyEvent.KEYCODE_HEADSETHOOK -> {
                 if (down && e.repeatCount == 0) togglePlay(); return true
             }
-            KeyEvent.KEYCODE_MEDIA_PLAY -> { if (down && prepared) { video.start(); showOverlay("▶") }; return true }
-            KeyEvent.KEYCODE_MEDIA_PAUSE -> { if (down && prepared) { video.pause(); showOverlay("⏸") }; return true }
+            KeyEvent.KEYCODE_MEDIA_PLAY -> { if (down && prepared) { video.start(); showOverlay("", R.drawable.ic_play) }; return true }
+            KeyEvent.KEYCODE_MEDIA_PAUSE -> { if (down && prepared) { video.pause(); showOverlay("", R.drawable.ic_pause) }; return true }
             KeyEvent.KEYCODE_DPAD_LEFT, KeyEvent.KEYCODE_MEDIA_REWIND,
             KeyEvent.KEYCODE_DPAD_RIGHT, KeyEvent.KEYCODE_MEDIA_FAST_FORWARD -> {
                 if (down) {

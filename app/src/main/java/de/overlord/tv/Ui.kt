@@ -1,26 +1,21 @@
 package de.overlord.tv
 
 import android.app.Activity
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.net.Uri
 import android.speech.RecognizerIntent
-import android.text.InputType
-import android.text.SpannableString
-import android.text.Spanned
-import android.text.style.ForegroundColorSpan
-import android.view.Gravity
-import android.view.WindowManager
-import android.widget.EditText
-import android.widget.LinearLayout
+import android.text.TextUtils
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import kotlin.math.max
@@ -28,20 +23,23 @@ import kotlin.math.max
 /** Eigene Markenfarben – bewusst keine Netflix-Farben. */
 object Brand {
     const val BG = 0xFF0B0B12.toInt()
-    const val SURFACE = 0xFF1A1A26.toInt()
+    const val SURFACE = 0xFF161622.toInt()
+    const val SURFACE2 = 0xFF20202F.toInt()
+    const val STROKE = 0xFF2E2E42.toInt()
     const val ACCENT = 0xFF8B5CF6.toInt()   // Violett
     const val ACCENT2 = 0xFF22D3EE.toInt()  // Cyan
     const val TEXT = 0xFFF2F2F7.toInt()
-    const val TEXT_DIM = 0xFFA6A6BD.toInt()
+    const val TEXT_DIM = 0xFFB4B4C8.toInt()
+    const val TEXT_MUTED = 0xFF7A7A92.toInt()
     const val FOCUS = 0xFFFFFFFF.toInt()
-    const val HIGHLIGHT = 0xFFFFD54A.toInt()
+    const val DANGER = 0xFFEF4444.toInt()
 
     val PALETTE: List<Pair<String, Int>> = listOf(
         "Violett" to 0xFF7C3AED.toInt(),
         "Ozean" to 0xFF0EA5E9.toInt(),
         "Türkis" to 0xFF14B8A6.toInt(),
         "Smaragd" to 0xFF16A34A.toInt(),
-        "Limette" to 0xFF84CC16.toInt(),
+        "Limette" to 0xFF65A30D.toInt(),
         "Bernstein" to 0xFFF59E0B.toInt(),
         "Orange" to 0xFFF47521.toInt(),
         "Koralle" to 0xFFEF4444.toInt(),
@@ -54,8 +52,67 @@ object Brand {
     fun colorFor(seed: String): Int = PALETTE[(seed.hashCode() and 0x7fffffff) % PALETTE.size].second
 }
 
+/** Inter (SIL Open Font License) – eingebettet unter assets/fonts. */
+object Fonts {
+    var regular: Typeface = Typeface.DEFAULT
+        private set
+    var medium: Typeface = Typeface.DEFAULT
+        private set
+    var semibold: Typeface = Typeface.DEFAULT_BOLD
+        private set
+    var bold: Typeface = Typeface.DEFAULT_BOLD
+        private set
+    var display: Typeface = Typeface.DEFAULT_BOLD
+        private set
+
+    fun init(ctx: Context) {
+        fun load(name: String, fallback: Typeface) = try {
+            Typeface.createFromAsset(ctx.assets, "fonts/$name.ttf")
+        } catch (e: Exception) {
+            fallback
+        }
+        regular = load("inter_regular", Typeface.DEFAULT)
+        medium = load("inter_medium", Typeface.DEFAULT)
+        semibold = load("inter_semibold", Typeface.DEFAULT_BOLD)
+        bold = load("inter_bold", Typeface.DEFAULT_BOLD)
+        display = load("inter_display_extrabold", Typeface.DEFAULT_BOLD)
+    }
+}
+
 fun Context.dp(v: Int): Int = (v * resources.displayMetrics.density + 0.5f).toInt()
 fun Context.dpf(v: Float): Float = v * resources.displayMetrics.density
+
+/** Text-Baustein im einheitlichen Stil. */
+fun Context.label(
+    text: CharSequence = "",
+    size: Float = 16f,
+    font: Typeface = Fonts.regular,
+    color: Int = Brand.TEXT,
+    lines: Int = 1,
+): TextView = TextView(this).apply {
+    this.text = text
+    textSize = size
+    typeface = font
+    setTextColor(color)
+    includeFontPadding = false
+    if (lines > 0) {
+        maxLines = lines
+        ellipsize = TextUtils.TruncateAt.END
+    }
+}
+
+fun Context.icon(res: Int, tint: Int = Brand.TEXT): ImageView = ImageView(this).apply {
+    setImageResource(res)
+    imageTintList = ColorStateList.valueOf(tint)
+    scaleType = ImageView.ScaleType.FIT_CENTER
+}
+
+fun rounded(color: Int, radius: Float, strokeWidth: Int = 0, strokeColor: Int = 0): GradientDrawable =
+    GradientDrawable().apply {
+        cornerRadius = radius
+        setColor(color)
+        if (strokeWidth > 0) setStroke(strokeWidth, strokeColor)
+    }
 
 fun darken(color: Int, factor: Float): Int = Color.argb(
     Color.alpha(color),
@@ -75,6 +132,26 @@ fun blend(a: Int, b: Int, t: Float): Int {
 }
 
 fun withAlpha(color: Int, alpha: Int): Int = (color and 0x00FFFFFF) or (alpha shl 24)
+
+/** Farbe für Hintergründe brauchbar machen: nicht zu hell, nicht zu grau. */
+fun tameColor(c: Int): Int {
+    val hsv = FloatArray(3)
+    Color.colorToHSV(c, hsv)
+    hsv[2] = hsv[2].coerceIn(0.25f, 0.8f)
+    if (hsv[1] < 0.15f) hsv[1] = 0.15f
+    return Color.HSVToColor(hsv)
+}
+
+fun parseColor(s: String?): Int? = try {
+    val t = s?.trim() ?: return null
+    when {
+        Regex("#[0-9a-fA-F]{3}").matches(t) -> Color.parseColor("#" + t[1] + t[1] + t[2] + t[2] + t[3] + t[3])
+        t.startsWith("#") -> Color.parseColor(t)
+        else -> null
+    }
+} catch (e: Exception) {
+    null
+}
 
 fun hostOf(url: String?): String = try {
     Uri.parse(url ?: "").host?.removePrefix("www.") ?: ""
@@ -174,82 +251,12 @@ fun drawableToBitmap(d: Drawable): Bitmap {
 }
 
 /** Knopf-Hintergrund mit deutlichem Fokus-Zustand (für Fernbedienung). */
-fun Context.buttonBackground(radiusDp: Int = 10): StateListDrawable {
+fun Context.buttonBackground(radiusDp: Int = 12, normal: Int = 0x26FFFFFF, focused: Int = Brand.ACCENT): StateListDrawable {
     val r = dpf(radiusDp.toFloat())
-    val focused = GradientDrawable().apply { cornerRadius = r; setColor(Brand.ACCENT); setStroke(dp(3), Brand.FOCUS) }
-    val normal = GradientDrawable().apply { cornerRadius = r; setColor(0x33FFFFFF) }
     return StateListDrawable().apply {
-        addState(intArrayOf(android.R.attr.state_focused), focused)
-        addState(intArrayOf(android.R.attr.state_pressed), focused)
-        addState(intArrayOf(), normal)
-    }
-}
-
-object Dialogs {
-    fun builder(ctx: Context): AlertDialog.Builder = AlertDialog.Builder(ctx, android.R.style.Theme_Material_Dialog_Alert)
-
-    fun list(ctx: Context, title: String, items: List<CharSequence>, onPick: (Int) -> Unit): AlertDialog =
-        builder(ctx).setTitle(title)
-            .setItems(items.toTypedArray()) { _, which -> onPick(which) }
-            .setNegativeButton("Abbrechen", null)
-            .show()
-
-    fun colorItems(): List<CharSequence> = Brand.PALETTE.map { (name, color) ->
-        SpannableString("■  $name").apply { setSpan(ForegroundColorSpan(color), 0, 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE) }
-    }
-
-    fun input(
-        ctx: Context,
-        title: String,
-        hint: String,
-        initial: String = "",
-        url: Boolean = false,
-        password: Boolean = false,
-        neutral: Pair<String, () -> Unit>? = null,
-        onOk: (String) -> Unit,
-    ): AlertDialog {
-        val edit = EditText(ctx).apply {
-            setText(initial)
-            setSelection(text.length)
-            this.hint = hint
-            setSingleLine(true)
-            setTextColor(Brand.TEXT)
-            setHintTextColor(Brand.TEXT_DIM)
-            inputType = when {
-                password -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
-                url -> InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-                else -> InputType.TYPE_CLASS_TEXT
-            }
-        }
-        val wrap = LinearLayout(ctx).apply {
-            setPadding(ctx.dp(24), ctx.dp(8), ctx.dp(24), 0)
-            addView(edit, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT))
-        }
-        val b = builder(ctx).setTitle(title).setView(wrap)
-            .setPositiveButton("OK") { _, _ -> onOk(edit.text.toString().trim()) }
-            .setNegativeButton("Abbrechen", null)
-        if (neutral != null) b.setNeutralButton(neutral.first) { _, _ -> neutral.second() }
-        val dlg = b.create()
-        edit.setOnEditorActionListener { _, _, _ ->
-            dlg.dismiss(); onOk(edit.text.toString().trim()); true
-        }
-        dlg.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
-        dlg.show()
-        edit.requestFocus()
-        return dlg
-    }
-
-    fun info(ctx: Context, title: String, text: String) {
-        val tv = TextView(ctx).apply {
-            this.text = text
-            setTextColor(Brand.TEXT)
-            textSize = 15f
-            setPadding(ctx.dp(24), ctx.dp(12), ctx.dp(24), ctx.dp(12))
-            gravity = Gravity.START
-            isFocusable = true
-        }
-        val sv = android.widget.ScrollView(ctx).apply { addView(tv); isFocusable = false }
-        builder(ctx).setTitle(title).setView(sv).setPositiveButton("OK", null).show()
+        addState(intArrayOf(android.R.attr.state_focused), rounded(focused, r, dp(2), Brand.FOCUS))
+        addState(intArrayOf(android.R.attr.state_pressed), rounded(focused, r))
+        addState(intArrayOf(), rounded(normal, r))
     }
 }
 
