@@ -50,6 +50,49 @@
     if (!B) return;
     try { if (arg === undefined) B[name](); else B[name](arg); } catch (e) {}
   }
+  function cleanLabel(el) {
+    var t = String(el.innerText || el.textContent || '').replace(/\s+/g, ' ').trim();
+    if (!t) t = String(el.getAttribute('aria-label') || el.value || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
+    return t;
+  }
+
+  /* Shadow-DOM: Wurzeln merken (auch „closed“), damit Player, Play-Knöpfe und Cookie-Dialoge
+     darin gefunden werden. Läuft vor den Skripten der Seite (Document-Start). */
+  var SHADOWS = [];
+  var MEDIA_EVENTS = ['play', 'pause', 'seeked', 'loadedmetadata', 'ended'];
+  function mediaEvent(e) {
+    if (e.target && e.target.tagName === 'VIDEO') setTimeout(function () { try { report(); } catch (x) {} }, 60);
+  }
+  try {
+    var origAttach = Element.prototype.attachShadow;
+    if (origAttach) Element.prototype.attachShadow = function () {
+      var sr = origAttach.apply(this, arguments);
+      try {
+        SHADOWS.push(sr);
+        // Medien-Ereignisse verlassen den Shadow-DOM nicht → dort direkt lauschen
+        MEDIA_EVENTS.forEach(function (t) { sr.addEventListener(t, mediaEvent, true); });
+      } catch (e) {}
+      return sr;
+    };
+  } catch (e) {}
+  function liveShadows() {
+    var out = [];
+    for (var i = 0; i < SHADOWS.length; i++) {
+      var h = SHADOWS[i].host;
+      if (h && (h.isConnected === undefined ? D.documentElement.contains(h) : h.isConnected)) out.push(SHADOWS[i]);
+    }
+    if (SHADOWS.length > 200 && out.length < SHADOWS.length) SHADOWS = out;
+    return out;
+  }
+  /** querySelectorAll über das Dokument und alle Shadow-Wurzeln. */
+  function deepAll(sel) {
+    var list = [].slice.call(D.querySelectorAll(sel));
+    var srs = liveShadows();
+    for (var i = 0; i < srs.length; i++) {
+      try { list = list.concat([].slice.call(srs[i].querySelectorAll(sel))); } catch (e) {}
+    }
+    return list;
+  }
 
   // Manche Player verlangen ein „window.chrome“-Objekt, das der Android-WebView fehlt
   try { if (!W.chrome) W.chrome = { runtime: {}, app: { isInstalled: false }, csi: function () {}, loadTimes: function () {} }; } catch (e) {}
@@ -153,7 +196,7 @@
 
   /* ------------------------------------------------------------------ Videos */
   function allVideos() {
-    var list = [].slice.call(D.getElementsByTagName('video'));
+    var list = deepAll('video');
     var fr = D.getElementsByTagName('iframe');
     for (var i = 0; i < fr.length; i++) {
       try {
@@ -169,7 +212,7 @@
       var v = vs[i], d = v.duration, r = v.getBoundingClientRect();
       var s = (r.width * r.height) / 2000 +
         (isFinite(d) ? Math.min(d, 7200) : (d === Infinity ? 3000 : 0)) +
-        (v.paused ? 0 : 8000) + (v.readyState > 0 ? 100 : 0);
+        (v.paused ? 0 : 8000) + (v.readyState > 0 ? 100 : 0) - (isBackdrop(v) ? 20000 : 0);
       if (s > bestScore) { bestScore = s; best = v; }
     }
     return best;
@@ -195,27 +238,60 @@
     }));
   }
   setInterval(safe(report), 2000);
-  ['play', 'pause', 'seeked', 'loadedmetadata', 'ended'].forEach(function (t) {
-    D.addEventListener(t, function (e) {
-      if (e.target && e.target.tagName === 'VIDEO') setTimeout(safe(report), 60);
-    }, true);
-  });
+  MEDIA_EVENTS.forEach(function (t) { D.addEventListener(t, mediaEvent, true); });
 
   function tryPlay(v) {
     try { var p = v.play(); if (p && p['catch']) p['catch'](function () {}); } catch (e) {}
   }
 
+  /** Stummes Endlos-Video ohne Bedienelemente = Hintergrund-/Vorschau-Video, kein Player. */
+  function isBackdrop(v) {
+    return !!(v.loop && (v.muted || v.hasAttribute('muted')) && !v.controls);
+  }
+
   var STYLE_MAX = ';position:fixed!important;left:0!important;top:0!important;right:0!important;bottom:0!important;' +
     'width:100vw!important;height:100vh!important;max-width:none!important;max-height:none!important;' +
     'z-index:2147483646!important;background:#000!important;margin:0!important;border:0!important;' +
-    'transform:none!important;object-fit:contain!important;';
+    'transform:none!important;object-fit:contain!important;visibility:visible!important;opacity:1!important;';
+  // Vorfahren: alles entfernen, was „position:fixed“ an den Vorfahren statt an den Bildschirm bindet
+  var STYLE_ANC = ';transform:none!important;filter:none!important;perspective:none!important;contain:none!important;' +
+    'will-change:auto!important;-webkit-clip-path:none!important;clip-path:none!important;' +
+    '-webkit-mask-image:none!important;mask-image:none!important;backdrop-filter:none!important;' +
+    'visibility:visible!important;opacity:1!important;';
+  var STYLE_HIDE = ';visibility:hidden!important;';
+  function stash(el, extra) {
+    if (el.__ovlOld === undefined) el.__ovlOld = el.getAttribute('style') || '';
+    el.setAttribute('style', el.__ovlOld + extra);
+  }
+  function unstash(el) {
+    if (el.__ovlOld === undefined) return;
+    if (el.__ovlOld) el.setAttribute('style', el.__ovlOld); else el.removeAttribute('style');
+    el.__ovlOld = undefined;
+  }
+  var maxTouched = [];
+  /** Element bildschirmfüllend: Vorfahren entschärfen, alles daneben ausblenden (auch über Shadow-DOM-Grenzen). */
   function applyMax(el, on) {
     if (on) {
-      if (el.__ovlOld === undefined) el.__ovlOld = el.getAttribute('style') || '';
-      el.setAttribute('style', el.__ovlOld + STYLE_MAX);
-    } else if (el.__ovlOld !== undefined) {
-      el.setAttribute('style', el.__ovlOld);
-      el.__ovlOld = undefined;
+      stash(el, STYLE_MAX);
+      var n = el, depth = 0;
+      while (n && depth++ < 60) {
+        var p = n.parentNode;
+        if (!p || p === D || p === D.documentElement) break;
+        var kids = p.children || [];
+        for (var i = 0; i < kids.length; i++) {
+          var s = kids[i];
+          if (s === n || s.__ovlOld !== undefined || /^(SCRIPT|STYLE|LINK|META|TEMPLATE|SLOT)$/.test(s.tagName)) continue;
+          stash(s, STYLE_HIDE);
+          maxTouched.push(s);
+        }
+        if (p.nodeType === 11) { n = p.host; continue; }   // Shadow-Wurzel → weiter beim Host
+        if (p !== D.body) { stash(p, STYLE_ANC); maxTouched.push(p); }
+        n = p;
+      }
+    } else {
+      unstash(el);
+      for (var j = 0; j < maxTouched.length; j++) unstash(maxTouched[j]);
+      maxTouched = [];
     }
     try { D.documentElement.style.overflow = on ? 'hidden' : ''; } catch (e) {}
   }
@@ -237,10 +313,11 @@
 
   var BIG_PLAY = '.vjs-big-play-button,.jw-display-icon-display,.jw-icon-display,.plyr__control--overlaid,' +
     '.ytp-large-play-button,[class*="big-play"],[class*="play-button"],[class*="playbutton"],[class*="btn-play"],' +
-    '[aria-label*="Play"],[aria-label*="play"],[aria-label*="Abspielen"],[title*="Play"],[title*="play"]';
+    '[aria-label*="Play"],[aria-label*="play"],[aria-label*="Abspielen"],[aria-label*="abspielen"],[aria-label*="Wiedergabe"],' +
+    '[title*="Play"],[title*="play"],[title*="Abspielen"]';
   function clickBigPlay() {
     var els;
-    try { els = D.querySelectorAll(BIG_PLAY); } catch (e) { return false; }
+    try { els = deepAll(BIG_PLAY); } catch (e) { return false; }
     for (var i = 0; i < els.length; i++) {
       if (visible(els[i])) { els[i].click(); return true; }
     }
@@ -375,6 +452,66 @@
     return true;
   }
   O.visible = visible;
+
+  /* ------------------------------------------------------------------ Cookie-Hinweise */
+  /* Einwilligungs-Dialoge automatisch beantworten (Einstellung: ablehnen / zustimmen / aus).
+     Läuft in allen Frames – viele Dialoge stecken in eigenen iframes oder im Shadow-DOM. */
+  var CONSENT = 'reject';
+  try { if (B && B.consentMode) CONSENT = String(B.consentMode()); } catch (e) {}
+  var CONSENT_TXT = /cookie|datenschutz|privacy|privacidad|confidentialit|consent|einwillig|zustimm|tracking|personalisier|drittanbieter|dienstleister|partner|gdpr|dsgvo|rgpd|vie priv/i;
+  var CONSENT_BOX = /consent|cookie|cmp|gdpr|privacy|datenschutz|usercentrics|onetrust|didomi|sp_message|cookiebot|klaro|borlabs|truste|qc-cmp|fc-consent|cc-window|cc-banner/i;
+  var REJECT_RE = /^(alle[ns]?\s+)?(ablehnen|verweigern|zur(ü|ue)ckweisen)\b|^(nur|lediglich)\s+(technisch\s+)?(notwendige|erforderliche|essen[zt]ielle|funktionale|n(ö|oe)tige)|^nicht\s+(einverstanden|zustimmen|akzeptieren)|^(alle\s+)?(reject|decline|deny|refuse)(\s+all)?\b|^(use\s+)?(only\s+)?(strictly\s+)?(necessary|essential|required)(\s+cookies)?(\s+only)?$|^continue\s+without|^weiter\s+ohne|^ohne\s+(einwilligung|zustimmung)|^tout\s+refuser|^refuser|^continuer\s+sans/i;
+  var SAVE_RE = /^(auswahl|einstellungen|pr(ä|ae)ferenzen)\s+(speichern|best(ä|ae)tigen|(ü|ue)bernehmen)|^(save|confirm)\s+(my\s+)?(choices|selection|settings|preferences)|^speichern(\s+und\s+(schlie(ß|ss)en|beenden))?$|^enregistrer/i;
+  var ACCEPT_RE = /^(alle[ns]?\s+)?(akzeptieren|zustimmen|annehmen|erlauben|zulassen|best(ä|ae)tigen)\b|^einverstanden|^ich\s+(stimme\s+zu|bin\s+einverstanden|akzeptiere)|^(accept|agree|allow)(\s+all)?(\s+cookies)?(\s+and\s+continue)?$|^(i\s+)?(accept|agree)\b|^(ok|okay|verstanden|got\s+it|alles\s+klar)\s*[!.]?$|^tout\s+accepter|^accepter/i;
+  var CMP_FRAME = /consent|cmp|privacy|cookie|gdpr|sp_message|usercentrics|onetrust|didomi|trustarc|quantcast|sourcepoint|cookiebot|klaro|borlabs/i;
+  var consentDone = false, consentTries = 0;
+  O.consentInfo = '';
+  var CONSENT_STRICT = /cookie|consent|einwillig|tracking/i;
+  function consentContext(el, strict) {
+    if (!isTop && CMP_FRAME.test(String(location.href))) return true;
+    var n = el, depth = 0;
+    while (n && depth++ < 16) {
+      if (n.nodeType === 11) { n = n.host; continue; }   // Shadow-Wurzel → Host
+      if (n.nodeType !== 1 || n === D.body || n === D.documentElement) break;
+      var role = n.getAttribute('role') || '';
+      var box = n.tagName === 'DIALOG' || role === 'dialog' || role === 'alertdialog' || n.getAttribute('aria-modal') === 'true' ||
+        CONSENT_BOX.test(clsOf(n));
+      if (!box) { var pos = W.getComputedStyle(n).position; box = pos === 'fixed' || pos === 'sticky'; }
+      if (box) {
+        var txt = String(n.innerText || n.textContent || '').slice(0, 5000);
+        if (CONSENT_TXT.test(txt) && (!strict || CONSENT_STRICT.test(txt))) return true;
+      }
+      n = n.parentNode;
+    }
+    return false;
+  }
+  var consentScan = safe(function () {
+    if (consentDone || CONSENT === 'off' || !D.body) return;
+    if (++consentTries > 45) return;   // nach ~40 s aufgeben
+    var els = deepAll('button,a,[role="button"],input[type="button"],input[type="submit"],[class*="button"],[class*="btn"],[tabindex="0"]');
+    var reject = null, save = null, accept = null;
+    for (var i = 0; i < els.length && i < 4000; i++) {
+      var el = els[i];
+      var t = cleanLabel(el);
+      if (!t || t.length > 60) continue;
+      var kind = REJECT_RE.test(t) ? 1 : (SAVE_RE.test(t) ? 2 : (ACCEPT_RE.test(t) ? 3 : 0));
+      if (!kind || (kind === 1 && reject) || (kind === 2 && save) || (kind === 3 && accept)) continue;
+      // „Speichern“ nur in eindeutigen Cookie-Dialogen (nicht in Einstellungsdialogen der Seite)
+      if (!visible(el) || !consentContext(el, kind === 2)) continue;
+      if (kind === 1) reject = el; else if (kind === 2) save = el; else accept = el;
+    }
+    var pick = CONSENT === 'accept' ? (accept || null) : (reject || save);
+    if (!pick) {
+      if (accept || reject || save) O.consentInfo = 'Dialog ohne passenden Knopf (' + cleanLabel(accept || reject || save).slice(0, 30) + ')';
+      return;
+    }
+    consentDone = true;
+    var label = cleanLabel(pick).slice(0, 40);
+    O.consentInfo = 'gewählt: ' + label;
+    try { pick.click(); } catch (e) {}
+    call('consentHandled', label);
+  });
+  setInterval(consentScan, 900);
 
   if (!isTop) return;
 
@@ -622,7 +759,10 @@
   function imageOf(root) {
     var im = root.tagName === 'IMG' ? root : root.querySelector('img');
     var src = '';
-    if (im) {
+    var lazy = im ? (im.getAttribute('data-src') || im.getAttribute('data-lazy-src') || im.getAttribute('data-original') ||
+      im.getAttribute('data-srcset') || '') : '';
+    if (im && !lazy) {
+      // Winzige Bilder (Symbole) – außer Platzhaltern von Lazy-Loadern, deren echtes Bild in data-* steht
       if (im.naturalWidth && im.naturalWidth < 60 && im.naturalHeight < 60) im = null;
     }
     if (im) {
@@ -646,6 +786,12 @@
         var m = /url\(["']?(.*?)["']?\)/.exec(bg);
         if (m) src = m[1];
       }
+    }
+    if (!src) {
+      // Lazy-Loader mit <noscript><img src=…></noscript>-Ersatz
+      var ns = root.querySelector('noscript');
+      var nm = ns ? /<img[^>]+src=["']([^"']+)["']/i.exec(ns.textContent || ns.innerHTML || '') : null;
+      if (nm) src = nm[1].replace(/&amp;/g, '&');
     }
     src = absUrl(src);
     if (/\.svg(\?|$)/i.test(src)) return '';
@@ -703,10 +849,11 @@
 
   function findPlayer() {
     var best = null, area = 0;
-    var els = D.querySelectorAll('video,iframe,embed,object');
+    var els = deepAll('video,iframe,embed,object');
     for (var i = 0; i < els.length; i++) {
       var el = els[i], r = el.getBoundingClientRect();
       if (r.width < 200 || r.height < 110) continue;
+      if (el.tagName === 'VIDEO' && isBackdrop(el)) continue;   // Hintergrund-Video, kein Player
       if (el.tagName === 'IFRAME') {
         var s = (el.src || el.getAttribute('data-src') || '') + ' ' + clsOf(el) + ' ' + (el.getAttribute('allow') || '') + (el.hasAttribute('allowfullscreen') ? ' allowfullscreen' : '');
         var looks = /player|embed|video|stream|watch|\/e\/|\/v\/|fullscreen|autoplay|encrypted-media/i.test(s) ||
@@ -715,6 +862,49 @@
       }
       var a = r.width * r.height;
       if (a > area) { area = a; best = el; }
+    }
+    return best;
+  }
+
+  /* Player vor dem Start: großes 16:9-Vorschaubild mit Play-Knopf (das <video> entsteht oft erst nach dem Klick) */
+  var PLAY_LABEL = /(^|[^a-z])(play|abspielen|wiedergabe|wiedergeben|starten|ansehen|anschauen|jetzt\s+(an)?sehen|watch|lecture|lire|reproducir)([^a-z]|$)/i;
+  var PLAY_CLS = /(^|[\s_-])(play|big-?play|play-?(button|btn|icon|overlay|layer|cta)|start-?(button|screen))([\s_-]|$)/i;
+  var NOT_PLAY = /playlist|autoplay|playback-?rate|speed|settings|einstellung|trailer-?link|merken|teilen|share|download/i;
+  function playButtonIn(root) {
+    var els = root.querySelectorAll('button,[role="button"],a,[class*="play"],[class*="Play"],[aria-label],svg');
+    var rr = root.getBoundingClientRect(), cx = rr.left + rr.width / 2, cy = rr.top + rr.height / 2;
+    var best = null, bestD = 1e9;
+    for (var i = 0; i < els.length && i < 300; i++) {
+      var el = els[i];
+      if (el.tagName === 'svg' || el.tagName === 'SVG') { el = el.parentElement; if (!el || el === root) continue; }
+      var lbl = ((el.getAttribute('aria-label') || '') + ' ' + (el.getAttribute('title') || '') + ' ' + cleanText(el.textContent)).slice(0, 80);
+      var cls = clsOf(el);
+      if (!(PLAY_LABEL.test(lbl) || PLAY_CLS.test(cls)) || NOT_PLAY.test(lbl + ' ' + cls)) continue;
+      // Link zu einer anderen Seite = Teaser, kein Player
+      if (el.tagName === 'A' && el.href && el.href.split('#')[0] !== location.href.split('#')[0]) continue;
+      if (!visible(el)) continue;
+      var r = el.getBoundingClientRect();
+      var d = Math.abs(r.left + r.width / 2 - cx) + Math.abs(r.top + r.height / 2 - cy);
+      if (d < bestD) { bestD = d; best = el; }
+    }
+    return best;
+  }
+  function findPlaceholder() {
+    var vw = W.innerWidth, vh = W.innerHeight;
+    var cands = deepAll('[class*="player"],[class*="Player"],[id*="player"],[id*="Player"],[class*="video"],[class*="Video"],' +
+      '[data-player],[data-video],[data-testid*="player"],[data-testid*="video"],[class*="stage"],[class*="Stage"]');
+    var best = null, bestA = 0;
+    for (var i = 0; i < cands.length && i < 600; i++) {
+      var el = cands[i], r = el.getBoundingClientRect();
+      if (r.width < Math.max(240, vw * 0.4) || r.height < 135) continue;
+      var ratio = r.width / r.height;
+      if (ratio < 1.2 || ratio > 2.6) continue;
+      if (r.top + (W.pageYOffset || 0) > vh * 2.2) continue;            // weit unten → eher Teaser
+      if (inChrome(el) || closestSel(el, 'a[href]')) continue;           // ganzer Block ist ein Link → Teaser
+      var btn = playButtonIn(el);
+      if (!btn) continue;
+      var a = r.width * r.height;
+      if (a > bestA) { bestA = a; best = { el: el, btn: btn }; }
     }
     return best;
   }
@@ -863,13 +1053,19 @@
       var it = { el: card, url: url, title: title, image: image, sub: subOf(card, title), textOnly: !!textOnly };
       if (!prev) byUrl[url] = it;
       found.push(it);
+      return it;
     }
-    // 1) Links mit Bild
+    // 1) Links mit Bild – und kartengroße Links, deren Bild noch nicht nachgeladen wurde
     var links = D.querySelectorAll('a[href]');
     for (var i = 0; i < links.length && found.length < 400; i++) {
       var a = links[i];
-      var im = a.querySelector('img,picture,[style*="background"]');
-      if (im) add(a, a, a.querySelector('img'));
+      var im = a.querySelector('img,picture,[style*="background"],noscript');
+      if (im) { add(a, a, a.querySelector('img')); continue; }
+      var lr = a.getBoundingClientRect();
+      if (lr.width >= 140 && lr.height >= 80 && lr.width <= W.innerWidth * 0.9) {
+        var added = add(a, a, null);
+        if (added) added.noimg = !added.image;
+      }
     }
     // 2) Karten, bei denen Bild und Link Geschwister sind
     var cards = D.querySelectorAll('article,li,[class*="card"],[class*="Card"],[class*="teaser"],[class*="Teaser"],[class*="tile"],[class*="item"],[class*="episode"],[class*="Episode"]');
@@ -911,8 +1107,12 @@
 
     var sections = [];
     groups.forEach(function (g) {
-      var items = g.items.slice(0, 60).map(function (it) { return { url: it.url, title: it.title, image: it.image, sub: it.sub }; });
-      sections.push({ title: headingFor(g.c, g.items[0].el), items: items });
+      // Kartengroße Links ohne Bild nur in Reihen, die auch echte Bildkarten haben
+      var hasImg = g.items.some(function (it) { return !it.noimg; });
+      var list = hasImg ? g.items : g.items.filter(function (it) { return !it.noimg; });
+      if (!list.length) return;
+      var items = list.slice(0, 60).map(function (it) { return { url: it.url, title: it.title, image: it.image, sub: it.sub }; });
+      sections.push({ title: headingFor(g.c, list[0].el), items: items });
     });
     // Einzelne Karten ohne Reihe sammeln
     var merged = [], loose = [];
@@ -921,10 +1121,11 @@
 
     function meta(sel) { var m = D.querySelector(sel); return m ? (m.getAttribute('content') || '') : ''; }
     var player = findPlayer();
+    var holder = player ? null : findPlaceholder();
     var nextLink = findNext(false);
     var eps = episodesOf();
     var seasons = seasonsOf();
-    var sources = player ? sourcesOf() : [];
+    var sources = (player || holder) ? sourcesOf() : [];
     // Folgen und Staffel-Links nicht doppelt in anderen Reihen zeigen
     if (eps || seasons.length) {
       var epUrls = {};
@@ -946,7 +1147,8 @@
       site: cleanText(meta('meta[property="og:site_name"]')),
       description: cleanText(meta('meta[property="og:description"]') || meta('meta[name="description"]')).slice(0, 300),
       image: absUrl(meta('meta[property="og:image"]')),
-      player: player ? { tag: player.tagName, poster: absUrl(player.getAttribute('poster') || '') } : null,
+      player: player ? { tag: player.tagName, poster: absUrl(player.getAttribute('poster') || '') } :
+        (holder ? { tag: 'VORSCHAU', poster: imageOf(holder.el) } : null),
       next: (eps && eps.next) || (nextLink && nextLink.href ? nextLink.href : ''),
       episodes: eps ? eps.items : [],
       seasons: seasons,
@@ -957,18 +1159,99 @@
   });
 
   /** Seite einmal durchscrollen, damit nachladende Bilder/Karten erscheinen. */
+  /** Scrollt die Seite selbst oder (bei App-artigen Seiten) einen eigenen Scroll-Container? */
+  function mainScroller() {
+    var se = D.scrollingElement || D.documentElement;
+    if (se.scrollHeight > W.innerHeight + 60) return null;
+    var best = null, bestA = 0;
+    var els = D.querySelectorAll('div,main,section,[role="main"]');
+    for (var i = 0; i < els.length && i < 3000; i++) {
+      var el = els[i];
+      if (el.clientHeight < W.innerHeight * 0.5 || el.scrollHeight < el.clientHeight + 100) continue;
+      var ov = W.getComputedStyle(el).overflowY;
+      if (ov !== 'auto' && ov !== 'scroll') continue;
+      var a = el.clientWidth * el.clientHeight;
+      if (a > bestA) { bestA = a; best = el; }
+    }
+    return best;
+  }
+  /** Waagerechte Reihen (Karussells) im Bild ein Stück weiterschieben, damit ihre Bilder nachladen. */
+  var sideMoved = [];
+  function sideStep() {
+    var els = D.querySelectorAll('ul,ol,div,section');
+    var n = 0;
+    for (var i = 0; i < els.length && i < 4000 && n < 12; i++) {
+      var el = els[i];
+      if (el.scrollWidth < el.clientWidth + 60 || el.clientWidth < 200) continue;
+      var r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > W.innerHeight) continue;
+      var ov = W.getComputedStyle(el).overflowX;
+      if (ov !== 'auto' && ov !== 'scroll') continue;
+      if (el.__ovlSide === undefined) { el.__ovlSide = el.scrollLeft; sideMoved.push(el); }
+      el.scrollLeft = Math.min(el.scrollLeft + el.clientWidth, el.scrollWidth);
+      n++;
+    }
+  }
   O.prefetch = safe(function () {
-    // Schrittweise nach unten, bis die Seite nicht mehr wächst (max. ~5 s), dann zurück nach oben
+    // Schrittweise nach unten, bis die Seite nicht mehr wächst (max. ~6 s), dann zurück nach oben
     var i = 0, still = 0, lastH = 0, h = W.innerHeight;
+    var sc = mainScroller();
     var t = setInterval(function () {
-      i++;
-      var docH = Math.max(D.body ? D.body.scrollHeight : 0, D.documentElement.scrollHeight);
-      W.scrollTo(0, Math.min(i * h, docH));
-      if (docH === lastH && i * h >= docH) still++; else still = 0;
-      lastH = docH;
-      if (still >= 2 || i >= 18) { clearInterval(t); setTimeout(function () { W.scrollTo(0, 0); }, 200); }
-    }, 280);
+      try {
+        i++;
+        var docH = sc ? sc.scrollHeight : Math.max(D.body ? D.body.scrollHeight : 0, D.documentElement.scrollHeight);
+        var y = Math.min(i * h * 0.8, docH);
+        if (sc) sc.scrollTop = y; else W.scrollTo(0, y);
+        sideStep();
+        if (docH === lastH && i * h * 0.8 >= docH) still++; else still = 0;
+        lastH = docH;
+        if (still >= 2 || i >= 22) {
+          clearInterval(t);
+          setTimeout(function () {
+            if (sc) sc.scrollTop = 0;
+            W.scrollTo(0, 0);
+            sideMoved.forEach(function (el) { try { el.scrollLeft = el.__ovlSide || 0; delete el.__ovlSide; } catch (e) {} });
+            sideMoved = [];
+          }, 250);
+        }
+      } catch (e) { clearInterval(t); }
+    }, 260);
     return true;
+  });
+
+  /** Kurzbefund der Seite für das Protokoll (adb logcat -s OverlordVV). */
+  O.diag = safe(function () {
+    var vids = deepAll('video').map(function (v) {
+      var r = v.getBoundingClientRect();
+      return Math.round(r.width) + 'x' + Math.round(r.height) + (v.paused ? '' : ' läuft') + (isBackdrop(v) ? ' hintergrund' : '') +
+        (v.currentSrc ? '' : ' ohne-quelle');
+    }).slice(0, 4);
+    var fr = [], ifr = D.getElementsByTagName('iframe');
+    for (var i = 0; i < ifr.length && fr.length < 6; i++) {
+      var r = ifr[i].getBoundingClientRect();
+      if (r.width < 60 || r.height < 60) continue;
+      var host = '';
+      try { host = new URL(ifr[i].src || ifr[i].getAttribute('data-src') || '', location.href).hostname; } catch (e) {}
+      fr.push((host || 'leer') + ' ' + Math.round(r.width) + 'x' + Math.round(r.height));
+    }
+    var ph = findPlaceholder();
+    var big = [];
+    // Große Blöcke oben auf der Seite (Kandidaten für Player-Bereiche) mit Klassennamen
+    var blocks = D.querySelectorAll('div,section,figure,[class]');
+    for (var k = 0; k < blocks.length && big.length < 4 && k < 3000; k++) {
+      var b = blocks[k], br = b.getBoundingClientRect();
+      if (br.width < W.innerWidth * 0.6 || br.height < 150 || br.top > W.innerHeight || br.width / br.height < 1.3 || br.width / br.height > 2.4) continue;
+      var c = clsOf(b).trim();
+      if (c) big.push(b.tagName.toLowerCase() + '.' + c.slice(0, 50));
+    }
+    var se = D.scrollingElement || D.documentElement;
+    return {
+      hoehe: se.scrollHeight, fenster: W.innerHeight, links: D.links.length, bilder: D.images.length,
+      shadow: liveShadows().length, videos: vids, iframes: fr,
+      vorschau: ph ? (clsOf(ph.el).trim().slice(0, 40) + ' → ' + cleanLabel(ph.btn).slice(0, 30)) : '',
+      bloecke: big, cookie: O.consentInfo || '', scroller: mainScroller() ? 'eigener' : 'fenster',
+      text: D.body ? cleanText(D.body.innerText || '').slice(0, 200) : ''
+    };
   });
 
   /** Kino-Modus: nur der Player, bildschirmfüllend (auch Player in iframes). */
@@ -977,7 +1260,14 @@
     for (var i = 0; i < marked.length; i++) { applyMax(marked[i], false); marked[i].removeAttribute('data-ovl-cinema'); }
     if (!on) { O.cmd('unmaximize'); return 'off'; }
     var p = findPlayer();
-    if (!p) return null;
+    if (!p) {
+      // Noch kein Player, aber ein Vorschaubild mit Play-Knopf → die App tippt ihn echt an
+      var ph = findPlaceholder();
+      if (!ph) return null;
+      try { ph.el.scrollIntoView({ block: 'center' }); } catch (e) { ph.el.scrollIntoView(); }
+      var br = ph.btn.getBoundingClientRect();
+      return { tap: 1, x: br.left + br.width / 2, y: br.top + br.height / 2, iw: W.innerWidth };
+    }
     try { p.scrollIntoView(); } catch (e) {}
     p.setAttribute('data-ovl-cinema', '1');
     applyMax(p, true);

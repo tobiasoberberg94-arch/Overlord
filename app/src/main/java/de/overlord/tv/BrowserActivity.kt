@@ -93,6 +93,8 @@ class BrowserActivity : Activity() {
     /** Nutzer hat bewusst „Webseite anzeigen“ gewählt → beim Weiterklicken nicht zurück in die Video-Ansicht. */
     private var websiteChosen = false
     private var cinema = false
+    /** Zählt Seitenwechsel – laufende Kino-Versuche einer alten Seite brechen damit ab. */
+    private var pageSerial = 0
     private var autoCinema = false
     private var extractToken = 0
     private val lastFocus = HashMap<String, String>()
@@ -476,6 +478,20 @@ class BrowserActivity : Activity() {
 
         @JavascriptInterface
         fun skipped(text: String) { ui.post { showChip("Automatisch übersprungen: ${text.take(30)}", R.drawable.ic_skip_intro) } }
+
+        /** Synchron: Wie sollen Cookie-Hinweise beantwortet werden? */
+        @JavascriptInterface
+        fun consentMode(): String = Prefs.consent
+
+        @JavascriptInterface
+        fun consentHandled(label: String) { ui.post { onConsentHandled(label) } }
+    }
+
+    /** Cookie-Hinweis wurde automatisch beantwortet: Hinweis zeigen, Video-Ansicht neu auslesen (Inhalte erscheinen oft erst danach). */
+    private fun onConsentHandled(label: String) {
+        android.util.Log.i("OverlordVV", "COOKIE url=${web.url} | knopf=$label")
+        if (!overlayVisible && !cinema) showChip("Cookie-Hinweis: „${label.take(24)}“", R.drawable.ic_shield)
+        if (videoMode && !cinema && (!websiteChosen || autoCinema)) scheduleExtract(web.url ?: "", prefetch = !autoCinema)
     }
 
     private fun js(code: String, cb: ((String?) -> Unit)? = null) {
@@ -1094,6 +1110,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
     private fun onVideoModePageStarted(url: String) {
         videoMode = Prefs.videoView(url)
         extractToken++
+        pageSerial++
         if (!videoMode) { if (overlayVisible) hideOverlay(); if (cinema) { cinema = false; maximized = false }; return }
         if (cinema) { cinema = false; maximized = false }
         if (websiteChosen && !autoCinema) return
@@ -1137,6 +1154,10 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             val player = o.optJSONObject("player")?.optString("tag") ?: "-"
             android.util.Log.i("OverlordVV", "${if (final) "FINAL" else "zwischen"} url=$url | titel=${o.optString("title")} | player=$player | " +
                 "next=${o.optString("next").isNotBlank()} | reihen=[$secs] | folgen=$eps ($firstEp) | staffeln=[$seasons] | versionen=[$srcs]")
+            // Beim letzten Durchlauf zusätzlich einen Kurzbefund der Seite (Videos, iframes, Cookie-Dialog, Player-Bereiche)
+            if (final) js("window.__ovl && __ovl.diag ? __ovl.diag() : null") { d ->
+                if (d != null && d != "null") android.util.Log.i("OverlordVV", "DIAG url=$url | $d")
+            }
         } catch (e: Exception) { }
     }
 
@@ -1166,10 +1187,11 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             val count = itemCount(o)
             // Nichts Neues gefunden → nicht neu zeichnen (verhindert Flackern)
             val prevRendered = renderedCount[key]
+            if (final) logExtract(url, o, true)
             if (prevRendered != null && count <= prevRendered && overlayVisible && !cinema) return@js
             if (count < (extractCache[key]?.let { itemCount(it) } ?: 0)) return@js
             extractCache[key] = o
-            logExtract(url, o, final)
+            if (!final) logExtract(url, o, false)
             val sections = contentCount(o)
             val hasPlayer = o.optJSONObject("player") != null
             when {
@@ -1381,13 +1403,23 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         web.loadUrl(url)
     }
 
-    private fun enterCinema(retry: Boolean = true) {
+    /**
+     * Kino-Modus starten. Gibt es noch keinen Player, aber ein Vorschaubild mit Play-Knopf, wird der Knopf
+     * echt angetippt (wie mit dem Finger) und danach mehrmals nach dem entstehenden Player gesucht.
+     */
+    private fun enterCinema(attempt: Int = 0) {
+        val serial = pageSerial
         js("window.__ovl ? __ovl.cinema(true) : null") { r ->
-            if (r == null || r == "null") {
-                if (retry) {
-                    // Player entsteht oft erst nach Klick auf das Vorschaubild: Play-Knopf drücken, nochmal suchen
-                    cmd("autoplay")
-                    ui.postDelayed({ if (!cinema && !isFinishing) enterCinema(retry = false) }, 1800)
+            if (cinema || isFinishing || serial != pageSerial || (attempt > 0 && websiteChosen)) return@js
+            val o = parseObj(r)
+            if (r == null || r == "null" || o != null) {
+                if (o != null && o.optInt("tap") == 1 && (attempt == 0 || attempt == 3)) {
+                    val iw = o.optDouble("iw", 0.0)
+                    val scale = if (iw > 0) web.width / iw else resources.displayMetrics.density.toDouble()
+                    tap((o.optDouble("x") * scale).toFloat(), (o.optDouble("y") * scale).toFloat())
+                } else if (attempt == 0) cmd("autoplay")   // Play-Knopf per Skript drücken
+                if (attempt < 6) {
+                    ui.postDelayed({ if (!cinema && !isFinishing && serial == pageSerial) enterCinema(attempt + 1) }, if (attempt == 0) 1500L else 1000L)
                 } else showWebsite("Kein Player gefunden – die Webseite wird angezeigt", userChoice = false)
                 return@js
             }
@@ -1410,7 +1442,8 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         if (!showList) return
         val cached = extractCache[cacheKey(web.url)]
         val extras = (cached?.optJSONArray("sources")?.length() ?: 0)
-        if (cached != null && (contentCount(cached) > 0 || extras >= 2)) renderOverlay(cached) else videoBack()
+        // Nur ein Player auf der Seite: zurück zur vorherigen Seite – gibt es keine, die Übersicht dieser Seite zeigen
+        if (cached != null && (contentCount(cached) > 0 || extras >= 2 || !web.canGoBack())) renderOverlay(cached) else videoBack()
     }
 
     /** Zurück in der Video-Ansicht: vorherige Seite (sofort aus dem Zwischenspeicher) oder Startseite. */

@@ -379,6 +379,25 @@ class MainActivity : Activity() {
             },
         ),
         CardItem(
+            id = "consent", title = "Cookie-Hinweise", iconRes = R.drawable.ic_shield, color = 0xFF1E40AF.toInt(),
+            eyebrow = "EINSTELLUNGEN", chips = listOf(Prefs.consentLabel(), "Alle Webseiten"),
+            description = "Einwilligungs-Dialoge („Cookies erlauben?“) werden automatisch beantwortet – standardmäßig abgelehnt, also nur notwendige Cookies. Verdeckt kein Dialog mehr die Seite oder die Video-Ansicht.",
+            okHint = "Ändern",
+            onClick = {
+                Tv.menu(this, "Cookie-Hinweise", listOf(
+                    Triple("reject", R.drawable.ic_shield, "Nur notwendige Cookies – empfohlen"),
+                    Triple("accept", R.drawable.ic_check, "Allen Cookies zustimmen"),
+                    Triple("off", R.drawable.ic_close, "Dialoge selbst beantworten"),
+                ).map { (v, icon, sub) ->
+                    MenuEntry(Prefs.consentLabel(v), icon, if (v == Prefs.consent) "Aktuell · $sub" else sub) {
+                        Prefs.consent = v
+                        tvToast("Cookie-Hinweise: ${Prefs.consentLabel(v)}", R.drawable.ic_check)
+                        refresh()
+                    }
+                }, eyebrow = "EINSTELLUNGEN", subtitle = "Gilt ab dem nächsten Seitenaufruf")
+            },
+        ),
+        CardItem(
             id = "theme", title = "Design", iconRes = R.drawable.ic_palette, color = Brand.ACCENT,
             eyebrow = "EINSTELLUNGEN", chips = listOf(Brand.THEMES.getOrElse(Prefs.theme) { Brand.THEMES[0] }.name),
             description = "Akzentfarben der Oberfläche wählen – für Fokus, Knöpfe, Fortschritt und die Link-Markierung im Browser.",

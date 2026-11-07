@@ -88,6 +88,9 @@ jobs:
           sudo apt-get install -y -qq ffmpeg imagemagick fonts-dejavu-core > /dev/null
           bash .github/scripts/demo-media.sh
 
+      - name: Testseiten suchen (ARD, ZDF, arte)
+        run: bash .github/scripts/find-series.sh
+
       - name: KVM aktivieren
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules

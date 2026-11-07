@@ -77,18 +77,32 @@ shot 28-videoansicht-arte 16
 key KEYCODE_DPAD_DOWN;                      shot 29-videoansicht-arte-2 4
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
-# Echte legale Serien-Seiten: Übersicht → erste Karte (Serie) → erste Karte (Folge) → Kino-Modus
+# Echte legale Mediatheken (ARD, ZDF, arte): Übersicht → Serie (Staffeln/Folgen) → Folge → Kino-Modus → Zurück.
+# Serie und Folge hat find-series.sh vorher auf dem Runner gesucht (series.txt).
 n=40
-for site in "zdf|https://www.zdf.de/serien" "ard|https://www.ardmediathek.de/serien" "arte|https://www.arte.tv/de/videos/serien-und-fiktion/"; do
-  name="${site%%|*}"; url="${site#*|}"
-  start -a android.intent.action.VIEW -d "$url" -n de.overlord.tv/.BrowserActivity --ez video true
-  shot "$n-$name-uebersicht" 16; n=$((n+1))
-  key KEYCODE_DPAD_CENTER;                  shot "$n-$name-serie" 16; n=$((n+1))
-  key KEYCODE_DPAD_DOWN;                    shot "$n-$name-serie-2" 3; n=$((n+1))
-  key KEYCODE_DPAD_UP KEYCODE_DPAD_CENTER;  shot "$n-$name-folge" 18; n=$((n+1))
-  key KEYCODE_BACK;                         shot "$n-$name-zurueck" 5; n=$((n+1))
-  key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+[ -s series.txt ] || printf '%s\n' "ard|https://www.ardmediathek.de/serien||" "zdf|https://www.zdf.de/serien||" "arte|https://www.arte.tv/de/||" > series.txt
+mapfile -t SITES < series.txt
+for line in "${SITES[@]}"; do
+  IFS='|' read -r name over serie folge <<<"$line"
+  [ -z "$name" ] && continue
+  echo "== $name: $over | ${serie:-–} | ${folge:-–}"
+  timeout 20 adb shell am force-stop de.overlord.tv < /dev/null
+  start -a android.intent.action.VIEW -d "$over" -n de.overlord.tv/.BrowserActivity --ez video true
+  shot "$n-$name-uebersicht" 18; n=$((n+1))
+  key KEYCODE_DPAD_DOWN;                    shot "$n-$name-uebersicht-2" 3; n=$((n+1))
+  if [ -n "$serie" ]; then
+    start -a android.intent.action.VIEW -d "$serie" -n de.overlord.tv/.BrowserActivity
+    shot "$n-$name-serie" 18; n=$((n+1))
+    key KEYCODE_DPAD_DOWN;                  shot "$n-$name-serie-2" 3; n=$((n+1))
+  fi
+  if [ -n "$folge" ]; then
+    start -a android.intent.action.VIEW -d "$folge" -n de.overlord.tv/.BrowserActivity
+    shot "$n-$name-folge" 16; n=$((n+1))
+    key KEYCODE_DPAD_CENTER;                shot "$n-$name-kino" 16; n=$((n+1))
+    key KEYCODE_BACK;                       shot "$n-$name-zurueck" 5; n=$((n+1))
+  fi
 done
+timeout 20 adb shell am force-stop de.overlord.tv < /dev/null
 
 # Suche und Handy-Fernbedienung
 start -n de.overlord.tv/.MainActivity --es open_search "Expedition"
@@ -105,7 +119,7 @@ key KEYCODE_DPAD_DOWN;                      shot 22-jellyfin-reihen 6
 
 pkill -f "serve.py demo" || true
 echo "===== ERKENNUNG (Video-Ansicht) ====="
-timeout 30 adb logcat -d -v brief -s OverlordVV:I | grep -v "zwischen" | tail -n 80
+timeout 30 adb logcat -d -v brief -s OverlordVV:I | grep -v "zwischen" | tail -n 160
 echo "===== LOGCAT (Fehler) ====="
 timeout 30 adb logcat -d -v brief AndroidRuntime:E System.err:W '*:S' | tail -n 120
 ls -la shots

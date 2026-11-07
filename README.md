@@ -84,6 +84,9 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - **Autostart:** Overlord TV startet beim Einschalten des Fire TV automatisch
   (ab Android 10 / Fire OS 8 mit der Berechtigung „Über anderen Apps einblenden“).
 - **Werbeblocker-Statistik:** wie viele Werbe-Anfragen heute blockiert wurden.
+- **Cookie-Hinweise:** Einwilligungs-Dialoge („Cookies erlauben?“) werden automatisch beantwortet –
+  standardmäßig **abgelehnt** (nur notwendige Cookies), wahlweise *zustimmen* oder *nicht anfassen*.
+  Funktioniert auch bei Dialogen in iframes und im Shadow-DOM; danach liest die Video-Ansicht die Seite neu aus.
 - **Verlauf leeren**, **Weiterschauen leeren**, **feste Kacheln wiederherstellen**.
 
 ### Suche
@@ -99,8 +102,13 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - **Folge wählen → Kino-Modus:** Die Folgenseite wird im Hintergrund geöffnet, der Player (auch in eingebetteten
   iframes) bildschirmfüllend gezogen und automatisch gestartet. Player-Leiste, Spulen, „Nächste Folge“,
   automatisches Intro-Überspringen und Weiterschauen funktionieren wie gewohnt.
+- Auch **Player, die erst nach einem Klick entstehen** (Vorschaubild mit Play-Knopf, wie in vielen Mediatheken),
+  werden erkannt: Overlord tippt den Knopf echt an und zieht das entstehende Video bildschirmfüllend.
+  Player im **Shadow-DOM** werden ebenfalls gefunden; stumme Hintergrund-Videos gelten nicht als Player.
+- Nachladende Karten (Bild noch nicht geladen) bleiben in ihrer Reihe; Seiten mit eigenem Scroll-Bereich und
+  waagerechte Karussells werden beim Vorladen mit durchgescrollt.
 - **Zurück** führt aus dem Kino-Modus zurück zur Übersicht – sofort, aus dem Zwischenspeicher, auf die zuletzt
-  gewählte Karte. ⏯ spielt die gewählte Karte ab.
+  gewählte Karte (wurde die Folge direkt geöffnet, zur Übersicht dieser Folge). ⏯ spielt die gewählte Karte ab.
 - „Webseite anzeigen“ (oben rechts oder in der Reihe *Diese Seite*) zeigt bei Bedarf die ganze Seite – z. B. für
   Anmeldung oder Cookie-Hinweise. Mit Zurück geht es wieder in die Video-Ansicht.
 - „Suchen“ schickt einen Begriff an die Suche der Seite; die Treffer erscheinen wieder als Karten.

@@ -31,6 +31,17 @@ object Prefs {
         get() = p.getInt("theme", 0)
         set(v) { p.edit().putInt("theme", v).apply() }
 
+    /** Cookie-Hinweise auf Webseiten automatisch beantworten: "reject" (ablehnen), "accept" (zustimmen) oder "off". */
+    var consent: String
+        get() = p.getString("consent", "reject") ?: "reject"
+        set(v) { p.edit().putString("consent", v).apply() }
+
+    fun consentLabel(v: String = consent) = when (v) {
+        "accept" -> "Automatisch zustimmen"
+        "off" -> "Nicht anfassen"
+        else -> "Automatisch ablehnen"
+    }
+
     /** Am Ende eines Videos automatisch die nächste Folge starten (mit Countdown). */
     var autoNext: Boolean
         get() = p.getBoolean("autoNext", true)
