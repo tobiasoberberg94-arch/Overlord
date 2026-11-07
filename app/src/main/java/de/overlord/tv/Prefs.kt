@@ -11,6 +11,11 @@ object Prefs {
         get() = p.getBoolean("autoSkip", true)
         set(v) { p.edit().putBoolean("autoSkip", v).apply() }
 
+    /** Overlord nach dem Einschalten des Geräts automatisch starten. */
+    var autostart: Boolean
+        get() = p.getBoolean("autostart", false)
+        set(v) { p.edit().putBoolean("autostart", v).apply() }
+
     /** Gewähltes Farbthema (Index in Brand.THEMES). */
     var theme: Int
         get() = p.getInt("theme", 0)

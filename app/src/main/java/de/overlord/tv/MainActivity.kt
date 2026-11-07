@@ -394,6 +394,13 @@ class MainActivity : Activity() {
             },
         ),
         CardItem(
+            id = "autostart", title = "Autostart", iconRes = R.drawable.ic_tv, color = 0xFF0E7490.toInt(),
+            eyebrow = "EINSTELLUNGEN", chips = listOf(if (Prefs.autostart) "An" else "Aus"),
+            description = "Overlord TV startet automatisch, wenn der Fernseher eingeschaltet wird.",
+            okHint = if (Prefs.autostart) "Ausschalten" else "Einschalten",
+            onClick = { toggleAutostart() },
+        ),
+        CardItem(
             id = "keys", title = "Tastenbelegung", iconRes = R.drawable.ic_keyboard, color = 0xFF334155.toInt(),
             eyebrow = "HILFE", chips = listOf("Fernbedienung", "Browser", "Player"),
             description = "Alle Tasten für Startseite, Browser und Player auf einen Blick.",
@@ -443,6 +450,27 @@ class MainActivity : Activity() {
             },
         ),
     )
+
+    private fun toggleAutostart() {
+        if (Prefs.autostart) {
+            Prefs.autostart = false
+            tvToast("Autostart aus", R.drawable.ic_tv)
+            refresh("autostart")
+            return
+        }
+        Prefs.autostart = true
+        // Ab Android 10 dürfen Apps nur mit „Über anderen Apps einblenden“ aus dem Hintergrund starten
+        if (android.os.Build.VERSION.SDK_INT >= 29 && !android.provider.Settings.canDrawOverlays(this)) {
+            Tv.confirm(this, "Berechtigung nötig", "Damit Overlord beim Einschalten starten darf, erlaube im nächsten Schritt „Über anderen Apps einblenden“.", "Einstellungen öffnen", icon = R.drawable.ic_shield) {
+                try {
+                    startActivity(Intent(android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION, android.net.Uri.parse("package:$packageName")))
+                } catch (e: Exception) {
+                    tvToast("Einstellung auf diesem Gerät nicht verfügbar", R.drawable.ic_warning)
+                }
+            }
+        } else tvToast("Autostart an", R.drawable.ic_check)
+        refresh("autostart")
+    }
 
     // ---------------------------------------------------------------- Kacheln bearbeiten
 

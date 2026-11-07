@@ -80,6 +80,12 @@ Alles lässt sich mit der Fire-TV-Fernbedienung bedienen, ein Touchscreen ist ni
 - *Einstellungen → Design*: Akzentfarben wählen (Overlord, Ozean, Rubin, Smaragd, Sonne, Mitternacht) –
   gilt auch für die Link-Markierung im Browser.
 
+### Weitere Einstellungen
+- **Autostart:** Overlord TV startet beim Einschalten des Fire TV automatisch
+  (ab Android 10 / Fire OS 8 mit der Berechtigung „Über anderen Apps einblenden“).
+- **Werbeblocker-Statistik:** wie viele Werbe-Anfragen heute blockiert wurden.
+- **Verlauf leeren**, **Weiterschauen leeren**, **feste Kacheln wiederherstellen**.
+
 ### Suche
 - **Globale Suche** über *Suchen* in der Kopfzeile, die Suchtaste oder vom Handy:
   findet passende Kacheln, Weiterschauen-Einträge und Jellyfin-Titel – und schickt den Begriff auf Wunsch

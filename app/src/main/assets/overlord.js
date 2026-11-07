@@ -51,6 +51,9 @@
     try { if (arg === undefined) B[name](); else B[name](arg); } catch (e) {}
   }
 
+  // Manche Player verlangen ein „window.chrome“-Objekt, das der Android-WebView fehlt
+  try { if (!W.chrome) W.chrome = { runtime: {}, app: { isInstalled: false }, csi: function () {}, loadTimes: function () {} }; } catch (e) {}
+
   ['mousedown', 'pointerdown', 'touchstart', 'keydown', 'click'].forEach(function (t) {
     W.addEventListener(t, function (e) { if (e.isTrusted !== false) lastGesture = now(); }, true);
   });
