@@ -1126,6 +1126,20 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
         ui.postDelayed({ runExtract(token, url, final = true) }, if (prefetch) 8500 else 5500)
     }
 
+    /** Kurzes Protokoll der Erkennung (adb logcat -s OverlordVV) – hilft beim Verbessern für neue Seiten. */
+    private fun logExtract(url: String, o: JSONObject, final: Boolean) {
+        try {
+            val secs = jsonItems(o.optJSONArray("sections")).joinToString(" | ") { s -> "${s.optString("title").ifBlank { "–" }} (${s.optJSONArray("items")?.length() ?: 0})" }
+            val eps = o.optJSONArray("episodes")?.length() ?: 0
+            val firstEp = jsonItems(o.optJSONArray("episodes")).firstOrNull()?.optString("title") ?: ""
+            val seasons = jsonItems(o.optJSONArray("seasons")).joinToString(", ") { it.optString("title") + (if (it.optBoolean("active")) "*" else "") }
+            val srcs = jsonItems(o.optJSONArray("sources")).joinToString(", ") { it.optString("label") }
+            val player = o.optJSONObject("player")?.optString("tag") ?: "-"
+            android.util.Log.i("OverlordVV", "${if (final) "FINAL" else "zwischen"} url=$url | titel=${o.optString("title")} | player=$player | " +
+                "next=${o.optString("next").isNotBlank()} | reihen=[$secs] | folgen=$eps ($firstEp) | staffeln=[$seasons] | versionen=[$srcs]")
+        } catch (e: Exception) { }
+    }
+
     /** Reihen-Inhalte einer Auslese: Bildreihen, Folgen, Staffeln. */
     private fun contentCount(o: JSONObject?): Int {
         if (o == null) return 0
@@ -1155,6 +1169,7 @@ a.s{background:rgba(255,255,255,.12)}</style></head><body><div class="c"><div cl
             if (prevRendered != null && count <= prevRendered && overlayVisible && !cinema) return@js
             if (count < (extractCache[key]?.let { itemCount(it) } ?: 0)) return@js
             extractCache[key] = o
+            logExtract(url, o, final)
             val sections = contentCount(o)
             val hasPlayer = o.optJSONObject("player") != null
             when {

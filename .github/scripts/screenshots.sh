@@ -77,6 +77,19 @@ shot 28-videoansicht-arte 16
 key KEYCODE_DPAD_DOWN;                      shot 29-videoansicht-arte-2 4
 key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
 
+# Echte legale Serien-Seiten: Übersicht → erste Karte (Serie) → erste Karte (Folge) → Kino-Modus
+n=40
+for site in "zdf|https://www.zdf.de/serien" "ard|https://www.ardmediathek.de/serien" "arte|https://www.arte.tv/de/videos/serien-und-fiktion/"; do
+  name="${site%%|*}"; url="${site#*|}"
+  start -a android.intent.action.VIEW -d "$url" -n de.overlord.tv/.BrowserActivity --ez video true
+  shot "$n-$name-uebersicht" 16; n=$((n+1))
+  key KEYCODE_DPAD_CENTER;                  shot "$n-$name-serie" 16; n=$((n+1))
+  key KEYCODE_DPAD_DOWN;                    shot "$n-$name-serie-2" 3; n=$((n+1))
+  key KEYCODE_DPAD_UP KEYCODE_DPAD_CENTER;  shot "$n-$name-folge" 18; n=$((n+1))
+  key KEYCODE_BACK;                         shot "$n-$name-zurueck" 5; n=$((n+1))
+  key KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK KEYCODE_BACK
+done
+
 # Suche und Handy-Fernbedienung
 start -n de.overlord.tv/.MainActivity --es open_search "Expedition"
 shot 19-suche 8
@@ -91,6 +104,8 @@ shot 21-jellyfin 25
 key KEYCODE_DPAD_DOWN;                      shot 22-jellyfin-reihen 6
 
 pkill -f "serve.py demo" || true
+echo "===== ERKENNUNG (Video-Ansicht) ====="
+timeout 30 adb logcat -d -v brief -s OverlordVV:I | grep -v "zwischen" | tail -n 80
 echo "===== LOGCAT (Fehler) ====="
 timeout 30 adb logcat -d -v brief AndroidRuntime:E System.err:W '*:S' | tail -n 120
 ls -la shots
